@@ -225,6 +225,16 @@ struct ReturnGoodsDetailView: View {
     
     private func processReturn(quantity: Int, notes: String?) {
         if item.processReturn(quantity: quantity, notes: notes) {
+            // Log the return processing
+            AuditingService.shared.logReturnProcessing(
+                item: item,
+                returnQuantity: quantity,
+                returnNotes: notes,
+                operatorUserId: "demo_user", // TODO: Get from authentication service
+                operatorUserName: "演示用户", // TODO: Get from authentication service
+                modelContext: modelContext
+            )
+            
             do {
                 try modelContext.save()
             } catch {

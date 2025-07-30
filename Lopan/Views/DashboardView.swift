@@ -200,6 +200,15 @@ struct SalespersonDashboardView: View {
                             color: .green
                         )
                     }
+                    
+                    NavigationLink(destination: HistoricalBacktrackingView()) {
+                        DashboardCard(
+                            title: "历史回溯",
+                            subtitle: "查看用户操作记录和历史变更",
+                            icon: "clock.arrow.circlepath",
+                            color: .indigo
+                        )
+                    }
                 }
                 .padding(.horizontal)
                 

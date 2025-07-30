@@ -371,6 +371,33 @@ struct CustomerOutOfStockListView: View {
     private func deleteSelectedItems() {
         let itemsToDelete = outOfStockItems.filter { selectedItems.contains($0.id) }
         
+        // Log batch deletion before deleting
+        if !itemsToDelete.isEmpty {
+            let affectedItemIds = itemsToDelete.map { $0.id }
+            let entityDescriptions = itemsToDelete.map { "\($0.customer?.name ?? "未知客户") - \($0.productDisplayName)" }
+            
+            AuditingService.shared.logBatchOperation(
+                operationType: .batchDelete,
+                entityType: .customerOutOfStock,
+                affectedItems: affectedItemIds,
+                entityDescriptions: entityDescriptions,
+                changeDetails: ["deletionReason": "批量删除"],
+                operatorUserId: "demo_user", // TODO: Get from current user
+                operatorUserName: "演示用户", // TODO: Get from current user
+                modelContext: modelContext
+            )
+            
+            // Log individual deletions
+            for item in itemsToDelete {
+                AuditingService.shared.logCustomerOutOfStockDeletion(
+                    item: item,
+                    operatorUserId: "demo_user", // TODO: Get from current user
+                    operatorUserName: "演示用户", // TODO: Get from current user
+                    modelContext: modelContext
+                )
+            }
+        }
+        
         for item in itemsToDelete {
             modelContext.delete(item)
         }
@@ -387,6 +414,40 @@ struct CustomerOutOfStockListView: View {
     
     private func updateBatchStatus(_ newStatus: OutOfStockStatus) {
         let itemsToUpdate = outOfStockItems.filter { selectedItems.contains($0.id) }
+        
+        // Log batch status update before updating
+        if !itemsToUpdate.isEmpty {
+            let affectedItemIds = itemsToUpdate.map { $0.id }
+            let entityDescriptions = itemsToUpdate.map { "\($0.customer?.name ?? "未知客户") - \($0.productDisplayName)" }
+            
+            AuditingService.shared.logBatchOperation(
+                operationType: .batchUpdate,
+                entityType: .customerOutOfStock,
+                affectedItems: affectedItemIds,
+                entityDescriptions: entityDescriptions,
+                changeDetails: [
+                    "updateType": "status",
+                    "newStatus": newStatus.displayName,
+                    "batchSize": itemsToUpdate.count
+                ],
+                operatorUserId: "demo_user", // TODO: Get from current user
+                operatorUserName: "演示用户", // TODO: Get from current user
+                modelContext: modelContext
+            )
+            
+            // Log individual status changes
+            for item in itemsToUpdate {
+                let oldStatus = item.status
+                AuditingService.shared.logCustomerOutOfStockStatusChange(
+                    item: item,
+                    fromStatus: oldStatus,
+                    toStatus: newStatus,
+                    operatorUserId: "demo_user", // TODO: Get from current user
+                    operatorUserName: "演示用户", // TODO: Get from current user
+                    modelContext: modelContext
+                )
+            }
+        }
         
         for item in itemsToUpdate {
             item.status = newStatus
@@ -406,6 +467,27 @@ struct CustomerOutOfStockListView: View {
     private func updateBatchPriority(_ newPriority: OutOfStockPriority) {
         let itemsToUpdate = outOfStockItems.filter { selectedItems.contains($0.id) }
         
+        // Log batch priority update before updating
+        if !itemsToUpdate.isEmpty {
+            let affectedItemIds = itemsToUpdate.map { $0.id }
+            let entityDescriptions = itemsToUpdate.map { "\($0.customer?.name ?? "未知客户") - \($0.productDisplayName)" }
+            
+            AuditingService.shared.logBatchOperation(
+                operationType: .batchUpdate,
+                entityType: .customerOutOfStock,
+                affectedItems: affectedItemIds,
+                entityDescriptions: entityDescriptions,
+                changeDetails: [
+                    "updateType": "priority",
+                    "newPriority": newPriority.displayName,
+                    "itemCount": itemsToUpdate.count
+                ],
+                operatorUserId: "demo_user", // TODO: Get from current user
+                operatorUserName: "演示用户", // TODO: Get from current user
+                modelContext: modelContext
+            )
+        }
+        
         for item in itemsToUpdate {
             item.priority = newPriority
             item.updatedAt = Date()
@@ -422,7 +504,14 @@ struct CustomerOutOfStockListView: View {
     }
     
     private func confirmDeleteItems() {
+        // Log deletion for each item before deleting
         for item in itemsToDelete {
+            AuditingService.shared.logCustomerOutOfStockDeletion(
+                item: item,
+                operatorUserId: "demo_user", // TODO: Get from authentication service
+                operatorUserName: "演示用户", // TODO: Get from authentication service
+                modelContext: modelContext
+            )
             modelContext.delete(item)
         }
         
@@ -728,6 +817,14 @@ struct AddCustomerOutOfStockView: View {
         )
         
         modelContext.insert(item)
+        
+        // Log the creation
+        AuditingService.shared.logCustomerOutOfStockCreation(
+            item: item,
+            operatorUserId: "demo_user", // TODO: Get from authentication service
+            operatorUserName: "演示用户", // TODO: Get from authentication service
+            modelContext: modelContext
+        )
         
         do {
             try modelContext.save()
@@ -1458,6 +1555,42 @@ struct EditCustomerOutOfStockView: View {
     }
     
     private func saveChanges() {
+        // Capture values before update for audit log
+        let beforeValues = CustomerOutOfStockOperation.CustomerOutOfStockValues(
+            customerName: item.customer?.name,
+            productName: item.product?.name,
+            quantity: item.quantity,
+            priority: item.priority.displayName,
+            status: item.status.displayName,
+            notes: item.notes,
+            returnQuantity: item.returnQuantity,
+            returnNotes: item.returnNotes
+        )
+        
+        // Track which fields changed
+        var changedFields: [String] = []
+        
+        if item.customer?.id != selectedCustomer?.id {
+            changedFields.append("customer")
+        }
+        if item.product?.id != selectedProduct?.id {
+            changedFields.append("product")
+        }
+        if item.productSize != selectedProductSize {
+            changedFields.append("productSize")
+        }
+        if let newQuantity = Int(quantity), newQuantity != item.quantity {
+            changedFields.append("quantity")
+        }
+        if item.priority != priority {
+            changedFields.append("priority")
+        }
+        let newNotes = notes.isEmpty ? nil : notes
+        if item.notes != newNotes {
+            changedFields.append("notes")
+        }
+        
+        // Apply changes
         item.customer = selectedCustomer
         item.product = selectedProduct
         item.productSize = selectedProductSize
@@ -1466,6 +1599,19 @@ struct EditCustomerOutOfStockView: View {
         // Note: Status is no longer user-editable, managed by system
         item.notes = notes.isEmpty ? nil : notes
         item.updatedAt = Date()
+        
+        // Log the update if any fields changed
+        if !changedFields.isEmpty {
+            AuditingService.shared.logCustomerOutOfStockUpdate(
+                item: item,
+                beforeValues: beforeValues,
+                changedFields: changedFields,
+                operatorUserId: "demo_user", // TODO: Get from authentication service
+                operatorUserName: "演示用户", // TODO: Get from authentication service
+                modelContext: modelContext,
+                additionalInfo: "字段更新: \(changedFields.joined(separator: ", "))"
+            )
+        }
         
         do {
             try modelContext.save()

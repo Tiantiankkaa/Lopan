@@ -485,6 +485,16 @@ struct ReturnGoodsManagementView: View {
     private func processReturnBatch(_ processedItems: [(CustomerOutOfStock, Int, String?)]) {
         for (item, quantity, notes) in processedItems {
             _ = item.processReturn(quantity: quantity, notes: notes)
+            
+            // Log each return processing
+            AuditingService.shared.logReturnProcessing(
+                item: item,
+                returnQuantity: quantity,
+                returnNotes: notes,
+                operatorUserId: "demo_user", // TODO: Get from authentication service
+                operatorUserName: "演示用户", // TODO: Get from authentication service
+                modelContext: modelContext
+            )
         }
         
         do {
