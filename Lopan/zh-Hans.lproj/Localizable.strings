@@ -1,0 +1,113 @@
+/* User Roles */
+"salesperson" = "销售员";
+"warehouse_keeper" = "仓库管理员";
+"workshop_manager" = "车间经理";
+"eva_granulation_technician" = "EVA造粒技术员";
+"workshop_technician" = "车间技术员";
+"administrator" = "管理员";
+"unauthorized" = "未授权";
+
+/* Dashboard Titles */
+"salesperson_dashboard" = "销售员工作台";
+"warehouse_keeper_dashboard" = "仓库管理员工作台";
+"workshop_manager_dashboard" = "车间经理工作台";
+"eva_granulation_dashboard" = "EVA造粒技术员工作台";
+"workshop_technician_dashboard" = "车间技术员工作台";
+"administrator_dashboard" = "管理员工作台";
+
+/* Dashboard Cards */
+"customer_out_of_stock_management" = "客户缺货管理";
+"customer_out_of_stock_management_subtitle" = "查看、添加、修改客户缺货记录";
+"customer_management" = "客户管理";
+"customer_management_subtitle" = "添加、编辑、查看客户信息";
+"product_management" = "产品管理";
+"product_management_subtitle" = "添加、编辑、查看产品信息";
+"out_of_stock_analytics" = "缺货分析";
+"out_of_stock_analytics_subtitle" = "查看缺货数据和统计";
+
+"production_style_management" = "生产款式管理";
+"production_style_management_subtitle" = "管理日常生产款式";
+"warehouse_status" = "入库状态";
+"warehouse_status_subtitle" = "查看和管理入库状态";
+
+"production_management" = "生产管理";
+"production_management_subtitle" = "管理车间生产状态";
+"machine_status" = "设备状态";
+"machine_status_subtitle" = "查看设备运行状态";
+
+"granulation_records" = "造粒记录";
+"granulation_records_subtitle" = "记录每日造粒数据";
+"raw_material_management" = "原材料管理";
+"raw_material_management_subtitle" = "管理原材料消耗";
+
+"issue_reports" = "问题报告";
+"issue_reports_subtitle" = "报告生产问题";
+"machine_maintenance" = "设备维护";
+"machine_maintenance_subtitle" = "管理设备维护记录";
+
+"user_management" = "用户管理";
+"user_management_subtitle" = "管理用户和角色";
+"system_overview" = "系统概览";
+"system_overview_subtitle" = "查看系统整体状态";
+"out_of_stock_management" = "缺货管理";
+"out_of_stock_management_subtitle" = "查看所有缺货记录";
+"production_overview" = "生产概览";
+"production_overview_subtitle" = "查看生产状态";
+
+/* Unauthorized View */
+"unauthorized_access" = "未授权访问";
+"unauthorized_message" = "您的账户尚未获得授权，请联系管理员分配角色。";
+"current_user_info" = "当前用户信息：";
+"name" = "姓名：";
+"wechat_id" = "微信ID：";
+"registration_time" = "注册时间：";
+"logout" = "退出登录";
+
+/* Statistics */
+"customers" = "客户";
+"products" = "产品";
+
+/* Common Actions */
+"add" = "添加";
+"edit" = "编辑";
+"delete" = "删除";
+"save" = "保存";
+"cancel" = "取消";
+"confirm" = "确认";
+"search" = "搜索";
+"filter" = "筛选";
+"export" = "导出";
+"import" = "导入";
+
+/* Demo Login */
+"demo_login" = "演示登录";
+"select_role" = "选择角色";
+
+/* Return Goods Management */
+"return_goods_management" = "还货管理";
+"return_goods_management_subtitle" = "处理客户还货请求";
+"return_quantity" = "还货数量";
+"remaining_quantity" = "剩余数量";
+"returned_quantity" = "已还数量";
+"return_date" = "还货日期";
+"return_notes" = "还货备注";
+"process_return" = "处理还货";
+"batch_return" = "批量还货";
+"return_confirmation" = "还货确认";
+"needs_return" = "需要还货";
+"partially_returned" = "部分还货";
+"fully_returned" = "已全部还货";
+"return_status" = "还货状态";
+"export_return_orders" = "导出还货单";
+"process_selected_returns" = "处理选中还货";
+"return_processing" = "还货处理";
+"max_return_quantity" = "最大还货数量";
+"invalid_return_quantity" = "无效的还货数量";
+"return_success" = "还货处理成功";
+"return_failed" = "还货处理失败";
+"customers_needing_returns" = "需还货客户";
+"filter_by_return_status" = "按还货状态筛选";
+"all_return_status" = "全部还货状态";
+"pending_return" = "待还货";
+"partial_return" = "部分还货";
+"completed_return" = "还货完成";

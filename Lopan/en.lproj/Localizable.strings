@@ -1,0 +1,113 @@
+/* User Roles */
+"salesperson" = "Salesperson";
+"warehouse_keeper" = "Warehouse Keeper";
+"workshop_manager" = "Workshop Manager";
+"eva_granulation_technician" = "EVA Granulation Technician";
+"workshop_technician" = "Workshop Technician";
+"administrator" = "Administrator";
+"unauthorized" = "Unauthorized";
+
+/* Dashboard Titles */
+"salesperson_dashboard" = "Salesperson Dashboard";
+"warehouse_keeper_dashboard" = "Warehouse Keeper Dashboard";
+"workshop_manager_dashboard" = "Workshop Manager Dashboard";
+"eva_granulation_dashboard" = "EVA Granulation Dashboard";
+"workshop_technician_dashboard" = "Workshop Technician Dashboard";
+"administrator_dashboard" = "Administrator Dashboard";
+
+/* Dashboard Cards */
+"customer_out_of_stock_management" = "Customer Out of Stock";
+"customer_out_of_stock_management_subtitle" = "View, add, and modify out-of-stock records";
+"customer_management" = "Customer Management";
+"customer_management_subtitle" = "Add, edit, and view customer information";
+"product_management" = "Product Management";
+"product_management_subtitle" = "Add, edit, and view product information";
+"out_of_stock_analytics" = "Out of Stock Analytics";
+"out_of_stock_analytics_subtitle" = "View out-of-stock data and statistics";
+
+"production_style_management" = "Production Style Management";
+"production_style_management_subtitle" = "Manage daily production styles";
+"warehouse_status" = "Warehouse Status";
+"warehouse_status_subtitle" = "View and manage warehouse status";
+
+"production_management" = "Production Management";
+"production_management_subtitle" = "Manage workshop production status";
+"machine_status" = "Machine Status";
+"machine_status_subtitle" = "View machine operating status";
+
+"granulation_records" = "Granulation Records";
+"granulation_records_subtitle" = "Record daily granulation data";
+"raw_material_management" = "Raw Material Management";
+"raw_material_management_subtitle" = "Manage raw material consumption";
+
+"issue_reports" = "Issue Reports";
+"issue_reports_subtitle" = "Report production issues";
+"machine_maintenance" = "Machine Maintenance";
+"machine_maintenance_subtitle" = "Manage machine maintenance records";
+
+"user_management" = "User Management";
+"user_management_subtitle" = "Manage users and roles";
+"system_overview" = "System Overview";
+"system_overview_subtitle" = "View overall system status";
+"out_of_stock_management" = "Out of Stock Management";
+"out_of_stock_management_subtitle" = "View all out-of-stock records";
+"production_overview" = "Production Overview";
+"production_overview_subtitle" = "View production status";
+
+/* Unauthorized View */
+"unauthorized_access" = "Unauthorized Access";
+"unauthorized_message" = "Your account has not been authorized. Please contact an administrator to assign a role.";
+"current_user_info" = "Current User Information:";
+"name" = "Name:";
+"wechat_id" = "WeChat ID:";
+"registration_time" = "Registration Time:";
+"logout" = "Logout";
+
+/* Statistics */
+"customers" = "Customers";
+"products" = "Products";
+
+/* Common Actions */
+"add" = "Add";
+"edit" = "Edit";
+"delete" = "Delete";
+"save" = "Save";
+"cancel" = "Cancel";
+"confirm" = "Confirm";
+"search" = "Search";
+"filter" = "Filter";
+"export" = "Export";
+"import" = "Import";
+
+/* Demo Login */
+"demo_login" = "Demo Login";
+"select_role" = "Select Role";
+
+/* Return Goods Management */
+"return_goods_management" = "Return Goods Management";
+"return_goods_management_subtitle" = "Process customer return requests";
+"return_quantity" = "Return Quantity";
+"remaining_quantity" = "Remaining Quantity";
+"returned_quantity" = "Returned Quantity";
+"return_date" = "Return Date";
+"return_notes" = "Return Notes";
+"process_return" = "Process Return";
+"batch_return" = "Batch Return";
+"return_confirmation" = "Return Confirmation";
+"needs_return" = "Needs Return";
+"partially_returned" = "Partially Returned";
+"fully_returned" = "Fully Returned";
+"return_status" = "Return Status";
+"export_return_orders" = "Export Return Orders";
+"process_selected_returns" = "Process Selected Returns";
+"return_processing" = "Return Processing";
+"max_return_quantity" = "Max Return Quantity";
+"invalid_return_quantity" = "Invalid Return Quantity";
+"return_success" = "Return Processed Successfully";
+"return_failed" = "Return Processing Failed";
+"customers_needing_returns" = "Customers Needing Returns";
+"filter_by_return_status" = "Filter by Return Status";
+"all_return_status" = "All Return Status";
+"pending_return" = "Pending Return";
+"partial_return" = "Partial Return";
+"completed_return" = "Completed Return";
