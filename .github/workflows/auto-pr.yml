@@ -1,0 +1,24 @@
+name: Auto PR & Merge
+
+on:
+  push:
+    branches:
+      - ui-updates
+      - core-fixes
+      - config-changes
+
+jobs:
+  create-pr:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Create or Update PR
+        uses: repo-sync/pull-request@v2
+        with:
+          github_token: ${{ secrets.GITHUB_TOKEN }}
+          source_branch: ${{ github.ref_name }}
+          destination_branch: main
+          pr_title: "Auto PR from ${{ github.ref_name }}"
+          pr_body: "Claude Code 自动生成的 Pull Request"
+          pr_label: auto-review
