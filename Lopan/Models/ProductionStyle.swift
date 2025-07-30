@@ -44,11 +44,13 @@ final class ProductionStyle {
     var completionDate: Date?
     var warehouseDate: Date?
     var notes: String?
+    var productId: String? // Reference to source Product
+    var productSizeId: String? // Reference to specific ProductSize
     var createdBy: String // User ID
     var createdAt: Date
     var updatedAt: Date
     
-    init(styleCode: String, styleName: String, color: String, size: String, quantity: Int, productionDate: Date, notes: String? = nil, createdBy: String) {
+    init(styleCode: String, styleName: String, color: String, size: String, quantity: Int, productionDate: Date, notes: String? = nil, productId: String? = nil, productSizeId: String? = nil, createdBy: String) {
         self.id = UUID().uuidString
         self.styleCode = styleCode
         self.styleName = styleName
@@ -58,8 +60,27 @@ final class ProductionStyle {
         self.status = .planning
         self.productionDate = productionDate
         self.notes = notes
+        self.productId = productId
+        self.productSizeId = productSizeId
         self.createdBy = createdBy
         self.createdAt = Date()
         self.updatedAt = Date()
+    }
+    
+    // Helper method to create from Product and ProductSize
+    static func fromProduct(_ product: Product, size: ProductSize, color: String, quantity: Int, productionDate: Date, createdBy: String) -> ProductionStyle {
+        let styleCode = "\(product.name.prefix(2).uppercased())\(String(format: "%03d", Int.random(in: 1...999)))"
+        
+        return ProductionStyle(
+            styleCode: styleCode,
+            styleName: product.name,
+            color: color,
+            size: size.size,
+            quantity: quantity,
+            productionDate: productionDate,
+            productId: product.id,
+            productSizeId: size.id,
+            createdBy: createdBy
+        )
     }
 } 

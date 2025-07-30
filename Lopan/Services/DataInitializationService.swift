@@ -36,6 +36,15 @@ class DataInitializationService {
                 // Initialize sample users with multiple roles
                 initializeSampleUsers(modelContext: modelContext)
                 
+                // Initialize sample production styles
+                initializeSampleProductionStyles(modelContext: modelContext)
+                
+                // Initialize sample packaging teams
+                initializeSamplePackagingTeams(modelContext: modelContext)
+                
+                // Initialize sample packaging records
+                initializeSamplePackagingRecords(modelContext: modelContext)
+                
                 try modelContext.save()
                 print("✅ Sample data initialized successfully")
             } else {
@@ -53,6 +62,9 @@ class DataInitializationService {
     static func clearAllData(modelContext: ModelContext) {
         do {
             // Clear all data
+            try modelContext.delete(model: PackagingRecord.self)
+            try modelContext.delete(model: PackagingTeam.self)
+            try modelContext.delete(model: ProductionStyle.self)
             try modelContext.delete(model: CustomerOutOfStock.self)
             try modelContext.delete(model: ProductSize.self)
             try modelContext.delete(model: Product.self)
@@ -239,6 +251,277 @@ class DataInitializationService {
             }
         } catch {
             print("❌ Error creating sample users: \(error)")
+        }
+    }
+    
+    private static func initializeSampleProductionStyles(modelContext: ModelContext) {
+        do {
+            let productDescriptor = FetchDescriptor<Product>()
+            let products = try modelContext.fetch(productDescriptor)
+            
+            guard !products.isEmpty else {
+                print("⚠️ No products available for production styles")
+                return
+            }
+            
+            var productionStyles: [ProductionStyle] = []
+            
+            // Create production styles from existing products
+            for product in products.prefix(5) { // Use first 5 products
+                guard let sizes = product.sizes, !sizes.isEmpty,
+                      !product.colors.isEmpty else { continue }
+                
+                // Create 1-2 styles per product with different colors and sizes
+                let numStyles = Int.random(in: 1...2)
+                
+                for i in 0..<numStyles {
+                    let randomColor = product.colors.randomElement() ?? "默认色"
+                    let randomSize = sizes.randomElement()!
+                    let quantity = Int.random(in: 50...200)
+                    
+                    let style = ProductionStyle.fromProduct(
+                        product,
+                        size: randomSize,
+                        color: randomColor,
+                        quantity: quantity,
+                        productionDate: Date(),
+                        createdBy: "admin_001"
+                    )
+                    
+                    // Set random status for variety
+                    switch i {
+                    case 0:
+                        style.status = .inProduction
+                    case 1:
+                        style.status = .completed
+                    default:
+                        style.status = .planning
+                    }
+                    
+                    productionStyles.append(style)
+                }
+            }
+            
+            // Add some manual styles for consistency with packaging records
+            let manualStyles = [
+                ProductionStyle(styleCode: "TS001", styleName: "经典圆领T恤", color: "白色", size: "M", quantity: 100, productionDate: Date(), createdBy: "admin_001"),
+                ProductionStyle(styleCode: "TS002", styleName: "经典圆领T恤", color: "黑色", size: "L", quantity: 150, productionDate: Date(), createdBy: "admin_001"),
+                ProductionStyle(styleCode: "JS001", styleName: "直筒牛仔裤", color: "深蓝色", size: "32", quantity: 80, productionDate: Date(), createdBy: "admin_001"),
+                ProductionStyle(styleCode: "JS002", styleName: "直筒牛仔裤", color: "浅蓝色", size: "34", quantity: 90, productionDate: Date(), createdBy: "admin_001"),
+                ProductionStyle(styleCode: "HD001", styleName: "连帽卫衣", color: "灰色", size: "XL", quantity: 60, productionDate: Date(), createdBy: "admin_001"),
+                ProductionStyle(styleCode: "HD002", styleName: "连帽卫衣", color: "黑色", size: "L", quantity: 70, productionDate: Date(), createdBy: "admin_001"),
+                ProductionStyle(styleCode: "DR001", styleName: "连衣裙", color: "红色", size: "S", quantity: 40, productionDate: Date(), createdBy: "admin_001"),
+                ProductionStyle(styleCode: "SH001", styleName: "运动鞋", color: "白色", size: "40", quantity: 50, productionDate: Date(), createdBy: "admin_001")
+            ]
+            
+            productionStyles.append(contentsOf: manualStyles)
+            
+            for style in productionStyles {
+                modelContext.insert(style)
+            }
+            
+            print("✅ Initialized \(productionStyles.count) sample production styles")
+        } catch {
+            print("❌ Error creating production styles: \(error)")
+        }
+    }
+    
+    private static func initializeSamplePackagingTeams(modelContext: ModelContext) {
+        do {
+            let productDescriptor = FetchDescriptor<Product>()
+            let products = try modelContext.fetch(productDescriptor)
+            
+            // Get product IDs for team specializations
+            let tshirtId = products.first { $0.name.contains("T恤") }?.id ?? ""
+            let hoodieId = products.first { $0.name.contains("卫衣") }?.id ?? ""
+            let jeansId = products.first { $0.name.contains("牛仔裤") }?.id ?? ""
+            let dressId = products.first { $0.name.contains("连衣裙") }?.id ?? ""
+            let shoesId = products.first { $0.name.contains("运动鞋") }?.id ?? ""
+            
+            let packagingTeams = [
+                PackagingTeam(
+                    teamName: "A组包装团队",
+                    teamLeader: "张队长",
+                    members: ["小王", "小李", "小陈"],
+                    specializedStyles: [tshirtId, hoodieId].filter { !$0.isEmpty }
+                ),
+                PackagingTeam(
+                    teamName: "B组包装团队",
+                    teamLeader: "刘队长",
+                    members: ["小赵", "小孙", "小周", "小吴"],
+                    specializedStyles: [jeansId, dressId].filter { !$0.isEmpty }
+                ),
+                PackagingTeam(
+                    teamName: "C组包装团队",
+                    teamLeader: "王队长",
+                    members: ["小徐", "小马"],
+                    specializedStyles: [shoesId].filter { !$0.isEmpty }
+                )
+            ]
+            
+            for team in packagingTeams {
+                modelContext.insert(team)
+            }
+            
+            print("✅ Initialized \(packagingTeams.count) sample packaging teams with actual product IDs")
+        } catch {
+            print("❌ Error creating packaging teams: \(error)")
+            // Fallback to teams without specializations
+            let fallbackTeams = [
+                PackagingTeam(
+                    teamName: "A组包装团队",
+                    teamLeader: "张队长",
+                    members: ["小王", "小李", "小陈"],
+                    specializedStyles: []
+                ),
+                PackagingTeam(
+                    teamName: "B组包装团队",
+                    teamLeader: "刘队长",
+                    members: ["小赵", "小孙", "小周", "小吴"],
+                    specializedStyles: []
+                ),
+                PackagingTeam(
+                    teamName: "C组包装团队",
+                    teamLeader: "王队长",
+                    members: ["小徐", "小马"],
+                    specializedStyles: []
+                )
+            ]
+            
+            for team in fallbackTeams {
+                modelContext.insert(team)
+            }
+            
+            print("✅ Initialized \(fallbackTeams.count) fallback packaging teams")
+        }
+    }
+    
+    private static func initializeSamplePackagingRecords(modelContext: ModelContext) {
+        do {
+            let teamDescriptor = FetchDescriptor<PackagingTeam>()
+            let productDescriptor = FetchDescriptor<Product>()
+            let teams = try modelContext.fetch(teamDescriptor)
+            let products = try modelContext.fetch(productDescriptor)
+            
+            guard !teams.isEmpty && !products.isEmpty else {
+                print("⚠️ No packaging teams or products available for packaging records")
+                return
+            }
+            
+            let calendar = Calendar.current
+            let today = Date()
+            let yesterday = calendar.date(byAdding: .day, value: -1, to: today) ?? today
+            let twoDaysAgo = calendar.date(byAdding: .day, value: -2, to: today) ?? today
+            
+            let tomorrow = calendar.date(byAdding: .day, value: 1, to: today) ?? today
+            let dayAfterTomorrow = calendar.date(byAdding: .day, value: 2, to: today) ?? today
+            
+            // Get products by name for consistency
+            let tshirtProduct = products.first { $0.name.contains("T恤") }
+            let jeansProduct = products.first { $0.name.contains("牛仔裤") }
+            let hoodieProduct = products.first { $0.name.contains("卫衣") }
+            let dressProduct = products.first { $0.name.contains("连衣裙") }
+            let shoesProduct = products.first { $0.name.contains("运动鞋") }
+            
+            var packagingRecords: [PackagingRecord] = []
+            
+            // Today's records
+            if let tshirt = tshirtProduct {
+                packagingRecords.append(PackagingRecord(
+                    packageDate: today,
+                    teamId: teams[0].id,
+                    teamName: teams[0].teamName,
+                    styleCode: tshirt.id, // Use product ID
+                    styleName: tshirt.name,
+                    totalPackages: 10,
+                    stylesPerPackage: 5,
+                    notes: "今日常规包装",
+                    dueDate: tomorrow,
+                    priority: .high,
+                    reminderEnabled: true,
+                    createdBy: "warehouse_manager_001"
+                ))
+            }
+            
+            if let jeans = jeansProduct, teams.count > 1 {
+                packagingRecords.append(PackagingRecord(
+                    packageDate: today,
+                    teamId: teams[1].id,
+                    teamName: teams[1].teamName,
+                    styleCode: jeans.id, // Use product ID
+                    styleName: jeans.name,
+                    totalPackages: 8,
+                    stylesPerPackage: 3,
+                    notes: "新款式包装",
+                    dueDate: dayAfterTomorrow,
+                    priority: .medium,
+                    reminderEnabled: true,
+                    createdBy: "warehouse_manager_001"
+                ))
+            }
+            
+            // Yesterday's records with overdue tasks
+            if let hoodie = hoodieProduct {
+                packagingRecords.append(PackagingRecord(
+                    packageDate: yesterday,
+                    teamId: teams[0].id,
+                    teamName: teams[0].teamName,
+                    styleCode: hoodie.id, // Use product ID
+                    styleName: hoodie.name,
+                    totalPackages: 12,
+                    stylesPerPackage: 4,
+                    notes: "昨日生产完成",
+                    dueDate: yesterday, // Overdue
+                    priority: .urgent,
+                    reminderEnabled: true,
+                    createdBy: "warehouse_manager_001"
+                ))
+            }
+            
+            if let shoes = shoesProduct, teams.count > 2 {
+                packagingRecords.append(PackagingRecord(
+                    packageDate: yesterday,
+                    teamId: teams[2].id,
+                    teamName: teams[2].teamName,
+                    styleCode: shoes.id, // Use product ID
+                    styleName: shoes.name,
+                    totalPackages: 6,
+                    stylesPerPackage: 2,
+                    notes: "精细包装",
+                    dueDate: today,
+                    priority: .high,
+                    reminderEnabled: true,
+                    createdBy: "warehouse_manager_001"
+                ))
+            }
+            
+            // Two days ago records - completed
+            if let dress = dressProduct, teams.count > 1 {
+                let completedRecord = PackagingRecord(
+                    packageDate: twoDaysAgo,
+                    teamId: teams[1].id,
+                    teamName: teams[1].teamName,
+                    styleCode: dress.id, // Use product ID
+                    styleName: dress.name,
+                    totalPackages: 15,
+                    stylesPerPackage: 1,
+                    notes: "高档包装",
+                    dueDate: yesterday,
+                    priority: .low,
+                    reminderEnabled: false,
+                    createdBy: "warehouse_manager_001"
+                )
+                completedRecord.status = .completed
+                packagingRecords.append(completedRecord)
+            }
+            
+            for record in packagingRecords {
+                modelContext.insert(record)
+            }
+            
+            print("✅ Initialized \(packagingRecords.count) sample packaging records with actual product IDs")
+        } catch {
+            print("❌ Error creating packaging records: \(error)")
         }
     }
 } 

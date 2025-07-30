@@ -275,20 +275,47 @@ struct WarehouseKeeperDashboardView: View {
                     GridItem(.flexible()),
                     GridItem(.flexible())
                 ], spacing: 20) {
-                    NavigationLink(destination: ProductionStyleListView()) {
+                    NavigationLink(destination: PackagingManagementView()) {
                         DashboardCard(
-                            title: "production_style_management".localized,
-                            subtitle: "production_style_management_subtitle".localized,
-                            icon: "shirt",
+                            title: "包装管理",
+                            subtitle: "管理日常产品包装数量和记录",
+                            icon: "cube.box",
+                            color: .blue
+                        )
+                    }
+                    
+                    NavigationLink(destination: PackagingReminderView()) {
+                        DashboardCard(
+                            title: "任务提醒",
+                            subtitle: "管理包装任务和截止日期提醒",
+                            icon: "bell",
+                            color: .red
+                        )
+                    }
+                    
+                    NavigationLink(destination: PackagingTeamManagementView()) {
+                        DashboardCard(
+                            title: "团队管理",
+                            subtitle: "管理包装团队和专业分工",
+                            icon: "person.2",
+                            color: .green
+                        )
+                    }
+                    
+                    NavigationLink(destination: PackagingStatisticsView()) {
+                        DashboardCard(
+                            title: "包装统计",
+                            subtitle: "查看包装数据统计和分析",
+                            icon: "chart.bar",
                             color: .purple
                         )
                     }
                     
-                    NavigationLink(destination: WarehouseStatusView()) {
+                    NavigationLink(destination: ProductionStyleListView()) {
                         DashboardCard(
-                            title: "warehouse_status".localized,
-                            subtitle: "warehouse_status_subtitle".localized,
-                            icon: "building.2",
+                            title: "产品信息",
+                            subtitle: "查看产品信息（来自销售部门）",
+                            icon: "shirt",
                             color: .orange
                         )
                     }

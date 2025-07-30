@@ -21,6 +21,8 @@ struct LopanApp: App {
             WorkshopProduction.self,
             EVAGranulation.self,
             WorkshopIssue.self,
+            PackagingRecord.self,
+            PackagingTeam.self,
             Item.self, // Keep for backward compatibility
         ])
         
