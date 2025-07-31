@@ -88,6 +88,7 @@ enum EntityType: String, CaseIterable, Codable {
     case customerOutOfStock = "customer_out_of_stock"
     case customer = "customer"
     case product = "product"
+    case user = "user"
     case returnGoods = "return_goods"
     
     var displayName: String {
@@ -98,6 +99,8 @@ enum EntityType: String, CaseIterable, Codable {
             return "客户"
         case .product:
             return "产品"
+        case .user:
+            return "用户"
         case .returnGoods:
             return "退货"
         }
@@ -112,9 +115,10 @@ final class AuditLog {
     var entityType: EntityType
     var entityId: String
     var entityDescription: String // Human readable description of the entity
-    var operatorUserId: String
+    var userId: String // Renamed from operatorUserId
     var operatorUserName: String
-    var operationTimestamp: Date
+    var timestamp: Date // Renamed from operationTimestamp
+    var action: String // Added for compatibility
     var operationDetails: String // JSON string containing before/after values and other details
     var ipAddress: String?
     var deviceInfo: String?
@@ -139,9 +143,10 @@ final class AuditLog {
         self.entityType = entityType
         self.entityId = entityId
         self.entityDescription = entityDescription
-        self.operatorUserId = operatorUserId
+        self.userId = operatorUserId // Updated property name
         self.operatorUserName = operatorUserName
-        self.operationTimestamp = Date()
+        self.timestamp = Date() // Updated property name
+        self.action = operationType.rawValue // Set action to operation type
         self.operationDetails = operationDetails
         self.ipAddress = ipAddress
         self.deviceInfo = deviceInfo
@@ -158,12 +163,12 @@ final class AuditLog {
     var formattedTimestamp: String {
         let formatter = DateFormatter()
         formatter.dateFormat = "yyyy-MM-dd HH:mm:ss"
-        return formatter.string(from: operationTimestamp)
+        return formatter.string(from: timestamp)
     }
     
     var timeAgo: String {
         let now = Date()
-        let timeInterval = now.timeIntervalSince(operationTimestamp)
+        let timeInterval = now.timeIntervalSince(timestamp)
         
         if timeInterval < 60 {
             return "刚刚"

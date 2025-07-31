@@ -630,5 +630,6 @@ struct DashboardCard: View {
 
 #Preview {
     let container = try! ModelContainer(for: User.self, configurations: ModelConfiguration(isStoredInMemoryOnly: true))
-    DashboardView(authService: AuthenticationService(modelContext: container.mainContext))
+    let repositoryFactory = LocalRepositoryFactory(modelContext: container.mainContext)
+    DashboardView(authService: AuthenticationService(repositoryFactory: repositoryFactory))
 } 

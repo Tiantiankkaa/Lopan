@@ -13,7 +13,9 @@ struct ContentView: View {
     @Query private var items: [Item]
 
     var body: some View {
-        DashboardView(authService: AuthenticationService(modelContext: modelContext))
+        // ContentView is deprecated - functionality moved to LopanApp.swift
+        Text("Please use the main app entry point")
+            .foregroundColor(.secondary)
     }
 
     private func addItem() {

@@ -62,7 +62,7 @@ struct HistoricalBacktrackingView: View {
         }
         
         logs = logs.filter { log in
-            log.operationTimestamp >= filterStartDate && log.operationTimestamp <= filterEndDate
+            log.timestamp >= filterStartDate && log.timestamp <= filterEndDate
         }
         
         // Operation type filtering
@@ -77,7 +77,7 @@ struct HistoricalBacktrackingView: View {
         
         // User filtering
         if let selectedUserId = selectedUserId, !selectedUserId.isEmpty {
-            logs = logs.filter { $0.operatorUserId == selectedUserId }
+            logs = logs.filter { $0.userId == selectedUserId }
         }
         
         // Search text filtering
@@ -89,7 +89,7 @@ struct HistoricalBacktrackingView: View {
             }
         }
         
-        return logs.sorted { $0.operationTimestamp > $1.operationTimestamp }
+        return logs.sorted { $0.timestamp > $1.timestamp }
     }
     
     private var uniqueUsers: [String] {
@@ -262,11 +262,11 @@ struct HistoricalBacktrackingView: View {
     private var todayOperationsCount: Int {
         let calendar = Calendar.current
         let today = calendar.startOfDay(for: Date())
-        return filteredAuditLogs.filter { calendar.isDate($0.operationTimestamp, inSameDayAs: today) }.count
+        return filteredAuditLogs.filter { calendar.isDate($0.timestamp, inSameDayAs: today) }.count
     }
     
     private var activeUsersCount: Int {
-        Set(filteredAuditLogs.map { $0.operatorUserId }).count
+        Set(filteredAuditLogs.map { $0.userId }).count
     }
     
     private var outOfStockOperationsCount: Int {

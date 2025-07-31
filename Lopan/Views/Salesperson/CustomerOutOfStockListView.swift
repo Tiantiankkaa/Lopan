@@ -1001,7 +1001,7 @@ struct SearchableProductPicker: View {
             loadedProducts = try modelContext.fetch(descriptor)
             
             if loadedProducts.isEmpty {
-                DataInitializationService.initializeSampleData(modelContext: modelContext)
+                // Sample data initialization moved to app level
                 loadedProducts = try modelContext.fetch(descriptor)
             }
         } catch {
@@ -1545,7 +1545,7 @@ struct EditCustomerOutOfStockView: View {
             products = try modelContext.fetch(descriptor)
             
             if products.isEmpty {
-                DataInitializationService.initializeSampleData(modelContext: modelContext)
+                // Sample data initialization moved to app level
                 products = try modelContext.fetch(descriptor)
             }
         } catch {

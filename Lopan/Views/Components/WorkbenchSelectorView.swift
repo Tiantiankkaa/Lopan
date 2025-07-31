@@ -182,7 +182,8 @@ struct WorkbenchCard: View {
 
 #Preview {
     let container = try! ModelContainer(for: User.self, configurations: ModelConfiguration(isStoredInMemoryOnly: true))
-    let authService = AuthenticationService(modelContext: container.mainContext)
+    let repositoryFactory = LocalRepositoryFactory(modelContext: container.mainContext)
+    let authService = AuthenticationService(repositoryFactory: repositoryFactory)
     let navigationService = WorkbenchNavigationService()
     
     WorkbenchSelectorView(authService: authService, navigationService: navigationService)

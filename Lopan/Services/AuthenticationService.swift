@@ -18,11 +18,11 @@ class AuthenticationService: ObservableObject {
     @Published var phoneNumber = ""
     @Published var showingSMSVerification = false
     
-    private let modelContext: ModelContext
+    private let userRepository: UserRepository
     private var pendingSMSUser: User?
     
-    init(modelContext: ModelContext) {
-        self.modelContext = modelContext
+    init(repositoryFactory: RepositoryFactory) {
+        self.userRepository = repositoryFactory.userRepository
     }
     
     // Simulate WeChat login
@@ -33,22 +33,18 @@ class AuthenticationService: ObservableObject {
         try? await Task.sleep(nanoseconds: 1_000_000_000)
         
         do {
-            // Fetch all users and filter in memory to avoid predicate issues
-            let allUsers = try modelContext.fetch(FetchDescriptor<User>())
-            let existingUsers = allUsers.filter { $0.wechatId == wechatId }
-            
-            if let existingUser = existingUsers.first {
+            if let existingUser = try await userRepository.fetchUser(byWechatId: wechatId) {
                 // User exists, update last login
                 existingUser.lastLoginAt = Date()
+                try await userRepository.updateUser(existingUser)
                 currentUser = existingUser
             } else {
                 // Create new user
                 let newUser = User(wechatId: wechatId, name: name, phone: phone)
-                modelContext.insert(newUser)
+                try await userRepository.addUser(newUser)
                 currentUser = newUser
             }
             
-            try modelContext.save()
             isAuthenticated = true
             
         } catch {
@@ -67,7 +63,9 @@ class AuthenticationService: ObservableObject {
         guard let user = currentUser else { return }
         user.roles = roles
         user.primaryRole = primaryRole
-        try? modelContext.save()
+        Task {
+            try? await userRepository.updateUser(user)
+        }
     }
     
     /// Switch to a different workbench role (for users with multiple roles or administrators)
@@ -84,7 +82,9 @@ class AuthenticationService: ObservableObject {
         
         // Switch to target role
         user.primaryRole = targetRole
-        try? modelContext.save()
+        Task {
+            try? await userRepository.updateUser(user)
+        }
     }
     
     /// Reset user back to original primary role
@@ -92,7 +92,9 @@ class AuthenticationService: ObservableObject {
         guard let user = currentUser else { return }
         
         user.resetToOriginalRole()
-        try? modelContext.save()
+        Task {
+            try? await userRepository.updateUser(user)
+        }
     }
     
     // MARK: - Apple Sign In
@@ -114,19 +116,16 @@ class AuthenticationService: ObservableObject {
                 let name = displayName.isEmpty ? "Apple 用户" : displayName
                 
                 // Check if user exists
-                let allUsers = try modelContext.fetch(FetchDescriptor<User>())
-                let existingUsers = allUsers.filter { $0.appleUserId == userID }
-                
-                if let existingUser = existingUsers.first {
+                if let existingUser = try await userRepository.fetchUser(byAppleUserId: userID) {
                     existingUser.lastLoginAt = Date()
+                    try await userRepository.updateUser(existingUser)
                     currentUser = existingUser
                 } else {
                     let newUser = User(appleUserId: userID, name: name, email: email)
-                    modelContext.insert(newUser)
+                    try await userRepository.addUser(newUser)
                     currentUser = newUser
                 }
                 
-                try modelContext.save()
                 isAuthenticated = true
             }
         } catch {
@@ -170,18 +169,15 @@ class AuthenticationService: ObservableObject {
             
             do {
                 // Check if user with this phone already exists
-                let allUsers = try modelContext.fetch(FetchDescriptor<User>())
-                let existingUsers = allUsers.filter { $0.phone == pendingUser.phone }
-                
-                if let existingUser = existingUsers.first {
+                if let existingUser = try await userRepository.fetchUser(byPhone: pendingUser.phone ?? "") {
                     existingUser.lastLoginAt = Date()
+                    try await userRepository.updateUser(existingUser)
                     currentUser = existingUser
                 } else {
-                    modelContext.insert(pendingUser)
+                    try await userRepository.addUser(pendingUser)
                     currentUser = pendingUser
                 }
                 
-                try modelContext.save()
                 isAuthenticated = true
                 showingSMSVerification = false
                 smsCode = ""

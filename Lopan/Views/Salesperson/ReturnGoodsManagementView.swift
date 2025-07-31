@@ -45,7 +45,7 @@ struct ReturnGoodsManagementView: View {
             // Initialize sample data if empty
             if outOfStockItems.isEmpty {
                 print("📝 No out-of-stock items found, initializing sample data...")
-                DataInitializationService.initializeSampleData(modelContext: modelContext)
+                // Sample data initialization moved to app level
             }
             
             // Debug: Print items status
@@ -385,7 +385,7 @@ struct ReturnGoodsManagementView: View {
             
             if outOfStockItems.isEmpty {
                 Button("初始化示例数据") {
-                    DataInitializationService.initializeSampleData(modelContext: modelContext)
+                    // Sample data initialization moved to app level
                 }
                 .padding()
                 .background(Color.blue)

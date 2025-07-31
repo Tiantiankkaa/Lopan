@@ -200,7 +200,7 @@ struct OperationDetailView: View {
             VStack(spacing: 12) {
                 AuditInfoRow(label: "操作时间", value: auditLog.formattedTimestamp)
                 AuditInfoRow(label: "操作用户", value: auditLog.operatorUserName)
-                AuditInfoRow(label: "用户ID", value: auditLog.operatorUserId)
+                AuditInfoRow(label: "用户ID", value: auditLog.userId)
                 AuditInfoRow(label: "实体ID", value: auditLog.entityId)
                 
                 if let deviceInfo = auditLog.deviceInfo {

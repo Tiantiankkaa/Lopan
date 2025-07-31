@@ -357,5 +357,6 @@ struct SMSVerificationView: View {
 
 #Preview {
     let container = try! ModelContainer(for: User.self, configurations: ModelConfiguration(isStoredInMemoryOnly: true))
-    LoginView(authService: AuthenticationService(modelContext: container.mainContext))
+    let repositoryFactory = LocalRepositoryFactory(modelContext: container.mainContext)
+    LoginView(authService: AuthenticationService(repositoryFactory: repositoryFactory))
 } 

@@ -1,83 +1,62 @@
 //
-//  DataInitializationService.swift
+//  NewDataInitializationService.swift
 //  Lopan
 //
-//  Created by Bobo on 2025/7/28.
+//  Created by Claude Code on 2025/7/31.
 //
 
 import Foundation
-import SwiftData
 
-class DataInitializationService {
-    static func initializeSampleData(modelContext: ModelContext) {
-        // Check if data already exists
+@MainActor
+class NewDataInitializationService {
+    private let repositoryFactory: RepositoryFactory
+    
+    init(repositoryFactory: RepositoryFactory) {
+        self.repositoryFactory = repositoryFactory
+    }
+    
+    func initializeSampleData() async {
         do {
-            let customerDescriptor = FetchDescriptor<Customer>()
-            let productDescriptor = FetchDescriptor<Product>()
-            let outOfStockDescriptor = FetchDescriptor<CustomerOutOfStock>()
-            
-            let existingCustomers = try modelContext.fetch(customerDescriptor)
-            let existingProducts = try modelContext.fetch(productDescriptor)
-            let existingOutOfStock = try modelContext.fetch(outOfStockDescriptor)
+            // Check if data already exists
+            let existingCustomers = try await repositoryFactory.customerRepository.fetchCustomers()
+            let existingProducts = try await repositoryFactory.productRepository.fetchProducts()
+            let existingOutOfStock = try await repositoryFactory.customerOutOfStockRepository.fetchOutOfStockRecords()
             
             // Only initialize if no data exists
             if existingCustomers.isEmpty && existingProducts.isEmpty && existingOutOfStock.isEmpty {
                 print("🔄 Initializing sample data...")
                 
                 // Initialize sample customers
-                initializeSampleCustomers(modelContext: modelContext)
+                await initializeSampleCustomers()
                 
                 // Initialize sample products with multiple sizes
-                initializeSampleProducts(modelContext: modelContext)
+                await initializeSampleProducts()
                 
                 // Initialize sample out-of-stock records
-                initializeSampleOutOfStockRecords(modelContext: modelContext)
+                await initializeSampleOutOfStockRecords()
                 
                 // Initialize sample users with multiple roles
-                initializeSampleUsers(modelContext: modelContext)
+                await initializeSampleUsers()
                 
                 // Initialize sample production styles
-                initializeSampleProductionStyles(modelContext: modelContext)
+                await initializeSampleProductionStyles()
                 
                 // Initialize sample packaging teams
-                initializeSamplePackagingTeams(modelContext: modelContext)
+                await initializeSamplePackagingTeams()
                 
                 // Initialize sample packaging records
-                initializeSamplePackagingRecords(modelContext: modelContext)
+                await initializeSamplePackagingRecords()
                 
-                try modelContext.save()
                 print("✅ Sample data initialized successfully")
             } else {
                 print("ℹ️ Sample data already exists, skipping initialization")
             }
         } catch {
             print("❌ Error checking existing data: \(error)")
-            // If there's an error, try to clear and reinitialize
-            print("🔄 Attempting to clear and reinitialize data...")
-            clearAllData(modelContext: modelContext)
-            initializeSampleData(modelContext: modelContext)
         }
     }
     
-    static func clearAllData(modelContext: ModelContext) {
-        do {
-            // Clear all data
-            try modelContext.delete(model: PackagingRecord.self)
-            try modelContext.delete(model: PackagingTeam.self)
-            try modelContext.delete(model: ProductionStyle.self)
-            try modelContext.delete(model: CustomerOutOfStock.self)
-            try modelContext.delete(model: ProductSize.self)
-            try modelContext.delete(model: Product.self)
-            try modelContext.delete(model: Customer.self)
-            try modelContext.delete(model: User.self)
-            try modelContext.save()
-            print("✅ All data cleared successfully")
-        } catch {
-            print("❌ Error clearing data: \(error)")
-        }
-    }
-    
-    private static func initializeSampleCustomers(modelContext: ModelContext) {
+    private func initializeSampleCustomers() async {
         let customers = [
             Customer(name: "张三", address: "北京市朝阳区建国路88号", phone: "13800138001"),
             Customer(name: "李四", address: "上海市浦东新区陆家嘴金融中心", phone: "13900139001"),
@@ -86,14 +65,17 @@ class DataInitializationService {
             Customer(name: "孙七", address: "杭州市西湖区文三路", phone: "13500135001")
         ]
         
-        for customer in customers {
-            modelContext.insert(customer)
+        do {
+            for customer in customers {
+                try await repositoryFactory.customerRepository.addCustomer(customer)
+            }
+            print("✅ Initialized \(customers.count) sample customers")
+        } catch {
+            print("❌ Error creating customers: \(error)")
         }
-        
-        print("✅ Initialized \(customers.count) sample customers")
     }
     
-    private static func initializeSampleProducts(modelContext: ModelContext) {
+    private func initializeSampleProducts() async {
         let products = [
             // T-Shirt with multiple colors
             Product(name: "经典圆领T恤", colors: ["白色", "黑色", "蓝色"], imageData: nil),
@@ -130,39 +112,43 @@ class DataInitializationService {
         let sizes = ["XS", "S", "M", "L", "XL", "XXL"]
         let shoeSizes = ["36", "37", "38", "39", "40", "41", "42", "43", "44"]
         
-        for product in products {
-            modelContext.insert(product)
-            
-            // Add appropriate sizes based on product type
-            let productSizes: [String]
-            if product.name.contains("鞋") {
-                productSizes = shoeSizes
-            } else {
-                productSizes = sizes
-            }
-            
-            for sizeName in productSizes {
-                let size = ProductSize(size: sizeName, product: product)
-                modelContext.insert(size)
+        do {
+            for product in products {
+                // Add product first
+                try await repositoryFactory.productRepository.addProduct(product)
                 
-                if product.sizes == nil {
-                    product.sizes = []
+                // Add appropriate sizes based on product type
+                let productSizes: [String]
+                if product.name.contains("鞋") {
+                    productSizes = shoeSizes
+                } else {
+                    productSizes = sizes
                 }
-                product.sizes?.append(size)
+                
+                for sizeName in productSizes {
+                    let size = ProductSize(size: sizeName, product: product)
+                    // Note: ProductSize would need its own repository, or we handle it within Product operations
+                    if product.sizes == nil {
+                        product.sizes = []
+                    }
+                    product.sizes?.append(size)
+                }
+                
+                // Update product with sizes
+                try await repositoryFactory.productRepository.updateProduct(product)
             }
+            
+            print("✅ Initialized \(products.count) sample products with sizes")
+        } catch {
+            print("❌ Error creating products: \(error)")
         }
-        
-        print("✅ Initialized \(products.count) sample products with sizes")
     }
     
-    private static func initializeSampleOutOfStockRecords(modelContext: ModelContext) {
-        // Get sample customers and products
+    private func initializeSampleOutOfStockRecords() async {
         do {
-            let customerDescriptor = FetchDescriptor<Customer>()
-            let productDescriptor = FetchDescriptor<Product>()
-            
-            let customers = try modelContext.fetch(customerDescriptor)
-            let products = try modelContext.fetch(productDescriptor)
+            // Get sample customers and products
+            let customers = try await repositoryFactory.customerRepository.fetchCustomers()
+            let products = try await repositoryFactory.productRepository.fetchProducts()
             
             guard !customers.isEmpty && !products.isEmpty else {
                 print("⚠️ No customers or products available for out-of-stock records")
@@ -200,7 +186,7 @@ class DataInitializationService {
             ]
             
             for record in outOfStockRecords {
-                modelContext.insert(record)
+                try await repositoryFactory.customerOutOfStockRepository.addOutOfStockRecord(record)
             }
             
             print("✅ Initialized \(outOfStockRecords.count) sample out-of-stock records")
@@ -209,11 +195,10 @@ class DataInitializationService {
         }
     }
     
-    private static func initializeSampleUsers(modelContext: ModelContext) {
+    private func initializeSampleUsers() async {
         do {
             // Check if users already exist
-            let userDescriptor = FetchDescriptor<User>()
-            let existingUsers = try modelContext.fetch(userDescriptor)
+            let existingUsers = try await repositoryFactory.userRepository.fetchUsers()
             
             if existingUsers.isEmpty {
                 // Create sample users with different role combinations
@@ -244,7 +229,7 @@ class DataInitializationService {
                     let user = User(wechatId: userData.wechatId, name: userData.name)
                     user.roles = userData.roles
                     user.primaryRole = userData.primaryRole
-                    modelContext.insert(user)
+                    try await repositoryFactory.userRepository.addUser(user)
                 }
                 
                 print("✅ Initialized \(sampleUsers.count) sample users with role assignments")
@@ -254,10 +239,9 @@ class DataInitializationService {
         }
     }
     
-    private static func initializeSampleProductionStyles(modelContext: ModelContext) {
+    private func initializeSampleProductionStyles() async {
         do {
-            let productDescriptor = FetchDescriptor<Product>()
-            let products = try modelContext.fetch(productDescriptor)
+            let products = try await repositoryFactory.productRepository.fetchProducts()
             
             guard !products.isEmpty else {
                 print("⚠️ No products available for production styles")
@@ -317,7 +301,7 @@ class DataInitializationService {
             productionStyles.append(contentsOf: manualStyles)
             
             for style in productionStyles {
-                modelContext.insert(style)
+                try await repositoryFactory.productionRepository.addProductionStyle(style)
             }
             
             print("✅ Initialized \(productionStyles.count) sample production styles")
@@ -326,10 +310,9 @@ class DataInitializationService {
         }
     }
     
-    private static func initializeSamplePackagingTeams(modelContext: ModelContext) {
+    private func initializeSamplePackagingTeams() async {
         do {
-            let productDescriptor = FetchDescriptor<Product>()
-            let products = try modelContext.fetch(productDescriptor)
+            let products = try await repositoryFactory.productRepository.fetchProducts()
             
             // Get product IDs for team specializations
             let tshirtId = products.first { $0.name.contains("T恤") }?.id ?? ""
@@ -360,48 +343,19 @@ class DataInitializationService {
             ]
             
             for team in packagingTeams {
-                modelContext.insert(team)
+                try await repositoryFactory.packagingRepository.addPackagingTeam(team)
             }
             
             print("✅ Initialized \(packagingTeams.count) sample packaging teams with actual product IDs")
         } catch {
             print("❌ Error creating packaging teams: \(error)")
-            // Fallback to teams without specializations
-            let fallbackTeams = [
-                PackagingTeam(
-                    teamName: "A组包装团队",
-                    teamLeader: "张队长",
-                    members: ["小王", "小李", "小陈"],
-                    specializedStyles: []
-                ),
-                PackagingTeam(
-                    teamName: "B组包装团队",
-                    teamLeader: "刘队长",
-                    members: ["小赵", "小孙", "小周", "小吴"],
-                    specializedStyles: []
-                ),
-                PackagingTeam(
-                    teamName: "C组包装团队",
-                    teamLeader: "王队长",
-                    members: ["小徐", "小马"],
-                    specializedStyles: []
-                )
-            ]
-            
-            for team in fallbackTeams {
-                modelContext.insert(team)
-            }
-            
-            print("✅ Initialized \(fallbackTeams.count) fallback packaging teams")
         }
     }
     
-    private static func initializeSamplePackagingRecords(modelContext: ModelContext) {
+    private func initializeSamplePackagingRecords() async {
         do {
-            let teamDescriptor = FetchDescriptor<PackagingTeam>()
-            let productDescriptor = FetchDescriptor<Product>()
-            let teams = try modelContext.fetch(teamDescriptor)
-            let products = try modelContext.fetch(productDescriptor)
+            let teams = try await repositoryFactory.packagingRepository.fetchPackagingTeams()
+            let products = try await repositoryFactory.productRepository.fetchProducts()
             
             guard !teams.isEmpty && !products.isEmpty else {
                 print("⚠️ No packaging teams or products available for packaging records")
@@ -516,7 +470,7 @@ class DataInitializationService {
             }
             
             for record in packagingRecords {
-                modelContext.insert(record)
+                try await repositoryFactory.packagingRepository.addPackagingRecord(record)
             }
             
             print("✅ Initialized \(packagingRecords.count) sample packaging records with actual product IDs")
@@ -524,4 +478,4 @@ class DataInitializationService {
             print("❌ Error creating packaging records: \(error)")
         }
     }
-} 
+}

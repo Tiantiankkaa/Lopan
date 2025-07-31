@@ -40,12 +40,16 @@ struct LopanApp: App {
 
     var body: some Scene {
         WindowGroup {
-            DashboardView(authService: AuthenticationService(modelContext: sharedModelContainer.mainContext))
+            let repositoryFactory = LocalRepositoryFactory(modelContext: sharedModelContainer.mainContext)
+            let serviceFactory = ServiceFactory(repositoryFactory: repositoryFactory)
+            
+            DashboardView(authService: serviceFactory.authenticationService)
+                .environmentObject(serviceFactory)
                 .onAppear {
-                    // Initialize sample data on first launch
-                    // For development, you can temporarily force reinitialization by uncommenting the next line
-                    // DataInitializationService.clearAllData(modelContext: sharedModelContainer.mainContext)
-                    DataInitializationService.initializeSampleData(modelContext: sharedModelContainer.mainContext)
+                    Task {
+                        // Initialize sample data on first launch using new repository pattern
+                        await serviceFactory.dataInitializationService.initializeSampleData()
+                    }
                 }
         }
         .modelContainer(sharedModelContainer)
