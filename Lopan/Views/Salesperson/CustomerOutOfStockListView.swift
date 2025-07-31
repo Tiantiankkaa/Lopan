@@ -21,7 +21,16 @@ struct CustomerOutOfStockListView: View {
     @State private var selectedCustomer: Customer? = nil
     @State private var selectedProduct: Product? = nil
     @State private var selectedAddress: String? = nil
+    @State private var selectedProductSize: ProductSize? = nil
     @State private var showingAdvancedFilters = false
+    
+    // Filter picker states
+    @State private var showingStatusPicker = false
+    @State private var showingPriorityPicker = false
+    @State private var showingCustomerPicker = false
+    @State private var showingProductPicker = false
+    @State private var showingProductSizePicker = false
+    @State private var showingAddressPicker = false
     
     // Batch operation states
     @State private var isEditing = false
@@ -61,6 +70,24 @@ struct CustomerOutOfStockListView: View {
             BatchPrioritySheet { newPriority in
                 updateBatchPriority(newPriority)
             }
+        }
+        .sheet(isPresented: $showingStatusPicker) {
+            FilterStatusPickerView(selectedStatus: $selectedStatus)
+        }
+        .sheet(isPresented: $showingPriorityPicker) {
+            FilterPriorityPickerView(selectedPriority: $selectedPriority)
+        }
+        .sheet(isPresented: $showingCustomerPicker) {
+            FilterCustomerPickerView(customers: customers, selectedCustomer: $selectedCustomer)
+        }
+        .sheet(isPresented: $showingProductPicker) {
+            FilterProductPickerView(products: products, selectedProduct: $selectedProduct)
+        }
+        .sheet(isPresented: $showingProductSizePicker) {
+            FilterProductSizePickerView(products: products, selectedProductSize: $selectedProductSize)
+        }
+        .sheet(isPresented: $showingAddressPicker) {
+            FilterAddressPickerView(customers: customers, selectedAddress: $selectedAddress)
         }
         .alert("确认删除", isPresented: $showingDeleteConfirmation) {
             Button("取消", role: .cancel) { }
@@ -205,80 +232,169 @@ struct CustomerOutOfStockListView: View {
     }
     
     private var simpleFiltersView: some View {
-        VStack(spacing: 8) {
-            statusFilterButton
-            priorityFilterButton
-            customerFilterButton
-            productFilterButton
-            addressFilterButton
+        VStack(spacing: 12) {
+            // Search bar
+            TextField("搜索客户、产品、尺寸、颜色、备注...", text: $searchText)
+                .textFieldStyle(RoundedBorderTextFieldStyle())
+                .overlay(
+                    HStack {
+                        Spacer()
+                        if !searchText.isEmpty {
+                            Button(action: { searchText = "" }) {
+                                Image(systemName: "xmark.circle.fill")
+                                    .foregroundColor(.gray)
+                            }
+                            .padding(.trailing, 8)
+                        }
+                    }
+                )
+            
+            // Filter buttons
+            VStack(spacing: 8) {
+                statusFilterButton
+                priorityFilterButton
+                customerFilterButton
+                productFilterButton
+                productSizeFilterButton
+                addressFilterButton
+            }
+            
+            // Clear filters button
+            if hasActiveFilters {
+                Button(action: clearAllFilters) {
+                    Text("清除所有筛选")
+                        .font(.caption)
+                        .foregroundColor(.red)
+                        .padding(.horizontal, 12)
+                        .padding(.vertical, 6)
+                        .background(Color.red.opacity(0.1))
+                        .cornerRadius(8)
+                }
+            }
         }
     }
     
     private var statusFilterButton: some View {
-        Button(action: { selectedStatus = nil }) {
+        Button(action: { showingStatusPicker = true }) {
             HStack {
                 Text(selectedStatus?.displayName ?? "全部状态")
                 Spacer()
                 Image(systemName: "chevron.down")
+                if selectedStatus != nil {
+                    Button(action: { selectedStatus = nil }) {
+                        Image(systemName: "xmark.circle.fill")
+                            .foregroundColor(.gray)
+                    }
+                    .buttonStyle(PlainButtonStyle())
+                }
             }
             .padding()
-            .background(Color(.systemGray6))
+            .background(selectedStatus != nil ? Color.blue.opacity(0.1) : Color(.systemGray6))
             .cornerRadius(8)
         }
         .foregroundColor(.primary)
     }
     
     private var priorityFilterButton: some View {
-        Button(action: { selectedPriority = nil }) {
+        Button(action: { showingPriorityPicker = true }) {
             HStack {
                 Text(selectedPriority?.displayName ?? "全部优先级")
                 Spacer()
                 Image(systemName: "chevron.down")
+                if selectedPriority != nil {
+                    Button(action: { selectedPriority = nil }) {
+                        Image(systemName: "xmark.circle.fill")
+                            .foregroundColor(.gray)
+                    }
+                    .buttonStyle(PlainButtonStyle())
+                }
             }
             .padding()
-            .background(Color(.systemGray6))
+            .background(selectedPriority != nil ? Color.blue.opacity(0.1) : Color(.systemGray6))
             .cornerRadius(8)
         }
         .foregroundColor(.primary)
     }
     
     private var customerFilterButton: some View {
-        Button(action: { selectedCustomer = nil }) {
+        Button(action: { showingCustomerPicker = true }) {
             HStack {
                 Text(selectedCustomer?.name ?? "全部客户")
                 Spacer()
                 Image(systemName: "chevron.down")
+                if selectedCustomer != nil {
+                    Button(action: { selectedCustomer = nil }) {
+                        Image(systemName: "xmark.circle.fill")
+                            .foregroundColor(.gray)
+                    }
+                    .buttonStyle(PlainButtonStyle())
+                }
             }
             .padding()
-            .background(Color(.systemGray6))
+            .background(selectedCustomer != nil ? Color.blue.opacity(0.1) : Color(.systemGray6))
             .cornerRadius(8)
         }
         .foregroundColor(.primary)
     }
     
     private var productFilterButton: some View {
-        Button(action: { selectedProduct = nil }) {
+        Button(action: { showingProductPicker = true }) {
             HStack {
                 Text(selectedProduct?.name ?? "全部产品")
                 Spacer()
                 Image(systemName: "chevron.down")
+                if selectedProduct != nil {
+                    Button(action: { selectedProduct = nil }) {
+                        Image(systemName: "xmark.circle.fill")
+                            .foregroundColor(.gray)
+                    }
+                    .buttonStyle(PlainButtonStyle())
+                }
             }
             .padding()
-            .background(Color(.systemGray6))
+            .background(selectedProduct != nil ? Color.blue.opacity(0.1) : Color(.systemGray6))
             .cornerRadius(8)
         }
         .foregroundColor(.primary)
     }
     
     private var addressFilterButton: some View {
-        Button(action: { selectedAddress = nil }) {
+        Button(action: { showingAddressPicker = true }) {
             HStack {
                 Text(selectedAddress ?? "全部地址")
                 Spacer()
                 Image(systemName: "chevron.down")
+                if selectedAddress != nil {
+                    Button(action: { selectedAddress = nil }) {
+                        Image(systemName: "xmark.circle.fill")
+                            .foregroundColor(.gray)
+                    }
+                    .buttonStyle(PlainButtonStyle())
+                }
             }
             .padding()
-            .background(Color(.systemGray6))
+            .background(selectedAddress != nil ? Color.blue.opacity(0.1) : Color(.systemGray6))
+            .cornerRadius(8)
+        }
+        .foregroundColor(.primary)
+    }
+    
+    private var productSizeFilterButton: some View {
+        Button(action: { showingProductSizePicker = true }) {
+            HStack {
+                Text(selectedProductSize?.size ?? "全部尺寸")
+                Spacer()
+                Image(systemName: "chevron.down")
+                if selectedProductSize != nil {
+                    Button(action: { selectedProductSize = nil }) {
+                        Image(systemName: "xmark.circle.fill")
+                            .foregroundColor(.gray)
+                    }
+                    .buttonStyle(PlainButtonStyle())
+                }
+            }
+            .padding()
+            .background(selectedProductSize != nil ? Color.blue.opacity(0.1) : Color(.systemGray6))
             .cornerRadius(8)
         }
         .foregroundColor(.primary)
@@ -315,30 +431,86 @@ struct CustomerOutOfStockListView: View {
     var filteredItems: [CustomerOutOfStock] {
         var filtered = outOfStockItems
         
+        // Text search filter
+        if !searchText.isEmpty {
+            let searchLower = searchText.lowercased()
+            filtered = filtered.filter { item in
+                let searchableText = [
+                    item.customer?.name ?? "",
+                    item.customer?.address ?? "",
+                    item.customer?.phone ?? "",
+                    item.product?.name ?? "",
+                    item.productSize?.size ?? "",
+                    item.product?.colors.joined(separator: " ") ?? "",
+                    item.notes ?? "",
+                    item.status.displayName,
+                    item.priority.displayName
+                ].joined(separator: " ").lowercased()
+                
+                return searchableText.contains(searchLower)
+            }
+        }
+        
+        // Status filter
         if let status = selectedStatus {
             filtered = filtered.filter { $0.status == status }
         }
         
+        // Priority filter
         if let priority = selectedPriority {
             filtered = filtered.filter { $0.priority == priority }
         }
         
+        // Customer filter
         if let customer = selectedCustomer {
             filtered = filtered.filter { $0.customer?.id == customer.id }
         }
         
+        // Product filter
         if let product = selectedProduct {
             filtered = filtered.filter { $0.product?.id == product.id }
         }
         
+        // Product size filter
+        if let productSize = selectedProductSize {
+            filtered = filtered.filter { $0.productSize?.id == productSize.id }
+        }
+        
+        // Address filter (substring matching)
         if let address = selectedAddress {
-            filtered = filtered.filter { $0.customer?.address == address }
+            filtered = filtered.filter { 
+                $0.customer?.address.lowercased().contains(address.lowercased()) == true 
+            }
         }
         
         return filtered.sorted { $0.requestDate > $1.requestDate }
     }
     
+    // MARK: - Computed Properties
+    
+    private var hasActiveFilters: Bool {
+        return !searchText.isEmpty || 
+               selectedStatus != nil || 
+               selectedPriority != nil || 
+               selectedCustomer != nil || 
+               selectedProduct != nil || 
+               selectedProductSize != nil || 
+               selectedAddress != nil
+    }
+    
     // MARK: - Helper Functions
+    
+    private func clearAllFilters() {
+        withAnimation {
+            searchText = ""
+            selectedStatus = nil
+            selectedPriority = nil
+            selectedCustomer = nil
+            selectedProduct = nil
+            selectedProductSize = nil
+            selectedAddress = nil
+        }
+    }
     
     private func toggleItemSelection(_ item: CustomerOutOfStock) {
         if isEditing {
@@ -1618,6 +1790,413 @@ struct EditCustomerOutOfStockView: View {
             dismiss()
         } catch {
             print("Error saving changes: \(error)")
+        }
+    }
+}
+
+// MARK: - Filter Picker Views
+
+struct FilterStatusPickerView: View {
+    @Environment(\.dismiss) private var dismiss
+    @Binding var selectedStatus: OutOfStockStatus?
+    
+    var body: some View {
+        NavigationView {
+            List {
+                Button(action: {
+                    selectedStatus = nil
+                    dismiss()
+                }) {
+                    HStack {
+                        Text("全部状态")
+                        Spacer()
+                        if selectedStatus == nil {
+                            Image(systemName: "checkmark")
+                                .foregroundColor(.blue)
+                        }
+                    }
+                }
+                .foregroundColor(.primary)
+                
+                ForEach(OutOfStockStatus.allCases, id: \.self) { status in
+                    Button(action: {
+                        selectedStatus = status
+                        dismiss()
+                    }) {
+                        HStack {
+                            Text(status.displayName)
+                            Spacer()
+                            if selectedStatus == status {
+                                Image(systemName: "checkmark")
+                                    .foregroundColor(.blue)
+                            }
+                        }
+                    }
+                    .foregroundColor(.primary)
+                }
+            }
+            .navigationTitle("选择状态")
+            .navigationBarTitleDisplayMode(.inline)
+            .toolbar {
+                ToolbarItem(placement: .navigationBarLeading) {
+                    Button("取消") { dismiss() }
+                }
+            }
+        }
+    }
+}
+
+struct FilterPriorityPickerView: View {
+    @Environment(\.dismiss) private var dismiss
+    @Binding var selectedPriority: OutOfStockPriority?
+    
+    var body: some View {
+        NavigationView {
+            List {
+                Button(action: {
+                    selectedPriority = nil
+                    dismiss()
+                }) {
+                    HStack {
+                        Text("全部优先级")
+                        Spacer()
+                        if selectedPriority == nil {
+                            Image(systemName: "checkmark")
+                                .foregroundColor(.blue)
+                        }
+                    }
+                }
+                .foregroundColor(.primary)
+                
+                ForEach(OutOfStockPriority.allCases, id: \.self) { priority in
+                    Button(action: {
+                        selectedPriority = priority
+                        dismiss()
+                    }) {
+                        HStack {
+                            Text(priority.displayName)
+                            Spacer()
+                            if selectedPriority == priority {
+                                Image(systemName: "checkmark")
+                                    .foregroundColor(.blue)
+                            }
+                        }
+                    }
+                    .foregroundColor(.primary)
+                }
+            }
+            .navigationTitle("选择优先级")
+            .navigationBarTitleDisplayMode(.inline)
+            .toolbar {
+                ToolbarItem(placement: .navigationBarLeading) {
+                    Button("取消") { dismiss() }
+                }
+            }
+        }
+    }
+}
+
+struct FilterCustomerPickerView: View {
+    @Environment(\.dismiss) private var dismiss
+    let customers: [Customer]
+    @Binding var selectedCustomer: Customer?
+    @State private var searchText = ""
+    
+    private var filteredCustomers: [Customer] {
+        if searchText.isEmpty {
+            return customers.sorted { $0.name < $1.name }
+        } else {
+            return customers.filter { customer in
+                customer.name.localizedCaseInsensitiveContains(searchText) ||
+                customer.address.localizedCaseInsensitiveContains(searchText) ||
+                customer.phone.localizedCaseInsensitiveContains(searchText)
+            }.sorted { $0.name < $1.name }
+        }
+    }
+    
+    var body: some View {
+        NavigationView {
+            VStack {
+                TextField("搜索客户...", text: $searchText)
+                    .textFieldStyle(RoundedBorderTextFieldStyle())
+                    .padding(.horizontal)
+                
+                List {
+                    Button(action: {
+                        selectedCustomer = nil
+                        dismiss()
+                    }) {
+                        HStack {
+                            Text("全部客户")
+                            Spacer()
+                            if selectedCustomer == nil {
+                                Image(systemName: "checkmark")
+                                    .foregroundColor(.blue)
+                            }
+                        }
+                    }
+                    .foregroundColor(.primary)
+                    
+                    ForEach(filteredCustomers) { customer in
+                        Button(action: {
+                            selectedCustomer = customer
+                            dismiss()
+                        }) {
+                            HStack {
+                                VStack(alignment: .leading, spacing: 4) {
+                                    Text(customer.name)
+                                        .font(.headline)
+                                    Text(customer.address)
+                                        .font(.caption)
+                                        .foregroundColor(.secondary)
+                                }
+                                Spacer()
+                                if selectedCustomer?.id == customer.id {
+                                    Image(systemName: "checkmark")
+                                        .foregroundColor(.blue)
+                                }
+                            }
+                        }
+                        .foregroundColor(.primary)
+                    }
+                }
+            }
+            .navigationTitle("选择客户")
+            .navigationBarTitleDisplayMode(.inline)
+            .toolbar {
+                ToolbarItem(placement: .navigationBarLeading) {
+                    Button("取消") { dismiss() }
+                }
+            }
+        }
+    }
+}
+
+struct FilterProductPickerView: View {
+    @Environment(\.dismiss) private var dismiss
+    let products: [Product]
+    @Binding var selectedProduct: Product?
+    @State private var searchText = ""
+    
+    private var filteredProducts: [Product] {
+        if searchText.isEmpty {
+            return products.sorted { $0.name < $1.name }
+        } else {
+            return products.filter { product in
+                product.name.localizedCaseInsensitiveContains(searchText) ||
+                product.colors.joined(separator: " ").localizedCaseInsensitiveContains(searchText) ||
+                product.sizeNames.joined(separator: " ").localizedCaseInsensitiveContains(searchText)
+            }.sorted { $0.name < $1.name }
+        }
+    }
+    
+    var body: some View {
+        NavigationView {
+            VStack {
+                TextField("搜索产品...", text: $searchText)
+                    .textFieldStyle(RoundedBorderTextFieldStyle())
+                    .padding(.horizontal)
+                
+                List {
+                    Button(action: {
+                        selectedProduct = nil
+                        dismiss()
+                    }) {
+                        HStack {
+                            Text("全部产品")
+                            Spacer()
+                            if selectedProduct == nil {
+                                Image(systemName: "checkmark")
+                                    .foregroundColor(.blue)
+                            }
+                        }
+                    }
+                    .foregroundColor(.primary)
+                    
+                    ForEach(filteredProducts) { product in
+                        Button(action: {
+                            selectedProduct = product
+                            dismiss()
+                        }) {
+                            HStack {
+                                VStack(alignment: .leading, spacing: 4) {
+                                    Text(product.name)
+                                        .font(.headline)
+                                    if !product.colors.isEmpty {
+                                        Text(product.colors.joined(separator: ", "))
+                                            .font(.caption)
+                                            .foregroundColor(.secondary)
+                                    }
+                                }
+                                Spacer()
+                                if selectedProduct?.id == product.id {
+                                    Image(systemName: "checkmark")
+                                        .foregroundColor(.blue)
+                                }
+                            }
+                        }
+                        .foregroundColor(.primary)
+                    }
+                }
+            }
+            .navigationTitle("选择产品")
+            .navigationBarTitleDisplayMode(.inline)
+            .toolbar {
+                ToolbarItem(placement: .navigationBarLeading) {
+                    Button("取消") { dismiss() }
+                }
+            }
+        }
+    }
+}
+
+struct FilterProductSizePickerView: View {
+    @Environment(\.dismiss) private var dismiss
+    let products: [Product]
+    @Binding var selectedProductSize: ProductSize?
+    @State private var searchText = ""
+    
+    private var allProductSizes: [ProductSize] {
+        let sizes = products.compactMap { $0.sizes }.flatMap { $0 }
+        let uniqueSizes = Dictionary(grouping: sizes, by: { $0.size })
+            .mapValues { $0.first! }
+            .values
+        return Array(uniqueSizes).sorted { $0.size < $1.size }
+    }
+    
+    private var filteredSizes: [ProductSize] {
+        if searchText.isEmpty {
+            return allProductSizes
+        } else {
+            return allProductSizes.filter { size in
+                size.size.localizedCaseInsensitiveContains(searchText)
+            }
+        }
+    }
+    
+    var body: some View {
+        NavigationView {
+            VStack {
+                TextField("搜索尺寸...", text: $searchText)
+                    .textFieldStyle(RoundedBorderTextFieldStyle())
+                    .padding(.horizontal)
+                
+                List {
+                    Button(action: {
+                        selectedProductSize = nil
+                        dismiss()
+                    }) {
+                        HStack {
+                            Text("全部尺寸")
+                            Spacer()
+                            if selectedProductSize == nil {
+                                Image(systemName: "checkmark")
+                                    .foregroundColor(.blue)
+                            }
+                        }
+                    }
+                    .foregroundColor(.primary)
+                    
+                    ForEach(filteredSizes, id: \.id) { size in
+                        Button(action: {
+                            selectedProductSize = size
+                            dismiss()
+                        }) {
+                            HStack {
+                                Text(size.size)
+                                    .font(.headline)
+                                Spacer()
+                                if selectedProductSize?.id == size.id {
+                                    Image(systemName: "checkmark")
+                                        .foregroundColor(.blue)
+                                }
+                            }
+                        }
+                        .foregroundColor(.primary)
+                    }
+                }
+            }
+            .navigationTitle("选择尺寸")
+            .navigationBarTitleDisplayMode(.inline)
+            .toolbar {
+                ToolbarItem(placement: .navigationBarLeading) {
+                    Button("取消") { dismiss() }
+                }
+            }
+        }
+    }
+}
+
+struct FilterAddressPickerView: View {
+    @Environment(\.dismiss) private var dismiss
+    let customers: [Customer]
+    @Binding var selectedAddress: String?
+    @State private var searchText = ""
+    
+    private var uniqueAddresses: [String] {
+        let addresses = Array(Set(customers.map { $0.address })).sorted()
+        return addresses
+    }
+    
+    private var filteredAddresses: [String] {
+        if searchText.isEmpty {
+            return uniqueAddresses
+        } else {
+            return uniqueAddresses.filter { address in
+                address.localizedCaseInsensitiveContains(searchText)
+            }
+        }
+    }
+    
+    var body: some View {
+        NavigationView {
+            VStack {
+                TextField("搜索地址...", text: $searchText)
+                    .textFieldStyle(RoundedBorderTextFieldStyle())
+                    .padding(.horizontal)
+                
+                List {
+                    Button(action: {
+                        selectedAddress = nil
+                        dismiss()
+                    }) {
+                        HStack {
+                            Text("全部地址")
+                            Spacer()
+                            if selectedAddress == nil {
+                                Image(systemName: "checkmark")
+                                    .foregroundColor(.blue)
+                            }
+                        }
+                    }
+                    .foregroundColor(.primary)
+                    
+                    ForEach(filteredAddresses, id: \.self) { address in
+                        Button(action: {
+                            selectedAddress = address
+                            dismiss()
+                        }) {
+                            HStack {
+                                Text(address)
+                                    .font(.headline)
+                                Spacer()
+                                if selectedAddress == address {
+                                    Image(systemName: "checkmark")
+                                        .foregroundColor(.blue)
+                                }
+                            }
+                        }
+                        .foregroundColor(.primary)
+                    }
+                }
+            }
+            .navigationTitle("选择地址")
+            .navigationBarTitleDisplayMode(.inline)
+            .toolbar {
+                ToolbarItem(placement: .navigationBarLeading) {
+                    Button("取消") { dismiss() }
+                }
+            }
         }
     }
 }
