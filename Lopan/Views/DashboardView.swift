@@ -364,12 +364,29 @@ struct WorkshopManagerDashboardView: View {
     @EnvironmentObject var serviceFactory: ServiceFactory
     
     var body: some View {
-        WorkshopManagerDashboard(
-            repositoryFactory: serviceFactory.repositoryFactory,
-            authService: authService,
-            auditService: serviceFactory.auditingService,
-            navigationService: navigationService
-        )
+        NavigationView {
+            WorkshopManagerDashboard(
+                repositoryFactory: serviceFactory.repositoryFactory,
+                authService: authService,
+                auditService: serviceFactory.auditingService,
+                navigationService: navigationService
+            )
+            .navigationTitle("workshop_manager_dashboard".localized)
+            .navigationBarTitleDisplayMode(.inline)
+            .toolbar {
+                ToolbarItem(placement: .navigationBarTrailing) {
+                    Button(action: {
+                        navigationService.showWorkbenchSelector()
+                    }) {
+                        HStack(spacing: 4) {
+                            Image(systemName: "gearshape.arrow.triangle.2.circlepath")
+                            Text("工作台操作")
+                        }
+                        .font(.caption)
+                    }
+                }
+            }
+        }
     }
 }
 
