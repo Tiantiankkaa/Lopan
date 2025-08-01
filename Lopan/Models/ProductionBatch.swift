@@ -65,7 +65,7 @@ enum BatchStatus: String, CaseIterable, Codable {
 
 // MARK: - SwiftData Models
 @Model
-final class ProductionBatch {
+final class ProductionBatch: Identifiable {
     var id: String
     var batchNumber: String
     var machineId: String

@@ -14,7 +14,6 @@ struct BatchHistoryView: View {
     
     @State private var selectedStatus: BatchStatus? = nil
     @State private var selectedBatch: ProductionBatch?
-    @State private var showingBatchDetail = false
     
     init(repositoryFactory: RepositoryFactory, authService: AuthenticationService, auditService: NewAuditingService) {
         self.authService = authService
@@ -55,10 +54,10 @@ struct BatchHistoryView: View {
                     Text(errorMessage)
                 }
             }
-            .sheet(isPresented: $showingBatchDetail) {
-                if let batch = selectedBatch {
-                    BatchDetailView(batch: batch, batchService: batchService)
-                }
+            .sheet(item: $selectedBatch, onDismiss: {
+                selectedBatch = nil
+            }) { batch in
+                BatchDetailView(batch: batch, batchService: batchService)
             }
         .task {
             await batchService.loadBatches()
@@ -141,7 +140,6 @@ struct BatchHistoryView: View {
             ForEach(filteredBatches, id: \.id) { batch in
                 BatchHistoryRow(batch: batch) {
                     selectedBatch = batch
-                    showingBatchDetail = true
                 }
             }
         }

@@ -14,7 +14,6 @@ struct GunColorSettingsView: View {
     @ObservedObject private var authService: AuthenticationService
     
     @State private var selectedMachine: WorkshopMachine?
-    @State private var showingColorPicker = false
     @State private var selectedGun: WorkshopGun?
     @State private var editingCuringTime = ""
     @State private var editingMoldOpeningTimes = ""
@@ -55,50 +54,15 @@ struct GunColorSettingsView: View {
             } message: {
                 Text(colorService.errorMessage ?? machineService.errorMessage ?? "")
             }
-            .sheet(isPresented: $showingColorPicker) {
-                if let gun = selectedGun {
-                    ColorPickerSheet(
-                        gun: gun,
-                        colors: colorService.colors.filter { $0.isActive },
-                        colorService: colorService
-                    ) {
-                        selectedGun = nil
-                        showingColorPicker = false
-                    }
-                } else {
-                    // Error fallback view
-                    NavigationView {
-                        VStack(spacing: 20) {
-                            Image(systemName: "exclamationmark.triangle")
-                                .font(.system(size: 48))
-                                .foregroundColor(.orange)
-                            
-                            Text("无法加载喷枪信息")
-                                .font(.headline)
-                                .fontWeight(.medium)
-                            
-                            Text("请重试或联系技术支持")
-                                .font(.body)
-                                .foregroundColor(.secondary)
-                            
-                            Button("关闭") {
-                                showingColorPicker = false
-                                selectedGun = nil
-                            }
-                            .buttonStyle(.borderedProminent)
-                        }
-                        .padding()
-                        .navigationTitle("错误")
-                        .navigationBarTitleDisplayMode(.inline)
-                        .toolbar {
-                            ToolbarItem(placement: .navigationBarLeading) {
-                                Button("取消") {
-                                    showingColorPicker = false
-                                    selectedGun = nil
-                                }
-                            }
-                        }
-                    }
+            .sheet(item: $selectedGun, onDismiss: {
+                selectedGun = nil
+            }) { gun in
+                ColorPickerSheet(
+                    gun: gun,
+                    colors: colorService.colors.filter { $0.isActive },
+                    colorService: colorService
+                ) {
+                    selectedGun = nil
                 }
             }
         .task {
@@ -276,7 +240,6 @@ struct GunColorSettingsView: View {
                         canEdit: canManageColors
                     ) {
                         selectedGun = gun
-                        showingColorPicker = true
                     }
                 }
             }

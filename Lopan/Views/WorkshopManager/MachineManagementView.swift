@@ -13,7 +13,6 @@ struct MachineManagementView: View {
     @ObservedObject private var authService: AuthenticationService
     
     @Binding var showingAddMachine: Bool
-    @State private var showingMachineDetail = false
     @State private var selectedMachineForDetail: WorkshopMachine?
     
     // Keep these for MachineDetailView dependency
@@ -57,15 +56,15 @@ struct MachineManagementView: View {
         .sheet(isPresented: $showingAddMachine) {
             AddMachineSheet(machineService: machineService)
         }
-        .sheet(isPresented: $showingMachineDetail) {
-            if let machine = selectedMachineForDetail {
-                MachineDetailView(
-                    machine: machine,
-                    repositoryFactory: repositoryFactory,
-                    authService: authService,
-                    auditService: auditService
-                )
-            }
+        .sheet(item: $selectedMachineForDetail, onDismiss: {
+            selectedMachineForDetail = nil
+        }) { machine in
+            MachineDetailView(
+                machine: machine,
+                repositoryFactory: repositoryFactory,
+                authService: authService,
+                auditService: auditService
+            )
         }
         .task {
             await machineService.loadMachines()
@@ -135,7 +134,6 @@ struct MachineManagementView: View {
                     machine: machine,
                     onTap: {
                         selectedMachineForDetail = machine
-                        showingMachineDetail = true
                     },
                     onStatusChange: { newStatus in
                         Task {

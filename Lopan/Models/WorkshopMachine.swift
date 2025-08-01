@@ -61,7 +61,7 @@ enum StationStatus: String, CaseIterable, Codable {
 
 // MARK: - SwiftData Models
 @Model
-final class WorkshopMachine: Codable {
+final class WorkshopMachine: Codable, Identifiable {
     var id: String
     var machineNumber: Int
     var status: MachineStatus
@@ -286,7 +286,7 @@ final class WorkshopStation: Codable {
 }
 
 @Model
-final class WorkshopGun: Codable {
+final class WorkshopGun: Codable, Identifiable {
     var id: String
     var name: String // "Gun A" or "Gun B"
     var stationRangeStart: Int
