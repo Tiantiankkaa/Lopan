@@ -18,19 +18,38 @@ struct WorkshopManagerDashboard: View {
     @State private var showingAddMachine = false
     @State private var showingAddColor = false
     
+    // Create service instances at dashboard level for sharing
+    @StateObject private var machineService: MachineService
+    @StateObject private var colorService: ColorService
+    
     init(repositoryFactory: RepositoryFactory, authService: AuthenticationService, auditService: NewAuditingService, navigationService: WorkbenchNavigationService? = nil) {
         self.repositoryFactory = repositoryFactory
         self.authService = authService
         self.auditService = auditService
         self.navigationService = navigationService
+        
+        // Initialize shared service instances
+        self._machineService = StateObject(wrappedValue: MachineService(
+            machineRepository: repositoryFactory.machineRepository,
+            auditService: auditService,
+            authService: authService
+        ))
+        
+        self._colorService = StateObject(wrappedValue: ColorService(
+            colorRepository: repositoryFactory.colorRepository,
+            machineRepository: repositoryFactory.machineRepository,
+            auditService: auditService,
+            authService: authService
+        ))
     }
     
     var body: some View {
         TabView(selection: $selectedTab) {
                 // Machine Management
                 MachineManagementView(
-                    repositoryFactory: repositoryFactory,
+                    machineService: machineService,
                     authService: authService,
+                    repositoryFactory: repositoryFactory,
                     auditService: auditService,
                     showingAddMachine: $showingAddMachine
                 )
@@ -42,9 +61,8 @@ struct WorkshopManagerDashboard: View {
                 
                 // Color Management
                 ColorManagementView(
-                    repositoryFactory: repositoryFactory,
+                    colorService: colorService,
                     authService: authService,
-                    auditService: auditService,
                     showingAddColor: $showingAddColor
                 )
                 .tabItem {
@@ -95,10 +113,10 @@ struct WorkshopManagerDashboard: View {
             navigationService?.setCurrentWorkbenchContext(.workshopManager)
         }
         .sheet(isPresented: $showingAddMachine) {
-            AddMachineSheetWrapper(repositoryFactory: repositoryFactory, authService: authService, auditService: auditService)
+            AddMachineSheet(machineService: machineService)
         }
         .sheet(isPresented: $showingAddColor) {
-            AddColorSheetWrapper(repositoryFactory: repositoryFactory, authService: authService, auditService: auditService)
+            AddColorSheet(colorService: colorService)
         }
     }
     
@@ -110,35 +128,7 @@ struct WorkshopManagerDashboard: View {
     }
 }
 
-// MARK: - Sheet Wrappers
-struct AddMachineSheetWrapper: View {
-    let repositoryFactory: RepositoryFactory
-    @ObservedObject var authService: AuthenticationService
-    let auditService: NewAuditingService
-    
-    var body: some View {
-        AddMachineSheet(machineService: MachineService(
-            machineRepository: repositoryFactory.machineRepository,
-            auditService: auditService,
-            authService: authService
-        ))
-    }
-}
 
-struct AddColorSheetWrapper: View {
-    let repositoryFactory: RepositoryFactory
-    @ObservedObject var authService: AuthenticationService
-    let auditService: NewAuditingService
-    
-    var body: some View {
-        AddColorSheet(colorService: ColorService(
-            colorRepository: repositoryFactory.colorRepository,
-            machineRepository: repositoryFactory.machineRepository,
-            auditService: auditService,
-            authService: authService
-        ))
-    }
-}
 
 // MARK: - Preview
 struct WorkshopManagerDashboard_Previews: PreviewProvider {

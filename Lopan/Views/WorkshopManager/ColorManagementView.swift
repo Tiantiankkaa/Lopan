@@ -9,7 +9,7 @@ import SwiftUI
 import SwiftData
 
 struct ColorManagementView: View {
-    @StateObject private var colorService: ColorService
+    @ObservedObject var colorService: ColorService
     @ObservedObject private var authService: AuthenticationService
     
     @Binding var showingAddColor: Bool
@@ -17,15 +17,10 @@ struct ColorManagementView: View {
     @State private var selectedColorForEdit: ColorCard?
     @State private var searchText = ""
     
-    init(repositoryFactory: RepositoryFactory, authService: AuthenticationService, auditService: NewAuditingService, showingAddColor: Binding<Bool>) {
+    init(colorService: ColorService, authService: AuthenticationService, showingAddColor: Binding<Bool>) {
+        self.colorService = colorService
         self.authService = authService
         self._showingAddColor = showingAddColor
-        self._colorService = StateObject(wrappedValue: ColorService(
-            colorRepository: repositoryFactory.colorRepository,
-            machineRepository: repositoryFactory.machineRepository,
-            auditService: auditService,
-            authService: authService
-        ))
     }
     
     var filteredColors: [ColorCard] {
@@ -340,9 +335,13 @@ struct ColorManagementView_Previews: PreviewProvider {
         let auditService = NewAuditingService(repositoryFactory: repositoryFactory)
         
         ColorManagementView(
-            repositoryFactory: repositoryFactory,
+            colorService: ColorService(
+                colorRepository: repositoryFactory.colorRepository,
+                machineRepository: repositoryFactory.machineRepository,
+                auditService: auditService,
+                authService: authService
+            ),
             authService: authService,
-            auditService: auditService,
             showingAddColor: .constant(false)
         )
     }

@@ -9,26 +9,23 @@ import SwiftUI
 import SwiftData
 
 struct MachineManagementView: View {
-    @StateObject private var machineService: MachineService
+    @ObservedObject var machineService: MachineService
     @ObservedObject private var authService: AuthenticationService
     
     @Binding var showingAddMachine: Bool
     @State private var showingMachineDetail = false
     @State private var selectedMachineForDetail: WorkshopMachine?
     
+    // Keep these for MachineDetailView dependency
     let repositoryFactory: RepositoryFactory
     let auditService: NewAuditingService
     
-    init(repositoryFactory: RepositoryFactory, authService: AuthenticationService, auditService: NewAuditingService, showingAddMachine: Binding<Bool>) {
+    init(machineService: MachineService, authService: AuthenticationService, repositoryFactory: RepositoryFactory, auditService: NewAuditingService, showingAddMachine: Binding<Bool>) {
+        self.machineService = machineService
+        self.authService = authService
         self.repositoryFactory = repositoryFactory
         self.auditService = auditService
-        self.authService = authService
         self._showingAddMachine = showingAddMachine
-        self._machineService = StateObject(wrappedValue: MachineService(
-            machineRepository: repositoryFactory.machineRepository,
-            auditService: auditService,
-            authService: authService
-        ))
     }
     
     var body: some View {
@@ -400,8 +397,13 @@ struct MachineManagementView_Previews: PreviewProvider {
         let auditService = NewAuditingService(repositoryFactory: repositoryFactory)
         
         MachineManagementView(
-            repositoryFactory: repositoryFactory,
+            machineService: MachineService(
+                machineRepository: repositoryFactory.machineRepository,
+                auditService: auditService,
+                authService: authService
+            ),
             authService: authService,
+            repositoryFactory: repositoryFactory,
             auditService: auditService,
             showingAddMachine: .constant(false)
         )

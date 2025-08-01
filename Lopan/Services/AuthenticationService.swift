@@ -20,9 +20,11 @@ class AuthenticationService: ObservableObject {
     
     private let userRepository: UserRepository
     private var pendingSMSUser: User?
+    private weak var serviceFactory: ServiceFactory?
     
-    init(repositoryFactory: RepositoryFactory) {
+    init(repositoryFactory: RepositoryFactory, serviceFactory: ServiceFactory? = nil) {
         self.userRepository = repositoryFactory.userRepository
+        self.serviceFactory = serviceFactory
     }
     
     // Simulate WeChat login
@@ -55,8 +57,27 @@ class AuthenticationService: ObservableObject {
     }
     
     func logout() {
-        currentUser = nil
-        isAuthenticated = false
+        // Start comprehensive cleanup process
+        Task {
+            await performComprehensiveLogout()
+        }
+    }
+    
+    private func performComprehensiveLogout() async {
+        print("⚙️ Starting comprehensive logout process...")
+        
+        // Step 1: Cleanup all services to cancel background tasks
+        if let serviceFactory = serviceFactory {
+            await serviceFactory.cleanupAllServices()
+        }
+        
+        // Step 2: Clear user session after services are cleaned up
+        await MainActor.run {
+            currentUser = nil
+            isAuthenticated = false
+        }
+        
+        print("✅ Comprehensive logout completed successfully")
     }
     
     // MARK: - Workbench Session Management

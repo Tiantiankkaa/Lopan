@@ -73,9 +73,15 @@ class WorkshopIntegrationService {
     
     // MARK: - Factory Methods
     func createMachineManagementView(showingAddMachine: Binding<Bool>) -> MachineManagementView? {
+        let machineService = MachineService(
+            machineRepository: repositoryFactory.machineRepository,
+            auditService: auditService,
+            authService: authService
+        )
         return MachineManagementView(
-            repositoryFactory: repositoryFactory,
+            machineService: machineService,
             authService: authService,
+            repositoryFactory: repositoryFactory,
             auditService: auditService,
             showingAddMachine: showingAddMachine
         )
