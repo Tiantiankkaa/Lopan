@@ -109,16 +109,8 @@ final class WorkshopMachine: Codable, Identifiable {
         self.curingTime = 30 // Default 30 seconds
         self.moldOpeningTimes = 1 // Default 1 time
         
-        // Auto-create 12 stations
-        self.stations = (1...12).map { stationNumber in
-            WorkshopStation(stationNumber: stationNumber, machineId: id)
-        }
-        
-        // Auto-create 2 guns (A: stations 1-6, B: stations 7-12)
-        self.guns = [
-            WorkshopGun(name: "Gun A", stationRangeStart: 1, stationRangeEnd: 6, machineId: id),
-            WorkshopGun(name: "Gun B", stationRangeStart: 7, stationRangeEnd: 12, machineId: id)
-        ]
+        // Don't create related objects here - SwiftData relationships will be empty initially
+        // Related objects should be created after the machine is inserted into the context
     }
     
     // MARK: - Computed Properties

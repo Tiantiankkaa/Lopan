@@ -53,9 +53,6 @@ struct MachineManagementView: View {
                 Text(errorMessage)
             }
         }
-        .sheet(isPresented: $showingAddMachine) {
-            AddMachineSheet(machineService: machineService)
-        }
         .sheet(item: $selectedMachineForDetail, onDismiss: {
             selectedMachineForDetail = nil
         }) { machine in

@@ -42,6 +42,9 @@ class MachineDataInitializationService {
             
             print("Successfully initialized \(machines.count) sample machines")
             
+            // Now update gun properties after machines and guns are created
+            await updateGunProperties()
+            
         } catch {
             print("Failed to initialize sample machines: \(error)")
         }
@@ -73,9 +76,8 @@ class MachineDataInitializationService {
             }
         }
         
-        // Gun colors will be set after colors are initialized
-        machine1.guns[0].totalShotCount = 15420
-        machine1.guns[1].totalShotCount = 12890
+        // Gun properties will be set after machine is created in repository
+        // (guns are created in LocalMachineRepository.addMachine)
         
         machines.append(machine1)
         
@@ -97,8 +99,7 @@ class MachineDataInitializationService {
             station.totalProductionCount = Int.random(in: 150...350)
         }
         
-        machine2.guns[0].totalShotCount = 8950
-        machine2.guns[1].totalShotCount = 9240
+        // Gun properties will be set after machine is created in repository
         
         machines.append(machine2)
         
@@ -125,12 +126,53 @@ class MachineDataInitializationService {
             station.totalProductionCount = Int.random(in: 300...600)
         }
         
-        machine3.guns[0].totalShotCount = 22100
-        machine3.guns[1].totalShotCount = 19850
+        // Gun properties will be set after machine is created in repository
         
         machines.append(machine3)
         
         return machines
+    }
+    
+    private func updateGunProperties() async {
+        do {
+            let machines = try await repositoryFactory.machineRepository.fetchAllMachines()
+            
+            for machine in machines {
+                guard machine.guns.count >= 2 else { continue }
+                
+                switch machine.machineNumber {
+                case 1:
+                    if let gunA = machine.guns.first(where: { $0.name == "Gun A" }) {
+                        gunA.totalShotCount = 15420
+                    }
+                    if let gunB = machine.guns.first(where: { $0.name == "Gun B" }) {
+                        gunB.totalShotCount = 12890
+                    }
+                case 2:
+                    if let gunA = machine.guns.first(where: { $0.name == "Gun A" }) {
+                        gunA.totalShotCount = 8950
+                    }
+                    if let gunB = machine.guns.first(where: { $0.name == "Gun B" }) {
+                        gunB.totalShotCount = 9240
+                    }
+                case 3:
+                    if let gunA = machine.guns.first(where: { $0.name == "Gun A" }) {
+                        gunA.totalShotCount = 22100
+                    }
+                    if let gunB = machine.guns.first(where: { $0.name == "Gun B" }) {
+                        gunB.totalShotCount = 19850
+                    }
+                default:
+                    break
+                }
+                
+                try await repositoryFactory.machineRepository.updateMachine(machine)
+            }
+            
+            print("Successfully updated gun properties")
+        } catch {
+            print("Failed to update gun properties: \(error)")
+        }
     }
     
     // MARK: - Color Cards Initialization
@@ -313,10 +355,14 @@ class MachineDataInitializationService {
             }
             
             for machine in machines {
-                if machine.machineNumber == 1 {
-                    // Assign colors to Machine 1 guns
-                    machine.guns[0].assignColor(redColor) // Gun A
-                    machine.guns[1].assignColor(blueColor) // Gun B
+                if machine.machineNumber == 1 && machine.guns.count >= 2 {
+                    // Assign colors to Machine 1 guns (check array bounds first)
+                    if let gunA = machine.guns.first(where: { $0.name == "Gun A" }) {
+                        gunA.assignColor(redColor)
+                    }
+                    if let gunB = machine.guns.first(where: { $0.name == "Gun B" }) {
+                        gunB.assignColor(blueColor)
+                    }
                     
                     try await repositoryFactory.machineRepository.updateMachine(machine)
                 }

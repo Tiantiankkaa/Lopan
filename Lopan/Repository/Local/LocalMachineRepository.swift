@@ -55,6 +55,23 @@ class LocalMachineRepository: MachineRepository {
     
     func addMachine(_ machine: WorkshopMachine) async throws {
         context.insert(machine)
+        
+        // Create stations after machine is inserted
+        for stationNumber in 1...12 {
+            let station = WorkshopStation(stationNumber: stationNumber, machineId: machine.id)
+            context.insert(station)
+            machine.stations.append(station)
+        }
+        
+        // Create guns after machine is inserted
+        let gunA = WorkshopGun(name: "Gun A", stationRangeStart: 1, stationRangeEnd: 6, machineId: machine.id)
+        let gunB = WorkshopGun(name: "Gun B", stationRangeStart: 7, stationRangeEnd: 12, machineId: machine.id)
+        
+        context.insert(gunA)
+        context.insert(gunB)
+        machine.guns.append(gunA)
+        machine.guns.append(gunB)
+        
         try context.save()
     }
     
