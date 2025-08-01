@@ -8,25 +8,7 @@
 import Foundation
 import SwiftData
 
-enum MachineStatus: String, CaseIterable, Codable {
-    case running = "running"
-    case stopped = "stopped"
-    case maintenance = "maintenance"
-    case idle = "idle"
-    
-    var displayName: String {
-        switch self {
-        case .running:
-            return "运行中"
-        case .stopped:
-            return "已停止"
-        case .maintenance:
-            return "维护中"
-        case .idle:
-            return "空闲"
-        }
-    }
-}
+// MachineStatus is now defined in WorkshopMachine.swift
 
 @Model
 final class WorkshopProduction {
@@ -56,7 +38,7 @@ final class WorkshopProduction {
         self.color = color
         self.output = 0
         self.targetOutput = targetOutput
-        self.status = .idle
+        self.status = .stopped
         self.productionDate = productionDate
         self.notes = notes
         self.createdBy = createdBy

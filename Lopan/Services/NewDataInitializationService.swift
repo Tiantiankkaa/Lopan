@@ -47,6 +47,9 @@ class NewDataInitializationService {
                 // Initialize sample packaging records
                 await initializeSamplePackagingRecords()
                 
+                // Initialize sample production batches
+                await initializeSampleProductionBatches()
+                
                 print("✅ Sample data initialized successfully")
             } else {
                 print("ℹ️ Sample data already exists, skipping initialization")
@@ -476,6 +479,94 @@ class NewDataInitializationService {
             print("✅ Initialized \(packagingRecords.count) sample packaging records with actual product IDs")
         } catch {
             print("❌ Error creating packaging records: \(error)")
+        }
+    }
+    
+    private func initializeSampleProductionBatches() async {
+        do {
+            // Check if we have machines and colors for creating batches
+            let machines = try await repositoryFactory.machineRepository.fetchAllMachines()
+            let colors = try await repositoryFactory.colorRepository.fetchActiveColors()
+            let users = try await repositoryFactory.userRepository.fetchUsers()
+            
+            guard !machines.isEmpty && !colors.isEmpty && !users.isEmpty else {
+                print("⚠️ Missing machines, colors, or users for production batches")
+                return
+            }
+            
+            // Find workshop manager or admin users
+            let workshopUsers = users.filter { $0.hasRole(.workshopManager) || $0.hasRole(.administrator) }
+            guard !workshopUsers.isEmpty else {
+                print("⚠️ No workshop manager or admin users found")
+                return
+            }
+            
+            let submittingUser = workshopUsers.first!
+            let machine = machines.first!
+            let primaryColor = colors.first!
+            let secondaryColor = colors.count > 1 ? colors[1] : nil
+            
+            // Create a pending batch for testing
+            let pendingBatch = ProductionBatch(
+                machineId: machine.id,
+                mode: .singleColor,
+                submittedBy: submittingUser.id,
+                submittedByName: submittingUser.name
+            )
+            
+            // Add some product configurations
+            let product1 = ProductConfig(
+                batchId: pendingBatch.id,
+                productName: "测试产品 A",
+                primaryColorId: primaryColor.id,
+                occupiedStations: [1, 2, 3],
+                expectedOutput: 1000,
+                priority: 1
+            )
+            
+            let product2 = ProductConfig(
+                batchId: pendingBatch.id,
+                productName: "测试产品 B",
+                primaryColorId: primaryColor.id,
+                occupiedStations: [4, 5, 6],
+                expectedOutput: 800,
+                priority: 2
+            )
+            
+            pendingBatch.products = [product1, product2]
+            
+            // Create an approved batch for testing
+            let approvedBatch = ProductionBatch(
+                machineId: machine.id,
+                mode: .dualColor,
+                submittedBy: submittingUser.id,
+                submittedByName: submittingUser.name
+            )
+            approvedBatch.status = .approved
+            approvedBatch.reviewedAt = Date()
+            approvedBatch.reviewedBy = submittingUser.id
+            approvedBatch.reviewedByName = submittingUser.name
+            
+            if let secondaryColor = secondaryColor {
+                let dualColorProduct = ProductConfig(
+                    batchId: approvedBatch.id,
+                    productName: "双色测试产品",
+                    primaryColorId: primaryColor.id,
+                    occupiedStations: [7, 8, 9, 10, 11, 12],
+                    expectedOutput: 500,
+                    priority: 1,
+                    secondaryColorId: secondaryColor.id
+                )
+                approvedBatch.products = [dualColorProduct]
+            }
+            
+            // Add batches to repository
+            try await repositoryFactory.productionBatchRepository.addBatch(pendingBatch)
+            try await repositoryFactory.productionBatchRepository.addBatch(approvedBatch)
+            
+            print("✅ Initialized 2 sample production batches (1 pending, 1 approved)")
+        } catch {
+            print("❌ Error creating production batches: \(error)")
         }
     }
 }

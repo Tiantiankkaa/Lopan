@@ -4,7 +4,21 @@
       "Bash(rm:*)",
       "Bash(find:*)",
       "Bash(xcodebuild:*)",
-      "Bash(mkdir:*)"
+      "Bash(mkdir:*)",
+      "Bash(git add:*)",
+      "Bash(git commit:*)",
+      "Bash(git push:*)",
+      "Bash(git pull:*)",
+      "Bash(git diff:*)",
+      "Bash(git branch:*)",
+      "Bash(git checkout:*)",
+      "Bash(git rev-parse:*)",
+      "Bash(claude:*)",
+      "Bash(gh:*)",
+      "Bash(curl:*)",
+      "Bash(sed:*)",
+      "Bash(awk:*)",
+      "Bash(swift:*)"
     ],
     "deny": []
   }

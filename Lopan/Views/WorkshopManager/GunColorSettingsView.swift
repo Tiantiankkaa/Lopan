@@ -36,16 +36,14 @@ struct GunColorSettingsView: View {
     }
     
     var body: some View {
-        NavigationView {
-            VStack {
-                if machineService.isLoading || colorService.isLoading {
-                    ProgressView("加载数据...")
-                        .frame(maxWidth: .infinity, maxHeight: .infinity)
-                } else {
-                    mainContent
-                }
+        VStack {
+            if machineService.isLoading || colorService.isLoading {
+                ProgressView("加载数据...")
+                    .frame(maxWidth: .infinity, maxHeight: .infinity)
+            } else {
+                mainContent
             }
-            .navigationTitle("机器基础设置")
+        }
             .refreshable {
                 await loadData()
             }
@@ -103,9 +101,8 @@ struct GunColorSettingsView: View {
                     }
                 }
             }
-            .task {
-                await loadData()
-            }
+        .task {
+            await loadData()
         }
     }
     

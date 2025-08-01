@@ -1,0 +1,371 @@
+//
+//  MachineDataInitializationService.swift
+//  Lopan
+//
+//  Created by Claude Code on 2025/7/31.
+//
+
+import Foundation
+
+@MainActor
+class MachineDataInitializationService {
+    private let repositoryFactory: RepositoryFactory
+    
+    init(repositoryFactory: RepositoryFactory) {
+        self.repositoryFactory = repositoryFactory
+    }
+    
+    func initializeAllSampleData() async {
+        await initializeSampleColors()
+        await initializeSampleMachines()
+        await initializeSampleBatches()
+    }
+    
+    func initializeSampleMachines() async {
+        do {
+            // Check if machines already exist
+            let existingMachines = try await repositoryFactory.machineRepository.fetchAllMachines()
+            if !existingMachines.isEmpty {
+                print("Machines already exist, skipping initialization")
+                return
+            }
+            
+            print("Initializing sample machines...")
+            
+            // Create sample machines
+            let machines = createSampleMachines()
+            
+            // Add machines to repository
+            for machine in machines {
+                try await repositoryFactory.machineRepository.addMachine(machine)
+            }
+            
+            print("Successfully initialized \(machines.count) sample machines")
+            
+        } catch {
+            print("Failed to initialize sample machines: \(error)")
+        }
+    }
+    
+    private func createSampleMachines() -> [WorkshopMachine] {
+        var machines: [WorkshopMachine] = []
+        
+        // Machine 1 - Running smoothly
+        let machine1 = WorkshopMachine(machineNumber: 1, createdBy: "system")
+        machine1.status = .running
+        machine1.dailyTarget = 1200
+        machine1.currentProductionCount = 856
+        machine1.utilizationRate = 0.92
+        machine1.totalRunHours = 2840.5
+        machine1.errorCount = 0
+        machine1.notes = "主力生产设备，运行状态良好"
+        machine1.lastMaintenanceDate = Calendar.current.date(byAdding: .day, value: -15, to: Date())
+        machine1.nextMaintenanceDate = Calendar.current.date(byAdding: .day, value: 15, to: Date())
+        
+        // Set some stations to running
+        let runningStations1 = [1, 2, 3, 7, 8, 9, 10]
+        for station in machine1.stations {
+            if runningStations1.contains(station.stationNumber) {
+                station.status = .running
+                station.currentProductId = "product_a"
+                station.lastProductionTime = Date()
+                station.totalProductionCount = Int.random(in: 200...500)
+            }
+        }
+        
+        // Gun colors will be set after colors are initialized
+        machine1.guns[0].totalShotCount = 15420
+        machine1.guns[1].totalShotCount = 12890
+        
+        machines.append(machine1)
+        
+        // Machine 2 - Recently stopped
+        let machine2 = WorkshopMachine(machineNumber: 2, createdBy: "system")
+        machine2.status = .stopped
+        machine2.dailyTarget = 1000
+        machine2.currentProductionCount = 0
+        machine2.utilizationRate = 0.0
+        machine2.totalRunHours = 1920.2
+        machine2.errorCount = 0
+        machine2.notes = "等待新订单"
+        machine2.lastMaintenanceDate = Calendar.current.date(byAdding: .day, value: -8, to: Date())
+        machine2.nextMaintenanceDate = Calendar.current.date(byAdding: .day, value: 22, to: Date())
+        
+        // All stations idle
+        for station in machine2.stations {
+            station.status = .idle
+            station.totalProductionCount = Int.random(in: 150...350)
+        }
+        
+        machine2.guns[0].totalShotCount = 8950
+        machine2.guns[1].totalShotCount = 9240
+        
+        machines.append(machine2)
+        
+        // Machine 3 - Under maintenance
+        let machine3 = WorkshopMachine(machineNumber: 3, createdBy: "system")
+        machine3.status = .maintenance
+        machine3.dailyTarget = 1100
+        machine3.currentProductionCount = 0
+        machine3.utilizationRate = 0.0
+        machine3.totalRunHours = 3150.8
+        machine3.errorCount = 2
+        machine3.notes = "例行维护检查中"
+        machine3.lastMaintenanceDate = Date() // Currently under maintenance
+        machine3.nextMaintenanceDate = Calendar.current.date(byAdding: .day, value: 30, to: Date())
+        
+        // Some stations under maintenance
+        let maintenanceStations = [4, 5, 6, 11, 12]
+        for station in machine3.stations {
+            if maintenanceStations.contains(station.stationNumber) {
+                station.status = .maintenance
+            } else {
+                station.status = .idle
+            }
+            station.totalProductionCount = Int.random(in: 300...600)
+        }
+        
+        machine3.guns[0].totalShotCount = 22100
+        machine3.guns[1].totalShotCount = 19850
+        
+        machines.append(machine3)
+        
+        return machines
+    }
+    
+    // MARK: - Color Cards Initialization
+    func initializeSampleColors() async {
+        do {
+            let existingColors = try await repositoryFactory.colorRepository.fetchAllColors()
+            if !existingColors.isEmpty {
+                print("Colors already exist, skipping initialization")
+                return
+            }
+            
+            print("Initializing sample color cards...")
+            
+            let colors = createSampleColors()
+            
+            for color in colors {
+                try await repositoryFactory.colorRepository.addColor(color)
+            }
+            
+            print("Successfully initialized \(colors.count) sample color cards")
+            
+        } catch {
+            print("Failed to initialize sample colors: \(error)")
+        }
+    }
+    
+    private func createSampleColors() -> [ColorCard] {
+        let colorData = [
+            ("红色", "FF0000"),      // Red
+            ("蓝色", "0066FF"),      // Blue
+            ("绿色", "00CC66"),      // Green
+            ("黄色", "FFCC00"),      // Yellow
+            ("紫色", "9966CC"),      // Purple
+            ("橙色", "FF6600"),      // Orange
+            ("粉色", "FF66CC"),      // Pink
+            ("青色", "00CCCC"),      // Cyan
+            ("深灰", "666666"),      // Dark Gray
+            ("浅灰", "CCCCCC"),      // Light Gray
+            ("棕色", "996633"),      // Brown
+            ("深蓝", "003366")       // Dark Blue
+        ]
+        
+        return colorData.map { name, hex in
+            ColorCard(name: name, hexCode: hex, createdBy: "system")
+        }
+    }
+    
+    // MARK: - Production Batches Initialization
+    func initializeSampleBatches() async {
+        do {
+            let existingBatches = try await repositoryFactory.productionBatchRepository.fetchAllBatches()
+            if !existingBatches.isEmpty {
+                print("Batches already exist, skipping initialization")
+                return
+            }
+            
+            print("Initializing sample production batches...")
+            
+            let machines = try await repositoryFactory.machineRepository.fetchAllMachines()
+            let colors = try await repositoryFactory.colorRepository.fetchActiveColors()
+            
+            guard !machines.isEmpty, !colors.isEmpty else {
+                print("Cannot create sample batches without machines and colors")
+                return
+            }
+            
+            let batches = createSampleBatches(machines: machines, colors: colors)
+            
+            for batch in batches {
+                try await repositoryFactory.productionBatchRepository.addBatch(batch)
+            }
+            
+            print("Successfully initialized \(batches.count) sample production batches")
+            
+        } catch {
+            print("Failed to initialize sample batches: \(error)")
+        }
+    }
+    
+    private func createSampleBatches(machines: [WorkshopMachine], colors: [ColorCard]) -> [ProductionBatch] {
+        var batches: [ProductionBatch] = []
+        
+        guard let machine1 = machines.first(where: { $0.machineNumber == 1 }),
+              let machine2 = machines.first(where: { $0.machineNumber == 2 }),
+              colors.count >= 4 else {
+            return []
+        }
+        
+        // Batch 1 - Approved and active (single color)
+        let batch1 = ProductionBatch(
+            machineId: machine1.id,
+            mode: .singleColor,
+            submittedBy: "manager1",
+            submittedByName: "张经理"
+        )
+        batch1.status = .active
+        batch1.reviewedAt = Calendar.current.date(byAdding: .hour, value: -2, to: Date())
+        batch1.reviewedBy = "admin1"
+        batch1.reviewedByName = "李管理员"
+        batch1.appliedAt = Calendar.current.date(byAdding: .hour, value: -1, to: Date())
+        
+        let product1 = ProductConfig(
+            batchId: batch1.id,
+            productName: "运动鞋 A款",
+            primaryColorId: colors[0].id, // Red
+            occupiedStations: [1, 2, 3, 4],
+            expectedOutput: 800
+        )
+        
+        let product2 = ProductConfig(
+            batchId: batch1.id,
+            productName: "运动鞋 B款",
+            primaryColorId: colors[1].id, // Blue
+            occupiedStations: [7, 8, 9],
+            expectedOutput: 600
+        )
+        
+        batch1.products = [product1, product2]
+        batches.append(batch1)
+        
+        // Batch 2 - Pending review (dual color)
+        let batch2 = ProductionBatch(
+            machineId: machine2.id,
+            mode: .dualColor,
+            submittedBy: "manager2",
+            submittedByName: "王经理"
+        )
+        batch2.status = .pending
+        
+        let product3 = ProductConfig(
+            batchId: batch2.id,
+            productName: "篮球鞋限量版",
+            primaryColorId: colors[0].id, // Red
+            occupiedStations: [1, 2, 3, 4, 5, 6],
+            expectedOutput: 500,
+            secondaryColorId: colors[3].id // Yellow
+        )
+        
+        batch2.products = [product3]
+        batches.append(batch2)
+        
+        // Batch 3 - Rejected
+        let batch3 = ProductionBatch(
+            machineId: machine2.id,
+            mode: .singleColor,
+            submittedBy: "manager1",
+            submittedByName: "张经理"
+        )
+        batch3.status = .rejected
+        batch3.reviewedAt = Calendar.current.date(byAdding: .day, value: -1, to: Date())
+        batch3.reviewedBy = "admin1"
+        batch3.reviewedByName = "李管理员"
+        batch3.reviewNotes = "工位分配不合理，请重新配置"
+        batch3.submittedAt = Calendar.current.date(byAdding: .day, value: -2, to: Date()) ?? Date()
+        
+        let product4 = ProductConfig(
+            batchId: batch3.id,
+            productName: "跑步鞋",
+            primaryColorId: colors[2].id, // Green
+            occupiedStations: [1, 2], // Too few stations - reason for rejection
+            expectedOutput: 400
+        )
+        
+        batch3.products = [product4]
+        batches.append(batch3)
+        
+        return batches
+    }
+    
+    // MARK: - Gun Color Assignment
+    func assignColorsToGuns() async {
+        do {
+            let machines = try await repositoryFactory.machineRepository.fetchAllMachines()
+            let colors = try await repositoryFactory.colorRepository.fetchActiveColors()
+            
+            guard let redColor = colors.first(where: { $0.name.contains("红") }),
+                  let blueColor = colors.first(where: { $0.name.contains("蓝") }) else {
+                print("Required colors not found for gun assignment")
+                return
+            }
+            
+            for machine in machines {
+                if machine.machineNumber == 1 {
+                    // Assign colors to Machine 1 guns
+                    machine.guns[0].assignColor(redColor) // Gun A
+                    machine.guns[1].assignColor(blueColor) // Gun B
+                    
+                    try await repositoryFactory.machineRepository.updateMachine(machine)
+                }
+            }
+            
+            print("Successfully assigned colors to guns")
+            
+        } catch {
+            print("Failed to assign colors to guns: \(error)")
+        }
+    }
+    
+    // Helper method to reset all data (for development only)
+    func resetAllData() async {
+        do {
+            // Reset batches first (due to relationships)
+            let batches = try await repositoryFactory.productionBatchRepository.fetchAllBatches()
+            for batch in batches {
+                try await repositoryFactory.productionBatchRepository.deleteBatch(batch)
+            }
+            
+            // Reset machines
+            let machines = try await repositoryFactory.machineRepository.fetchAllMachines()
+            for machine in machines {
+                try await repositoryFactory.machineRepository.deleteMachine(machine)
+            }
+            
+            // Reset colors
+            let colors = try await repositoryFactory.colorRepository.fetchAllColors()
+            for color in colors {
+                try await repositoryFactory.colorRepository.deleteColor(color)
+            }
+            
+            print("All workshop data has been reset")
+        } catch {
+            print("Failed to reset workshop data: \(error)")
+        }
+    }
+    
+    // Helper method to reset machine data only (for development only)
+    func resetMachineData() async {
+        do {
+            let machines = try await repositoryFactory.machineRepository.fetchAllMachines()
+            for machine in machines {
+                try await repositoryFactory.machineRepository.deleteMachine(machine)
+            }
+            print("All machine data has been reset")
+        } catch {
+            print("Failed to reset machine data: \(error)")
+        }
+    }
+}

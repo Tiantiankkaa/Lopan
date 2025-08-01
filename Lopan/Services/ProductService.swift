@@ -8,14 +8,13 @@
 import Foundation
 
 @MainActor
-@Observable
-class ProductService {
+class ProductService: ObservableObject {
     private let productRepository: ProductRepository
     private let auditingService: NewAuditingService
     
-    var products: [Product] = []
-    var isLoading = false
-    var error: Error?
+    @Published var products: [Product] = []
+    @Published var isLoading = false
+    @Published var error: Error?
     
     init(repositoryFactory: RepositoryFactory) {
         self.productRepository = repositoryFactory.productRepository

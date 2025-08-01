@@ -9,7 +9,7 @@ import Foundation
 
 @MainActor
 class ServiceFactory: ObservableObject {
-    private let repositoryFactory: RepositoryFactory
+    let repositoryFactory: RepositoryFactory
     
     lazy var authenticationService = AuthenticationService(repositoryFactory: repositoryFactory)
     lazy var customerService = CustomerService(repositoryFactory: repositoryFactory)
@@ -17,6 +17,12 @@ class ServiceFactory: ObservableObject {
     lazy var userService = UserService(repositoryFactory: repositoryFactory)
     lazy var auditingService = NewAuditingService(repositoryFactory: repositoryFactory)
     lazy var dataInitializationService = NewDataInitializationService(repositoryFactory: repositoryFactory)
+    lazy var machineService = MachineService(
+        machineRepository: repositoryFactory.machineRepository,
+        auditService: auditingService,
+        authService: authenticationService
+    )
+    lazy var machineDataInitializationService = MachineDataInitializationService(repositoryFactory: repositoryFactory)
     
     init(repositoryFactory: RepositoryFactory) {
         self.repositoryFactory = repositoryFactory

@@ -25,6 +25,13 @@ struct LopanApp: App {
             PackagingTeam.self,
             AuditLog.self,
             Item.self, // Keep for backward compatibility
+            // Workshop Manager Models
+            WorkshopMachine.self,
+            WorkshopStation.self,
+            WorkshopGun.self,
+            ColorCard.self,
+            ProductionBatch.self,
+            ProductConfig.self,
         ])
         
         // For now, use in-memory storage to avoid schema migration issues
@@ -49,6 +56,8 @@ struct LopanApp: App {
                     Task {
                         // Initialize sample data on first launch using new repository pattern
                         await serviceFactory.dataInitializationService.initializeSampleData()
+                        // Initialize workshop data (colors, machines, batches)
+                        await serviceFactory.machineDataInitializationService.initializeAllSampleData()
                     }
                 }
         }

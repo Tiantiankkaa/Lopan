@@ -59,6 +59,49 @@ class AuthenticationService: ObservableObject {
         isAuthenticated = false
     }
     
+    // MARK: - Workbench Session Management
+    
+    /// Exit current workbench (return to main menu/workbench selection)
+    func exitWorkbench() {
+        // This method provides a way to exit the current workbench context
+        // without fully logging out the user
+        // The actual workbench context is managed by WorkbenchNavigationService
+        // This method can be used for audit logging or session tracking
+        guard let user = currentUser else { return }
+        print("User \(user.name) exited workbench context")
+    }
+    
+    /// Switch to a workbench with proper context tracking
+    func switchToWorkbenchWithContext(_ targetRole: UserRole, navigationService: WorkbenchNavigationService?) {
+        guard let user = currentUser else { return }
+        
+        // Check permissions first
+        guard user.isAdministrator || user.hasRole(targetRole) else { return }
+        
+        // Set workbench context
+        navigationService?.setCurrentWorkbenchContext(targetRole)
+        
+        // Switch role if different from current
+        if targetRole != user.primaryRole {
+            switchToWorkbenchRole(targetRole)
+        }
+        
+        print("User \(user.name) switched to \(targetRole.displayName) workbench")
+    }
+    
+    /// Return to primary workbench
+    func returnToPrimaryWorkbench(navigationService: WorkbenchNavigationService?) {
+        guard let user = currentUser else { return }
+        
+        // Reset to original role if needed
+        resetToOriginalRole()
+        
+        // Set primary workbench context
+        navigationService?.setCurrentWorkbenchContext(user.primaryRole)
+        
+        print("User \(user.name) returned to primary workbench: \(user.primaryRole.displayName)")
+    }
+    
     func updateUserRoles(_ roles: [UserRole], primaryRole: UserRole) {
         guard let user = currentUser else { return }
         user.roles = roles

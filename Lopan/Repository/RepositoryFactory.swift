@@ -15,4 +15,7 @@ protocol RepositoryFactory {
     var packagingRepository: PackagingRepository { get }
     var productionRepository: ProductionRepository { get }
     var auditRepository: AuditRepository { get }
+    var machineRepository: MachineRepository { get }
+    var colorRepository: ColorRepository { get }
+    var productionBatchRepository: ProductionBatchRepository { get }
 }

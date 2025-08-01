@@ -16,66 +16,129 @@ struct WorkbenchSelectorView: View {
     var body: some View {
         NavigationView {
             VStack(spacing: 20) {
-                Text("切换工作台")
+                Text("工作台操作")
                     .font(.title2)
                     .fontWeight(.bold)
                 
                 if let currentUser = authService.currentUser {
-                    Text("当前用户：\(currentUser.name)")
-                        .font(.subheadline)
-                        .foregroundColor(.secondary)
+                    VStack(spacing: 4) {
+                        Text("当前用户：\(currentUser.name)")
+                            .font(.subheadline)
+                            .foregroundColor(.secondary)
+                        
+                        if let currentContext = navigationService.currentWorkbenchContext {
+                            Text("当前工作台：\(currentContext.displayName)")
+                                .font(.caption)
+                                .foregroundColor(.blue)
+                                .padding(.horizontal, 8)
+                                .padding(.vertical, 2)
+                                .background(Color.blue.opacity(0.1))
+                                .cornerRadius(4)
+                        }
+                    }
                 }
                 
-                let accessibleRoles = authService.currentUser != nil ? navigationService.getAccessibleWorkbenches(for: authService.currentUser!) : []
-                
-                if accessibleRoles.isEmpty {
-                    VStack(spacing: 16) {
-                        Image(systemName: "lock.fill")
-                            .font(.system(size: 40))
-                            .foregroundColor(.gray)
-                        
-                        Text("暂无可访问的工作台")
-                            .font(.headline)
-                            .foregroundColor(.secondary)
-                        
-                        Text("请联系管理员分配相应权限")
-                            .font(.caption)
-                            .foregroundColor(.secondary)
-                    }
-                    .padding()
-                } else {
+                if let currentUser = authService.currentUser {
+                    let categories = navigationService.getWorkbenchCategories(for: currentUser)
+                    
                     ScrollView {
-                        LazyVGrid(columns: [
-                            GridItem(.flexible()),
-                            GridItem(.flexible())
-                        ], spacing: 16) {
-                            ForEach(accessibleRoles, id: \.self) { role in
+                        VStack(spacing: 20) {
+                            // 主工作台部分
+                            VStack(alignment: .leading, spacing: 12) {
+                                HStack {
+                                    Text("主工作台")
+                                        .font(.headline)
+                                        .fontWeight(.semibold)
+                                    Spacer()
+                                }
+                                
                                 WorkbenchCard(
-                                    role: role,
-                                    isCurrentRole: role == authService.currentUser?.primaryRole,
+                                    role: categories.primary,
+                                    isCurrentRole: categories.current == categories.primary,
                                     onSelect: {
-                                        switchToWorkbench(role)
+                                        returnToPrimaryWorkbench()
                                     }
                                 )
+                            }
+                            
+                            // 授权工作台部分（如果有的话）
+                            if categories.hasMultipleAccess {
+                                VStack(alignment: .leading, spacing: 12) {
+                                    HStack {
+                                        Text("授权工作台")
+                                            .font(.headline)
+                                            .fontWeight(.semibold)
+                                        Text("(\(categories.authorized.count))")
+                                            .font(.caption)
+                                            .foregroundColor(.secondary)
+                                        Spacer()
+                                    }
+                                    
+                                    LazyVGrid(columns: [
+                                        GridItem(.flexible()),
+                                        GridItem(.flexible())
+                                    ], spacing: 12) {
+                                        ForEach(categories.authorized, id: \.self) { role in
+                                            WorkbenchCard(
+                                                role: role,
+                                                isCurrentRole: categories.current == role,
+                                                onSelect: {
+                                                    switchToWorkbench(role)
+                                                }
+                                            )
+                                        }
+                                    }
+                                }
+                            }
+                            
+                            // 系统操作部分
+                            VStack(alignment: .leading, spacing: 12) {
+                                HStack {
+                                    Text("系统操作")
+                                        .font(.headline)
+                                        .fontWeight(.semibold)
+                                    Spacer()
+                                }
+                                
+                                VStack(spacing: 8) {
+                                    // 退出工作台按钮
+                                    Button("退出工作台") {
+                                        exitWorkbench()
+                                    }
+                                    .frame(maxWidth: .infinity)
+                                    .padding()
+                                    .background(Color.orange)
+                                    .foregroundColor(.white)
+                                    .cornerRadius(10)
+                                    
+                                    // 完全退出登录按钮
+                                    Button("退出登录") {
+                                        authService.logout()
+                                        dismiss()
+                                    }
+                                    .frame(maxWidth: .infinity)
+                                    .padding()
+                                    .background(Color.red)
+                                    .foregroundColor(.white)
+                                    .cornerRadius(10)
+                                }
                             }
                         }
                         .padding(.horizontal)
                     }
+                } else {
+                    VStack(spacing: 16) {
+                        Image(systemName: "person.crop.circle.badge.xmark")
+                            .font(.system(size: 40))
+                            .foregroundColor(.gray)
+                        
+                        Text("未登录")
+                            .font(.headline)
+                            .foregroundColor(.secondary)
+                    }
                 }
                 
-                Spacer()
-                
-                // 退出登录按钮
-                Button("退出登录") {
-                    authService.logout()
-                    dismiss()
-                }
-                .frame(maxWidth: .infinity)
-                .padding()
-                .background(Color.red)
-                .foregroundColor(.white)
-                .cornerRadius(10)
-                .padding(.horizontal)
+                Spacer(minLength: 20)
             }
             .padding()
             .navigationTitle("工作台选择")
@@ -95,14 +158,26 @@ struct WorkbenchSelectorView: View {
         
         // 检查权限 - 管理员可以访问所有工作台，其他用户必须拥有该角色
         if navigationService.canAccessWorkbench(user: currentUser, targetRole: role) {
-            // If switching to original role and user has originalRole, reset to original
-            if role == currentUser.originalRole && currentUser.originalRole != nil {
-                authService.resetToOriginalRole()
-            } else {
-                authService.switchToWorkbenchRole(role)
-            }
+            // Use the new context-aware method
+            authService.switchToWorkbenchWithContext(role, navigationService: navigationService)
             dismiss()
         }
+    }
+    
+    private func returnToPrimaryWorkbench() {
+        authService.returnToPrimaryWorkbench(navigationService: navigationService)
+        dismiss()
+    }
+    
+    private func exitWorkbench() {
+        // Clear workbench context
+        navigationService.clearWorkbenchContext()
+        
+        // Exit workbench session
+        authService.exitWorkbench()
+        
+        // Dismiss the selector - this will return user to login/main screen
+        dismiss()
     }
 }
 

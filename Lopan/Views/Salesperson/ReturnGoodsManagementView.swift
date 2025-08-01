@@ -535,29 +535,6 @@ enum ReturnStatus: CaseIterable {
     }
 }
 
-struct StatCard: View {
-    let title: String
-    let count: Int
-    let color: Color
-    
-    var body: some View {
-        VStack(spacing: 4) {
-            Text("\(count)")
-                .font(.title2)
-                .fontWeight(.bold)
-                .foregroundColor(color)
-            
-            Text(title)
-                .font(.caption)
-                .foregroundColor(.secondary)
-                .multilineTextAlignment(.center)
-        }
-        .frame(maxWidth: .infinity)
-        .padding(.vertical, 12)
-        .background(color.opacity(0.1))
-        .cornerRadius(8)
-    }
-}
 
 struct ReturnGoodsRowView: View {
     let item: CustomerOutOfStock

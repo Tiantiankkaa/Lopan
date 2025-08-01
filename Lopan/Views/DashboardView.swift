@@ -20,16 +20,21 @@ struct DashboardView: View {
                     UnauthorizedView(authService: authService)
                 case .salesperson:
                     SalespersonDashboardView(authService: authService, navigationService: navigationService)
+                        .onAppear { navigationService.setCurrentWorkbenchContext(.salesperson) }
                 case .warehouseKeeper:
                     WarehouseKeeperDashboardView(authService: authService, navigationService: navigationService)
+                        .onAppear { navigationService.setCurrentWorkbenchContext(.warehouseKeeper) }
                 case .workshopManager:
                     WorkshopManagerDashboardView(authService: authService, navigationService: navigationService)
                 case .evaGranulationTechnician:
                     EVAGranulationDashboardView(authService: authService, navigationService: navigationService)
+                        .onAppear { navigationService.setCurrentWorkbenchContext(.evaGranulationTechnician) }
                 case .workshopTechnician:
                     WorkshopTechnicianDashboardView(authService: authService, navigationService: navigationService)
+                        .onAppear { navigationService.setCurrentWorkbenchContext(.workshopTechnician) }
                 case .administrator:
                     AdministratorDashboardView(authService: authService, navigationService: navigationService)
+                        .onAppear { navigationService.setCurrentWorkbenchContext(.administrator) }
                 }
             } else {
                 LoginView(authService: authService)
@@ -223,8 +228,8 @@ struct SalespersonDashboardView: View {
                         navigationService.showWorkbenchSelector()
                     }) {
                         HStack(spacing: 4) {
-                            Image(systemName: "arrow.left.arrow.right")
-                            Text("切换工作台")
+                            Image(systemName: "gearshape.arrow.triangle.2.circlepath")
+                            Text("工作台操作")
                         }
                         .font(.caption)
                     }
@@ -342,8 +347,8 @@ struct WarehouseKeeperDashboardView: View {
                         navigationService.showWorkbenchSelector()
                     }) {
                         HStack(spacing: 4) {
-                            Image(systemName: "arrow.left.arrow.right")
-                            Text("切换工作台")
+                            Image(systemName: "gearshape.arrow.triangle.2.circlepath")
+                            Text("工作台操作")
                         }
                         .font(.caption)
                     }
@@ -356,57 +361,15 @@ struct WarehouseKeeperDashboardView: View {
 struct WorkshopManagerDashboardView: View {
     @ObservedObject var authService: AuthenticationService
     @ObservedObject var navigationService: WorkbenchNavigationService
+    @EnvironmentObject var serviceFactory: ServiceFactory
     
     var body: some View {
-        NavigationView {
-            VStack(spacing: 20) {
-                Text("workshop_manager_dashboard".localized)
-                    .font(.title)
-                    .fontWeight(.bold)
-                
-                LazyVGrid(columns: [
-                    GridItem(.flexible()),
-                    GridItem(.flexible())
-                ], spacing: 20) {
-                    NavigationLink(destination: WorkshopProductionListView()) {
-                        DashboardCard(
-                            title: "production_management".localized,
-                            subtitle: "production_management_subtitle".localized,
-                            icon: "gearshape.2",
-                            color: .blue
-                        )
-                    }
-                    
-                    NavigationLink(destination: MachineStatusView()) {
-                        DashboardCard(
-                            title: "machine_status".localized,
-                            subtitle: "machine_status_subtitle".localized,
-                            icon: "cpu",
-                            color: .green
-                        )
-                    }
-                }
-                .padding(.horizontal)
-                
-                Spacer()
-            }
-            .padding()
-            .navigationTitle("workshop_manager_dashboard".localized)
-            .navigationBarTitleDisplayMode(.inline)
-            .toolbar {
-                ToolbarItem(placement: .navigationBarTrailing) {
-                    Button(action: {
-                        navigationService.showWorkbenchSelector()
-                    }) {
-                        HStack(spacing: 4) {
-                            Image(systemName: "arrow.left.arrow.right")
-                            Text("切换工作台")
-                        }
-                        .font(.caption)
-                    }
-                }
-            }
-        }
+        WorkshopManagerDashboard(
+            repositoryFactory: serviceFactory.repositoryFactory,
+            authService: authService,
+            auditService: serviceFactory.auditingService,
+            navigationService: navigationService
+        )
     }
 }
 
@@ -456,8 +419,8 @@ struct EVAGranulationDashboardView: View {
                         navigationService.showWorkbenchSelector()
                     }) {
                         HStack(spacing: 4) {
-                            Image(systemName: "arrow.left.arrow.right")
-                            Text("切换工作台")
+                            Image(systemName: "gearshape.arrow.triangle.2.circlepath")
+                            Text("工作台操作")
                         }
                         .font(.caption)
                     }
@@ -513,8 +476,8 @@ struct WorkshopTechnicianDashboardView: View {
                         navigationService.showWorkbenchSelector()
                     }) {
                         HStack(spacing: 4) {
-                            Image(systemName: "arrow.left.arrow.right")
-                            Text("切换工作台")
+                            Image(systemName: "gearshape.arrow.triangle.2.circlepath")
+                            Text("工作台操作")
                         }
                         .font(.caption)
                     }
@@ -527,6 +490,7 @@ struct WorkshopTechnicianDashboardView: View {
 struct AdministratorDashboardView: View {
     @ObservedObject var authService: AuthenticationService
     @ObservedObject var navigationService: WorkbenchNavigationService
+    @EnvironmentObject var serviceFactory: ServiceFactory
     
     var body: some View {
         NavigationView {
@@ -545,6 +509,19 @@ struct AdministratorDashboardView: View {
                             subtitle: "user_management_subtitle".localized,
                             icon: "person.2",
                             color: .blue
+                        )
+                    }
+                    
+                    NavigationLink(destination: BatchReviewView(
+                        repositoryFactory: serviceFactory.repositoryFactory,
+                        authService: authService,
+                        auditService: serviceFactory.auditingService
+                    )) {
+                        DashboardCard(
+                            title: "批次审核",
+                            subtitle: "审核生产配置批次和管理生产计划",
+                            icon: "checkmark.seal",
+                            color: .indigo
                         )
                     }
                     
@@ -588,8 +565,8 @@ struct AdministratorDashboardView: View {
                         navigationService.showWorkbenchSelector()
                     }) {
                         HStack(spacing: 4) {
-                            Image(systemName: "arrow.left.arrow.right")
-                            Text("切换工作台")
+                            Image(systemName: "gearshape.arrow.triangle.2.circlepath")
+                            Text("工作台操作")
                         }
                         .font(.caption)
                     }

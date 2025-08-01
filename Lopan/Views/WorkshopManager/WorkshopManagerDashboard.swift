@@ -15,6 +15,8 @@ struct WorkshopManagerDashboard: View {
     let navigationService: WorkbenchNavigationService?
     
     @State private var selectedTab = 0
+    @State private var showingAddMachine = false
+    @State private var showingAddColor = false
     
     init(repositoryFactory: RepositoryFactory, authService: AuthenticationService, auditService: NewAuditingService, navigationService: WorkbenchNavigationService? = nil) {
         self.repositoryFactory = repositoryFactory
@@ -25,83 +27,116 @@ struct WorkshopManagerDashboard: View {
     
     var body: some View {
         TabView(selection: $selectedTab) {
-            // Machine Management
-            MachineManagementView(
-                repositoryFactory: repositoryFactory,
-                authService: authService,
-                auditService: auditService
-            )
-            .tabItem {
-                Image(systemName: "gearshape.2")
-                Text("设备管理")
-            }
-            .tag(0)
-            
-            // Color Management
-            ColorManagementView(
-                repositoryFactory: repositoryFactory,
-                authService: authService,
-                auditService: auditService
-            )
-            .tabItem {
-                Image(systemName: "paintpalette")
-                Text("颜色管理")
-            }
-            .tag(1)
-            
-            // Gun Color Settings
-            GunColorSettingsView(
-                repositoryFactory: repositoryFactory,
-                authService: authService,
-                auditService: auditService
-            )
-            .tabItem {
-                Image(systemName: "gearshape.fill")
-                Text("基础配置")
-            }
-            .tag(2)
-            
-            // Production Configuration
-            ProductionConfigurationView(
-                repositoryFactory: repositoryFactory,
-                authService: authService,
-                auditService: auditService
-            )
-            .tabItem {
-                Image(systemName: "slider.horizontal.3")
-                Text("生产配置")
-            }
-            .tag(3)
-            
-            // Batch History
-            BatchHistoryView(
-                repositoryFactory: repositoryFactory,
-                authService: authService,
-                auditService: auditService
-            )
-            .tabItem {
-                Image(systemName: "clock.arrow.circlepath")
-                Text("批次历史")
-            }
-            .tag(4)
+                // Machine Management
+                MachineManagementView(
+                    repositoryFactory: repositoryFactory,
+                    authService: authService,
+                    auditService: auditService,
+                    showingAddMachine: $showingAddMachine
+                )
+                .tabItem {
+                    Image(systemName: "gearshape.2")
+                    Text("设备管理")
+                }
+                .tag(0)
+                
+                // Color Management
+                ColorManagementView(
+                    repositoryFactory: repositoryFactory,
+                    authService: authService,
+                    auditService: auditService,
+                    showingAddColor: $showingAddColor
+                )
+                .tabItem {
+                    Image(systemName: "paintpalette")
+                    Text("颜色管理")
+                }
+                .tag(1)
+                
+                // Gun Color Settings
+                GunColorSettingsView(
+                    repositoryFactory: repositoryFactory,
+                    authService: authService,
+                    auditService: auditService
+                )
+                .tabItem {
+                    Image(systemName: "gearshape.fill")
+                    Text("基础配置")
+                }
+                .tag(2)
+                
+                // Production Configuration
+                ProductionConfigurationView(
+                    repositoryFactory: repositoryFactory,
+                    authService: authService,
+                    auditService: auditService
+                )
+                .tabItem {
+                    Image(systemName: "slider.horizontal.3")
+                    Text("生产配置")
+                }
+                .tag(3)
+                
+                // Batch History
+                BatchHistoryView(
+                    repositoryFactory: repositoryFactory,
+                    authService: authService,
+                    auditService: auditService
+                )
+                .tabItem {
+                    Image(systemName: "clock.arrow.circlepath")
+                    Text("批次历史")
+                }
+                .tag(4)
         }
         .accentColor(.blue)
-        .navigationBarBackButtonHidden(true)
-        .toolbar {
-            ToolbarItem(placement: .navigationBarTrailing) {
-                if let navigationService = navigationService {
-                    Button(action: {
-                        navigationService.showWorkbenchSelector()
-                    }) {
-                        HStack(spacing: 4) {
-                            Image(systemName: "arrow.left.arrow.right")
-                            Text("切换工作台")
-                        }
-                        .font(.caption)
-                    }
-                }
-            }
+        .onAppear {
+            // Initialize workbench context when entering workshop manager dashboard
+            navigationService?.setCurrentWorkbenchContext(.workshopManager)
         }
+        .sheet(isPresented: $showingAddMachine) {
+            AddMachineSheetWrapper(repositoryFactory: repositoryFactory, authService: authService, auditService: auditService)
+        }
+        .sheet(isPresented: $showingAddColor) {
+            AddColorSheetWrapper(repositoryFactory: repositoryFactory, authService: authService, auditService: auditService)
+        }
+    }
+    
+    // MARK: - Helper Methods
+    
+    private var canManageColors: Bool {
+        authService.currentUser?.hasRole(.workshopManager) == true ||
+        authService.currentUser?.hasRole(.administrator) == true
+    }
+}
+
+// MARK: - Sheet Wrappers
+struct AddMachineSheetWrapper: View {
+    let repositoryFactory: RepositoryFactory
+    @ObservedObject var authService: AuthenticationService
+    let auditService: NewAuditingService
+    
+    var body: some View {
+        AddMachineSheet(machineService: MachineService(
+            machineRepository: repositoryFactory.machineRepository,
+            auditService: auditService,
+            authService: authService
+        ))
+    }
+}
+
+struct AddColorSheetWrapper: View {
+    let repositoryFactory: RepositoryFactory
+    @ObservedObject var authService: AuthenticationService
+    let auditService: NewAuditingService
+    
+    var body: some View {
+        AddColorSheet(colorService: ColorService(
+            colorRepository: repositoryFactory.colorRepository,
+            machineRepository: repositoryFactory.machineRepository,
+            auditService: auditService,
+            authService: authService
+        ))
     }
 }
 

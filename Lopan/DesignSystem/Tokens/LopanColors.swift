@@ -12,60 +12,60 @@ import SwiftUI
 struct LopanColors {
     
     // MARK: - Primary Colors
-    static let primary = Color("BrandPrimary") 
-    static let primaryLight = Color("PrimaryLight")
-    static let primaryDark = Color("PrimaryDark")
+    static let primary = Color.blue 
+    static let primaryLight = Color.blue.opacity(0.3)
+    static let primaryDark = Color.blue.opacity(0.8)
     
     // MARK: - Secondary Colors
-    static let secondary = Color("Secondary")
-    static let secondaryLight = Color("SecondaryLight")
-    static let secondaryDark = Color("SecondaryDark")
+    static let secondary = Color.gray
+    static let secondaryLight = Color.gray.opacity(0.3)
+    static let secondaryDark = Color.gray.opacity(0.8)
     
     // MARK: - Accent Colors
-    static let accent = Color("Accent")
-    static let accentLight = Color("AccentLight")
-    static let accentDark = Color("AccentDark")
+    static let accent = Color.orange
+    static let accentLight = Color.orange.opacity(0.3)
+    static let accentDark = Color.orange.opacity(0.8)
     
     // MARK: - Semantic Colors
-    static let success = Color("Success")
-    static let successLight = Color("SuccessLight")
-    static let successDark = Color("SuccessDark")
+    static let success = Color.green
+    static let successLight = Color.green.opacity(0.3)
+    static let successDark = Color.green.opacity(0.8)
     
-    static let warning = Color("Warning")
-    static let warningLight = Color("WarningLight")
-    static let warningDark = Color("WarningDark")
+    static let warning = Color.orange
+    static let warningLight = Color.orange.opacity(0.3)
+    static let warningDark = Color.orange.opacity(0.8)
     
-    static let error = Color("Error")
-    static let errorLight = Color("ErrorLight")
-    static let errorDark = Color("ErrorDark")
+    static let error = Color.red
+    static let errorLight = Color.red.opacity(0.3)
+    static let errorDark = Color.red.opacity(0.8)
     
-    static let info = Color("Info")
-    static let infoLight = Color("InfoLight")
-    static let infoDark = Color("InfoDark")
+    static let info = Color.blue
+    static let infoLight = Color.blue.opacity(0.3)
+    static let infoDark = Color.blue.opacity(0.8)
     
     // MARK: - Neutral Colors
-    static let background = Color("Background")
-    static let backgroundSecondary = Color("BackgroundSecondary")
-    static let backgroundTertiary = Color("BackgroundTertiary")
+    static let background = Color(UIColor.systemBackground)
+    static let backgroundSecondary = Color(UIColor.secondarySystemBackground)
+    static let backgroundTertiary = Color(UIColor.tertiarySystemBackground)
     
-    static let surface = Color("Surface")
-    static let surfaceElevated = Color("SurfaceElevated")
+    static let surface = Color(UIColor.systemBackground)
+    static let surfaceElevated = Color(UIColor.secondarySystemBackground)
     
     // MARK: - Text Colors
-    static let textPrimary = Color("TextPrimary")
-    static let textSecondary = Color("TextSecondary")
-    static let textTertiary = Color("TextTertiary")
-    static let textOnPrimary = Color("TextOnPrimary")
-    static let textOnDark = Color("TextOnDark")
+    static let textPrimary = Color(UIColor.label)
+    static let textSecondary = Color(UIColor.secondaryLabel)
+    static let textTertiary = Color(UIColor.tertiaryLabel)
+    static let textOnPrimary = Color.white
+    static let textOnDark = Color.white
     
     // MARK: - Border Colors
-    static let border = Color("Border")
-    static let borderLight = Color("BorderLight")
-    static let borderStrong = Color("BorderStrong")
+    static let border = Color(UIColor.separator)
+    static let borderLight = Color(UIColor.separator).opacity(0.5)
+    static let borderStrong = Color(UIColor.separator).opacity(0.8)
     
     // MARK: - Glass Morphism (iOS 26 Liquid Glass trend)
-    static let glassMorphism = Color("GlassMorphism")
-    static let glassMorphismStrong = Color("GlassMorphismStrong")
+    static let glassMorphism = Color.white.opacity(0.1)
+    static let glassMorphismStrong = Color.white.opacity(0.2)
     
     // MARK: - Status Colors (for production management)
     static let statusPending = warning
