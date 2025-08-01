@@ -18,6 +18,15 @@ enum OperationType: String, CaseIterable, Codable {
     case returnProcess = "return_process"
     case batchUpdate = "batch_update"
     case batchDelete = "batch_delete"
+    case machineStateChange = "machine_state_change"
+    case gunColorChange = "gun_color_change"
+    case maintenanceScheduled = "maintenance_scheduled"
+    case maintenanceCompleted = "maintenance_completed"
+    case colorAssignment = "color_assignment"
+    case batchSubmission = "batch_submission"
+    case batchReview = "batch_review"
+    case productionConfigChange = "production_config_change"
+    case reset = "reset"
     
     var displayName: String {
         switch self {
@@ -37,6 +46,24 @@ enum OperationType: String, CaseIterable, Codable {
             return "批量更新"
         case .batchDelete:
             return "批量删除"
+        case .machineStateChange:
+            return "设备状态变更"
+        case .gunColorChange:
+            return "喷枪颜色变更"
+        case .maintenanceScheduled:
+            return "维护安排"
+        case .maintenanceCompleted:
+            return "维护完成"
+        case .colorAssignment:
+            return "颜色分配"
+        case .batchSubmission:
+            return "批次提交"
+        case .batchReview:
+            return "批次审核"
+        case .productionConfigChange:
+            return "生产配置变更"
+        case .reset:
+            return "重置"
         }
     }
     
@@ -58,6 +85,24 @@ enum OperationType: String, CaseIterable, Codable {
             return "rectangle.3.group.fill"
         case .batchDelete:
             return "trash.fill"
+        case .machineStateChange:
+            return "gearshape.2"
+        case .gunColorChange:
+            return "paintbrush.fill"
+        case .maintenanceScheduled:
+            return "calendar.badge.plus"
+        case .maintenanceCompleted:
+            return "checkmark.circle.fill"
+        case .colorAssignment:
+            return "paintbrush.pointed.fill"
+        case .batchSubmission:
+            return "tray.and.arrow.up.fill"
+        case .batchReview:
+            return "checkmark.seal.fill"
+        case .productionConfigChange:
+            return "gearshape.2.fill"
+        case .reset:
+            return "arrow.counterclockwise.circle.fill"
         }
     }
     
@@ -79,6 +124,24 @@ enum OperationType: String, CaseIterable, Codable {
             return "teal"
         case .batchDelete:
             return "red"
+        case .machineStateChange:
+            return "orange"
+        case .gunColorChange:
+            return "purple"
+        case .maintenanceScheduled:
+            return "blue"
+        case .maintenanceCompleted:
+            return "green"
+        case .colorAssignment:
+            return "purple"
+        case .batchSubmission:
+            return "blue"
+        case .batchReview:
+            return "orange"
+        case .productionConfigChange:
+            return "teal"
+        case .reset:
+            return "purple"
         }
     }
 }
@@ -90,6 +153,14 @@ enum EntityType: String, CaseIterable, Codable {
     case product = "product"
     case user = "user"
     case returnGoods = "return_goods"
+    case machine = "machine"
+    case station = "station"
+    case workstation = "workstation"
+    case gun = "gun"
+    case maintenanceRecord = "maintenance_record"
+    case color = "color"
+    case productionBatch = "production_batch"
+    case productConfig = "product_config"
     
     var displayName: String {
         switch self {
@@ -103,6 +174,22 @@ enum EntityType: String, CaseIterable, Codable {
             return "用户"
         case .returnGoods:
             return "退货"
+        case .machine:
+            return "生产设备"
+        case .station:
+            return "工位"
+        case .workstation:
+            return "工作站"
+        case .gun:
+            return "喷枪"
+        case .maintenanceRecord:
+            return "维护记录"
+        case .color:
+            return "颜色卡"
+        case .productionBatch:
+            return "生产批次"
+        case .productConfig:
+            return "产品配置"
         }
     }
 }
