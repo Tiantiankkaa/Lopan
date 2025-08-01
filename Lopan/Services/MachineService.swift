@@ -363,6 +363,52 @@ class MachineService: ObservableObject {
         }
     }
     
+    func updateMachineBasicSettings(_ machine: WorkshopMachine, curingTime: Int, moldOpeningTimes: Int) async -> Bool {
+        guard let currentUser = authService.currentUser,
+              currentUser.hasRole(.workshopManager) || currentUser.hasRole(.administrator) else {
+            errorMessage = "Insufficient permissions to update machine settings"
+            return false
+        }
+        
+        let oldCuringTime = machine.curingTime
+        let oldMoldOpeningTimes = machine.moldOpeningTimes
+        
+        machine.curingTime = curingTime
+        machine.moldOpeningTimes = moldOpeningTimes
+        machine.updatedAt = Date()
+        
+        do {
+            try await machineRepository.updateMachine(machine)
+            
+            // Audit log
+            try await auditService.logOperation(
+                operationType: .update,
+                entityType: .machine,
+                entityId: machine.id,
+                entityDescription: "Machine #\(machine.machineNumber) basic settings",
+                operatorUserId: currentUser.id,
+                operatorUserName: currentUser.name,
+                operationDetails: [
+                    "machineNumber": machine.machineNumber,
+                    "oldCuringTime": oldCuringTime,
+                    "newCuringTime": curingTime,
+                    "oldMoldOpeningTimes": oldMoldOpeningTimes,
+                    "newMoldOpeningTimes": moldOpeningTimes,
+                    "updatedBy": currentUser.name
+                ]
+            )
+            
+            return true
+            
+        } catch {
+            // Revert on error
+            machine.curingTime = oldCuringTime
+            machine.moldOpeningTimes = oldMoldOpeningTimes
+            errorMessage = "Failed to update machine basic settings: \(error.localizedDescription)"
+            return false
+        }
+    }
+    
     // MARK: - Utility Methods
     func clearError() {
         errorMessage = nil

@@ -85,6 +85,10 @@ final class WorkshopMachine: Codable {
     var currentProductionMode: ProductionMode?
     var lastConfigurationUpdate: Date?
     
+    // Machine basic settings
+    var curingTime: Int // in seconds
+    var moldOpeningTimes: Int // number of times
+    
     // Relationships
     @Relationship(deleteRule: .cascade) var stations: [WorkshopStation] = []
     @Relationship(deleteRule: .cascade) var guns: [WorkshopGun] = []
@@ -102,6 +106,8 @@ final class WorkshopMachine: Codable {
         self.currentProductionCount = 0
         self.utilizationRate = 0.0
         self.errorCount = 0
+        self.curingTime = 30 // Default 30 seconds
+        self.moldOpeningTimes = 1 // Default 1 time
         
         // Auto-create 12 stations
         self.stations = (1...12).map { stationNumber in
@@ -159,6 +165,7 @@ final class WorkshopMachine: Codable {
         case createdAt, updatedAt, createdBy, notes
         case dailyTarget, currentProductionCount, utilizationRate, errorCount
         case currentBatchId, currentProductionMode, lastConfigurationUpdate
+        case curingTime, moldOpeningTimes
     }
     
     func encode(to encoder: Encoder) throws {
@@ -181,6 +188,8 @@ final class WorkshopMachine: Codable {
         try container.encodeIfPresent(currentBatchId, forKey: .currentBatchId)
         try container.encodeIfPresent(currentProductionMode, forKey: .currentProductionMode)
         try container.encodeIfPresent(lastConfigurationUpdate, forKey: .lastConfigurationUpdate)
+        try container.encode(curingTime, forKey: .curingTime)
+        try container.encode(moldOpeningTimes, forKey: .moldOpeningTimes)
     }
     
     required init(from decoder: Decoder) throws {
@@ -203,6 +212,8 @@ final class WorkshopMachine: Codable {
         currentBatchId = try container.decodeIfPresent(String.self, forKey: .currentBatchId)
         currentProductionMode = try container.decodeIfPresent(ProductionMode.self, forKey: .currentProductionMode)
         lastConfigurationUpdate = try container.decodeIfPresent(Date.self, forKey: .lastConfigurationUpdate)
+        curingTime = try container.decode(Int.self, forKey: .curingTime)
+        moldOpeningTimes = try container.decode(Int.self, forKey: .moldOpeningTimes)
         
         // Initialize empty relationships - these would be loaded separately
         stations = []
