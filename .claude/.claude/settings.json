@@ -1,0 +1,11 @@
+{
+  "defaultModel": "claude-3.5-sonnet",
+  "agentsFile": ".claude/agents.yaml",
+  "commitPrefix": true,
+  "autoPush": true,
+  "autoPR": true,
+  "notify": true,
+  "feedbackSurveyState": {
+    "lastShownTime": 1754039925074
+  }
+}
