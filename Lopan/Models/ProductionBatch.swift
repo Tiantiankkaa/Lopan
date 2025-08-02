@@ -7,6 +7,7 @@
 
 import Foundation
 import SwiftData
+import SwiftUI
 
 // MARK: - Production Enums
 enum ProductionMode: String, CaseIterable, Codable {
@@ -52,13 +53,13 @@ enum BatchStatus: String, CaseIterable, Codable {
         }
     }
     
-    var color: String {
+    var color: Color {
         switch self {
-        case .pending: return "orange"
-        case .approved: return "green"
-        case .rejected: return "red"
-        case .active: return "blue"
-        case .completed: return "gray"
+        case .pending: return .orange
+        case .approved: return .green
+        case .rejected: return .red
+        case .active: return .blue
+        case .completed: return .gray
         }
     }
 }

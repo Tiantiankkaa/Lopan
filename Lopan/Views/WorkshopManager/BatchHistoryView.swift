@@ -100,7 +100,7 @@ struct BatchHistoryView: View {
                             title: status.displayName,
                             count: count,
                             isSelected: selectedStatus == status,
-                            color: Color(status.color)
+                            color: status.color
                         ) {
                             selectedStatus = status
                         }
@@ -221,8 +221,8 @@ struct BatchHistoryRow: View {
                             .fontWeight(.medium)
                             .padding(.horizontal, 8)
                             .padding(.vertical, 2)
-                            .background(Color(batch.status.color).opacity(0.2))
-                            .foregroundColor(Color(batch.status.color))
+                            .background(batch.status.color.opacity(0.2))
+                            .foregroundColor(batch.status.color)
                             .cornerRadius(4)
                         
                         Text(batch.mode.displayName)
