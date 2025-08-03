@@ -23,6 +23,8 @@ struct ProductionConfigurationView: View {
     @State private var selectedPrimaryColor: ColorCard?
     @State private var selectedSecondaryColor: ColorCard?
     @State private var isColorPrePopulated = false
+    @State private var refreshTimer: Timer?
+    @State private var lastStatusUpdate: Date = Date()
     
     init(repositoryFactory: RepositoryFactory, authService: AuthenticationService, auditService: NewAuditingService) {
         self.authService = authService
@@ -50,14 +52,17 @@ struct ProductionConfigurationView: View {
     }
     
     var body: some View {
-        VStack {
-            if machineService.isLoading || colorService.isLoading || productService.isLoading {
-                ProgressView("加载数据...")
-                    .frame(maxWidth: .infinity, maxHeight: .infinity)
-            } else {
-                mainContent
+        NavigationStack {
+            VStack {
+                if machineService.isLoading || colorService.isLoading || productService.isLoading {
+                    ProgressView("加载数据...")
+                        .frame(maxWidth: .infinity, maxHeight: .infinity)
+                } else {
+                    mainContent
+                }
             }
-        }
+            .navigationTitle("生产配置")
+            .navigationBarBackButtonHidden(true)
             .refreshable {
                 await loadData()
             }
@@ -81,10 +86,17 @@ struct ProductionConfigurationView: View {
                     ) {
                         showingAddProduct = false
                     }
+                    .presentationDetents([.medium, .large])
+                    .presentationDragIndicator(.visible)
                 }
             }
         .task {
             await loadData()
+            startStatusPolling()
+        }
+        .onDisappear {
+            stopStatusPolling()
+        }
         }
     }
     
@@ -108,6 +120,10 @@ struct ProductionConfigurationView: View {
                 }
             }
             .padding()
+            // Add safe area padding for tab bar
+            .safeAreaInset(edge: .bottom) {
+                Color.clear.frame(height: 34)
+            }
         }
     }
     
@@ -176,11 +192,25 @@ struct ProductionConfigurationView: View {
                     .multilineTextAlignment(.center)
             }
             
-            Button("创建批次") {
-                createNewBatch()
+            VStack(spacing: 12) {
+                Button("创建批次") {
+                    createNewBatch()
+                }
+                .buttonStyle(.borderedProminent)
+                .disabled(!canManageProduction || selectedMachine == nil)
+                
+                // Show submit button preview with guidance
+                Button(submitButtonText) {
+                    // This won't do anything until batch is created
+                }
+                .buttonStyle(.bordered)
+                .disabled(true)
+                
+                Text(submitButtonDisabledReason)
+                    .font(.caption)
+                    .foregroundColor(.secondary)
+                    .multilineTextAlignment(.center)
             }
-            .buttonStyle(.borderedProminent)
-            .disabled(!canManageProduction || selectedMachine == nil)
         }
         .padding()
         .background(Color(UIColor.secondarySystemBackground))
@@ -190,6 +220,12 @@ struct ProductionConfigurationView: View {
     // MARK: - Batch Configuration Section
     private func batchConfigurationSection(_ batch: ProductionBatch) -> some View {
         VStack(spacing: 16) {
+            // Workflow progress indicator
+            WorkflowProgressView(
+                currentStep: workflowCurrentStep,
+                steps: ["创建批次", "添加产品", "提交审批", "等待审批"]
+            )
+            
             // Batch info header
             batchInfoHeader(batch)
             
@@ -202,6 +238,22 @@ struct ProductionConfigurationView: View {
                     showingAddProduct = true
                 }
                 .buttonStyle(.bordered)
+            }
+            
+            // Submit for approval button - always visible with state feedback
+            VStack(spacing: 8) {
+                Button(submitButtonText) {
+                    submitBatch()
+                }
+                .buttonStyle(.borderedProminent)
+                .disabled(!canSubmitBatch || batchService.isLoading)
+                
+                if !canSubmitBatch {
+                    Text(submitButtonDisabledReason)
+                        .font(.caption)
+                        .foregroundColor(.secondary)
+                        .multilineTextAlignment(.center)
+                }
             }
             
             // Station utilization visualization
@@ -225,17 +277,27 @@ struct ProductionConfigurationView: View {
                 Spacer()
                 
                 VStack(alignment: .trailing, spacing: 4) {
-                    Text("生产模式")
+                    Text("状态")
                         .font(.caption)
                         .foregroundColor(.secondary)
-                    Text(batch.mode.displayName)
-                        .font(.subheadline)
-                        .fontWeight(.medium)
+                    
+                    HStack(spacing: 4) {
+                        Circle()
+                            .fill(batch.status.color)
+                            .frame(width: 8, height: 8)
+                        Text(batch.status.displayName)
+                            .font(.subheadline)
+                            .fontWeight(.medium)
+                    }
                 }
             }
             
             HStack {
                 Text("工位使用: \(batch.totalStationsUsed)/12")
+                    .font(.caption)
+                    .foregroundColor(.secondary)
+                
+                Text("|\(batch.mode.displayName)")
                     .font(.caption)
                     .foregroundColor(.secondary)
                 
@@ -343,6 +405,71 @@ struct ProductionConfigurationView: View {
         authService.currentUser?.hasRole(.administrator) == true
     }
     
+    private var canSubmitBatch: Bool {
+        guard let batch = currentBatch else { return false }
+        return canManageProduction && 
+               !batch.products.isEmpty && 
+               batch.status != .approved &&
+               batch.status != .rejected &&
+               batch.status != .active &&
+               batch.status != .completed
+    }
+
+    private var submitButtonText: String {
+        guard let batch = currentBatch else { return "创建批次后可提交" }
+        if batch.products.isEmpty { return "添加产品后可提交" }
+        if !canManageProduction { return "权限不足" }
+        
+        switch batch.status {
+        case .pending:
+            return "等待审批中..."
+        case .approved:
+            let timeSinceUpdate = Date().timeIntervalSince(lastStatusUpdate)
+            if timeSinceUpdate < 60 {
+                return "✅ 已获批准 (刚更新)"
+            } else {
+                return "✅ 已获批准"
+            }
+        case .rejected:
+            return "❌ 已被拒绝"
+        case .active:
+            return "🔄 批次执行中"
+        case .completed:
+            return "✅ 批次已完成"
+        }
+    }
+
+    private var submitButtonDisabledReason: String {
+        guard let batch = currentBatch else { return "请先创建生产批次" }
+        if batch.products.isEmpty { return "请添加至少一个产品配置" }
+        if !canManageProduction { return "需要车间管理员权限" }
+        
+        switch batch.status {
+        case .pending:
+            let formatter = DateFormatter()
+            formatter.dateStyle = .none
+            formatter.timeStyle = .short
+            return "提交时间: \(formatter.string(from: batch.submittedAt)) - 状态会自动更新"
+        case .approved:
+            return "管理员已批准此批次，可以开始生产"
+        case .rejected:
+            let reason = batch.reviewNotes ?? "未说明原因"
+            return "拒绝原因: \(reason) - 请修改后重新提交"
+        case .active:
+            return "批次正在生产线上执行"
+        case .completed:
+            return "此批次已完成所有生产任务"
+        }
+    }
+    
+    private var workflowCurrentStep: Int {
+        guard let batch = currentBatch else { return 0 }
+        if batch.products.isEmpty { return 1 }
+        if batch.status == .pending { return 2 }
+        if batch.status == .approved { return 3 }
+        return 2
+    }
+    
     private var hasError: Bool {
         batchService.errorMessage != nil || colorService.errorMessage != nil || machineService.errorMessage != nil || productService.error != nil
     }
@@ -420,6 +547,39 @@ struct ProductionConfigurationView: View {
             let success = await batchService.submitBatch(batch)
             if success {
                 currentBatch = nil
+            }
+        }
+    }
+    
+    // MARK: - Status Polling
+    
+    private func startStatusPolling() {
+        refreshTimer = Timer.scheduledTimer(withTimeInterval: 30.0, repeats: true) { _ in
+            Task {
+                await refreshBatchStatus()
+            }
+        }
+    }
+    
+    private func stopStatusPolling() {
+        refreshTimer?.invalidate()
+        refreshTimer = nil
+    }
+    
+    private func refreshBatchStatus() async {
+        // Only refresh if we have a current batch and it's been submitted
+        guard let batch = currentBatch else { return }
+        
+        // Refresh batch data
+        await batchService.loadBatches()
+        
+        // Check for status changes
+        if let updatedBatch = batchService.batches.first(where: { $0.id == batch.id }) {
+            if updatedBatch.status != batch.status {
+                await MainActor.run {
+                    currentBatch = updatedBatch
+                    lastStatusUpdate = Date()
+                }
             }
         }
     }
@@ -1347,6 +1507,51 @@ struct StationPreviewIndicator: View {
         } else {
             return .red
         }
+    }
+}
+
+// MARK: - Supporting Components
+
+struct WorkflowProgressView: View {
+    let currentStep: Int
+    let steps: [String]
+    
+    var body: some View {
+        VStack(spacing: 8) {
+            HStack {
+                ForEach(0..<steps.count, id: \.self) { index in
+                    HStack {
+                        Circle()
+                            .fill(index <= currentStep ? Color.blue : Color.gray.opacity(0.3))
+                            .frame(width: 20, height: 20)
+                            .overlay(
+                                Text("\(index + 1)")
+                                    .font(.caption)
+                                    .fontWeight(.semibold)
+                                    .foregroundColor(index <= currentStep ? .white : .gray)
+                            )
+                        
+                        if index < steps.count - 1 {
+                            Rectangle()
+                                .fill(index < currentStep ? Color.blue : Color.gray.opacity(0.3))
+                                .frame(height: 2)
+                        }
+                    }
+                }
+            }
+            
+            HStack {
+                ForEach(0..<steps.count, id: \.self) { index in
+                    Text(steps[index])
+                        .font(.caption)
+                        .foregroundColor(index <= currentStep ? .primary : .secondary)
+                        .frame(maxWidth: .infinity)
+                }
+            }
+        }
+        .padding()
+        .background(Color(UIColor.tertiarySystemBackground))
+        .cornerRadius(8)
     }
 }
 
