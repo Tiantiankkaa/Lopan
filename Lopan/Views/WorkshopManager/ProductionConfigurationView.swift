@@ -10,52 +10,51 @@ import SwiftData
 
 
 struct ProductionConfigurationView: View {
-    @StateObject private var batchService: ProductionBatchService
-    @StateObject private var colorService: ColorService
-    @StateObject private var machineService: MachineService
-    @StateObject private var productService: ProductService
+    @StateObject private var viewModel: ProductionConfigurationViewModel
     @ObservedObject private var authService: AuthenticationService
-    
-    @State private var selectedMachine: WorkshopMachine?
-    @State private var selectedMode: ProductionMode = .singleColor
-    @State private var currentBatch: ProductionBatch?
-    @State private var showingAddProduct = false
-    @State private var selectedPrimaryColor: ColorCard?
-    @State private var selectedSecondaryColor: ColorCard?
-    @State private var isColorPrePopulated = false
-    @State private var refreshTimer: Timer?
-    @State private var lastStatusUpdate: Date = Date()
-    @State private var selectedApprovalDate: Date = Date()
+    @State private var selectedBatchForDetails: ProductionBatch?
     
     init(repositoryFactory: RepositoryFactory, authService: AuthenticationService, auditService: NewAuditingService) {
         self.authService = authService
-        self._batchService = StateObject(wrappedValue: ProductionBatchService(
+        
+        let batchService = ProductionBatchService(
             productionBatchRepository: repositoryFactory.productionBatchRepository,
             machineRepository: repositoryFactory.machineRepository,
             colorRepository: repositoryFactory.colorRepository,
             auditService: auditService,
             authService: authService
-        ))
-        self._colorService = StateObject(wrappedValue: ColorService(
+        )
+        
+        let colorService = ColorService(
             colorRepository: repositoryFactory.colorRepository,
             machineRepository: repositoryFactory.machineRepository,
             auditService: auditService,
             authService: authService
-        ))
-        self._machineService = StateObject(wrappedValue: MachineService(
+        )
+        
+        let machineService = MachineService(
             machineRepository: repositoryFactory.machineRepository,
             auditService: auditService,
             authService: authService
-        ))
-        self._productService = StateObject(wrappedValue: ProductService(
+        )
+        
+        let productService = ProductService(
             repositoryFactory: repositoryFactory
+        )
+        
+        self._viewModel = StateObject(wrappedValue: ProductionConfigurationViewModel(
+            batchService: batchService,
+            colorService: colorService,
+            machineService: machineService,
+            productService: productService,
+            authService: authService
         ))
     }
     
     var body: some View {
         NavigationStack {
             VStack {
-                if machineService.isLoading || colorService.isLoading || productService.isLoading {
+                if viewModel.isLoading {
                     ProgressView("加载数据...")
                         .frame(maxWidth: .infinity, maxHeight: .infinity)
                 } else {
@@ -65,38 +64,47 @@ struct ProductionConfigurationView: View {
             .navigationTitle("生产配置")
             .navigationBarBackButtonHidden(true)
             .refreshable {
-                await loadData()
+                await viewModel.loadData()
             }
-            .alert("Error", isPresented: .constant(hasError)) {
+            .alert("Error", isPresented: .constant(viewModel.hasError)) {
                 Button("确定") {
-                    clearErrors()
+                    viewModel.clearErrors()
                 }
             } message: {
-                Text(errorMessage)
+                Text(viewModel.errorMessage ?? "")
             }
-            .sheet(isPresented: $showingAddProduct) {
-                if let batch = currentBatch, let machine = selectedMachine {
+            .sheet(isPresented: $viewModel.showingAddProduct) {
+                if let batch = viewModel.currentBatch, let machine = viewModel.selectedMachine {
                     AddProductSheet(
                         batch: batch,
                         machine: machine,
-                        colors: colorService.colors.filter { $0.isActive },
-                        products: productService.products,
-                        batchService: batchService,
-                        prePopulatedPrimaryColor: selectedPrimaryColor,
-                        prePopulatedSecondaryColor: selectedSecondaryColor
+                        colors: viewModel.activeColors,
+                        products: viewModel.availableProducts,
+                        batchService: viewModel.getBatchService(),
+                        prePopulatedPrimaryColor: viewModel.selectedPrimaryColor,
+                        prePopulatedSecondaryColor: viewModel.selectedSecondaryColor
                     ) {
-                        showingAddProduct = false
+                        viewModel.dismissAddProduct()
                     }
                     .presentationDetents([.medium, .large])
                     .presentationDragIndicator(.visible)
                 }
             }
+            .sheet(item: $selectedBatchForDetails) { batch in
+                BatchDetailsSheet(
+                    batch: batch,
+                    colors: viewModel.activeColors,
+                    machines: viewModel.availableMachines
+                )
+                .presentationDetents([.medium, .large])
+                .presentationDragIndicator(.visible)
+            }
         .task {
-            await loadData()
-            startStatusPolling()
+            await viewModel.loadData()
+            viewModel.startStatusPolling()
         }
         .onDisappear {
-            stopStatusPolling()
+            viewModel.stopStatusPolling()
         }
         }
     }
@@ -108,12 +116,15 @@ struct ProductionConfigurationView: View {
                 // Machine selection
                 machineSelectionSection
                 
-                if selectedMachine != nil {
+                if viewModel.selectedMachine != nil {
+                    // Approval workflow display
+                    approvalWorkflowSection
+                    
                     // Production mode selection
                     productionModeSection
                     
                     // Current batch info
-                    if let batch = currentBatch {
+                    if let batch = viewModel.currentBatch {
                         batchConfigurationSection(batch)
                     } else {
                         createBatchSection
@@ -137,14 +148,12 @@ struct ProductionConfigurationView: View {
             
             ScrollView(.horizontal, showsIndicators: false) {
                 HStack(spacing: 12) {
-                    ForEach(machineService.machines.filter { $0.canReceiveNewTasks }, id: \.id) { machine in
+                    ForEach(viewModel.availableMachines, id: \.id) { machine in
                         MachineCard(
                             machine: machine,
-                            isSelected: selectedMachine?.id == machine.id
+                            isSelected: viewModel.selectedMachine?.id == machine.id
                         ) {
-                            selectedMachine = machine
-                            currentBatch = nil // Reset batch when changing machine
-                            autoPopulateGunColors() // Auto-populate colors for new machine
+                            viewModel.selectMachine(machine)
                         }
                     }
                 }
@@ -164,23 +173,89 @@ struct ProductionConfigurationView: View {
                 ForEach(ProductionMode.allCases, id: \.self) { mode in
                     ProductionModeCard(
                         mode: mode,
-                        isSelected: selectedMode == mode
+                        isSelected: viewModel.selectedMode == mode
                     ) {
-                        selectedMode = mode
-                        currentBatch = nil // Reset batch when changing mode
-                        autoPopulateGunColors() // Re-populate colors for new mode
+                        viewModel.selectMode(mode)
                     }
                 }
             }
         }
     }
     
+    // MARK: - Machine-Specific Approval Status Section
+    private var approvalWorkflowSection: some View {
+        VStack(alignment: .leading, spacing: 16) {
+            // Section header
+            HStack {
+                Text("审批状态")
+                    .font(.headline)
+                    .fontWeight(.semibold)
+                
+                Spacer()
+                
+                if let machine = viewModel.selectedMachine {
+                    Text("生产设备 A-\(String(format: "%03d", machine.machineNumber))")
+                        .font(.subheadline)
+                        .foregroundColor(.secondary)
+                }
+            }
+            
+            if let machine = viewModel.selectedMachine {
+                // Machine-specific approval status
+                MachineApprovalStatusView(
+                    machineId: machine.id,
+                    batchService: viewModel.batchService,
+                    onBatchTapped: { batch in
+                        selectedBatchForDetails = batch
+                    },
+                    onExecuteBatch: { batch in
+                        viewModel.handleExecuteBatch(batch)
+                    }
+                )
+            } else {
+                // No machine selected
+                machineSelectionPrompt
+            }
+        }
+        .padding()
+        .background(Color(UIColor.secondarySystemBackground))
+        .cornerRadius(12)
+    }
+    
+    private var machineSelectionPrompt: some View {
+        HStack {
+            Image(systemName: "exclamationmark.triangle.fill")
+                .font(.title2)
+                .foregroundColor(.orange)
+            
+            VStack(alignment: .leading, spacing: 4) {
+                Text("请选择生产设备")
+                    .font(.subheadline)
+                    .fontWeight(.medium)
+                Text("选择设备后查看对应的批次审批状态")
+                    .font(.caption)
+                    .foregroundColor(.secondary)
+            }
+            
+            Spacer()
+        }
+        .padding()
+        .background(Color.orange.opacity(0.1))
+        .cornerRadius(12)
+    }
+    
     // MARK: - Create Batch Section
     private var createBatchSection: some View {
         VStack(spacing: 16) {
-            Image(systemName: "plus.circle.fill")
-                .font(.system(size: 48))
-                .foregroundColor(.blue)
+            Button {
+                viewModel.createNewBatch()
+            } label: {
+                Image(systemName: "plus.circle.fill")
+                    .font(.system(size: 48))
+                    .foregroundColor(.blue)
+            }
+            .buttonStyle(.plain)
+            .disabled(!viewModel.canManageProduction || viewModel.selectedMachine == nil)
             
             VStack(spacing: 8) {
                 Text("创建生产批次")
@@ -194,20 +269,14 @@ struct ProductionConfigurationView: View {
             }
             
             VStack(spacing: 12) {
-                Button("创建批次") {
-                    createNewBatch()
-                }
-                .buttonStyle(.borderedProminent)
-                .disabled(!canManageProduction || selectedMachine == nil)
-                
                 // Show submit button preview with guidance
-                Button(submitButtonText) {
+                Button(viewModel.submitButtonText) {
                     // This won't do anything until batch is created
                 }
                 .buttonStyle(.bordered)
                 .disabled(true)
                 
-                Text(submitButtonDisabledReason)
+                Text(viewModel.submitButtonDisabledReason)
                     .font(.caption)
                     .foregroundColor(.secondary)
                     .multilineTextAlignment(.center)
@@ -223,7 +292,7 @@ struct ProductionConfigurationView: View {
         VStack(spacing: 16) {
             // Workflow progress indicator
             WorkflowProgressView(
-                currentStep: workflowCurrentStep,
+                currentStep: viewModel.workflowCurrentStep,
                 steps: ["创建批次", "添加产品", "提交审批", "等待审批"]
             )
             
@@ -234,28 +303,24 @@ struct ProductionConfigurationView: View {
             productsListSection(batch)
             
             // Add product button
-            if canManageProduction && batch.products.count < batch.mode.maxProducts {
+            if viewModel.canManageProduction && batch.products.count < batch.mode.maxProducts {
                 Button("添加产品") {
-                    showingAddProduct = true
+                    viewModel.showAddProduct()
                 }
                 .buttonStyle(.bordered)
             }
             
-            // Approval date selection
-            if batch.status == .pending || (canSubmitBatch && batch.status != .approved && batch.status != .rejected && batch.status != .active && batch.status != .completed) {
-                approvalDateSection
-            }
             
             // Submit for approval button - always visible with state feedback
             VStack(spacing: 8) {
-                Button(submitButtonText) {
-                    submitBatch()
+                Button(viewModel.submitButtonText) {
+                    viewModel.submitBatch()
                 }
                 .buttonStyle(.borderedProminent)
-                .disabled(!canSubmitBatch || batchService.isLoading)
+                .disabled(!viewModel.canSubmitBatch || viewModel.isLoading)
                 
-                if !canSubmitBatch {
-                    Text(submitButtonDisabledReason)
+                if !viewModel.canSubmitBatch {
+                    Text(viewModel.submitButtonDisabledReason)
                         .font(.caption)
                         .foregroundColor(.secondary)
                         .multilineTextAlignment(.center)
@@ -345,9 +410,9 @@ struct ProductionConfigurationView: View {
                     ForEach(batch.products, id: \.id) { product in
                         ProductConfigRow(
                             product: product,
-                            colors: colorService.colors,
-                            onDelete: canManageProduction ? {
-                                _ = batchService.removeProductFromBatch(batch, productConfig: product)
+                            colors: viewModel.activeColors,
+                            onDelete: viewModel.canManageProduction ? {
+                                _ = viewModel.getBatchService().removeProductFromBatch(batch, productConfig: product)
                             } : nil
                         )
                     }
@@ -405,243 +470,9 @@ struct ProductionConfigurationView: View {
         }
     }
     
-    // MARK: - Approval Date Section
-    private var approvalDateSection: some View {
-        VStack(alignment: .leading, spacing: 12) {
-            Text("审批目标日期")
-                .font(.headline)
-                .fontWeight(.semibold)
-            
-            HStack(spacing: 12) {
-                // Today option
-                Button("今天") {
-                    selectedApprovalDate = Calendar.current.startOfDay(for: Date())
-                }
-                .frame(maxWidth: .infinity)
-                .padding(.vertical, 8)
-                .background(Calendar.current.isDate(selectedApprovalDate, inSameDayAs: Date()) ? Color.blue : Color.gray.opacity(0.2))
-                .foregroundColor(Calendar.current.isDate(selectedApprovalDate, inSameDayAs: Date()) ? .white : .primary)
-                .cornerRadius(8)
-                
-                // Tomorrow option
-                Button("明天") {
-                    let tomorrow = Calendar.current.date(byAdding: .day, value: 1, to: Date()) ?? Date()
-                    selectedApprovalDate = Calendar.current.startOfDay(for: tomorrow)
-                }
-                .frame(maxWidth: .infinity)
-                .padding(.vertical, 8)
-                .background(isTomorrowSelected ? Color.blue : Color.gray.opacity(0.2))
-                .foregroundColor(isTomorrowSelected ? .white : .primary)
-                .cornerRadius(8)
-            }
-            
-            // Display selected date
-            Text("选定日期: \(formatDate(selectedApprovalDate))")
-                .font(.caption)
-                .foregroundColor(.secondary)
-        }
-        .padding()
-        .background(Color(UIColor.secondarySystemBackground))
-        .cornerRadius(12)
-    }
     
-    // MARK: - Helper Properties
-    private var canManageProduction: Bool {
-        authService.currentUser?.hasRole(.workshopManager) == true ||
-        authService.currentUser?.hasRole(.administrator) == true
-    }
-    
-    private var isTomorrowSelected: Bool {
-        let tomorrow = Calendar.current.date(byAdding: .day, value: 1, to: Date()) ?? Date()
-        return Calendar.current.isDate(selectedApprovalDate, inSameDayAs: tomorrow)
-    }
-    
-    private var canSubmitBatch: Bool {
-        guard let batch = currentBatch else { return false }
-        return canManageProduction && 
-               !batch.products.isEmpty && 
-               batch.status != .approved &&
-               batch.status != .rejected &&
-               batch.status != .active &&
-               batch.status != .completed
-    }
-
-    private var submitButtonText: String {
-        guard let batch = currentBatch else { return "创建批次后可提交" }
-        if batch.products.isEmpty { return "添加产品后可提交" }
-        if !canManageProduction { return "权限不足" }
-        
-        switch batch.status {
-        case .pending:
-            return "提交审批"
-        case .approved:
-            let timeSinceUpdate = Date().timeIntervalSince(lastStatusUpdate)
-            if timeSinceUpdate < 60 {
-                return "✅ 已获批准 (刚更新)"
-            } else {
-                return "✅ 已获批准"
-            }
-        case .rejected:
-            return "❌ 已被拒绝"
-        case .active:
-            return "🔄 批次执行中"
-        case .completed:
-            return "✅ 批次已完成"
-        }
-    }
-
-    private var submitButtonDisabledReason: String {
-        guard let batch = currentBatch else { return "请先创建生产批次" }
-        if batch.products.isEmpty { return "请添加至少一个产品配置" }
-        if !canManageProduction { return "需要车间管理员权限" }
-        
-        switch batch.status {
-        case .pending:
-            let formatter = DateFormatter()
-            formatter.dateStyle = .none
-            formatter.timeStyle = .short
-            return "提交时间: \(formatter.string(from: batch.submittedAt)) - 状态会自动更新"
-        case .approved:
-            return "管理员已批准此批次，可以开始生产"
-        case .rejected:
-            let reason = batch.reviewNotes ?? "未说明原因"
-            return "拒绝原因: \(reason) - 请修改后重新提交"
-        case .active:
-            return "批次正在生产线上执行"
-        case .completed:
-            return "此批次已完成所有生产任务"
-        }
-    }
-    
-    private var workflowCurrentStep: Int {
-        guard let batch = currentBatch else { return 0 }
-        if batch.products.isEmpty { return 1 }
-        if batch.status == .pending { return 2 }
-        if batch.status == .approved { return 3 }
-        return 2
-    }
-    
-    private var hasError: Bool {
-        batchService.errorMessage != nil || colorService.errorMessage != nil || machineService.errorMessage != nil || productService.error != nil
-    }
-    
-    private var errorMessage: String {
-        batchService.errorMessage ?? colorService.errorMessage ?? machineService.errorMessage ?? productService.error?.localizedDescription ?? ""
-    }
-    
-    // MARK: - Helper Methods
-    private func loadData() async {
-        await machineService.loadMachines()
-        await colorService.loadActiveColors()
-        await productService.loadProducts()
-        
-        // Select first available machine if none selected
-        if selectedMachine == nil {
-            selectedMachine = machineService.machines.filter { $0.canReceiveNewTasks }.first
-        }
-        
-        // Auto-populate gun colors if machine is selected and guns have colors
-        autoPopulateGunColors()
-    }
-    
-    private func autoPopulateGunColors() {
-        guard let machine = selectedMachine else { return }
-        
-        // Check if guns have assigned colors
-        let gunA = machine.guns.first { $0.name == "Gun A" }
-        let gunB = machine.guns.first { $0.name == "Gun B" }
-        
-        if selectedMode == .dualColor {
-            // Auto-populate primary color from Gun A for dual-color mode
-            if let gunAColorId = gunA?.currentColorId {
-                selectedPrimaryColor = colorService.colors.first { $0.id == gunAColorId }
-            }
-            
-            // Auto-populate secondary color from Gun B for dual-color mode
-            if let gunBColorId = gunB?.currentColorId {
-                selectedSecondaryColor = colorService.colors.first { $0.id == gunBColorId }
-            }
-        } else if selectedMode == .singleColor {
-            // For single-color mode, no pre-population here
-            // Color selection will be handled dynamically based on gun selection in AddProductSheet
-            selectedPrimaryColor = nil
-            selectedSecondaryColor = nil
-        }
-    }
-    
-    private func isColorPrePopulated(_ color: ColorCard?, gunName: String) -> Bool {
-        guard let machine = selectedMachine,
-              let color = color else { return false }
-        
-        let gun = machine.guns.first { $0.name == gunName }
-        return gun?.currentColorId == color.id
-    }
-    
-    private func clearErrors() {
-        batchService.clearError()
-        colorService.clearError()
-        machineService.clearError()
-    }
-    
-    private func formatDate(_ date: Date) -> String {
-        let formatter = DateFormatter()
-        formatter.dateStyle = .medium
-        formatter.locale = Locale(identifier: "zh_CN")
-        return formatter.string(from: date)
-    }
-    
-    private func createNewBatch() {
-        guard let machine = selectedMachine else { return }
-        
-        Task {
-            currentBatch = await batchService.createBatch(machineId: machine.id, mode: selectedMode, approvalTargetDate: selectedApprovalDate)
-        }
-    }
-    
-    private func submitBatch() {
-        guard let batch = currentBatch else { return }
-        
-        Task {
-            let success = await batchService.submitBatch(batch)
-            if success {
-                currentBatch = nil
-            }
-        }
-    }
-    
-    // MARK: - Status Polling
-    
-    private func startStatusPolling() {
-        refreshTimer = Timer.scheduledTimer(withTimeInterval: 30.0, repeats: true) { _ in
-            Task {
-                await refreshBatchStatus()
-            }
-        }
-    }
-    
-    private func stopStatusPolling() {
-        refreshTimer?.invalidate()
-        refreshTimer = nil
-    }
-    
-    private func refreshBatchStatus() async {
-        // Only refresh if we have a current batch and it's been submitted
-        guard let batch = currentBatch else { return }
-        
-        // Refresh batch data
-        await batchService.loadBatches()
-        
-        // Check for status changes
-        if let updatedBatch = batchService.batches.first(where: { $0.id == batch.id }) {
-            if updatedBatch.status != batch.status {
-                await MainActor.run {
-                    currentBatch = updatedBatch
-                    lastStatusUpdate = Date()
-                }
-            }
-        }
-    }
 }
+
 
 // MARK: - Machine Card
 struct MachineCard: View {
@@ -844,6 +675,8 @@ struct AddProductSheet: View {
     @State private var selectedStations: Set<Int> = []
     @State private var selectedStationCount: Int?
     @State private var selectedGun: String = "Gun A"
+    @State private var selectedApprovalTargetDate: Date = Date()
+    @State private var selectedStartTime: Date = Date()
     @State private var isAdding = false
     
     var availableStations: [Int] {
@@ -957,6 +790,9 @@ struct AddProductSheet: View {
                     
                     // Gun assignment
                     gunAssignmentSection
+                    
+                    // Timing configuration (Approval Target Date + Start Time)
+                    timingConfigurationSection
                     
                     // Station visualization (if station count is selected or if "Other" is selected and stations are chosen)
                     if let stationCount = selectedStationCount, stationCount > 0 {
@@ -1345,6 +1181,94 @@ struct AddProductSheet: View {
         .cornerRadius(12)
     }
     
+    private var timingConfigurationSection: some View {
+        VStack(alignment: .leading, spacing: 12) {
+            Text("时间配置")
+                .font(.headline)
+                .fontWeight(.semibold)
+            
+            VStack(spacing: 16) {
+                // Approval Target Date
+                VStack(alignment: .leading, spacing: 8) {
+                    Text("审批目标日期")
+                        .font(.subheadline)
+                        .fontWeight(.medium)
+                    
+                    HStack(spacing: 12) {
+                        // Today option
+                        Button("今天") {
+                            selectedApprovalTargetDate = Calendar.current.startOfDay(for: Date())
+                            validateStartTime()
+                        }
+                        .frame(maxWidth: .infinity)
+                        .padding(.vertical, 8)
+                        .background(Calendar.current.isDate(selectedApprovalTargetDate, inSameDayAs: Date()) ? Color.blue : Color.gray.opacity(0.2))
+                        .foregroundColor(Calendar.current.isDate(selectedApprovalTargetDate, inSameDayAs: Date()) ? .white : .primary)
+                        .cornerRadius(8)
+                        
+                        // Tomorrow option
+                        Button("明天") {
+                            let tomorrow = Calendar.current.date(byAdding: .day, value: 1, to: Date()) ?? Date()
+                            selectedApprovalTargetDate = Calendar.current.startOfDay(for: tomorrow)
+                            validateStartTime()
+                        }
+                        .frame(maxWidth: .infinity)
+                        .padding(.vertical, 8)
+                        .background(isTomorrowSelected ? Color.blue : Color.gray.opacity(0.2))
+                        .foregroundColor(isTomorrowSelected ? .white : .primary)
+                        .cornerRadius(8)
+                    }
+                    
+                    Text("选定日期: \(formatDate(selectedApprovalTargetDate))")
+                        .font(.caption)
+                        .foregroundColor(.secondary)
+                }
+                
+                // Start Time
+                VStack(alignment: .leading, spacing: 8) {
+                    HStack {
+                        Text("开始时间")
+                            .font(.subheadline)
+                            .fontWeight(.medium)
+                        
+                        Text("*")
+                            .font(.subheadline)
+                            .foregroundColor(.red)
+                        
+                        Spacer()
+                        
+                        if !isStartTimeValid {
+                            Image(systemName: "exclamationmark.triangle.fill")
+                                .font(.caption)
+                                .foregroundColor(.orange)
+                        }
+                    }
+                    
+                    DatePicker("", selection: $selectedStartTime, displayedComponents: [.hourAndMinute])
+                        .datePickerStyle(.compact)
+                        .labelsHidden()
+                        .onChange(of: selectedStartTime) { _, _ in
+                            validateStartTime()
+                        }
+                    
+                    // Validation message
+                    if !isStartTimeValid {
+                        Text(startTimeValidationMessage)
+                            .font(.caption)
+                            .foregroundColor(.orange)
+                            .padding(.horizontal, 8)
+                            .padding(.vertical, 4)
+                            .background(Color.orange.opacity(0.1))
+                            .cornerRadius(4)
+                    }
+                }
+            }
+        }
+        .padding()
+        .background(Color(UIColor.secondarySystemBackground))
+        .cornerRadius(12)
+    }
+    
     private func stationVisualizationSection(_ stationCount: Int) -> some View {
         VStack(alignment: .leading, spacing: 12) {
             Text("工位分配预览")
@@ -1427,13 +1351,40 @@ struct AddProductSheet: View {
         }
     }
     
+    private var isTomorrowSelected: Bool {
+        let tomorrow = Calendar.current.date(byAdding: .day, value: 1, to: Date()) ?? Date()
+        return Calendar.current.isDate(selectedApprovalTargetDate, inSameDayAs: tomorrow)
+    }
+    
+    private var isStartTimeValid: Bool {
+        let now = Date()
+        let approvalDate = selectedApprovalTargetDate
+        let startDateTime = combineDateTime(date: approvalDate, time: selectedStartTime)
+        
+        // Start time must be in the future if approval date is today
+        if Calendar.current.isDate(approvalDate, inSameDayAs: now) {
+            return startDateTime > now
+        }
+        
+        // For future dates, any time is valid
+        return true
+    }
+    
+    private var startTimeValidationMessage: String {
+        if Calendar.current.isDate(selectedApprovalTargetDate, inSameDayAs: Date()) {
+            return "开始时间必须是将来时间"
+        }
+        return "时间配置无效"
+    }
+    
     private var isValidConfiguration: Bool {
         selectedProduct != nil &&
         !productName.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty &&
         selectedPrimaryColor != nil &&
         (batch.mode == .singleColor || selectedSecondaryColor != nil) &&
         selectedStations.count >= batch.mode.minStationsPerProduct &&
-        (selectedStationCount != nil && (selectedStationCount! > 0 || selectedStationCount! == -1))
+        (selectedStationCount != nil && (selectedStationCount! > 0 || selectedStationCount! == -1)) &&
+        isStartTimeValid
     }
     
     private func autoAssignStations() {
@@ -1480,7 +1431,9 @@ struct AddProductSheet: View {
                 stations: Array(selectedStations),
                 productId: selectedProduct?.id,
                 stationCount: selectedStationCount,
-                gunAssignment: selectedGun
+                gunAssignment: selectedGun,
+                approvalTargetDate: selectedApprovalTargetDate,
+                startTime: selectedStartTime
             )
             isAdding = false
             if success {
@@ -1518,6 +1471,33 @@ struct AddProductSheet: View {
             selectedPrimaryColor = nil
             print("DEBUG: Gun \(selectedGun) has no configured color")
         }
+    }
+    
+    private func validateStartTime() {
+        // Trigger validation by accessing the computed property
+        _ = isStartTimeValid
+    }
+    
+    private func combineDateTime(date: Date, time: Date) -> Date {
+        let calendar = Calendar.current
+        let dateComponents = calendar.dateComponents([.year, .month, .day], from: date)
+        let timeComponents = calendar.dateComponents([.hour, .minute], from: time)
+        
+        var combinedComponents = DateComponents()
+        combinedComponents.year = dateComponents.year
+        combinedComponents.month = dateComponents.month
+        combinedComponents.day = dateComponents.day
+        combinedComponents.hour = timeComponents.hour
+        combinedComponents.minute = timeComponents.minute
+        
+        return calendar.date(from: combinedComponents) ?? date
+    }
+    
+    private func formatDate(_ date: Date) -> String {
+        let formatter = DateFormatter()
+        formatter.dateStyle = .medium
+        formatter.locale = Locale(identifier: "zh_CN")
+        return formatter.string(from: date)
     }
 }
 
@@ -1736,6 +1716,593 @@ struct WorkflowProgressView: View {
         .padding()
         .background(Color(UIColor.tertiarySystemBackground))
         .cornerRadius(8)
+    }
+}
+
+// MARK: - Approval Batch Row
+struct ApprovalBatchRow: View {
+    let batch: ProductionBatch
+    let colors: [ColorCard]
+    let machines: [WorkshopMachine]
+    let canManageProduction: Bool
+    let onExecute: (ProductionBatch) -> Void
+    let onRecreate: (ProductionBatch) -> Void
+    let onTap: () -> Void
+    
+    private var machine: WorkshopMachine? {
+        machines.first { $0.id == batch.machineId }
+    }
+    
+    var body: some View {
+        Button {
+            onTap()
+        } label: {
+            HStack(spacing: 12) {
+                // Batch status indicator
+                VStack {
+                    Circle()
+                        .fill(batch.status.color)
+                        .frame(width: 12, height: 12)
+                    Spacer()
+                }
+                
+                // Batch information
+                VStack(alignment: .leading, spacing: 4) {
+                    HStack {
+                        Text(batch.batchNumber)
+                            .font(.subheadline)
+                            .fontWeight(.semibold)
+                        
+                        Spacer()
+                        
+                        Text(timeAgoString(from: batch.submittedAt))
+                            .font(.caption)
+                            .foregroundColor(.secondary)
+                    }
+                    
+                    HStack(spacing: 8) {
+                        Text(batch.status.displayName)
+                            .font(.caption)
+                            .foregroundColor(batch.status.color)
+                            .padding(.horizontal, 8)
+                            .padding(.vertical, 2)
+                            .background(batch.status.color.opacity(0.1))
+                            .cornerRadius(4)
+                        
+                        Text(batch.mode.displayName)
+                            .font(.caption)
+                            .foregroundColor(.blue)
+                            .padding(.horizontal, 6)
+                            .padding(.vertical, 2)
+                            .background(Color.blue.opacity(0.1))
+                            .cornerRadius(4)
+                    }
+                    
+                    HStack(spacing: 8) {
+                        HStack(spacing: 4) {
+                            Image(systemName: "gearshape.2")
+                                .font(.caption)
+                                .foregroundColor(.secondary)
+                            Text((machine?.machineNumber).map { "\($0)" } ?? batch.machineId)
+                                .font(.caption)
+                                .foregroundColor(.secondary)
+                        }
+                        
+                        if !batch.products.isEmpty {
+                            HStack(spacing: 4) {
+                                Text("•")
+                                    .font(.caption)
+                                    .foregroundColor(.secondary)
+                                
+                                Text("\(batch.products.count) 产品")
+                                    .font(.caption)
+                                    .foregroundColor(.secondary)
+                                
+                                Text("•")
+                                    .font(.caption)
+                                    .foregroundColor(.secondary)
+                                
+                                Text("\(batch.totalStationsUsed) 工位")
+                                    .font(.caption)
+                                    .foregroundColor(.secondary)
+                            }
+                        }
+                    }
+                    
+                    HStack {
+                        Text("提交者: \(batch.submittedByName)")
+                            .font(.caption)
+                            .foregroundColor(.secondary)
+                        
+                        Spacer()
+                        
+                        Text("目标: \(formatApprovalDate(batch.approvalTargetDate))")
+                            .font(.caption)
+                            .foregroundColor(.secondary)
+                    }
+                    
+                    if let reviewNotes = batch.reviewNotes, batch.status == .rejected {
+                        Text("拒绝原因: \(reviewNotes)")
+                            .font(.caption)
+                            .foregroundColor(.red)
+                            .padding(.top, 2)
+                    }
+                }
+                
+                // Action buttons
+                VStack(spacing: 8) {
+                    if batch.status == .approved && canManageProduction {
+                        Button("执行") { 
+                            onExecute(batch)
+                        }
+                        .font(.caption)
+                        .padding(.horizontal, 12)
+                        .padding(.vertical, 4)
+                        .background(Color.blue)
+                        .foregroundColor(.white)
+                        .cornerRadius(4)
+                        .onTapGesture {
+                            onExecute(batch)
+                        }
+                    }
+                    
+                    if batch.status == .rejected && canManageProduction {
+                        Button("重新创建") {
+                            onRecreate(batch)
+                        }
+                        .font(.caption)
+                        .padding(.horizontal, 12)
+                        .padding(.vertical, 4)
+                        .background(Color.orange)
+                        .foregroundColor(.white)
+                        .cornerRadius(4)
+                        .onTapGesture {
+                            onRecreate(batch)
+                        }
+                    }
+                }
+            }
+        }
+        .buttonStyle(PlainButtonStyle())
+        .padding()
+        .background(Color(UIColor.tertiarySystemBackground))
+        .cornerRadius(8)
+    }
+    
+    private func timeAgoString(from date: Date) -> String {
+        let interval = Date().timeIntervalSince(date)
+        let minutes = Int(interval / 60)
+        let hours = Int(interval / 3600)
+        let days = Int(interval / 86400)
+        
+        if days > 0 {
+            return "\(days)天前"
+        } else if hours > 0 {
+            return "\(hours)小时前"
+        } else if minutes > 0 {
+            return "\(minutes)分钟前"
+        } else {
+            return "刚刚"
+        }
+    }
+    
+    private func formatApprovalDate(_ date: Date) -> String {
+        let formatter = DateFormatter()
+        formatter.dateFormat = "MM/dd"
+        formatter.locale = Locale(identifier: "zh_CN")
+        return formatter.string(from: date)
+    }
+}
+
+// MARK: - Batch Details Sheet
+struct BatchDetailsSheet: View {
+    let batch: ProductionBatch
+    let colors: [ColorCard]
+    let machines: [WorkshopMachine]
+    @Environment(\.dismiss) private var dismiss
+    
+    private var machine: WorkshopMachine? {
+        machines.first { $0.id == batch.machineId }
+    }
+    
+    var body: some View {
+        NavigationView {
+            ScrollView {
+                VStack(spacing: 20) {
+                    // Header with batch info
+                    batchHeaderSection
+                    
+                    // Equipment and mode info
+                    equipmentModeSection
+                    
+                    // Products list
+                    productsSection
+                    
+                    // Station visualization
+                    stationVisualizationSection
+                    
+                    // Status and timing
+                    statusTimingSection
+                }
+                .padding()
+            }
+            .navigationTitle("批次详情")
+            .navigationBarTitleDisplayMode(.inline)
+            .toolbar {
+                ToolbarItem(placement: .navigationBarTrailing) {
+                    Button("关闭") {
+                        dismiss()
+                    }
+                }
+            }
+        }
+    }
+    
+    private var batchHeaderSection: some View {
+        VStack(spacing: 12) {
+            HStack {
+                VStack(alignment: .leading, spacing: 4) {
+                    Text("批次编号")
+                        .font(.caption)
+                        .foregroundColor(.secondary)
+                    Text(batch.batchNumber)
+                        .font(.title2)
+                        .fontWeight(.bold)
+                }
+                
+                Spacer()
+                
+                VStack(alignment: .trailing, spacing: 4) {
+                    Text("状态")
+                        .font(.caption)
+                        .foregroundColor(.secondary)
+                    
+                    HStack(spacing: 6) {
+                        Circle()
+                            .fill(batch.status.color)
+                            .frame(width: 10, height: 10)
+                        Text(batch.status.displayName)
+                            .font(.headline)
+                            .fontWeight(.semibold)
+                            .foregroundColor(batch.status.color)
+                    }
+                }
+            }
+            
+            HStack {
+                Text("提交者: \(batch.submittedByName)")
+                    .font(.caption)
+                    .foregroundColor(.secondary)
+                
+                Spacer()
+                
+                Text("提交时间: \(formatDateTime(batch.submittedAt))")
+                    .font(.caption)
+                    .foregroundColor(.secondary)
+            }
+        }
+        .padding()
+        .background(Color(UIColor.secondarySystemBackground))
+        .cornerRadius(12)
+    }
+    
+    private var equipmentModeSection: some View {
+        VStack(alignment: .leading, spacing: 12) {
+            Text("设备和生产模式")
+                .font(.headline)
+                .fontWeight(.semibold)
+            
+            HStack(spacing: 16) {
+                VStack(alignment: .leading, spacing: 8) {
+                    Text("生产设备")
+                        .font(.subheadline)
+                        .fontWeight(.medium)
+                    HStack {
+                        Image(systemName: "gearshape.2.fill")
+                            .foregroundColor(.blue)
+                        Text((machine?.machineNumber).map { "\($0)" } ?? batch.machineId)
+                        Text("(\(machine?.status.displayName ?? "未知状态"))")
+                            .foregroundColor(.secondary)
+                    }
+                }
+                
+                Spacer()
+                
+                VStack(alignment: .trailing, spacing: 8) {
+                    Text("生产模式")
+                        .font(.subheadline)
+                        .fontWeight(.medium)
+                    Text(batch.mode.displayName)
+                        .font(.subheadline)
+                        .padding(.horizontal, 12)
+                        .padding(.vertical, 6)
+                        .background(Color.blue.opacity(0.1))
+                        .foregroundColor(.blue)
+                        .cornerRadius(8)
+                }
+            }
+        }
+        .padding()
+        .background(Color(UIColor.secondarySystemBackground))
+        .cornerRadius(12)
+    }
+    
+    private var productsSection: some View {
+        VStack(alignment: .leading, spacing: 12) {
+            Text("产品配置 (\(batch.products.count)/\(batch.mode.maxProducts))")
+                .font(.headline)
+                .fontWeight(.semibold)
+            
+            if batch.products.isEmpty {
+                Text("暂无产品配置")
+                    .font(.subheadline)
+                    .foregroundColor(.secondary)
+                    .frame(maxWidth: .infinity, alignment: .center)
+                    .padding()
+            } else {
+                VStack(spacing: 8) {
+                    ForEach(batch.products, id: \.id) { product in
+                        ProductDetailRow(product: product, colors: colors)
+                    }
+                }
+            }
+        }
+        .padding()
+        .background(Color(UIColor.secondarySystemBackground))
+        .cornerRadius(12)
+    }
+    
+    private var stationVisualizationSection: some View {
+        VStack(alignment: .leading, spacing: 12) {
+            Text("工位分配 (\(batch.totalStationsUsed)/12)")
+                .font(.headline)
+                .fontWeight(.semibold)
+            
+            VStack(spacing: 8) {
+                // Gun A stations (1-6)
+                HStack(spacing: 4) {
+                    Text("Gun A")
+                        .font(.caption)
+                        .foregroundColor(.secondary)
+                        .frame(width: 50, alignment: .leading)
+                    
+                    ForEach(1...6, id: \.self) { stationNumber in
+                        StationDetailIndicator(
+                            stationNumber: stationNumber,
+                            isOccupied: batch.products.contains { $0.occupiedStations.contains(stationNumber) },
+                            productName: batch.products.first { $0.occupiedStations.contains(stationNumber) }?.productName
+                        )
+                    }
+                }
+                
+                // Gun B stations (7-12)
+                HStack(spacing: 4) {
+                    Text("Gun B")
+                        .font(.caption)
+                        .foregroundColor(.secondary)
+                        .frame(width: 50, alignment: .leading)
+                    
+                    ForEach(7...12, id: \.self) { stationNumber in
+                        StationDetailIndicator(
+                            stationNumber: stationNumber,
+                            isOccupied: batch.products.contains { $0.occupiedStations.contains(stationNumber) },
+                            productName: batch.products.first { $0.occupiedStations.contains(stationNumber) }?.productName
+                        )
+                    }
+                }
+            }
+        }
+        .padding()
+        .background(Color(UIColor.secondarySystemBackground))
+        .cornerRadius(12)
+    }
+    
+    private var statusTimingSection: some View {
+        VStack(alignment: .leading, spacing: 12) {
+            Text("审批信息")
+                .font(.headline)
+                .fontWeight(.semibold)
+            
+            VStack(spacing: 8) {
+                HStack {
+                    Text("审批目标日期:")
+                        .font(.subheadline)
+                        .foregroundColor(.secondary)
+                    Spacer()
+                    Text(formatDate(batch.approvalTargetDate))
+                        .font(.subheadline)
+                        .fontWeight(.medium)
+                }
+                
+                if let reviewedAt = batch.reviewedAt {
+                    HStack {
+                        Text("审批时间:")
+                            .font(.subheadline)
+                            .foregroundColor(.secondary)
+                        Spacer()
+                        Text(formatDateTime(reviewedAt))
+                            .font(.subheadline)
+                            .fontWeight(.medium)
+                    }
+                }
+                
+                if let reviewedByName = batch.reviewedByName {
+                    HStack {
+                        Text("审批人:")
+                            .font(.subheadline)
+                            .foregroundColor(.secondary)
+                        Spacer()
+                        Text(reviewedByName)
+                            .font(.subheadline)
+                            .fontWeight(.medium)
+                    }
+                }
+                
+                if let reviewNotes = batch.reviewNotes, !reviewNotes.isEmpty {
+                    VStack(alignment: .leading, spacing: 4) {
+                        Text("审批备注:")
+                            .font(.subheadline)
+                            .foregroundColor(.secondary)
+                        Text(reviewNotes)
+                            .font(.subheadline)
+                            .padding(.horizontal, 12)
+                            .padding(.vertical, 8)
+                            .background(batch.status == .rejected ? Color.red.opacity(0.1) : Color.green.opacity(0.1))
+                            .foregroundColor(batch.status == .rejected ? .red : .green)
+                            .cornerRadius(8)
+                    }
+                }
+            }
+        }
+        .padding()
+        .background(Color(UIColor.secondarySystemBackground))
+        .cornerRadius(12)
+    }
+    
+    private func formatDate(_ date: Date) -> String {
+        let formatter = DateFormatter()
+        formatter.dateStyle = .medium
+        formatter.locale = Locale(identifier: "zh_CN")
+        return formatter.string(from: date)
+    }
+    
+    private func formatDateTime(_ date: Date) -> String {
+        let formatter = DateFormatter()
+        formatter.dateStyle = .short
+        formatter.timeStyle = .short
+        formatter.locale = Locale(identifier: "zh_CN")
+        return formatter.string(from: date)
+    }
+}
+
+// MARK: - Product Detail Row
+struct ProductDetailRow: View {
+    let product: ProductConfig
+    let colors: [ColorCard]
+    
+    private var primaryColor: ColorCard? {
+        colors.first { $0.id == product.primaryColorId }
+    }
+    
+    private var secondaryColor: ColorCard? {
+        guard let secondaryColorId = product.secondaryColorId else { return nil }
+        return colors.first { $0.id == secondaryColorId }
+    }
+    
+    var body: some View {
+        VStack(alignment: .leading, spacing: 8) {
+            HStack {
+                Text(product.productName)
+                    .font(.subheadline)
+                    .fontWeight(.semibold)
+                
+                Spacer()
+                
+                if let gunAssignment = product.gunAssignment {
+                    Text(gunAssignment)
+                        .font(.caption)
+                        .padding(.horizontal, 8)
+                        .padding(.vertical, 4)
+                        .background(Color.gray.opacity(0.2))
+                        .cornerRadius(4)
+                }
+            }
+            
+            HStack {
+                Text(product.stationRange)
+                    .font(.caption)
+                    .foregroundColor(.secondary)
+                
+                Spacer()
+                
+                HStack(spacing: 8) {
+                    if let primaryColor = primaryColor {
+                        ColorDetailDot(color: primaryColor, label: "主")
+                    }
+                    
+                    if let secondaryColor = secondaryColor {
+                        ColorDetailDot(color: secondaryColor, label: "副")
+                    }
+                }
+            }
+            
+            if let startTime = product.startTime {
+                HStack {
+                    Image(systemName: "clock")
+                        .font(.caption)
+                        .foregroundColor(.secondary)
+                    Text("开始时间: \(formatTime(startTime))")
+                        .font(.caption)
+                        .foregroundColor(.secondary)
+                }
+            }
+        }
+        .padding()
+        .background(Color(UIColor.tertiarySystemBackground))
+        .cornerRadius(8)
+    }
+    
+    private func formatTime(_ time: Date) -> String {
+        let formatter = DateFormatter()
+        formatter.timeStyle = .short
+        formatter.locale = Locale(identifier: "zh_CN")
+        return formatter.string(from: time)
+    }
+}
+
+// MARK: - Color Detail Dot
+struct ColorDetailDot: View {
+    let color: ColorCard
+    let label: String
+    
+    var body: some View {
+        VStack(spacing: 2) {
+            ZStack {
+                Circle()
+                    .fill(color.swiftUIColor)
+                    .frame(width: 16, height: 16)
+                    .overlay(
+                        Circle()
+                            .stroke(Color.gray.opacity(0.3), lineWidth: 1)
+                    )
+                
+                Text(label)
+                    .font(.caption2)
+                    .fontWeight(.bold)
+                    .foregroundColor(.white)
+            }
+            
+            Text(color.name)
+                .font(.caption2)
+                .lineLimit(1)
+        }
+    }
+}
+
+// MARK: - Station Detail Indicator
+struct StationDetailIndicator: View {
+    let stationNumber: Int
+    let isOccupied: Bool
+    let productName: String?
+    
+    var body: some View {
+        VStack(spacing: 2) {
+            RoundedRectangle(cornerRadius: 4)
+                .fill(isOccupied ? Color.blue : Color.gray.opacity(0.3))
+                .frame(width: 32, height: 20)
+                .overlay(
+                    Text("\(stationNumber)")
+                        .font(.caption2)
+                        .fontWeight(.semibold)
+                        .foregroundColor(isOccupied ? .white : .gray)
+                )
+            
+            if let productName = productName {
+                Text(String(productName.prefix(2)))
+                    .font(.caption2)
+                    .foregroundColor(.secondary)
+            }
+        }
     }
 }
 
