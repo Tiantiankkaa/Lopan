@@ -11,6 +11,7 @@ import SwiftData
 @MainActor
 class LocalRepositoryFactory: RepositoryFactory {
     private let modelContext: ModelContext
+    private lazy var auditingService: NewAuditingService = NewAuditingService(modelContext: modelContext)
     
     lazy var userRepository: UserRepository = LocalUserRepository(modelContext: modelContext)
     lazy var customerRepository: CustomerRepository = LocalCustomerRepository(modelContext: modelContext)
@@ -22,6 +23,10 @@ class LocalRepositoryFactory: RepositoryFactory {
     lazy var machineRepository: MachineRepository = LocalMachineRepository(context: modelContext)
     lazy var colorRepository: ColorRepository = LocalColorRepository(modelContext: modelContext)
     lazy var productionBatchRepository: ProductionBatchRepository = LocalProductionBatchRepository(modelContext: modelContext)
+    lazy var batchOperationRepository: BatchOperationRepository = LocalBatchOperationRepository(
+        modelContext: modelContext,
+        auditingService: auditingService
+    )
     
     init(modelContext: ModelContext) {
         self.modelContext = modelContext

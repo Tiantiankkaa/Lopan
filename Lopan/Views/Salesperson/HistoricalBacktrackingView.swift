@@ -19,8 +19,19 @@ struct HistoricalBacktrackingView: View {
     @State private var dateRange: DateRange = .week
     @State private var startDate = Calendar.current.date(byAdding: .day, value: -7, to: Date()) ?? Date()
     @State private var endDate = Date()
-    @State private var showingFilters = false
-    @State private var showingOperationDetail: AuditLog? = nil
+    @State private var activeSheet: SheetType?
+    
+    enum SheetType: Identifiable {
+        case operationDetail(AuditLog)
+        case filters
+        
+        var id: String {
+            switch self {
+            case .operationDetail(let log): return "detail-\(log.id)"
+            case .filters: return "filters"
+            }
+        }
+    }
     
     enum DateRange: String, CaseIterable {
         case today = "today"
@@ -116,26 +127,28 @@ struct HistoricalBacktrackingView: View {
             .navigationBarTitleDisplayMode(.inline)
             .toolbar {
                 ToolbarItem(placement: .navigationBarTrailing) {
-                    Button(action: { showingFilters.toggle() }) {
-                        Image(systemName: showingFilters ? "line.3.horizontal.decrease.circle.fill" : "line.3.horizontal.decrease.circle")
+                    Button(action: { activeSheet = .filters }) {
+                        Image(systemName: activeSheet?.id == "filters" ? "line.3.horizontal.decrease.circle.fill" : "line.3.horizontal.decrease.circle")
                             .foregroundColor(.blue)
                     }
                 }
             }
         }
-        .sheet(item: $showingOperationDetail) { log in
-            OperationDetailView(auditLog: log)
-        }
-        .sheet(isPresented: $showingFilters) {
-            FiltersView(
-                selectedOperationType: $selectedOperationType,
-                selectedEntityType: $selectedEntityType,
-                selectedUserId: $selectedUserId,
-                dateRange: $dateRange,
-                startDate: $startDate,
-                endDate: $endDate,
-                uniqueUsers: uniqueUsers
-            )
+        .sheet(item: $activeSheet) { sheetType in
+            switch sheetType {
+            case .operationDetail(let log):
+                OperationDetailView(auditLog: log)
+            case .filters:
+                FiltersView(
+                    selectedOperationType: $selectedOperationType,
+                    selectedEntityType: $selectedEntityType,
+                    selectedUserId: $selectedUserId,
+                    dateRange: $dateRange,
+                    startDate: $startDate,
+                    endDate: $endDate,
+                    uniqueUsers: uniqueUsers
+                )
+            }
         }
     }
     
@@ -218,7 +231,7 @@ struct HistoricalBacktrackingView: View {
         List {
             ForEach(filteredAuditLogs, id: \.id) { log in
                 AuditLogRow(log: log) {
-                    showingOperationDetail = log
+                    activeSheet = .operationDetail(log)
                 }
             }
         }

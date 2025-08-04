@@ -25,6 +25,7 @@ struct ProductionConfigurationView: View {
     @State private var isColorPrePopulated = false
     @State private var refreshTimer: Timer?
     @State private var lastStatusUpdate: Date = Date()
+    @State private var selectedApprovalDate: Date = Date()
     
     init(repositoryFactory: RepositoryFactory, authService: AuthenticationService, auditService: NewAuditingService) {
         self.authService = authService
@@ -240,6 +241,11 @@ struct ProductionConfigurationView: View {
                 .buttonStyle(.bordered)
             }
             
+            // Approval date selection
+            if batch.status == .pending || (canSubmitBatch && batch.status != .approved && batch.status != .rejected && batch.status != .active && batch.status != .completed) {
+                approvalDateSection
+            }
+            
             // Submit for approval button - always visible with state feedback
             VStack(spacing: 8) {
                 Button(submitButtonText) {
@@ -399,10 +405,55 @@ struct ProductionConfigurationView: View {
         }
     }
     
+    // MARK: - Approval Date Section
+    private var approvalDateSection: some View {
+        VStack(alignment: .leading, spacing: 12) {
+            Text("审批目标日期")
+                .font(.headline)
+                .fontWeight(.semibold)
+            
+            HStack(spacing: 12) {
+                // Today option
+                Button("今天") {
+                    selectedApprovalDate = Calendar.current.startOfDay(for: Date())
+                }
+                .frame(maxWidth: .infinity)
+                .padding(.vertical, 8)
+                .background(Calendar.current.isDate(selectedApprovalDate, inSameDayAs: Date()) ? Color.blue : Color.gray.opacity(0.2))
+                .foregroundColor(Calendar.current.isDate(selectedApprovalDate, inSameDayAs: Date()) ? .white : .primary)
+                .cornerRadius(8)
+                
+                // Tomorrow option
+                Button("明天") {
+                    let tomorrow = Calendar.current.date(byAdding: .day, value: 1, to: Date()) ?? Date()
+                    selectedApprovalDate = Calendar.current.startOfDay(for: tomorrow)
+                }
+                .frame(maxWidth: .infinity)
+                .padding(.vertical, 8)
+                .background(isTomorrowSelected ? Color.blue : Color.gray.opacity(0.2))
+                .foregroundColor(isTomorrowSelected ? .white : .primary)
+                .cornerRadius(8)
+            }
+            
+            // Display selected date
+            Text("选定日期: \(formatDate(selectedApprovalDate))")
+                .font(.caption)
+                .foregroundColor(.secondary)
+        }
+        .padding()
+        .background(Color(UIColor.secondarySystemBackground))
+        .cornerRadius(12)
+    }
+    
     // MARK: - Helper Properties
     private var canManageProduction: Bool {
         authService.currentUser?.hasRole(.workshopManager) == true ||
         authService.currentUser?.hasRole(.administrator) == true
+    }
+    
+    private var isTomorrowSelected: Bool {
+        let tomorrow = Calendar.current.date(byAdding: .day, value: 1, to: Date()) ?? Date()
+        return Calendar.current.isDate(selectedApprovalDate, inSameDayAs: tomorrow)
     }
     
     private var canSubmitBatch: Bool {
@@ -422,7 +473,7 @@ struct ProductionConfigurationView: View {
         
         switch batch.status {
         case .pending:
-            return "等待审批中..."
+            return "提交审批"
         case .approved:
             let timeSinceUpdate = Date().timeIntervalSince(lastStatusUpdate)
             if timeSinceUpdate < 60 {
@@ -532,11 +583,18 @@ struct ProductionConfigurationView: View {
         machineService.clearError()
     }
     
+    private func formatDate(_ date: Date) -> String {
+        let formatter = DateFormatter()
+        formatter.dateStyle = .medium
+        formatter.locale = Locale(identifier: "zh_CN")
+        return formatter.string(from: date)
+    }
+    
     private func createNewBatch() {
         guard let machine = selectedMachine else { return }
         
         Task {
-            currentBatch = await batchService.createBatch(machineId: machine.id, mode: selectedMode)
+            currentBatch = await batchService.createBatch(machineId: machine.id, mode: selectedMode, approvalTargetDate: selectedApprovalDate)
         }
     }
     
@@ -796,14 +854,93 @@ struct AddProductSheet: View {
     var stationCountOptions: [Int] {
         switch batch.mode {
         case .singleColor:
-            return [3, 6, 9, 12]
+            // Apply single-color production constraints
+            if let existingProduct = batch.products.first,
+               let existingGun = existingProduct.gunAssignment,
+               existingGun == selectedGun,
+               let existingStationCount = existingProduct.stationCount {
+                // If same gun is selected and there are existing products with that gun,
+                // only show the same station count and "Other" option
+                return [existingStationCount]
+            } else {
+                // Calculate available options based on selected gun capacity
+                let availableStationsForGun = selectedGun == "Gun A" ? gunAAvailableStations : gunBAvailableStations
+                var options: [Int] = []
+                
+                // Add 3 stations if possible
+                if availableStationsForGun.count >= 3 {
+                    options.append(3)
+                }
+                
+                // Add 6 stations if possible
+                if availableStationsForGun.count >= 6 {
+                    options.append(6)
+                }
+                
+                return options.isEmpty ? [] : options
+            }
         case .dualColor:
-            return [3, 6]
+            // Apply two-color production constraints
+            if let existingProduct = batch.products.first,
+               let existingStationCount = existingProduct.stationCount {
+                // If there are existing products, only show the same station count and "Other" option
+                return [existingStationCount]
+            } else {
+                var options: [Int] = []
+                
+                // For dual color, need both guns to have minimum stations
+                if gunAAvailableStations.count >= 3 && gunBAvailableStations.count >= 3 {
+                    options.append(3)
+                }
+                
+                if gunAAvailableStations.count >= 6 && gunBAvailableStations.count >= 6 {
+                    options.append(6)
+                }
+                
+                return options
+            }
         }
     }
     
     var gunAStations: [Int] { return [1, 2, 3, 4, 5, 6] }
     var gunBStations: [Int] { return [7, 8, 9, 10, 11, 12] }
+    
+    // Gun capacity tracking
+    var gunAOccupiedStations: [Int] {
+        return batch.products.flatMap { $0.occupiedStations }.filter { $0 <= 6 }
+    }
+    
+    var gunBOccupiedStations: [Int] {
+        return batch.products.flatMap { $0.occupiedStations }.filter { $0 > 6 }
+    }
+    
+    var gunAAvailableStations: [Int] {
+        return gunAStations.filter { station in
+            !gunAOccupiedStations.contains(station) && availableStations.contains(station)
+        }
+    }
+    
+    var gunBAvailableStations: [Int] {
+        return gunBStations.filter { station in
+            !gunBOccupiedStations.contains(station) && availableStations.contains(station)
+        }
+    }
+    
+    var isGunAFull: Bool {
+        return gunAOccupiedStations.count >= 6
+    }
+    
+    var isGunBFull: Bool {
+        return gunBOccupiedStations.count >= 6
+    }
+    
+    var canSelectGunA: Bool {
+        return !isGunAFull && gunAAvailableStations.count >= batch.mode.minStationsPerProduct
+    }
+    
+    var canSelectGunB: Bool {
+        return !isGunBFull && gunBAvailableStations.count >= batch.mode.minStationsPerProduct
+    }
     
     var body: some View {
         NavigationView {
@@ -862,11 +999,25 @@ struct AddProductSheet: View {
                 
                 // For single-color mode, set up initial gun selection and color
                 if batch.mode == .singleColor {
-                    // Default to Gun A initially
+                    // Default to first available gun
                     if selectedGun.isEmpty {
-                        selectedGun = "Gun A"
+                        if canSelectGunA {
+                            selectedGun = "Gun A"
+                        } else if canSelectGunB {
+                            selectedGun = "Gun B"
+                        }
                     }
-                    updateColorBasedOnGunSelection()
+                    
+                    // Validate current gun selection is still valid
+                    if selectedGun == "Gun A" && !canSelectGunA {
+                        selectedGun = canSelectGunB ? "Gun B" : ""
+                    } else if selectedGun == "Gun B" && !canSelectGunB {
+                        selectedGun = canSelectGunA ? "Gun A" : ""
+                    }
+                    
+                    if !selectedGun.isEmpty {
+                        updateColorBasedOnGunSelection()
+                    }
                 }
             }
         }
@@ -1025,12 +1176,16 @@ struct AddProductSheet: View {
             // Show manual station selection when "Other" is selected
             if selectedStationCount == -1 {
                 VStack(alignment: .leading, spacing: 8) {
-                    Text("选择所需工位 (至少 \(batch.mode.minStationsPerProduct) 个)")
+                    Text("选择所需工位 (至少 \(batch.mode.minStationsPerProduct) 个) - 仅限 \(selectedGun) 工位")
                         .font(.caption)
                         .foregroundColor(.secondary)
                     
+                    let stationsForSelectedGun = batch.mode == .singleColor ? 
+                        (selectedGun == "Gun A" ? gunAAvailableStations : gunBAvailableStations) :
+                        availableStations
+                    
                     LazyVGrid(columns: Array(repeating: GridItem(.flexible()), count: 6), spacing: 8) {
-                        ForEach(availableStations, id: \.self) { station in
+                        ForEach(stationsForSelectedGun, id: \.self) { station in
                             Button("\(station)") {
                                 if selectedStations.contains(station) {
                                     selectedStations.remove(station)
@@ -1043,6 +1198,15 @@ struct AddProductSheet: View {
                             .foregroundColor(selectedStations.contains(station) ? .white : .primary)
                             .cornerRadius(8)
                         }
+                    }
+                    
+                    if stationsForSelectedGun.isEmpty {
+                        Text("所选喷枪无可用工位")
+                            .font(.caption)
+                            .foregroundColor(.red)
+                            .padding()
+                            .background(Color.red.opacity(0.1))
+                            .cornerRadius(8)
                     }
                 }
                 .padding(.top, 8)
@@ -1122,31 +1286,57 @@ struct AddProductSheet: View {
                 }
             } else {
                 HStack(spacing: 12) {
-                    Button("Gun A") {
-                        selectedGun = "Gun A"
-                        updateColorBasedOnGunSelection()
-                        if selectedStationCount != nil && selectedStationCount! > 0 {
-                            autoAssignStations()
+                    VStack(spacing: 4) {
+                        Button("Gun A") {
+                            selectedGun = "Gun A"
+                            updateColorBasedOnGunSelection()
+                            if selectedStationCount != nil && selectedStationCount! > 0 {
+                                autoAssignStations()
+                            }
+                        }
+                        .frame(maxWidth: .infinity)
+                        .padding(.vertical, 8)
+                        .background(selectedGun == "Gun A" ? Color.blue : (canSelectGunA ? Color.gray.opacity(0.2) : Color.red.opacity(0.2)))
+                        .foregroundColor(selectedGun == "Gun A" ? .white : (canSelectGunA ? .primary : .red))
+                        .cornerRadius(8)
+                        .disabled(!canSelectGunA)
+                        
+                        if !canSelectGunA {
+                            Text(isGunAFull ? "已满" : "工位不足")
+                                .font(.caption2)
+                                .foregroundColor(.red)
+                        } else {
+                            Text("\(gunAAvailableStations.count) 个可用")
+                                .font(.caption2)
+                                .foregroundColor(.secondary)
                         }
                     }
-                    .frame(maxWidth: .infinity)
-                    .padding(.vertical, 8)
-                    .background(selectedGun == "Gun A" ? Color.blue : Color.gray.opacity(0.2))
-                    .foregroundColor(selectedGun == "Gun A" ? .white : .primary)
-                    .cornerRadius(8)
                     
-                    Button("Gun B") {
-                        selectedGun = "Gun B"
-                        updateColorBasedOnGunSelection()
-                        if selectedStationCount != nil && selectedStationCount! > 0 {
-                            autoAssignStations()
+                    VStack(spacing: 4) {
+                        Button("Gun B") {
+                            selectedGun = "Gun B"
+                            updateColorBasedOnGunSelection()
+                            if selectedStationCount != nil && selectedStationCount! > 0 {
+                                autoAssignStations()
+                            }
+                        }
+                        .frame(maxWidth: .infinity)
+                        .padding(.vertical, 8)
+                        .background(selectedGun == "Gun B" ? Color.blue : (canSelectGunB ? Color.gray.opacity(0.2) : Color.red.opacity(0.2)))
+                        .foregroundColor(selectedGun == "Gun B" ? .white : (canSelectGunB ? .primary : .red))
+                        .cornerRadius(8)
+                        .disabled(!canSelectGunB)
+                        
+                        if !canSelectGunB {
+                            Text(isGunBFull ? "已满" : "工位不足")
+                                .font(.caption2)
+                                .foregroundColor(.red)
+                        } else {
+                            Text("\(gunBAvailableStations.count) 个可用")
+                                .font(.caption2)
+                                .foregroundColor(.secondary)
                         }
                     }
-                    .frame(maxWidth: .infinity)
-                    .padding(.vertical, 8)
-                    .background(selectedGun == "Gun B" ? Color.blue : Color.gray.opacity(0.2))
-                    .foregroundColor(selectedGun == "Gun B" ? .white : .primary)
-                    .cornerRadius(8)
                 }
             }
         }
@@ -1269,25 +1459,11 @@ struct AddProductSheet: View {
                 selectedStations.formUnion(gunBAvailable.prefix(6))
             }
         } else {
-            // Single color products: use selected gun
-            let targetStations = selectedGun == "Gun A" ? gunAStations : gunBStations
-            let availableTargetStations = targetStations.filter { availableStations.contains($0) }
+            // Single color products: use selected gun only, respect capacity limits
+            let availableStationsForSelectedGun = selectedGun == "Gun A" ? gunAAvailableStations : gunBAvailableStations
             
-            if stationCount <= 6 {
-                // For counts <= 6, use only the selected gun
-                selectedStations = Set(availableTargetStations.prefix(stationCount))
-            } else {
-                // For counts > 6, need to use both guns
-                let primaryGunStations = availableTargetStations.prefix(6)
-                selectedStations.formUnion(primaryGunStations)
-                
-                let remainingCount = stationCount - primaryGunStations.count
-                if remainingCount > 0 {
-                    let oppositeStations = selectedGun == "Gun A" ? gunBStations : gunAStations
-                    let availableOppositeStations = oppositeStations.filter { availableStations.contains($0) }
-                    selectedStations.formUnion(availableOppositeStations.prefix(remainingCount))
-                }
-            }
+            // Only assign stations from the selected gun, no spillover to other gun
+            selectedStations = Set(availableStationsForSelectedGun.prefix(stationCount))
         }
     }
     
@@ -1322,6 +1498,14 @@ struct AddProductSheet: View {
     
     private func updateColorBasedOnGunSelection() {
         guard batch.mode == .singleColor else { return }
+        
+        // Check if there are existing products using the same gun
+        if let existingProduct = batch.products.first(where: { $0.gunAssignment == selectedGun }) {
+            // Retain the color from existing product using the same gun
+            selectedPrimaryColor = colors.first { $0.id == existingProduct.primaryColorId }
+            print("DEBUG: Retaining color from existing product using \(selectedGun): \(selectedPrimaryColor?.name ?? "nil")")
+            return
+        }
         
         let selectedGunModel = machine.guns.first { $0.name == selectedGun }
         

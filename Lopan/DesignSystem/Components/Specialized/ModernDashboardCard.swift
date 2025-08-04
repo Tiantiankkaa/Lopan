@@ -49,82 +49,11 @@ struct ModernDashboardCard: View {
             }
         }) {
             ZStack {
-                // Background with glass morphism effect
-                RoundedRectangle(cornerRadius: LopanCornerRadius.card)
-                    .fill(
-                        LinearGradient(
-                            colors: [
-                                color.opacity(0.05),
-                                color.opacity(0.1)
-                            ],
-                            startPoint: .topLeading,
-                            endPoint: .bottomTrailing
-                        )
-                    )
-                    .overlay(
-                        RoundedRectangle(cornerRadius: LopanCornerRadius.card)
-                            .stroke(
-                                LinearGradient(
-                                    colors: [
-                                        color.opacity(0.2),
-                                        color.opacity(0.1)
-                                    ],
-                                    startPoint: .topLeading,
-                                    endPoint: .bottomTrailing
-                                ),
-                                lineWidth: 1
-                            )
-                    )
+                // Single background layer
+                cardBackground
                 
-                // Content
-                VStack(spacing: LopanSpacing.md) {
-                    // Icon with badge
-                    ZStack {
-                        // Icon background
-                        Circle()
-                            .fill(color.opacity(0.1))
-                            .frame(width: 60, height: 60)
-                        
-                        Image(systemName: icon)
-                            .font(.system(size: 28, weight: .medium))
-                            .foregroundColor(color)
-                        
-                        // Badge if present
-                        if let badge = badge {
-                            VStack {
-                                HStack {
-                                    Spacer()
-                                    LopanBadge(badge, style: .primary, size: .small)
-                                        .offset(x: 8, y: -8)
-                                }
-                                Spacer()
-                            }
-                        }
-                    }
-                    
-                    // Text content
-                    VStack(spacing: LopanSpacing.xs) {
-                        Text(title)
-                            .font(LopanTypography.titleMedium)
-                            .fontWeight(.semibold)
-                            .foregroundColor(LopanColors.textPrimary)
-                            .multilineTextAlignment(.center)
-                            .lineLimit(2)
-                        
-                        Text(subtitle)
-                            .font(LopanTypography.bodySmall)
-                            .foregroundColor(LopanColors.textSecondary)
-                            .multilineTextAlignment(.center)
-                            .lineLimit(3)
-                    }
-                }
-                .padding(LopanSpacing.md)
-                
-                // Shimmer overlay for loading state
-                if !isEnabled {
-                    RoundedRectangle(cornerRadius: LopanCornerRadius.card)
-                        .fill(Color.black.opacity(0.05))
-                }
+                // Content with proper constraints
+                cardContent
             }
         }
         .buttonStyle(PlainButtonStyle())
@@ -142,10 +71,88 @@ struct ModernDashboardCard: View {
             }
         }
         .opacity(isEnabled ? 1.0 : 0.6)
+        // Handle disabled state with overlay modifier instead of ZStack
+        .overlay(
+            isEnabled ? nil : 
+            RoundedRectangle(cornerRadius: LopanCornerRadius.card)
+                .fill(Color.black.opacity(0.05))
+        )
         .accessibilityElement()
         .accessibilityLabel(title)
         .accessibilityHint(subtitle)
         .accessibilityAddTraits(isEnabled ? .isButton : [])
+    }
+    
+    private var cardBackground: some View {
+        RoundedRectangle(cornerRadius: LopanCornerRadius.card)
+            .fill(
+                LinearGradient(
+                    colors: [color.opacity(0.05), color.opacity(0.1)],
+                    startPoint: .topLeading,
+                    endPoint: .bottomTrailing
+                )
+            )
+            .strokeBorder(
+                LinearGradient(
+                    colors: [color.opacity(0.2), color.opacity(0.1)],
+                    startPoint: .topLeading,
+                    endPoint: .bottomTrailing
+                ),
+                lineWidth: 1
+            )
+    }
+    
+    private var cardContent: some View {
+        VStack(spacing: LopanSpacing.md) {
+            // Icon with badge
+            iconWithBadge
+            
+            // Text content
+            textContent
+        }
+        .padding(LopanSpacing.md)
+    }
+    
+    private var iconWithBadge: some View {
+        ZStack {
+            // Icon background
+            Circle()
+                .fill(color.opacity(0.1))
+                .frame(width: 60, height: 60)
+            
+            Image(systemName: icon)
+                .font(.system(size: 28, weight: .medium))
+                .foregroundColor(color)
+            
+            // Badge if present
+            if let badge = badge {
+                VStack {
+                    HStack {
+                        Spacer()
+                        LopanBadge(badge, style: .primary, size: .small)
+                            .offset(x: 8, y: -8)
+                    }
+                    Spacer()
+                }
+            }
+        }
+    }
+    
+    private var textContent: some View {
+        VStack(spacing: LopanSpacing.xs) {
+            Text(title)
+                .font(LopanTypography.titleMedium)
+                .fontWeight(.semibold)
+                .foregroundColor(LopanColors.textPrimary)
+                .multilineTextAlignment(.center)
+                .lineLimit(2)
+            
+            Text(subtitle)
+                .font(LopanTypography.bodySmall)
+                .foregroundColor(LopanColors.textSecondary)
+                .multilineTextAlignment(.center)
+                .lineLimit(3)
+        }
     }
     
     private var shadowStyle: ShadowStyle {

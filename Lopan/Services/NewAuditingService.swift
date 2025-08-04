@@ -6,13 +6,22 @@
 //
 
 import Foundation
+import SwiftData
 
 @MainActor
 class NewAuditingService {
-    private let auditRepository: AuditRepository
+    private let auditRepository: AuditRepository?
+    private let modelContext: ModelContext?
     
     init(repositoryFactory: RepositoryFactory) {
         self.auditRepository = repositoryFactory.auditRepository
+        self.modelContext = nil
+    }
+    
+    // Alternative initializer for direct ModelContext usage
+    init(modelContext: ModelContext) {
+        self.auditRepository = nil
+        self.modelContext = modelContext
     }
     
     // MARK: - Main Logging Methods
@@ -45,7 +54,12 @@ class NewAuditingService {
         )
         
         do {
-            try await auditRepository.addAuditLog(auditLog)
+            if let repository = auditRepository {
+                try await repository.addAuditLog(auditLog)
+            } else if let context = modelContext {
+                context.insert(auditLog)
+                try context.save()
+            }
         } catch {
             print("❌ Failed to save audit log: \(error)")
         }
@@ -164,22 +178,66 @@ class NewAuditingService {
     
     /// Get audit logs for a specific entity
     func getAuditLogs(for entityId: String) async throws -> [AuditLog] {
-        return try await auditRepository.fetchAuditLogs(forEntity: entityId)
+        if let repository = auditRepository {
+            return try await repository.fetchAuditLogs(forEntity: entityId)
+        } else if let context = modelContext {
+            // Fetch directly from context if no repository available
+            let descriptor = FetchDescriptor<AuditLog>(
+                predicate: #Predicate<AuditLog> { $0.entityId == entityId },
+                sortBy: [SortDescriptor(\.timestamp, order: .reverse)]
+            )
+            return try context.fetch(descriptor)
+        }
+        return []
     }
     
     /// Get audit logs by user
     func getAuditLogs(by userId: String) async throws -> [AuditLog] {
-        return try await auditRepository.fetchAuditLogs(forUser: userId)
+        if let repository = auditRepository {
+            return try await repository.fetchAuditLogs(forUser: userId)
+        } else if let context = modelContext {
+            // Fetch directly from context if no repository available
+            let descriptor = FetchDescriptor<AuditLog>(
+                predicate: #Predicate<AuditLog> { $0.userId == userId },
+                sortBy: [SortDescriptor(\.timestamp, order: .reverse)]
+            )
+            return try context.fetch(descriptor)
+        }
+        return []
     }
     
     /// Get audit logs in date range
     func getAuditLogs(from startDate: Date, to endDate: Date) async throws -> [AuditLog] {
-        return try await auditRepository.fetchAuditLogs(from: startDate, to: endDate)
+        if let repository = auditRepository {
+            return try await repository.fetchAuditLogs(from: startDate, to: endDate)
+        } else if let context = modelContext {
+            // Fetch directly from context if no repository available
+            let descriptor = FetchDescriptor<AuditLog>(
+                predicate: #Predicate<AuditLog> { log in
+                    log.timestamp >= startDate && log.timestamp <= endDate
+                },
+                sortBy: [SortDescriptor(\.timestamp, order: .reverse)]
+            )
+            return try context.fetch(descriptor)
+        }
+        return []
     }
     
     /// Clean up old audit logs
     func cleanupOldLogs(olderThan date: Date) async throws {
-        try await auditRepository.deleteAuditLogs(olderThan: date)
+        if let repository = auditRepository {
+            try await repository.deleteAuditLogs(olderThan: date)
+        } else if let context = modelContext {
+            // Delete directly from context if no repository available
+            let descriptor = FetchDescriptor<AuditLog>(
+                predicate: #Predicate<AuditLog> { $0.timestamp < date }
+            )
+            let logsToDelete = try context.fetch(descriptor)
+            for log in logsToDelete {
+                context.delete(log)
+            }
+            try context.save()
+        }
     }
     
     // MARK: - Helper Methods

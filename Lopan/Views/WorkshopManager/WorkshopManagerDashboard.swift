@@ -21,6 +21,9 @@ struct WorkshopManagerDashboard: View {
     // Create service instances at dashboard level for sharing
     @StateObject private var machineService: MachineService
     @StateObject private var colorService: ColorService
+    @StateObject private var sessionService: SessionSecurityService
+    @StateObject private var productionBatchService: ProductionBatchService
+    @StateObject private var batchOperationCoordinator: BatchOperationCoordinator
     
     init(repositoryFactory: RepositoryFactory, authService: AuthenticationService, auditService: NewAuditingService, navigationService: WorkbenchNavigationService? = nil) {
         self.repositoryFactory = repositoryFactory
@@ -28,7 +31,16 @@ struct WorkshopManagerDashboard: View {
         self.auditService = auditService
         self.navigationService = navigationService
         
-        // Initialize shared service instances
+        // Validate user permissions and warn if insufficient
+        if let currentUser = authService.currentUser {
+            if !currentUser.roles.contains(.workshopManager) && !currentUser.roles.contains(.administrator) {
+                print("⚠️ Workshop Manager Dashboard initialized without proper permissions for user: \(currentUser.name)")
+            }
+        } else {
+            print("⚠️ Workshop Manager Dashboard initialized without authenticated user (likely during logout)")
+        }
+        
+        // Initialize shared service instances - always initialize to prevent crashes
         self._machineService = StateObject(wrappedValue: MachineService(
             machineRepository: repositoryFactory.machineRepository,
             auditService: auditService,
@@ -41,9 +53,40 @@ struct WorkshopManagerDashboard: View {
             auditService: auditService,
             authService: authService
         ))
+        
+        // Initialize batch processing services
+        let sessionSvc = SessionSecurityService(auditingService: auditService)
+        self._sessionService = StateObject(wrappedValue: sessionSvc)
+        
+        let productionBatchSvc = ProductionBatchService(
+            productionBatchRepository: repositoryFactory.productionBatchRepository,
+            machineRepository: repositoryFactory.machineRepository,
+            colorRepository: repositoryFactory.colorRepository,
+            auditService: auditService,
+            authService: authService
+        )
+        self._productionBatchService = StateObject(wrappedValue: productionBatchSvc)
+        
+        let batchCoordinator = BatchOperationCoordinator(
+            batchRepository: repositoryFactory.batchOperationRepository,
+            productionBatchService: productionBatchSvc,
+            auditingService: auditService,
+            sessionService: sessionSvc
+        )
+        self._batchOperationCoordinator = StateObject(wrappedValue: batchCoordinator)
     }
     
     var body: some View {
+        // Runtime permission check - show error view if no permissions
+        if let currentUser = authService.currentUser,
+           currentUser.roles.contains(.workshopManager) || currentUser.roles.contains(.administrator) {
+            workshopManagerContent
+        } else {
+            unauthorizedAccessView
+        }
+    }
+    
+    private var workshopManagerContent: some View {
         TabView(selection: $selectedTab) {
                 // Machine Management
                 MachineManagementView(
@@ -95,6 +138,21 @@ struct WorkshopManagerDashboard: View {
                 }
                 .tag(3)
                 
+                // Batch Processing & Approval
+                BatchProcessingDashboardView(
+                    repositoryFactory: repositoryFactory,
+                    authService: authService,
+                    auditService: auditService,
+                    coordinator: batchOperationCoordinator,
+                    productionBatchService: productionBatchService,
+                    sessionService: sessionService
+                )
+                .tabItem {
+                    Image(systemName: "square.stack.3d.down.right")
+                    Text("批次处理")
+                }
+                .tag(4)
+                
                 // Batch History
                 BatchHistoryView(
                     repositoryFactory: repositoryFactory,
@@ -105,7 +163,7 @@ struct WorkshopManagerDashboard: View {
                     Image(systemName: "clock.arrow.circlepath")
                     Text("批次历史")
                 }
-                .tag(4)
+                .tag(5)
         }
         .accentColor(.blue)
         .onAppear {
@@ -118,6 +176,33 @@ struct WorkshopManagerDashboard: View {
         .sheet(isPresented: $showingAddColor) {
             AddColorSheet(colorService: colorService)
         }
+    }
+    
+    private var unauthorizedAccessView: some View {
+        VStack(spacing: 20) {
+            Image(systemName: "exclamationmark.triangle.fill")
+                .font(.system(size: 60))
+                .foregroundColor(.orange)
+            
+            Text("访问权限不足")
+                .font(.title)
+                .fontWeight(.bold)
+            
+            Text("您没有访问车间管理系统的权限。请联系管理员获取相应权限。")
+                .font(.body)
+                .multilineTextAlignment(.center)
+                .foregroundColor(.secondary)
+                .padding(.horizontal, 40)
+            
+            if authService.currentUser == nil {
+                Text("用户未登录或正在登出")
+                    .font(.caption)
+                    .foregroundColor(.red)
+                    .padding(.top, 10)
+            }
+        }
+        .frame(maxWidth: .infinity, maxHeight: .infinity)
+        .background(Color(.systemBackground))
     }
     
     // MARK: - Helper Methods

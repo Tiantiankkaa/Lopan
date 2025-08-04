@@ -43,12 +43,12 @@ struct UserManagementView: View {
                     
                     ScrollView(.horizontal, showsIndicators: false) {
                         HStack(spacing: 8) {
-                            FilterChip(title: "全部", isSelected: selectedRole == nil) {
+                            UserFilterChip(title: "全部", isSelected: selectedRole == nil) {
                                 selectedRole = nil
                             }
                             
                             ForEach(UserRole.allCases.filter { $0 != .unauthorized }, id: \.self) { role in
-                                FilterChip(title: role.displayName, isSelected: selectedRole == role) {
+                                UserFilterChip(title: role.displayName, isSelected: selectedRole == role) {
                                     selectedRole = selectedRole == role ? nil : role
                                 }
                             }
@@ -88,7 +88,7 @@ struct UserManagementView: View {
 }
 
 // MARK: - Filter Chip Component
-struct FilterChip: View {
+struct UserFilterChip: View {
     let title: String
     let isSelected: Bool
     let action: () -> Void

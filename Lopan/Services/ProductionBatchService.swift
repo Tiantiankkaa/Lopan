@@ -65,7 +65,7 @@ class ProductionBatchService: ObservableObject {
         isLoading = false
     }
     
-    func createBatch(machineId: String, mode: ProductionMode) async -> ProductionBatch? {
+    func createBatch(machineId: String, mode: ProductionMode, approvalTargetDate: Date = Date()) async -> ProductionBatch? {
         guard let currentUser = authService.currentUser,
               currentUser.hasRole(.workshopManager) || currentUser.hasRole(.administrator) else {
             errorMessage = "Insufficient permissions to create production batches"
@@ -89,7 +89,8 @@ class ProductionBatchService: ObservableObject {
                 machineId: machineId,
                 mode: mode,
                 submittedBy: currentUser.id,
-                submittedByName: currentUser.name
+                submittedByName: currentUser.name,
+                approvalTargetDate: approvalTargetDate
             )
             
             currentBatch = batch
@@ -151,10 +152,90 @@ class ProductionBatchService: ObservableObject {
             return false
         }
         
-        // Validate two-color product gun assignments and station distribution
+        // Enhanced single-color production mode constraints
+        if batch.mode == .singleColor && gunAssignment != nil {
+            // Validate gun capacity limits
+            let gunAStations = [1, 2, 3, 4, 5, 6]
+            let gunBStations = [7, 8, 9, 10, 11, 12]
+            
+            let currentGunAOccupied = batch.products.flatMap { $0.occupiedStations }.filter { $0 <= 6 }
+            let currentGunBOccupied = batch.products.flatMap { $0.occupiedStations }.filter { $0 > 6 }
+            
+            if gunAssignment == "Gun A" {
+                // Check if Gun A has enough capacity
+                let newGunAStations = stations.filter { $0 <= 6 }
+                let totalGunAStations = Set(currentGunAOccupied).union(Set(newGunAStations))
+                
+                if totalGunAStations.count > 6 {
+                    errorMessage = "Gun A 容量不足 (最多6个工位，当前已占用 \(currentGunAOccupied.count) 个)"
+                    return false
+                }
+                
+                // Ensure stations are only from Gun A range
+                let invalidStations = stations.filter { $0 > 6 }
+                if !invalidStations.isEmpty {
+                    errorMessage = "Gun A 只能使用工位 1-6"
+                    return false
+                }
+            }
+            
+            if gunAssignment == "Gun B" {
+                // Check if Gun B has enough capacity
+                let newGunBStations = stations.filter { $0 > 6 }
+                let totalGunBStations = Set(currentGunBOccupied).union(Set(newGunBStations))
+                
+                if totalGunBStations.count > 6 {
+                    errorMessage = "Gun B 容量不足 (最多6个工位，当前已占用 \(currentGunBOccupied.count) 个)"
+                    return false
+                }
+                
+                // Ensure stations are only from Gun B range
+                let invalidStations = stations.filter { $0 <= 6 }
+                if !invalidStations.isEmpty {
+                    errorMessage = "Gun B 只能使用工位 7-12"
+                    return false
+                }
+            }
+            
+            // Check if there are existing products using the same gun
+            let existingProductsWithSameGun = batch.products.filter { $0.gunAssignment == gunAssignment }
+            
+            if !existingProductsWithSameGun.isEmpty {
+                let existingProduct = existingProductsWithSameGun.first!
+                
+                // Enforce same color constraint for same gun
+                if existingProduct.primaryColorId != primaryColorId {
+                    errorMessage = "同一喷枪的产品必须使用相同颜色"
+                    return false
+                }
+                
+                // Enforce station count consistency for same gun
+                if let existingStationCount = existingProduct.stationCount,
+                   let newStationCount = stationCount,
+                   existingStationCount != newStationCount && newStationCount != -1 {
+                    errorMessage = "同一喷枪的产品必须使用相同工位数量 (已有: \(existingStationCount) 工位)"
+                    return false
+                }
+            }
+        }
+        
+        // Enhanced two-color production mode constraints
         if batch.mode == .dualColor {
             let gunAStations = stations.filter { $0 <= 6 }
             let gunBStations = stations.filter { $0 > 6 }
+            
+            // Check if there are existing products in the batch
+            if !batch.products.isEmpty {
+                let existingProduct = batch.products.first!
+                
+                // Enforce station count consistency for two-color mode
+                if let existingStationCount = existingProduct.stationCount,
+                   let newStationCount = stationCount,
+                   existingStationCount != newStationCount && newStationCount != -1 {
+                    errorMessage = "双色生产模式中所有产品必须使用相同工位数量 (已有: \(existingStationCount) 工位)"
+                    return false
+                }
+            }
             
             // For dual-color products, ensure both guns have stations if it's a 3+3 configuration
             if stationCount == 3 {
@@ -172,6 +253,12 @@ class ProductionBatchService: ObservableObject {
                 // For 6-workstation dual-color products, they should occupy Gun B workstations
                 if gunAStations.count > gunBStations.count {
                     errorMessage = "6工位双色产品应主要占用Gun B的工位"
+                    return false
+                }
+                
+                // Ensure Gun A and Gun B colors are distinct
+                if primaryColorId == secondaryColorId {
+                    errorMessage = "Gun A和Gun B必须使用不同的颜色"
                     return false
                 }
             }

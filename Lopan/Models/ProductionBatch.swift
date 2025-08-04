@@ -75,6 +75,7 @@ final class ProductionBatch: Identifiable {
     var submittedAt: Date
     var submittedBy: String
     var submittedByName: String
+    var approvalTargetDate: Date
     var reviewedAt: Date?
     var reviewedBy: String?
     var reviewedByName: String?
@@ -90,7 +91,7 @@ final class ProductionBatch: Identifiable {
     // Relationships
     @Relationship(deleteRule: .cascade) var products: [ProductConfig] = []
     
-    init(machineId: String, mode: ProductionMode, submittedBy: String, submittedByName: String) {
+    init(machineId: String, mode: ProductionMode, submittedBy: String, submittedByName: String, approvalTargetDate: Date = Date()) {
         self.id = UUID().uuidString
         self.batchNumber = Self.generateBatchNumber()
         self.machineId = machineId
@@ -99,6 +100,7 @@ final class ProductionBatch: Identifiable {
         self.submittedAt = Date()
         self.submittedBy = submittedBy
         self.submittedByName = submittedByName
+        self.approvalTargetDate = approvalTargetDate
         self.createdAt = Date()
         self.updatedAt = Date()
     }

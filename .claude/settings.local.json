@@ -18,7 +18,8 @@
       "Bash(curl:*)",
       "Bash(sed:*)",
       "Bash(awk:*)",
-      "Bash(swift:*)"
+      "Bash(swift:*)",
+      "Bash(grep:*)"
     ],
     "deny": []
   }
