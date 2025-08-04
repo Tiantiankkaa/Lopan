@@ -511,7 +511,8 @@ class NewDataInitializationService {
                 machineId: machine.id,
                 mode: .singleColor,
                 submittedBy: submittingUser.id,
-                submittedByName: submittingUser.name
+                submittedByName: submittingUser.name,
+                batchNumber: "BATCH-20250804-0003"
             )
             
             // Add some product configurations
@@ -540,9 +541,10 @@ class NewDataInitializationService {
                 machineId: machine.id,
                 mode: .dualColor,
                 submittedBy: submittingUser.id,
-                submittedByName: submittingUser.name
+                submittedByName: submittingUser.name,
+                batchNumber: "BATCH-20250804-0004"
             )
-            approvedBatch.status = .approved
+            approvedBatch.status = BatchStatus.approved
             approvedBatch.reviewedAt = Date()
             approvedBatch.reviewedBy = submittingUser.id
             approvedBatch.reviewedByName = submittingUser.name

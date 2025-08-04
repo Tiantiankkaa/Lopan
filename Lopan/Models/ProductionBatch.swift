@@ -37,6 +37,7 @@ enum ProductionMode: String, CaseIterable, Codable {
 }
 
 enum BatchStatus: String, CaseIterable, Codable {
+    case unsubmitted = "unsubmitted"
     case pending = "pending"
     case approved = "approved"
     case rejected = "rejected"
@@ -45,6 +46,7 @@ enum BatchStatus: String, CaseIterable, Codable {
     
     var displayName: String {
         switch self {
+        case .unsubmitted: return "未提交"
         case .pending: return "待审核"
         case .approved: return "已批准"
         case .rejected: return "已拒绝"
@@ -55,6 +57,7 @@ enum BatchStatus: String, CaseIterable, Codable {
     
     var color: Color {
         switch self {
+        case .unsubmitted: return .gray
         case .pending: return .orange
         case .approved: return .green
         case .rejected: return .red
@@ -91,12 +94,12 @@ final class ProductionBatch: Identifiable {
     // Relationships
     @Relationship(deleteRule: .cascade) var products: [ProductConfig] = []
     
-    init(machineId: String, mode: ProductionMode, submittedBy: String, submittedByName: String, approvalTargetDate: Date = Date()) {
+    init(machineId: String, mode: ProductionMode, submittedBy: String, submittedByName: String, approvalTargetDate: Date = Date(), batchNumber: String) {
         self.id = UUID().uuidString
-        self.batchNumber = Self.generateBatchNumber()
+        self.batchNumber = batchNumber
         self.machineId = machineId
         self.mode = mode
-        self.status = .pending
+        self.status = .unsubmitted
         self.submittedAt = Date()
         self.submittedBy = submittedBy
         self.submittedByName = submittedByName
@@ -106,12 +109,33 @@ final class ProductionBatch: Identifiable {
     }
     
     // MARK: - Static Methods
-    private static func generateBatchNumber() -> String {
+    static func generateBatchNumber(using repository: ProductionBatchRepository) async -> String {
         let formatter = DateFormatter()
         formatter.dateFormat = "yyyyMMdd"
         let dateString = formatter.string(from: Date())
-        let randomSuffix = String(format: "%04d", Int.random(in: 1000...9999))
-        return "BATCH-\(dateString)-\(randomSuffix)"
+        
+        do {
+            // Query for the latest batch number with the same date prefix
+            if let latestBatchNumber = try await repository.fetchLatestBatchNumber(forDate: dateString) {
+                // Extract the sequence number and increment it
+                let batchPrefix = "BATCH-\(dateString)-"
+                if let suffixRange = latestBatchNumber.range(of: batchPrefix) {
+                    let suffix = String(latestBatchNumber[suffixRange.upperBound...])
+                    if let currentSequence = Int(suffix) {
+                        let nextSequence = currentSequence + 1
+                        return "BATCH-\(dateString)-\(String(format: "%04d", nextSequence))"
+                    }
+                }
+            }
+            
+            // No existing batches for this date, start with 0001
+            return "BATCH-\(dateString)-0001"
+            
+        } catch {
+            // Fallback to random generation if database query fails
+            let randomSuffix = String(format: "%04d", Int.random(in: 1000...9999))
+            return "BATCH-\(dateString)-\(randomSuffix)"
+        }
     }
     
     // MARK: - Computed Properties
@@ -163,10 +187,12 @@ final class ProductConfig {
     var gunAssignment: String? // "Gun A" or "Gun B"
     var expectedOutput: Int
     var priority: Int
+    var approvalTargetDate: Date? // Product-level approval target date
+    var startTime: Date? // Required start time for production
     var createdAt: Date
     var updatedAt: Date
     
-    init(batchId: String, productName: String, primaryColorId: String, occupiedStations: [Int], expectedOutput: Int = 1000, priority: Int = 1, secondaryColorId: String? = nil, productId: String? = nil, stationCount: Int? = nil, gunAssignment: String? = nil) {
+    init(batchId: String, productName: String, primaryColorId: String, occupiedStations: [Int], expectedOutput: Int = 1000, priority: Int = 1, secondaryColorId: String? = nil, productId: String? = nil, stationCount: Int? = nil, gunAssignment: String? = nil, approvalTargetDate: Date? = nil, startTime: Date? = nil) {
         self.id = UUID().uuidString
         self.batchId = batchId
         self.productName = productName
@@ -178,6 +204,8 @@ final class ProductConfig {
         self.gunAssignment = gunAssignment
         self.expectedOutput = expectedOutput
         self.priority = priority
+        self.approvalTargetDate = approvalTargetDate
+        self.startTime = startTime
         self.createdAt = Date()
         self.updatedAt = Date()
     }

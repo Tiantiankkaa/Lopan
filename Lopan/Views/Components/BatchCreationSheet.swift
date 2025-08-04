@@ -45,9 +45,6 @@ struct BatchCreationSheet: View {
                 }
                 
                 Section("配置详情") {
-                    DatePicker("目标日期", selection: .constant(targetDate), displayedComponents: .date)
-                        .disabled(true)
-                    
                     TextField("备注", text: $notes, axis: .vertical)
                         .lineLimit(3...5)
                 }
@@ -57,7 +54,7 @@ struct BatchCreationSheet: View {
                         Image(systemName: "info.circle")
                             .foregroundColor(.blue)
                         
-                        Text("批次将以待审批状态创建")
+                        Text("批次将以未提交状态创建")
                             .font(.caption)
                             .foregroundColor(.secondary)
                     }
@@ -110,21 +107,23 @@ struct BatchCreationSheet: View {
         
         Task {
             do {
-                // Create a new production batch
-                let batch = ProductionBatch(
+                // Use the coordinator's production batch service to create the batch
+                // This ensures proper batch number generation and repository access
+                let batch = await coordinator.productionBatchService.createBatch(
                     machineId: selectedMachineId,
                     mode: selectedMode,
-                    submittedBy: "current_user", // Would get from auth service
-                    submittedByName: "Current User" // Would get from auth service
+                    approvalTargetDate: targetDate
                 )
                 
-                // Add basic product configuration if needed
-                // This is a simplified version - in production would have full product configuration
+                guard let createdBatch = batch else {
+                    await MainActor.run {
+                        isCreating = false
+                        print("Failed to create batch: Service returned nil")
+                    }
+                    return
+                }
                 
-                // For now, just create an empty batch
-                // The user can add products through the regular production configuration interface
-                
-                print("Created batch: \(batch.id) for machine \(selectedMachineId)")
+                print("Created batch: \(createdBatch.id) (\(createdBatch.batchNumber)) for machine \(selectedMachineId)")
                 
                 await MainActor.run {
                     isCreating = false

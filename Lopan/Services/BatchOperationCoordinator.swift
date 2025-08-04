@@ -49,7 +49,7 @@ final class BatchOperationCoordinator: ObservableObject {
     // MARK: - Dependencies
     
     internal let batchRepository: BatchOperationRepository
-    private let productionBatchService: ProductionBatchService
+    internal let productionBatchService: ProductionBatchService
     private let auditingService: NewAuditingService
     private let sessionService: SessionSecurityService
     private let validationService = SecurityValidation.self

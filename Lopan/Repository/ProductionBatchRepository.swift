@@ -24,4 +24,7 @@ protocol ProductionBatchRepository {
     func updateProductConfig(_ productConfig: ProductConfig) async throws
     func removeProductConfig(_ productConfig: ProductConfig) async throws
     func fetchProductConfigs(forBatch batchId: String) async throws -> [ProductConfig]
+    
+    // Batch number generation support
+    func fetchLatestBatchNumber(forDate dateString: String) async throws -> String?
 }

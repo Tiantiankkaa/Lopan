@@ -109,4 +109,29 @@ class LocalProductionBatchRepository: ProductionBatchRepository {
         )
         return try modelContext.fetch(descriptor)
     }
+    
+    // MARK: - Batch Number Generation Support
+    func fetchLatestBatchNumber(forDate dateString: String) async throws -> String? {
+        let batchPrefix = "BATCH-\(dateString)-"
+        let allBatches = try await fetchAllBatches()
+        
+        // Filter batches that match the date prefix
+        let matchingBatches = allBatches.filter { batch in
+            batch.batchNumber.hasPrefix(batchPrefix)
+        }
+        
+        // Extract sequence numbers and find the highest one
+        var maxSequence = 0
+        for batch in matchingBatches {
+            let batchNumber = batch.batchNumber
+            if let suffixRange = batchNumber.range(of: batchPrefix) {
+                let suffix = String(batchNumber[suffixRange.upperBound...])
+                if let sequenceNumber = Int(suffix) {
+                    maxSequence = max(maxSequence, sequenceNumber)
+                }
+            }
+        }
+        
+        return maxSequence > 0 ? "\(batchPrefix)\(String(format: "%04d", maxSequence))" : nil
+    }
 }

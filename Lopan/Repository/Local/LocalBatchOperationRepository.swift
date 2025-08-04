@@ -143,7 +143,8 @@ final class LocalBatchOperationRepository: BatchOperationRepository {
                 machineId: machineId,
                 mode: .singleColor, // Default mode
                 submittedBy: coordinatorId,
-                submittedByName: coordinatorId
+                submittedByName: coordinatorId,
+                batchNumber: "BATCH-TEMPLATE-\(UUID().uuidString.prefix(8))"
             )
             
             // Apply template products
@@ -602,7 +603,8 @@ final class LocalBatchOperationRepository: BatchOperationRepository {
                 machineId: sourceBatch.machineId,
                 mode: sourceBatch.mode,
                 submittedBy: coordinatorId,
-                submittedByName: coordinatorId
+                submittedByName: coordinatorId,
+                batchNumber: "BATCH-COPY-\(UUID().uuidString.prefix(8))"
             )
             
             // Copy product configurations
@@ -625,7 +627,7 @@ final class LocalBatchOperationRepository: BatchOperationRepository {
             }
             
             // Reset status to pending for new batch
-            newBatch.status = .pending
+            newBatch.status = BatchStatus.pending
             
             // Insert into context
             modelContext.insert(newBatch)

@@ -266,9 +266,10 @@ class MachineDataInitializationService {
             machineId: machine1.id,
             mode: .singleColor,
             submittedBy: "manager1",
-            submittedByName: "张经理"
+            submittedByName: "张经理",
+            batchNumber: "BATCH-20250804-0001"
         )
-        batch1.status = .active
+        batch1.status = BatchStatus.active
         batch1.reviewedAt = Calendar.current.date(byAdding: .hour, value: -2, to: Date())
         batch1.reviewedBy = "admin1"
         batch1.reviewedByName = "李管理员"
@@ -298,9 +299,10 @@ class MachineDataInitializationService {
             machineId: machine2.id,
             mode: .dualColor,
             submittedBy: "manager2",
-            submittedByName: "王经理"
+            submittedByName: "王经理",
+            batchNumber: "BATCH-20250804-0002"
         )
-        batch2.status = .pending
+        batch2.status = BatchStatus.pending
         
         let product3 = ProductConfig(
             batchId: batch2.id,
@@ -319,9 +321,10 @@ class MachineDataInitializationService {
             machineId: machine2.id,
             mode: .singleColor,
             submittedBy: "manager1",
-            submittedByName: "张经理"
+            submittedByName: "张经理",
+            batchNumber: "BATCH-20250803-0001"
         )
-        batch3.status = .rejected
+        batch3.status = BatchStatus.rejected
         batch3.reviewedAt = Calendar.current.date(byAdding: .day, value: -1, to: Date())
         batch3.reviewedBy = "admin1"
         batch3.reviewedByName = "李管理员"

@@ -85,12 +85,16 @@ class ProductionBatchService: ObservableObject {
                 return nil
             }
             
+            // Generate sequential batch number
+            let batchNumber = await ProductionBatch.generateBatchNumber(using: productionBatchRepository)
+            
             let batch = ProductionBatch(
                 machineId: machineId,
                 mode: mode,
                 submittedBy: currentUser.id,
                 submittedByName: currentUser.name,
-                approvalTargetDate: approvalTargetDate
+                approvalTargetDate: approvalTargetDate,
+                batchNumber: batchNumber
             )
             
             currentBatch = batch
@@ -102,7 +106,7 @@ class ProductionBatchService: ObservableObject {
         }
     }
     
-    func addProductToBatch(_ batch: ProductionBatch, productName: String, primaryColorId: String, secondaryColorId: String?, stations: [Int], productId: String? = nil, stationCount: Int? = nil, gunAssignment: String? = nil) async -> Bool {
+    func addProductToBatch(_ batch: ProductionBatch, productName: String, primaryColorId: String, secondaryColorId: String?, stations: [Int], productId: String? = nil, stationCount: Int? = nil, gunAssignment: String? = nil, approvalTargetDate: Date? = nil, startTime: Date? = nil) async -> Bool {
         // Validation rules
         guard !productName.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty else {
             errorMessage = "Product name cannot be empty"
@@ -150,6 +154,19 @@ class ProductionBatchService: ObservableObject {
         if batch.mode == .singleColor && secondaryColorId != nil {
             errorMessage = "Single-color production cannot have a secondary color"
             return false
+        }
+        
+        // Validate timing requirements
+        if let startTime = startTime, let approvalDate = approvalTargetDate {
+            let now = Date()
+            let calendar = Calendar.current
+            let startDateTime = combineDateTime(date: approvalDate, time: startTime)
+            
+            // Start time must be in the future if approval date is today
+            if calendar.isDate(approvalDate, inSameDayAs: now) && startDateTime <= now {
+                errorMessage = "开始时间必须是将来时间"
+                return false
+            }
         }
         
         // Enhanced single-color production mode constraints
@@ -288,7 +305,9 @@ class ProductionBatchService: ObservableObject {
                 secondaryColorId: secondaryColorId,
                 productId: productId,
                 stationCount: stationCount,
-                gunAssignment: gunAssignment
+                gunAssignment: gunAssignment,
+                approvalTargetDate: approvalTargetDate,
+                startTime: startTime
             )
             
             batch.products.append(productConfig)
@@ -332,6 +351,9 @@ class ProductionBatchService: ObservableObject {
         isLoading = true
         
         do {
+            // Update status to pending (awaiting review) when submitting
+            batch.status = .pending
+            
             // Capture before/after snapshots for audit
             let machines = try await machineRepository.fetchAllMachines()
             if let machine = machines.first(where: { $0.id == batch.machineId }) {
@@ -537,5 +559,77 @@ class ProductionBatchService: ObservableObject {
     
     func clearError() {
         errorMessage = nil
+    }
+    
+    // MARK: - Batch Execution Methods
+    
+    func applyBatchConfiguration(_ batch: ProductionBatch) async -> Bool {
+        guard let currentUser = authService.currentUser,
+              currentUser.hasRole(.workshopManager) || currentUser.hasRole(.administrator) else {
+            errorMessage = "Insufficient permissions to execute batches"
+            return false
+        }
+        
+        guard batch.status == .approved else {
+            errorMessage = "Only approved batches can be executed"
+            return false
+        }
+        
+        isLoading = true
+        
+        do {
+            // Apply configuration to machine (integrates with Device and Color Management)
+            await applyBatchToMachine(batch)
+            
+            // Update batch status to active
+            batch.status = .active
+            batch.appliedAt = Date()
+            
+            try await productionBatchRepository.updateBatch(batch)
+            
+            // Audit log for execution
+            try await auditService.logOperation(
+                operationType: .productionConfigChange,
+                entityType: .productionBatch,
+                entityId: batch.id,
+                entityDescription: "Batch \(batch.batchNumber)",
+                operatorUserId: currentUser.id,
+                operatorUserName: currentUser.name,
+                operationDetails: [
+                    "batchNumber": batch.batchNumber,
+                    "machineId": batch.machineId,
+                    "executedBy": currentUser.name,
+                    "productCount": batch.products.count,
+                    "totalStations": batch.totalStationsUsed,
+                    "action": "execute_approved_batch"
+                ]
+            )
+            
+            await loadBatches()
+            await loadPendingBatches()
+            isLoading = false
+            return true
+            
+        } catch {
+            errorMessage = "Failed to execute batch: \(error.localizedDescription)"
+            isLoading = false
+            return false
+        }
+    }
+    
+    // MARK: - Private Helper Methods
+    private func combineDateTime(date: Date, time: Date) -> Date {
+        let calendar = Calendar.current
+        let dateComponents = calendar.dateComponents([.year, .month, .day], from: date)
+        let timeComponents = calendar.dateComponents([.hour, .minute], from: time)
+        
+        var combinedComponents = DateComponents()
+        combinedComponents.year = dateComponents.year
+        combinedComponents.month = dateComponents.month
+        combinedComponents.day = dateComponents.day
+        combinedComponents.hour = timeComponents.hour
+        combinedComponents.minute = timeComponents.minute
+        
+        return calendar.date(from: combinedComponents) ?? date
     }
 }
