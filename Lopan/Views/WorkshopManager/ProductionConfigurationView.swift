@@ -678,6 +678,9 @@ struct AddProductSheet: View {
     @State private var selectedApprovalTargetDate: Date = Date()
     @State private var selectedStartTime: Date = Date()
     @State private var isAdding = false
+    @State private var showingValidationAlert = false
+    @State private var validationAlertTitle = ""
+    @State private var validationAlertMessage = ""
     
     var availableStations: [Int] {
         let occupiedStations = batch.products.flatMap { $0.occupiedStations }
@@ -806,10 +809,10 @@ struct AddProductSheet: View {
                     // Action buttons
                     VStack(spacing: 12) {
                         Button("添加产品") {
-                            addProduct()
+                            handleAddProductTap()
                         }
                         .buttonStyle(.borderedProminent)
-                        .disabled(!isValidConfiguration || isAdding)
+                        .disabled(isAdding)
                         
                         Button("取消") {
                             onDismiss()
@@ -856,6 +859,13 @@ struct AddProductSheet: View {
                     }
                 }
             }
+        }
+        .alert(validationAlertTitle, isPresented: $showingValidationAlert) {
+            Button("确定") {
+                showingValidationAlert = false
+            }
+        } message: {
+            Text(validationAlertMessage)
         }
     }
     
@@ -1387,6 +1397,20 @@ struct AddProductSheet: View {
         isStartTimeValid
     }
     
+    private func handleAddProductTap() {
+        let validation = performComprehensiveValidation()
+        
+        if validation.isValid {
+            // All validations passed, proceed with adding product
+            addProduct()
+        } else {
+            // Show validation error alert
+            validationAlertTitle = validation.title
+            validationAlertMessage = validation.message
+            showingValidationAlert = true
+        }
+    }
+    
     private func autoAssignStations() {
         guard let stationCount = selectedStationCount, stationCount > 0 else { return }
         
@@ -1498,6 +1522,96 @@ struct AddProductSheet: View {
         formatter.dateStyle = .medium
         formatter.locale = Locale(identifier: "zh_CN")
         return formatter.string(from: date)
+    }
+    
+    // MARK: - Validation Methods
+    
+    private func validateProductSelection() -> (isValid: Bool, title: String, message: String) {
+        if selectedProduct == nil {
+            return (false, "产品未选择", "请选择一个产品后再继续添加")
+        }
+        return (true, "", "")
+    }
+    
+    private func validateColorConfiguration() -> (isValid: Bool, title: String, message: String) {
+        if selectedPrimaryColor == nil {
+            return (false, "颜色未配置", "请配置主颜色后再继续添加")
+        }
+        
+        if batch.mode == .dualColor && selectedSecondaryColor == nil {
+            return (false, "颜色未配置", "双色模式需要配置副颜色，请配置副颜色后继续添加")
+        }
+        
+        return (true, "", "")
+    }
+    
+    private func validateGunAssignment() -> (isValid: Bool, title: String, message: String) {
+        if batch.mode == .singleColor && selectedGun.isEmpty {
+            return (false, "喷枪未分配", "请选择喷枪分配后再继续添加")
+        }
+        return (true, "", "")
+    }
+    
+    private func validateStationSelection() -> (isValid: Bool, title: String, message: String) {
+        if selectedStationCount == nil {
+            return (false, "工位数量未选择", "请选择工位数量后再继续添加")
+        }
+        
+        if selectedStations.count < batch.mode.minStationsPerProduct {
+            return (false, "工位配置不足", "至少需要选择 \(batch.mode.minStationsPerProduct) 个工位")
+        }
+        
+        // Check for station conflicts
+        let occupiedStations = batch.products.flatMap { $0.occupiedStations }
+        let conflictingStations = selectedStations.filter { occupiedStations.contains($0) }
+        
+        if !conflictingStations.isEmpty {
+            let stationNumbers = conflictingStations.sorted().map { String($0) }.joined(separator: ", ")
+            return (false, "工位冲突", "工位 \(stationNumbers) 已被其他批次占用，请选择不同的工位")
+        }
+        
+        return (true, "", "")
+    }
+    
+    private func validateTimeConfiguration() -> (isValid: Bool, title: String, message: String) {
+        if !isStartTimeValid {
+            return (false, "时间配置无效", startTimeValidationMessage)
+        }
+        return (true, "", "")
+    }
+    
+    private func performComprehensiveValidation() -> (isValid: Bool, title: String, message: String) {
+        // Check product selection
+        let productValidation = validateProductSelection()
+        if !productValidation.isValid {
+            return productValidation
+        }
+        
+        // Check color configuration
+        let colorValidation = validateColorConfiguration()
+        if !colorValidation.isValid {
+            return colorValidation
+        }
+        
+        // Check gun assignment
+        let gunValidation = validateGunAssignment()
+        if !gunValidation.isValid {
+            return gunValidation
+        }
+        
+        // Check station selection
+        let stationValidation = validateStationSelection()
+        if !stationValidation.isValid {
+            return stationValidation
+        }
+        
+        // Check time configuration
+        let timeValidation = validateTimeConfiguration()
+        if !timeValidation.isValid {
+            return timeValidation
+        }
+        
+        return (true, "", "")
     }
 }
 
