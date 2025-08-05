@@ -148,10 +148,7 @@ struct SalespersonDashboardView: View {
                     }
                 }
                 .onTapGesture {
-                    print("🔍 Database Status Check:")
-                    print("   - Customers: \(customers.count)")
-                    print("   - Products: \(products.count)")
-                    print("   - Model Context: \(modelContext)")
+                    // Database status check - debug info removed for security
                 }
                 .padding()
                 .background(Color.gray.opacity(0.1))
@@ -238,40 +235,7 @@ struct SalespersonDashboardView: View {
         }
     }
     
-    private func testAddCustomer() {
-        let testCustomer = Customer(name: "测试客户", address: "测试地址", phone: "13800000000")
-        modelContext.insert(testCustomer)
-        
-        do {
-            try modelContext.save()
-            print("✅ Test customer added successfully")
-            print("✅ Total customers now: \(customers.count)")
-        } catch {
-            print("❌ Failed to add test customer: \(error)")
-        }
-    }
-    
-    private func testAddProduct() {
-        let testProduct = Product(name: "测试产品", colors: ["红色"])
-        
-        // Add a size to the product
-        let size = ProductSize(size: "M", product: testProduct)
-        if testProduct.sizes == nil {
-            testProduct.sizes = []
-        }
-        testProduct.sizes?.append(size)
-        
-        modelContext.insert(testProduct)
-        modelContext.insert(size)
-        
-        do {
-            try modelContext.save()
-            print("✅ Test product added successfully")
-            print("✅ Total products now: \(products.count)")
-        } catch {
-            print("❌ Failed to add test product: \(error)")
-        }
-    }
+    // Test functions removed for production build optimization
 }
 
 struct WarehouseKeeperDashboardView: View {
@@ -509,88 +473,118 @@ struct AdministratorDashboardView: View {
     @ObservedObject var navigationService: WorkbenchNavigationService
     @EnvironmentObject var serviceFactory: ServiceFactory
     
+    @State private var navigationPath = NavigationPath()
+    
+    // Dashboard items defined inline for simplicity
+    
     var body: some View {
-        NavigationView {
-            VStack(spacing: 20) {
-                Text("administrator_dashboard".localized)
-                    .font(.title)
-                    .fontWeight(.bold)
-                
-                LazyVGrid(columns: [
-                    GridItem(.flexible()),
-                    GridItem(.flexible())
-                ], spacing: 20) {
-                    NavigationLink(destination: UserManagementView()) {
-                        DashboardCard(
-                            title: "user_management".localized,
-                            subtitle: "user_management_subtitle".localized,
-                            icon: "person.2",
-                            color: .blue
-                        )
-                    }
+        NavigationStack(path: $navigationPath) {
+            ScrollView(.vertical, showsIndicators: false) {
+                LazyVStack(spacing: 16) {
+                    // Header section
+                    headerView
                     
-                    NavigationLink(destination: BatchReviewView(
+                    // Dashboard cards
+                    LazyVStack(spacing: 12) {
+                        ModernDashboardCard(
+                            title: "用户管理",
+                            subtitle: "管理系统用户、角色和权限设置",
+                            icon: "person.2.circle",
+                            color: .blue
+                        ) {
+                            navigationPath.append("UserManagement")
+                        }
+                        
+                        ModernDashboardCard(
+                            title: "批次管理",
+                            subtitle: "审核生产配置批次和查看历史记录",
+                            icon: "doc.text.magnifyingglass",
+                            color: .indigo
+                        ) {
+                            navigationPath.append("BatchManagement")
+                        }
+                        
+                        ModernDashboardCard(
+                            title: "系统概览",
+                            subtitle: "查看系统整体运行状态和统计信息",
+                            icon: "chart.bar.doc.horizontal",
+                            color: .green
+                        ) {
+                            navigationPath.append("SystemOverview")
+                        }
+                        
+                        ModernDashboardCard(
+                            title: "生产概览",
+                            subtitle: "监控生产线状态和设备运行情况",
+                            icon: "gearshape.2.fill",
+                            color: .purple
+                        ) {
+                            navigationPath.append("ProductionOverview")
+                        }
+                    }
+                    .padding(.horizontal, 20)
+                }
+                .padding(.vertical, 16)
+            }
+            .background(Color(.systemGroupedBackground))
+            .navigationTitle("管理员控制台")
+            .navigationBarTitleDisplayMode(.large)
+            .toolbar {
+                ToolbarItem(placement: .navigationBarTrailing) {
+                    workbenchButton
+                }
+            }
+            .navigationDestination(for: String.self) { destination in
+                switch destination {
+                case "UserManagement":
+                    UserManagementView()
+                case "BatchManagement":
+                    BatchManagementView(
                         repositoryFactory: serviceFactory.repositoryFactory,
                         authService: authService,
                         auditService: serviceFactory.auditingService
-                    )) {
-                        DashboardCard(
-                            title: "批次审核",
-                            subtitle: "审核生产配置批次和管理生产计划",
-                            icon: "checkmark.seal",
-                            color: .indigo
-                        )
-                    }
-                    
-                    NavigationLink(destination: SystemOverviewView()) {
-                        DashboardCard(
-                            title: "system_overview".localized,
-                            subtitle: "system_overview_subtitle".localized,
-                            icon: "chart.pie",
-                            color: .green
-                        )
-                    }
-                    
-                    NavigationLink(destination: CustomerOutOfStockListView()) {
-                        DashboardCard(
-                            title: "out_of_stock_management".localized,
-                            subtitle: "out_of_stock_management_subtitle".localized,
-                            icon: "exclamationmark.triangle",
-                            color: .orange
-                        )
-                    }
-                    
-                    NavigationLink(destination: ProductionOverviewView()) {
-                        DashboardCard(
-                            title: "production_overview".localized,
-                            subtitle: "production_overview_subtitle".localized,
-                            icon: "gearshape.2",
-                            color: .purple
-                        )
-                    }
-                }
-                .padding(.horizontal)
-                
-                Spacer()
-            }
-            .padding()
-            .navigationTitle("administrator_dashboard".localized)
-            .navigationBarTitleDisplayMode(.inline)
-            .toolbar {
-                ToolbarItem(placement: .navigationBarTrailing) {
-                    Button(action: {
-                        navigationService.showWorkbenchSelector()
-                    }) {
-                        HStack(spacing: 4) {
-                            Image(systemName: "gearshape.arrow.triangle.2.circlepath")
-                            Text("工作台操作")
-                        }
-                        .font(.caption)
-                    }
+                    )
+                case "SystemOverview":
+                    SystemOverviewView()
+                case "ProductionOverview":
+                    ProductionOverviewView()
+                default:
+                    Text("Unknown destination")
                 }
             }
         }
     }
+    
+    private var headerView: some View {
+        VStack(spacing: 12) {
+            Text("欢迎使用管理员控制台")
+                .font(.title2)
+                .fontWeight(.medium)
+                .foregroundColor(.secondary)
+                .multilineTextAlignment(.center)
+            
+            Text("全面管理系统用户、审核生产批次并监控整体运营状况")
+                .font(.subheadline)
+                .foregroundColor(.secondary)
+                .multilineTextAlignment(.center)
+        }
+        .padding(.horizontal, 20)
+        .padding(.bottom, 8)
+    }
+    
+    private var workbenchButton: some View {
+        Button(action: {
+            navigationService.showWorkbenchSelector()
+        }) {
+            Label("工作台操作", systemImage: "gearshape.arrow.triangle.2.circlepath")
+                .font(.subheadline)
+                .fontWeight(.medium)
+        }
+        .accessibilityLabel("切换工作台")
+        .accessibilityHint("双击以显示工作台选择器")
+    }
+    
+    // Navigation functions removed - using NavigationLink directly
 }
 
 struct DashboardCard: View {

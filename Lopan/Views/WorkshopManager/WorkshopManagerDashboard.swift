@@ -31,14 +31,7 @@ struct WorkshopManagerDashboard: View {
         self.auditService = auditService
         self.navigationService = navigationService
         
-        // Validate user permissions and warn if insufficient
-        if let currentUser = authService.currentUser {
-            if !currentUser.roles.contains(.workshopManager) && !currentUser.roles.contains(.administrator) {
-                print("⚠️ Workshop Manager Dashboard initialized without proper permissions for user: \(currentUser.name)")
-            }
-        } else {
-            print("⚠️ Workshop Manager Dashboard initialized without authenticated user (likely during logout)")
-        }
+        // Validate user permissions - logging removed for security
         
         // Initialize shared service instances - always initialize to prevent crashes
         self._machineService = StateObject(wrappedValue: MachineService(
@@ -138,7 +131,7 @@ struct WorkshopManagerDashboard: View {
                 }
                 .tag(3)
                 
-                // Batch Processing & Approval
+                // Batch Processing & Approval (moved to bottom)
                 BatchProcessingDashboardView(
                     repositoryFactory: repositoryFactory,
                     authService: authService,
@@ -152,18 +145,6 @@ struct WorkshopManagerDashboard: View {
                     Text("批次处理")
                 }
                 .tag(4)
-                
-                // Batch History
-                BatchHistoryView(
-                    repositoryFactory: repositoryFactory,
-                    authService: authService,
-                    auditService: auditService
-                )
-                .tabItem {
-                    Image(systemName: "clock.arrow.circlepath")
-                    Text("批次历史")
-                }
-                .tag(5)
         }
         .accentColor(.blue)
         .onAppear {
