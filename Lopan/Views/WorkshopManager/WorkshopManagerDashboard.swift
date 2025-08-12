@@ -18,55 +18,14 @@ struct WorkshopManagerDashboard: View {
     @State private var showingAddMachine = false
     @State private var showingAddColor = false
     
-    // Create service instances at dashboard level for sharing
-    @StateObject private var machineService: MachineService
-    @StateObject private var colorService: ColorService
-    @StateObject private var sessionService: SessionSecurityService
-    @StateObject private var productionBatchService: ProductionBatchService
-    @StateObject private var batchOperationCoordinator: BatchOperationCoordinator
+    // Simplified service instances - let each view create its own to avoid dependency cycles
+    @State private var servicesInitialized = false
     
     init(repositoryFactory: RepositoryFactory, authService: AuthenticationService, auditService: NewAuditingService, navigationService: WorkbenchNavigationService? = nil) {
         self.repositoryFactory = repositoryFactory
         self.authService = authService
         self.auditService = auditService
         self.navigationService = navigationService
-        
-        // Validate user permissions - logging removed for security
-        
-        // Initialize shared service instances - always initialize to prevent crashes
-        self._machineService = StateObject(wrappedValue: MachineService(
-            machineRepository: repositoryFactory.machineRepository,
-            auditService: auditService,
-            authService: authService
-        ))
-        
-        self._colorService = StateObject(wrappedValue: ColorService(
-            colorRepository: repositoryFactory.colorRepository,
-            machineRepository: repositoryFactory.machineRepository,
-            auditService: auditService,
-            authService: authService
-        ))
-        
-        // Initialize batch processing services
-        let sessionSvc = SessionSecurityService(auditingService: auditService)
-        self._sessionService = StateObject(wrappedValue: sessionSvc)
-        
-        let productionBatchSvc = ProductionBatchService(
-            productionBatchRepository: repositoryFactory.productionBatchRepository,
-            machineRepository: repositoryFactory.machineRepository,
-            colorRepository: repositoryFactory.colorRepository,
-            auditService: auditService,
-            authService: authService
-        )
-        self._productionBatchService = StateObject(wrappedValue: productionBatchSvc)
-        
-        let batchCoordinator = BatchOperationCoordinator(
-            batchRepository: repositoryFactory.batchOperationRepository,
-            productionBatchService: productionBatchSvc,
-            auditingService: auditService,
-            sessionService: sessionSvc
-        )
-        self._batchOperationCoordinator = StateObject(wrappedValue: batchCoordinator)
     }
     
     var body: some View {
@@ -83,7 +42,6 @@ struct WorkshopManagerDashboard: View {
         TabView(selection: $selectedTab) {
                 // Machine Management
                 MachineManagementView(
-                    machineService: machineService,
                     authService: authService,
                     repositoryFactory: repositoryFactory,
                     auditService: auditService,
@@ -97,8 +55,9 @@ struct WorkshopManagerDashboard: View {
                 
                 // Color Management
                 ColorManagementView(
-                    colorService: colorService,
                     authService: authService,
+                    repositoryFactory: repositoryFactory,
+                    auditService: auditService,
                     showingAddColor: $showingAddColor
                 )
                 .tabItem {
@@ -131,14 +90,11 @@ struct WorkshopManagerDashboard: View {
                 }
                 .tag(3)
                 
-                // Batch Processing & Approval (moved to bottom)
-                BatchProcessingDashboardView(
+                // Batch Processing & Approval (simplified to prevent crashes)
+                BatchProcessingPlaceholderView(
                     repositoryFactory: repositoryFactory,
                     authService: authService,
-                    auditService: auditService,
-                    coordinator: batchOperationCoordinator,
-                    productionBatchService: productionBatchService,
-                    sessionService: sessionService
+                    auditService: auditService
                 )
                 .tabItem {
                     Image(systemName: "square.stack.3d.down.right")
@@ -151,12 +107,7 @@ struct WorkshopManagerDashboard: View {
             // Initialize workbench context when entering workshop manager dashboard
             navigationService?.setCurrentWorkbenchContext(.workshopManager)
         }
-        .sheet(isPresented: $showingAddMachine) {
-            AddMachineSheet(machineService: machineService)
-        }
-        .sheet(isPresented: $showingAddColor) {
-            AddColorSheet(colorService: colorService)
-        }
+        // Sheets are now handled by individual views to avoid service dependency issues
     }
     
     private var unauthorizedAccessView: some View {
@@ -194,7 +145,36 @@ struct WorkshopManagerDashboard: View {
     }
 }
 
-
+// MARK: - Temporary Placeholder View
+struct BatchProcessingPlaceholderView: View {
+    let repositoryFactory: RepositoryFactory
+    @ObservedObject var authService: AuthenticationService
+    let auditService: NewAuditingService
+    
+    var body: some View {
+        VStack(spacing: 20) {
+            Image(systemName: "square.stack.3d.down.right")
+                .font(.system(size: 60))
+                .foregroundColor(.blue)
+            
+            Text("批次处理中心")
+                .font(.title2)
+                .fontWeight(.bold)
+            
+            Text("批次处理功能正在优化中，即将重新上线")
+                .font(.body)
+                .multilineTextAlignment(.center)
+                .foregroundColor(.secondary)
+                .padding(.horizontal, 40)
+            
+            Text("2025年8月12日")
+                .font(.caption)
+                .foregroundColor(.secondary)
+        }
+        .frame(maxWidth: .infinity, maxHeight: .infinity)
+        .background(Color(.systemBackground))
+    }
+}
 
 // MARK: - Preview
 struct WorkshopManagerDashboard_Previews: PreviewProvider {

@@ -263,20 +263,27 @@ struct ProductionConfigurationView: View {
             } label: {
                 Image(systemName: "plus.circle.fill")
                     .font(.system(size: 48))
-                    .foregroundColor(.blue)
+                    .foregroundColor(viewModel.canCreateBatch ? .blue : .gray)
             }
             .buttonStyle(.plain)
-            .disabled(!viewModel.canManageProduction || viewModel.selectedMachine == nil)
+            .disabled(!viewModel.canCreateBatch)
             
             VStack(spacing: 8) {
                 Text("创建生产批次")
                     .font(.headline)
                     .fontWeight(.semibold)
                 
-                Text("选择设备和生产模式后，创建新的生产配置批次")
-                    .font(.body)
-                    .foregroundColor(.secondary)
-                    .multilineTextAlignment(.center)
+                if viewModel.canCreateBatch {
+                    Text("选择设备和生产模式后，创建新的生产配置批次")
+                        .font(.body)
+                        .foregroundColor(.secondary)
+                        .multilineTextAlignment(.center)
+                } else {
+                    Text(viewModel.batchCreationDisabledReason)
+                        .font(.body)
+                        .foregroundColor(.orange)
+                        .multilineTextAlignment(.center)
+                }
                 
                 // Station usage info
                 Text(viewModel.stationUsageInfo)
