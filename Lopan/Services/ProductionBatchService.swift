@@ -406,7 +406,7 @@ class ProductionBatchService: ObservableObject {
             return false
         }
         
-        batch.status = .approved
+        batch.status = .pendingExecution
         batch.reviewedAt = Date()
         batch.reviewedBy = currentUser.id
         batch.reviewedByName = currentUser.name
@@ -570,8 +570,8 @@ class ProductionBatchService: ObservableObject {
             return false
         }
         
-        guard batch.status == .approved else {
-            errorMessage = "Only approved batches can be executed"
+        guard batch.status == .approved || batch.status == .pendingExecution else {
+            errorMessage = "Only approved or pending execution batches can be executed"
             return false
         }
         

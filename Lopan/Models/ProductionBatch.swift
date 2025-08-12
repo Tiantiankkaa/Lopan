@@ -40,6 +40,7 @@ enum BatchStatus: String, CaseIterable, Codable {
     case unsubmitted = "unsubmitted"
     case pending = "pending"
     case approved = "approved"
+    case pendingExecution = "pending_execution"
     case rejected = "rejected"
     case active = "active"
     case completed = "completed"
@@ -49,6 +50,7 @@ enum BatchStatus: String, CaseIterable, Codable {
         case .unsubmitted: return "未提交"
         case .pending: return "待审核"
         case .approved: return "已批准"
+        case .pendingExecution: return "待执行"
         case .rejected: return "已拒绝"
         case .active: return "执行中"
         case .completed: return "已完成"
@@ -60,6 +62,7 @@ enum BatchStatus: String, CaseIterable, Codable {
         case .unsubmitted: return .gray
         case .pending: return .orange
         case .approved: return .green
+        case .pendingExecution: return .cyan
         case .rejected: return .red
         case .active: return .blue
         case .completed: return .gray

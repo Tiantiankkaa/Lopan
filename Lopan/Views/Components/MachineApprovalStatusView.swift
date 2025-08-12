@@ -1,0 +1,282 @@
+//
+//  MachineApprovalStatusView.swift
+//  Lopan
+//
+//  Created by Claude Code on 2025/8/12.
+//
+
+import SwiftUI
+import SwiftData
+
+struct MachineApprovalStatusView: View {
+    let machineId: String
+    let batchService: ProductionBatchService
+    let onBatchTapped: (ProductionBatch) -> Void
+    let onExecuteBatch: (ProductionBatch) -> Void
+    
+    @State private var approvalBatches: [ProductionBatch] = []
+    @State private var isLoading = false
+    @State private var errorMessage: String?
+    
+    var body: some View {
+        VStack(alignment: .leading, spacing: 12) {
+            if isLoading {
+                HStack {
+                    ProgressView()
+                        .scaleEffect(0.8)
+                    Text("加载审批状态...")
+                        .font(.caption)
+                        .foregroundColor(.secondary)
+                }
+                .frame(maxWidth: .infinity, alignment: .center)
+                .padding()
+            } else if let errorMessage = errorMessage {
+                HStack {
+                    Image(systemName: "exclamationmark.triangle.fill")
+                        .foregroundColor(.orange)
+                    Text(errorMessage)
+                        .font(.caption)
+                        .foregroundColor(.secondary)
+                }
+                .padding()
+                .background(Color.orange.opacity(0.1))
+                .cornerRadius(8)
+            } else if approvalBatches.isEmpty {
+                HStack {
+                    Image(systemName: "checkmark.circle.fill")
+                        .foregroundColor(.green)
+                    VStack(alignment: .leading, spacing: 2) {
+                        Text("暂无待审批批次")
+                            .font(.subheadline)
+                            .fontWeight(.medium)
+                        Text("此设备当前没有需要审批的生产配置")
+                            .font(.caption)
+                            .foregroundColor(.secondary)
+                    }
+                    Spacer()
+                }
+                .padding()
+                .background(Color.green.opacity(0.1))
+                .cornerRadius(8)
+            } else {
+                VStack(spacing: 8) {
+                    ForEach(approvalBatches.prefix(3), id: \.id) { batch in
+                        ApprovalBatchCompactRow(
+                            batch: batch,
+                            onTap: { onBatchTapped(batch) },
+                            onExecute: { onExecuteBatch(batch) }
+                        )
+                    }
+                    
+                    if approvalBatches.count > 3 {
+                        Button("查看全部 \(approvalBatches.count) 个批次") {
+                            // This could expand the view or navigate to a detailed view
+                        }
+                        .font(.caption)
+                        .foregroundColor(.blue)
+                        .padding(.top, 4)
+                    }
+                }
+            }
+        }
+        .task {
+            await loadApprovalBatches()
+        }
+        .refreshable {
+            await loadApprovalBatches()
+        }
+        .onChange(of: machineId) { _, newMachineId in
+            // Clear current data immediately when machine changes
+            approvalBatches = []
+            errorMessage = nil
+            
+            // Load data for the new machine
+            Task {
+                await loadApprovalBatches()
+            }
+        }
+    }
+    
+    private func loadApprovalBatches() async {
+        isLoading = true
+        errorMessage = nil
+        
+        // Load all batches and filter for this machine
+        await batchService.loadBatches()
+        
+        // Check if there was an error during loading
+        if let error = batchService.errorMessage {
+            errorMessage = "加载失败: \(error)"
+            isLoading = false
+            return
+        }
+        
+        let allBatches = batchService.batches
+        
+        // Filter for batches that belong to this machine and need approval attention
+        approvalBatches = allBatches.filter { batch in
+            // Check if batch belongs to this machine
+            guard batch.machineId == machineId else { return false }
+            
+            // Check if batch needs approval attention
+            switch batch.status {
+            case .pending, .approved, .pendingExecution, .rejected:
+                return true
+            case .unsubmitted, .active, .completed:
+                return false
+            }
+        }.sorted { $0.submittedAt > $1.submittedAt }
+        
+        isLoading = false
+    }
+}
+
+// MARK: - Compact Approval Batch Row
+struct ApprovalBatchCompactRow: View {
+    let batch: ProductionBatch
+    let onTap: () -> Void
+    let onExecute: () -> Void
+    
+    @State private var showExecuteConfirmation = false
+    
+    var body: some View {
+        Button(action: onTap) {
+            HStack(spacing: 12) {
+                // Status indicator
+                Circle()
+                    .fill(batch.status.color)
+                    .frame(width: 8, height: 8)
+                
+                // Batch info
+                VStack(alignment: .leading, spacing: 2) {
+                    HStack {
+                        Text(batch.batchNumber)
+                            .font(.caption)
+                            .fontWeight(.medium)
+                        
+                        Spacer()
+                        
+                        Text(timeAgoString(from: batch.submittedAt))
+                            .font(.caption2)
+                            .foregroundColor(.secondary)
+                    }
+                    
+                    HStack(spacing: 6) {
+                        Text(batch.status.displayName)
+                            .font(.caption2)
+                            .foregroundColor(batch.status.color)
+                            .padding(.horizontal, 6)
+                            .padding(.vertical, 1)
+                            .background(batch.status.color.opacity(0.1))
+                            .cornerRadius(3)
+                        
+                        Text(batch.mode.displayName)
+                            .font(.caption2)
+                            .foregroundColor(.blue)
+                            .padding(.horizontal, 6)
+                            .padding(.vertical, 1)
+                            .background(Color.blue.opacity(0.1))
+                            .cornerRadius(3)
+                        
+                        if !batch.products.isEmpty {
+                            Text("\(batch.products.count)产品")
+                                .font(.caption2)
+                                .foregroundColor(.secondary)
+                        }
+                    }
+                }
+                
+                // Action button for approved and pending execution batches
+                if batch.status == .approved || batch.status == .pendingExecution {
+                    Button("执行") {
+                        onExecute()
+                    }
+                    .font(.caption2)
+                    .padding(.horizontal, 8)
+                    .padding(.vertical, 3)
+                    .background(batch.status == .pendingExecution ? Color.cyan : Color.blue)
+                    .foregroundColor(.white)
+                    .cornerRadius(4)
+                    .onTapGesture {
+                        onExecute()
+                    }
+                }
+            }
+        }
+        .buttonStyle(PlainButtonStyle())
+        .padding(.horizontal, 12)
+        .padding(.vertical, 8)
+        .background(Color(UIColor.tertiarySystemBackground))
+        .cornerRadius(6)
+        .gesture(
+            // Add swipe gesture for pendingExecution batches
+            batch.status == .pendingExecution ?
+            DragGesture(minimumDistance: 50, coordinateSpace: .local)
+                .onEnded { value in
+                    if value.translation.width > 0 && abs(value.translation.height) < 100 {
+                        // Swiped right - show confirmation
+                        showExecuteConfirmation = true
+                    }
+                } : nil
+        )
+        .confirmationDialog(
+            "执行批次",
+            isPresented: $showExecuteConfirmation,
+            titleVisibility: .visible
+        ) {
+            Button("确认执行") {
+                onExecute()
+            }
+            Button("取消", role: .cancel) { }
+        } message: {
+            Text("确定要执行批次 \(batch.batchNumber) 吗？")
+        }
+    }
+    
+    private func timeAgoString(from date: Date) -> String {
+        let interval = Date().timeIntervalSince(date)
+        let minutes = Int(interval / 60)
+        let hours = Int(interval / 3600)
+        let days = Int(interval / 86400)
+        
+        if days > 0 {
+            return "\(days)天前"
+        } else if hours > 0 {
+            return "\(hours)小时前"
+        } else if minutes > 0 {
+            return "\(minutes)分钟前"
+        } else {
+            return "刚刚"
+        }
+    }
+}
+
+// MARK: - Preview
+struct MachineApprovalStatusView_Previews: PreviewProvider {
+    static var previews: some View {
+        let schema = Schema([
+            WorkshopMachine.self, ProductionBatch.self, ProductConfig.self,
+            User.self, AuditLog.self, ColorCard.self
+        ])
+        let modelConfiguration = ModelConfiguration(schema: schema, isStoredInMemoryOnly: true)
+        let container = try! ModelContainer(for: schema, configurations: [modelConfiguration])
+        let repositoryFactory = LocalRepositoryFactory(modelContext: container.mainContext)
+        let authService = AuthenticationService(repositoryFactory: repositoryFactory)
+        let auditService = NewAuditingService(repositoryFactory: repositoryFactory)
+        
+        let batchService = ProductionBatchService(
+            productionBatchRepository: repositoryFactory.productionBatchRepository,
+            machineRepository: repositoryFactory.machineRepository,
+            colorRepository: repositoryFactory.colorRepository,
+            auditService: auditService,
+            authService: authService
+        )
+        
+        MachineApprovalStatusView(
+            machineId: "test-machine-id",
+            batchService: batchService,
+            onBatchTapped: { _ in },
+            onExecuteBatch: { _ in }
+        )
+    }
+}

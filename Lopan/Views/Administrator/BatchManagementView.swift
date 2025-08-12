@@ -268,82 +268,86 @@ struct PendingBatchRow: View {
     
     var body: some View {
         VStack(spacing: 16) {
-            // Header
-            HStack {
-                VStack(alignment: .leading, spacing: 4) {
-                    Text(batch.batchNumber)
-                        .font(.headline)
-                        .fontWeight(.semibold)
-                    
-                    Text("提交人: \(batch.submittedByName)")
-                        .font(.caption)
-                        .foregroundColor(.secondary)
-                }
-                
-                Spacer()
-                
-                VStack(alignment: .trailing, spacing: 4) {
-                    Text(batch.mode.displayName)
-                        .font(.caption)
-                        .fontWeight(.medium)
-                        .padding(.horizontal, 8)
-                        .padding(.vertical, 2)
-                        .background(Color.blue.opacity(0.2))
-                        .foregroundColor(.blue)
-                        .cornerRadius(4)
-                    
-                    Text(batch.submittedAt.formatted(.dateTime.month().day().hour().minute()))
-                        .font(.caption2)
-                        .foregroundColor(.secondary)
-                }
-            }
-            
-            // Configuration summary
-            VStack(spacing: 8) {
-                HStack {
-                    Label("\(batch.products.count) 个产品", systemImage: "cube.box")
-                        .font(.caption)
-                        .foregroundColor(.secondary)
-                    
-                    Spacer()
-                    
-                    Label("\(batch.totalStationsUsed)/12 工位", systemImage: "grid")
-                        .font(.caption)
-                        .foregroundColor(.secondary)
-                }
-                
-                // Configuration validation
-                HStack {
-                    Image(systemName: batch.isValidConfiguration ? "checkmark.circle.fill" : "xmark.circle.fill")
-                        .foregroundColor(batch.isValidConfiguration ? .green : .red)
-                    
-                    Text(batch.isValidConfiguration ? "配置有效" : "配置无效")
-                        .font(.caption)
-                        .foregroundColor(batch.isValidConfiguration ? .green : .red)
-                    
-                    Spacer()
-                }
-            }
-            
-            // Products preview
-            if !batch.products.isEmpty {
-                ScrollView(.horizontal, showsIndicators: false) {
-                    HStack(spacing: 8) {
-                        ForEach(batch.products, id: \.id) { product in
-                            ProductPreviewCard(product: product)
+            // Main content - tappable for details
+            Button {
+                showingDetail = true
+            } label: {
+                VStack(spacing: 16) {
+                    // Header
+                    HStack {
+                        VStack(alignment: .leading, spacing: 4) {
+                            Text(batch.batchNumber)
+                                .font(.headline)
+                                .fontWeight(.semibold)
+                                .foregroundColor(.primary)
+                            
+                            Text("提交人: \(batch.submittedByName)")
+                                .font(.caption)
+                                .foregroundColor(.secondary)
+                        }
+                        
+                        Spacer()
+                        
+                        VStack(alignment: .trailing, spacing: 4) {
+                            Text(batch.mode.displayName)
+                                .font(.caption)
+                                .fontWeight(.medium)
+                                .padding(.horizontal, 8)
+                                .padding(.vertical, 2)
+                                .background(Color.blue.opacity(0.2))
+                                .foregroundColor(.blue)
+                                .cornerRadius(4)
+                            
+                            Text(batch.submittedAt.formatted(.dateTime.month().day().hour().minute()))
+                                .font(.caption2)
+                                .foregroundColor(.secondary)
                         }
                     }
-                    .padding(.horizontal, 4)
+                    
+                    // Configuration summary
+                    VStack(spacing: 8) {
+                        HStack {
+                            Label("\(batch.products.count) 个产品", systemImage: "cube.box")
+                                .font(.caption)
+                                .foregroundColor(.secondary)
+                            
+                            Spacer()
+                            
+                            Label("\(batch.totalStationsUsed)/12 工位", systemImage: "grid")
+                                .font(.caption)
+                                .foregroundColor(.secondary)
+                        }
+                        
+                        // Configuration validation
+                        HStack {
+                            Image(systemName: batch.isValidConfiguration ? "checkmark.circle.fill" : "xmark.circle.fill")
+                                .foregroundColor(batch.isValidConfiguration ? .green : .red)
+                            
+                            Text(batch.isValidConfiguration ? "配置有效" : "配置无效")
+                                .font(.caption)
+                                .foregroundColor(batch.isValidConfiguration ? .green : .red)
+                            
+                            Spacer()
+                        }
+                    }
+                    
+                    // Products preview
+                    if !batch.products.isEmpty {
+                        ScrollView(.horizontal, showsIndicators: false) {
+                            HStack(spacing: 8) {
+                                ForEach(batch.products, id: \.id) { product in
+                                    ProductPreviewCard(product: product)
+                                }
+                            }
+                            .padding(.horizontal, 4)
+                        }
+                    }
                 }
             }
+            .buttonStyle(.plain)
             
-            // Action buttons
+            // Action buttons - separate from main content
             HStack(spacing: 12) {
-                Button("查看详情") {
-                    showingDetail = true
-                }
-                .buttonStyle(.bordered)
-                
                 Spacer()
                 
                 Button("拒绝") {
@@ -362,13 +366,68 @@ struct PendingBatchRow: View {
         .padding()
         .background(Color(UIColor.secondarySystemBackground))
         .cornerRadius(12)
-        .sheet(isPresented: $showingDetail) {
-            VStack {
-                Text("批次详情")
-                Text(batch.batchNumber)
-                Button("关闭") { showingDetail = false }
+        .sheet(isPresented: $showingDetail, onDismiss: {
+            showingDetail = false
+        }) {
+            // Use the proper BatchDetailView that already exists
+            NavigationView {
+                ScrollView {
+                    VStack(spacing: 20) {
+                        // Basic info
+                        batchInfoSection(batch)
+                        
+                        // Products
+                        productsSection(batch)
+                    }
+                    .padding()
+                }
+                .navigationTitle("批次详情")
+                .navigationBarTitleDisplayMode(.inline)
+                .toolbar {
+                    ToolbarItem(placement: .navigationBarTrailing) {
+                        Button("关闭") {
+                            showingDetail = false
+                        }
+                    }
+                }
+            }
+        }
+    }
+    
+    // Helper views for the detail sheet
+    private func batchInfoSection(_ batch: ProductionBatch) -> some View {
+        VStack(spacing: 12) {
+            Text("批次信息")
+                .font(.headline)
+                .fontWeight(.semibold)
+                .frame(maxWidth: .infinity, alignment: .leading)
+            
+            VStack(spacing: 8) {
+                BatchInfoRow(label: "批次编号", value: batch.batchNumber)
+                BatchInfoRow(label: "生产模式", value: batch.mode.displayName)
+                BatchInfoRow(label: "设备ID", value: batch.machineId)
+                BatchInfoRow(label: "状态", value: batch.status.displayName)
+                BatchInfoRow(label: "提交人", value: batch.submittedByName)
+                BatchInfoRow(label: "提交时间", value: batch.submittedAt.formatted(.dateTime))
             }
             .padding()
+            .background(Color(UIColor.secondarySystemBackground))
+            .cornerRadius(12)
+        }
+    }
+    
+    private func productsSection(_ batch: ProductionBatch) -> some View {
+        VStack(spacing: 12) {
+            Text("产品配置")
+                .font(.headline)
+                .fontWeight(.semibold)
+                .frame(maxWidth: .infinity, alignment: .leading)
+            
+            VStack(spacing: 8) {
+                ForEach(batch.products, id: \.id) { product in
+                    BatchProductDetailRow(product: product)
+                }
+            }
         }
     }
 }

@@ -303,7 +303,7 @@ struct ProductionConfigurationView: View {
             productsListSection(batch)
             
             // Add product button
-            if viewModel.canManageProduction && batch.products.count < batch.mode.maxProducts {
+            if viewModel.canAddProducts && batch.products.count < batch.mode.maxProducts {
                 Button("添加产品") {
                     viewModel.showAddProduct()
                 }
@@ -411,7 +411,7 @@ struct ProductionConfigurationView: View {
                         ProductConfigRow(
                             product: product,
                             colors: viewModel.activeColors,
-                            onDelete: viewModel.canManageProduction ? {
+                            onDelete: viewModel.canAddProducts ? {
                                 _ = viewModel.getBatchService().removeProductFromBatch(batch, productConfig: product)
                             } : nil
                         )
