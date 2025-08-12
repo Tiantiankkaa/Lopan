@@ -61,6 +61,14 @@ class LocalProductionBatchRepository: ProductionBatchRepository {
         try modelContext.save()
     }
     
+    func deleteBatch(id: String) async throws {
+        guard let batch = try await fetchBatchById(id) else {
+            throw RepositoryError.notFound("ProductionBatch with id \(id) not found")
+        }
+        modelContext.delete(batch)
+        try modelContext.save()
+    }
+    
     func fetchPendingBatches() async throws -> [ProductionBatch] {
         // Alternative implementation to avoid predicate issues
         let allBatches = try await fetchAllBatches()

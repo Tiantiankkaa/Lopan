@@ -118,11 +118,28 @@ struct MachineApprovalStatusView: View {
             // Check if batch belongs to this machine
             guard batch.machineId == machineId else { return false }
             
-            // Check if batch needs approval attention
+            // Filter out old batches (rejected/completed) older than 24 hours
+            let twentyFourHoursAgo = Calendar.current.date(byAdding: .hour, value: -24, to: Date()) ?? Date()
+            
             switch batch.status {
-            case .pending, .approved, .pendingExecution, .rejected:
+            case .rejected:
+                if let rejectedAt = batch.rejectedAt, rejectedAt < twentyFourHoursAgo {
+                    return false  // Don't show rejected batches older than 24 hours
+                }
+            case .completed:
+                if let completedAt = batch.completedAt, completedAt < twentyFourHoursAgo {
+                    return false  // Don't show completed batches older than 24 hours
+                }
+            default:
+                break
+            }
+            
+            // Check if batch needs approval attention
+            // Show: pending (待审批), pendingExecution (待执行), active (执行中), rejected (已拒绝), completed (已完成)
+            switch batch.status {
+            case .pending, .pendingExecution, .rejected, .active, .completed:
                 return true
-            case .unsubmitted, .active, .completed:
+            case .unsubmitted, .approved:  // These statuses are no longer used in current workflow
                 return false
             }
         }.sorted { $0.submittedAt > $1.submittedAt }
@@ -186,20 +203,42 @@ struct ApprovalBatchCompactRow: View {
                     }
                 }
                 
-                // Action button for approved and pending execution batches
-                if batch.status == .approved || batch.status == .pendingExecution {
+                // Action button for pending execution, active, and completed batches
+                if batch.status == .pendingExecution {
                     Button("执行") {
                         onExecute()
                     }
                     .font(.caption2)
                     .padding(.horizontal, 8)
                     .padding(.vertical, 3)
-                    .background(batch.status == .pendingExecution ? Color.cyan : Color.blue)
+                    .background(Color.cyan)
                     .foregroundColor(.white)
                     .cornerRadius(4)
                     .onTapGesture {
                         onExecute()
                     }
+                } else if batch.status == .active {
+                    Button("执行中") {
+                        // No action - just status display
+                    }
+                    .font(.caption2)
+                    .padding(.horizontal, 8)
+                    .padding(.vertical, 3)
+                    .background(Color.green)
+                    .foregroundColor(.white)
+                    .cornerRadius(4)
+                    .disabled(true)
+                } else if batch.status == .completed {
+                    Button("已完成") {
+                        // No action - just status display
+                    }
+                    .font(.caption2)
+                    .padding(.horizontal, 8)
+                    .padding(.vertical, 3)
+                    .background(Color.gray)
+                    .foregroundColor(.white)
+                    .cornerRadius(4)
+                    .disabled(true)
                 }
             }
         }

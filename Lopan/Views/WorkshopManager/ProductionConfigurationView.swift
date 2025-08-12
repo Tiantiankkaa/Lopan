@@ -13,6 +13,8 @@ struct ProductionConfigurationView: View {
     @StateObject private var viewModel: ProductionConfigurationViewModel
     @ObservedObject private var authService: AuthenticationService
     @State private var selectedBatchForDetails: ProductionBatch?
+    @State private var showingConflictAlert = false
+    @State private var currentConflictInfo: StationConflictInfo?
     
     init(repositoryFactory: RepositoryFactory, authService: AuthenticationService, auditService: NewAuditingService) {
         self.authService = authService
@@ -72,6 +74,15 @@ struct ProductionConfigurationView: View {
                 }
             } message: {
                 Text(viewModel.errorMessage ?? "")
+            }
+            .alert("工位冲突提醒", isPresented: $showingConflictAlert) {
+                Button("修改配置", role: .cancel) {
+                    showingConflictAlert = false
+                }
+            } message: {
+                if let conflictInfo = currentConflictInfo {
+                    Text("操作错误：\(conflictInfo.conflictDescription)，请修改产品配置后再提交审批")
+                }
             }
             .sheet(isPresented: $viewModel.showingAddProduct) {
                 if let batch = viewModel.currentBatch, let machine = viewModel.selectedMachine {
@@ -266,6 +277,13 @@ struct ProductionConfigurationView: View {
                     .font(.body)
                     .foregroundColor(.secondary)
                     .multilineTextAlignment(.center)
+                
+                // Station usage info
+                Text(viewModel.stationUsageInfo)
+                    .font(.caption)
+                    .foregroundColor(.secondary)
+                    .multilineTextAlignment(.center)
+                    .padding(.top, 4)
             }
             
             VStack(spacing: 12) {
@@ -314,7 +332,7 @@ struct ProductionConfigurationView: View {
             // Submit for approval button - always visible with state feedback
             VStack(spacing: 8) {
                 Button(viewModel.submitButtonText) {
-                    viewModel.submitBatch()
+                    handleSubmitBatch()
                 }
                 .buttonStyle(.borderedProminent)
                 .disabled(!viewModel.canSubmitBatch || viewModel.isLoading)
@@ -363,20 +381,30 @@ struct ProductionConfigurationView: View {
                 }
             }
             
-            HStack {
-                Text("工位使用: \(batch.totalStationsUsed)/12")
-                    .font(.caption)
-                    .foregroundColor(.secondary)
+            VStack(spacing: 4) {
+                HStack {
+                    Text("当前批次工位: \(batch.totalStationsUsed)/12")
+                        .font(.caption)
+                        .foregroundColor(.secondary)
+                    
+                    Text("|\(batch.mode.displayName)")
+                        .font(.caption)
+                        .foregroundColor(.secondary)
+                    
+                    Spacer()
+                    
+                    Text("产品数量: \(batch.products.count)/\(batch.mode.maxProducts)")
+                        .font(.caption)
+                        .foregroundColor(.secondary)
+                }
                 
-                Text("|\(batch.mode.displayName)")
-                    .font(.caption)
-                    .foregroundColor(.secondary)
-                
-                Spacer()
-                
-                Text("产品数量: \(batch.products.count)/\(batch.mode.maxProducts)")
-                    .font(.caption)
-                    .foregroundColor(.secondary)
+                HStack {
+                    Text(viewModel.stationUsageInfo)
+                        .font(.caption2)
+                        .foregroundColor(.blue)
+                    
+                    Spacer()
+                }
             }
         }
         .padding()
@@ -470,7 +498,16 @@ struct ProductionConfigurationView: View {
         }
     }
     
-    
+    // MARK: - Helper Methods
+    private func handleSubmitBatch() {
+        let result = viewModel.submitBatch()
+        
+        if !result.canSubmit, let conflictInfo = result.conflictInfo {
+            // Show conflict alert
+            currentConflictInfo = conflictInfo
+            showingConflictAlert = true
+        }
+    }
 }
 
 

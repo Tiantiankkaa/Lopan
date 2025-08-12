@@ -86,6 +86,8 @@ final class ProductionBatch: Identifiable {
     var reviewedBy: String?
     var reviewedByName: String?
     var reviewNotes: String?
+    var rejectedAt: Date?
+    var completedAt: Date?
     var appliedAt: Date?
     var createdAt: Date
     var updatedAt: Date

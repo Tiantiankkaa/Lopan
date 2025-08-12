@@ -269,7 +269,7 @@ class MachineDataInitializationService {
             submittedByName: "张经理",
             batchNumber: "BATCH-20250804-0001"
         )
-        batch1.status = BatchStatus.active
+        batch1.status = BatchStatus.pendingExecution
         batch1.reviewedAt = Calendar.current.date(byAdding: .hour, value: -2, to: Date())
         batch1.reviewedBy = "admin1"
         batch1.reviewedByName = "李管理员"
@@ -279,7 +279,7 @@ class MachineDataInitializationService {
             batchId: batch1.id,
             productName: "运动鞋 A款",
             primaryColorId: colors[0].id, // Red
-            occupiedStations: [1, 2, 3, 4],
+            occupiedStations: [1, 2, 3],
             expectedOutput: 800
         )
         
@@ -308,7 +308,7 @@ class MachineDataInitializationService {
             batchId: batch2.id,
             productName: "篮球鞋限量版",
             primaryColorId: colors[0].id, // Red
-            occupiedStations: [1, 2, 3, 4, 5, 6],
+            occupiedStations: [1, 2, 3, 7, 8, 9],
             expectedOutput: 500,
             secondaryColorId: colors[3].id // Yellow
         )
@@ -329,13 +329,13 @@ class MachineDataInitializationService {
         batch3.reviewedBy = "admin1"
         batch3.reviewedByName = "李管理员"
         batch3.reviewNotes = "工位分配不合理，请重新配置"
-        batch3.submittedAt = Calendar.current.date(byAdding: .day, value: -2, to: Date()) ?? Date()
+        //batch3.submittedAt = Calendar.current.date(byAdding: .day, value: -2, to: Date()) ?? Date()
         
         let product4 = ProductConfig(
             batchId: batch3.id,
             productName: "跑步鞋",
             primaryColorId: colors[2].id, // Green
-            occupiedStations: [1, 2], // Too few stations - reason for rejection
+            occupiedStations: [1, 2, 3], // Too few stations - reason for rejection
             expectedOutput: 400
         )
         

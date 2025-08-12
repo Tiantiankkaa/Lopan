@@ -24,6 +24,9 @@ class ProductionBatchService: ObservableObject {
     private let auditService: NewAuditingService
     private let authService: AuthenticationService
     
+    // MARK: - Timer for cleanup
+    private var cleanupTimer: Timer?
+    
     init(
         productionBatchRepository: ProductionBatchRepository,
         machineRepository: MachineRepository,
@@ -36,6 +39,21 @@ class ProductionBatchService: ObservableObject {
         self.colorRepository = colorRepository
         self.auditService = auditService
         self.authService = authService
+    }
+    
+    deinit {
+        cleanupTimer?.invalidate()
+        cleanupTimer = nil
+    }
+    
+    // MARK: - Service Lifecycle
+    
+    func startService() {
+        startCleanupTimer()
+    }
+    
+    func stopService() {
+        stopCleanupTimer()
     }
     
     // MARK: - Batch Management
@@ -95,6 +113,25 @@ class ProductionBatchService: ObservableObject {
                 submittedByName: currentUser.name,
                 approvalTargetDate: approvalTargetDate,
                 batchNumber: batchNumber
+            )
+            
+            // Save the batch to database immediately after creation
+            try await productionBatchRepository.addBatch(batch)
+            
+            // Audit log for batch creation
+            try await auditService.logOperation(
+                operationType: .batchSubmission,
+                entityType: .productionBatch,
+                entityId: batch.id,
+                entityDescription: "Batch \(batch.batchNumber)",
+                operatorUserId: currentUser.id,
+                operatorUserName: currentUser.name,
+                operationDetails: [
+                    "action": "create",
+                    "machine_id": machineId,
+                    "mode": mode.rawValue,
+                    "batch_number": batchNumber
+                ]
             )
             
             currentBatch = batch
@@ -348,6 +385,27 @@ class ProductionBatchService: ObservableObject {
             return false
         }
         
+        // Check for station conflicts with pending batches on the same machine
+        // Use already loaded batches to avoid thread safety issues
+        await loadBatches()
+        let pendingBatches = batches.filter { $0.status == .pending }
+        let pendingBatchesForMachine = pendingBatches.filter { $0.machineId == batch.machineId }
+        
+        if !pendingBatchesForMachine.isEmpty {
+            let pendingStations = Set(pendingBatchesForMachine.flatMap { pendingBatch in
+                pendingBatch.products.flatMap { $0.occupiedStations }
+            })
+            
+            let currentBatchStations = Set(batch.products.flatMap { $0.occupiedStations })
+            let conflictingStations = pendingStations.intersection(currentBatchStations)
+            
+            if !conflictingStations.isEmpty {
+                let sortedConflicts = conflictingStations.sorted().map(String.init).joined(separator: ", ")
+                errorMessage = "工位冲突：工位 \(sortedConflicts) 已被待审核批次占用，请修改产品配置后再提交"
+                return false
+            }
+        }
+        
         isLoading = true
         
         do {
@@ -415,9 +473,6 @@ class ProductionBatchService: ObservableObject {
         do {
             try await productionBatchRepository.updateBatch(batch)
             
-            // Apply configuration to machine
-            await applyBatchToMachine(batch)
-            
             // Audit log
             try await auditService.logOperation(
                 operationType: .batchReview,
@@ -466,6 +521,7 @@ class ProductionBatchService: ObservableObject {
         batch.reviewedBy = currentUser.id
         batch.reviewedByName = currentUser.name
         batch.reviewNotes = notes
+        batch.rejectedAt = Date()
         
         do {
             try await productionBatchRepository.updateBatch(batch)
@@ -507,6 +563,7 @@ class ProductionBatchService: ObservableObject {
             machine.currentBatchId = batch.id
             machine.currentProductionMode = batch.mode
             machine.lastConfigurationUpdate = Date()
+            machine.status = .running
             
             // Update station statuses based on product configs
             for station in machine.stations {
@@ -561,6 +618,84 @@ class ProductionBatchService: ObservableObject {
         errorMessage = nil
     }
     
+    // MARK: - Batch Cleanup Methods
+    
+    /// Automatically removes old batches that have been in completed/rejected status for more than 24 hours
+    func cleanupOldBatches() async -> Int {
+        guard let currentUser = authService.currentUser else {
+            return 0
+        }
+        
+        await loadBatches()
+        
+        let now = Date()
+        let twentyFourHoursAgo = Calendar.current.date(byAdding: .hour, value: -24, to: now) ?? now
+        
+        // Find batches to remove (rejected and completed older than 24 hours)
+        let batchesToRemove = batches.filter { batch in
+            switch batch.status {
+            case .rejected:
+                return batch.rejectedAt != nil && batch.rejectedAt! < twentyFourHoursAgo
+            case .completed:
+                return batch.completedAt != nil && batch.completedAt! < twentyFourHoursAgo
+            default:
+                return false
+            }
+        }
+        
+        var cleanupCount = 0
+        
+        for batch in batchesToRemove {
+            do {
+                try await productionBatchRepository.deleteBatch(id: batch.id)
+                
+                // Audit log for cleanup
+                try await auditService.logOperation(
+                    operationType: .batchDelete,
+                    entityType: .productionBatch,
+                    entityId: batch.id,
+                    entityDescription: "Batch \(batch.batchNumber) (auto-cleanup)",
+                    operatorUserId: currentUser.id,
+                    operatorUserName: currentUser.name,
+                    operationDetails: [
+                        "batchNumber": batch.batchNumber,
+                        "action": "auto_cleanup_old_batch",
+                        "status": batch.status.rawValue,
+                        "timestampField": batch.status == .rejected ? "rejectedAt" : "completedAt",
+                        "timestamp": (batch.status == .rejected ? batch.rejectedAt : batch.completedAt)?.description ?? "",
+                        "hoursAfterStatusChange": Int(now.timeIntervalSince((batch.status == .rejected ? batch.rejectedAt : batch.completedAt) ?? now) / 3600)
+                    ]
+                )
+                
+                cleanupCount += 1
+            } catch {
+                print("Failed to cleanup rejected batch \(batch.batchNumber): \(error)")
+            }
+        }
+        
+        if cleanupCount > 0 {
+            await loadBatches()
+        }
+        
+        return cleanupCount
+    }
+    
+    /// Start periodic cleanup timer (runs every 30 minutes)
+    private func startCleanupTimer() {
+        cleanupTimer?.invalidate()
+        cleanupTimer = Timer.scheduledTimer(withTimeInterval: 30 * 60, repeats: true) { [weak self] _ in
+            Task {
+                await self?.cleanupOldBatches()
+            }
+        }
+    }
+    
+    /// Stop cleanup timer
+    private func stopCleanupTimer() {
+        cleanupTimer?.invalidate()
+        cleanupTimer = nil
+    }
+    
     // MARK: - Batch Execution Methods
     
     func applyBatchConfiguration(_ batch: ProductionBatch) async -> Bool {
@@ -570,14 +705,17 @@ class ProductionBatchService: ObservableObject {
             return false
         }
         
-        guard batch.status == .approved || batch.status == .pendingExecution else {
-            errorMessage = "Only approved or pending execution batches can be executed"
+        guard batch.status == .pendingExecution else {
+            errorMessage = "Only pending execution batches can be executed"
             return false
         }
         
         isLoading = true
         
         do {
+            // Check for station conflicts with existing active batches on the same machine
+            await handleStationConflicts(for: batch)
+            
             // Apply configuration to machine (integrates with Device and Color Management)
             await applyBatchToMachine(batch)
             
@@ -618,6 +756,58 @@ class ProductionBatchService: ObservableObject {
     }
     
     // MARK: - Private Helper Methods
+    
+    /// Handle station conflicts when executing a new batch
+    private func handleStationConflicts(for newBatch: ProductionBatch) async {
+        // Get all active batches on the same machine
+        await loadBatches()
+        let activeBatches = batches.filter { batch in
+            batch.machineId == newBatch.machineId && 
+            batch.status == .active &&
+            batch.id != newBatch.id
+        }
+        
+        guard let currentUser = authService.currentUser else { return }
+        
+        // Get stations used by the new batch
+        let newBatchStations = Set(newBatch.products.flatMap { $0.occupiedStations })
+        
+        // Check each active batch for station conflicts
+        for activeBatch in activeBatches {
+            let activeBatchStations = Set(activeBatch.products.flatMap { $0.occupiedStations })
+            
+            // If there's any station overlap, mark the old batch as completed
+            if !newBatchStations.intersection(activeBatchStations).isEmpty {
+                activeBatch.status = .completed
+                activeBatch.completedAt = Date()
+                
+                do {
+                    try await productionBatchRepository.updateBatch(activeBatch)
+                    
+                    // Audit log for auto-completion due to station conflict
+                    try await auditService.logOperation(
+                        operationType: .statusChange,
+                        entityType: .productionBatch,
+                        entityId: activeBatch.id,
+                        entityDescription: "Batch \(activeBatch.batchNumber)",
+                        operatorUserId: currentUser.id,
+                        operatorUserName: currentUser.name,
+                        operationDetails: [
+                            "oldStatus": "active",
+                            "newStatus": "completed",
+                            "reason": "station_conflict_with_new_batch",
+                            "conflictingBatch": newBatch.batchNumber,
+                            "conflictingStations": Array(newBatchStations.intersection(activeBatchStations)).sorted().map(String.init).joined(separator: ",")
+                        ]
+                    )
+                    
+                } catch {
+                    print("Failed to update conflicting batch \(activeBatch.batchNumber): \(error)")
+                }
+            }
+        }
+    }
+    
     private func combineDateTime(date: Date, time: Date) -> Date {
         let calendar = Calendar.current
         let dateComponents = calendar.dateComponents([.year, .month, .day], from: date)

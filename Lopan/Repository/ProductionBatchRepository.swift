@@ -15,6 +15,7 @@ protocol ProductionBatchRepository {
     func addBatch(_ batch: ProductionBatch) async throws
     func updateBatch(_ batch: ProductionBatch) async throws
     func deleteBatch(_ batch: ProductionBatch) async throws
+    func deleteBatch(id: String) async throws
     func fetchPendingBatches() async throws -> [ProductionBatch]
     func fetchActiveBatches() async throws -> [ProductionBatch]
     func fetchBatchHistory(limit: Int?) async throws -> [ProductionBatch]
