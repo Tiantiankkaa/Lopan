@@ -132,11 +132,12 @@ class ProductionConfigurationViewModel: ObservableObject {
         // Load all batches and find the current one for this machine
         await batchService.loadBatches()
         
-        // Find the most recent unsubmitted batch for this machine
+        // Find the most recent unsubmitted batch for this machine that matches current mode
         // Active, completed, and other states should not be shown in production configuration section
         currentBatch = batchService.batches
             .filter { $0.machineId == machine.id }
             .filter { $0.status == .unsubmitted }
+            .filter { $0.mode == selectedMode }
             .sorted { $0.createdAt > $1.createdAt }
             .first
     }
@@ -168,6 +169,11 @@ class ProductionConfigurationViewModel: ObservableObject {
     // MARK: - Production Mode Selection
     func selectMode(_ mode: ProductionMode) {
         selectedMode = mode
+        
+        // Clear current batch if it doesn't match the new mode
+        if let batch = currentBatch, batch.mode != mode {
+            currentBatch = nil
+        }
         
         if let machine = selectedMachine {
             updateSelectedColorsFromGuns(machine)
@@ -279,6 +285,16 @@ class ProductionConfigurationViewModel: ObservableObject {
             } else if let error = batchService.errorMessage {
                 setError(error)
             }
+        }
+    }
+    
+    func executeBatch(_ batch: ProductionBatch, at executionTime: Date) async {
+        let success = await batchService.executeBatch(batch, at: executionTime)
+        
+        if success {
+            await loadData()
+        } else if let error = batchService.errorMessage {
+            setError(error)
         }
     }
     

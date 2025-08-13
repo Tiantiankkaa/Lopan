@@ -86,6 +86,7 @@ final class ProductionBatch: Identifiable {
     var shift: Shift? // Target shift (目标班次)
     var allowsColorModificationOnly: Bool = true // Color-only editing constraint (仅允许颜色修改限制)
     var shiftSelectionLockTime: Date? // When shift selection was locked (班次选择锁定时间)
+    var executionTime: Date? // Actual execution time (实际执行时间)
     
     // Configuration snapshot
     var beforeConfigSnapshot: String? // JSON of previous configuration
@@ -108,6 +109,7 @@ final class ProductionBatch: Identifiable {
         self.shift = shift
         self.allowsColorModificationOnly = true
         self.shiftSelectionLockTime = shift != nil ? Date() : nil
+        self.executionTime = nil
         self.createdAt = Date()
         self.updatedAt = Date()
     }
@@ -227,6 +229,22 @@ final class ProductionBatch: Identifiable {
         self.shift = shift
         self.allowsColorModificationOnly = true
         self.shiftSelectionLockTime = Date()
+        self.updatedAt = Date()
+    }
+    
+    // MARK: - Execution Properties
+    var isExecuted: Bool {
+        return executionTime != nil
+    }
+    
+    var canExecute: Bool {
+        // Batch must be in pendingExecution status to be executed
+        return status == .pendingExecution && executionTime == nil
+    }
+    
+    func setExecutionTime(_ time: Date) {
+        self.executionTime = time
+        self.status = .active
         self.updatedAt = Date()
     }
 }

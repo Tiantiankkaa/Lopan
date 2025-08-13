@@ -28,6 +28,7 @@ struct ShiftAwareApprovalView: View {
     @State private var showingError = false
     @State private var machineInfo: WorkshopMachine?
     @State private var productConfigs: [ProductConfig] = []
+    @State private var showingExecutionSheet = false
     
     @StateObject private var dateShiftPolicy = StandardDateShiftPolicy()
     private let timeProvider = SystemTimeProvider()
@@ -66,7 +67,11 @@ struct ShiftAwareApprovalView: View {
                     shiftContextSection
                     machineAssignmentSection
                     productConfigurationSection
-                    approvalDecisionSection
+                    if batch.status == .pending {
+                        approvalDecisionSection
+                    } else if batch.status == .pendingExecution {
+                        executionSection
+                    }
                 }
                 .padding()
             }
@@ -114,6 +119,20 @@ struct ShiftAwareApprovalView: View {
                 Button("取消", role: .cancel) { }
             } message: {
                 Text("确认拒绝批次 \(batch.batchNumber)？请确保已填写拒绝原因。")
+            }
+            .sheet(isPresented: $showingExecutionSheet) {
+                ExecutionTimeSheet(
+                    batch: batch,
+                    onConfirm: { executionTime in
+                        showingExecutionSheet = false
+                        Task {
+                            await executeBatch(at: executionTime)
+                        }
+                    },
+                    onCancel: {
+                        showingExecutionSheet = false
+                    }
+                )
             }
         }
     }
@@ -789,6 +808,105 @@ struct ShiftAwareApprovalView: View {
         }
     }
     
+    // MARK: - Execution Section (执行区域)
+    
+    private var executionSection: some View {
+        VStack(alignment: .leading, spacing: 16) {
+            sectionHeader(title: "批次执行", icon: "play.circle")
+            
+            // Execution status
+            VStack(alignment: .leading, spacing: 12) {
+                HStack {
+                    Image(systemName: "clock.badge.exclamationmark")
+                        .font(.system(size: 20, weight: .medium))
+                        .foregroundColor(.orange)
+                    
+                    VStack(alignment: .leading, spacing: 4) {
+                        Text("待执行")
+                            .font(.headline)
+                            .foregroundColor(.primary)
+                        
+                        Text("批次已批准，等待设置执行时间")
+                            .font(.caption)
+                            .foregroundColor(.secondary)
+                    }
+                    
+                    Spacer()
+                }
+                
+                if let targetDate = batch.targetDate, let shift = batch.shift {
+                    HStack(spacing: 12) {
+                        VStack(alignment: .leading, spacing: 2) {
+                            Text("计划班次")
+                                .font(.caption)
+                                .foregroundColor(.secondary)
+                            
+                            HStack(spacing: 4) {
+                                Image(systemName: shift == .morning ? "sun.min" : "moon")
+                                    .font(.caption)
+                                    .foregroundColor(shift == .morning ? .orange : .indigo)
+                                
+                                Text("\(formatFullDate(targetDate)) \(shift.displayName)")
+                                    .font(.body)
+                                    .fontWeight(.medium)
+                                    .foregroundColor(.primary)
+                            }
+                        }
+                        
+                        Spacer()
+                        
+                        VStack(alignment: .trailing, spacing: 2) {
+                            Text("班次时间")
+                                .font(.caption)
+                                .foregroundColor(.secondary)
+                            
+                            Text(shift.timeRangeDisplay)
+                                .font(.body)
+                                .fontWeight(.medium)
+                                .foregroundColor(.blue)
+                        }
+                    }
+                    .padding()
+                    .background(
+                        RoundedRectangle(cornerRadius: 8)
+                            .fill(Color(.tertiarySystemBackground))
+                    )
+                }
+            }
+            .padding()
+            .background(
+                RoundedRectangle(cornerRadius: 12)
+                    .fill(Color(.secondarySystemBackground))
+            )
+            
+            // Execute button
+            Button(action: {
+                showingExecutionSheet = true
+            }) {
+                HStack(spacing: 12) {
+                    Image(systemName: "play.circle.fill")
+                        .font(.system(size: 20, weight: .medium))
+                    
+                    Text("执行批次")
+                        .font(.body)
+                        .fontWeight(.medium)
+                    
+                    Spacer()
+                    
+                    Text("设置执行时间")
+                        .font(.caption)
+                        .foregroundColor(.white.opacity(0.8))
+                }
+                .foregroundColor(.white)
+                .padding()
+                .background(
+                    RoundedRectangle(cornerRadius: 12)
+                        .fill(Color.blue)
+                )
+            }
+        }
+    }
+    
     // MARK: - Helper Methods (辅助方法)
     
     private func sectionHeader(title: String, icon: String) -> some View {
@@ -897,6 +1015,26 @@ struct ShiftAwareApprovalView: View {
             }
         } else {
             await showError(productionBatchService.errorMessage ?? "拒绝批次失败")
+        }
+        
+        await MainActor.run {
+            isSubmitting = false
+        }
+    }
+    
+    private func executeBatch(at executionTime: Date) async {
+        await MainActor.run {
+            isSubmitting = true
+        }
+        
+        let success = await productionBatchService.executeBatch(batch, at: executionTime)
+        
+        if success {
+            await MainActor.run {
+                dismiss()
+            }
+        } else {
+            await showError(productionBatchService.errorMessage ?? "执行批次失败")
         }
         
         await MainActor.run {

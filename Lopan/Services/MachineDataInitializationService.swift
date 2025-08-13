@@ -261,13 +261,26 @@ class MachineDataInitializationService {
             return []
         }
         
-        // Batch 1 - Approved and active (single color)
+        // Get current date and create batch numbers with today's date
+        let today = Date()
+        let calendar = Calendar.current
+        let formatter = DateFormatter()
+        formatter.dateFormat = "yyyyMMdd"
+        let todayString = formatter.string(from: today)
+        
+        // Get yesterday for varied sample data
+        let yesterday = calendar.date(byAdding: .day, value: -1, to: today) ?? today
+        let yesterdayString = formatter.string(from: yesterday)
+        
+        // Batch 1 - Today's morning shift, Pending Execution
         let batch1 = ProductionBatch(
             machineId: machine1.id,
             mode: .singleColor,
             submittedBy: "manager1",
             submittedByName: "张经理",
-            batchNumber: "BATCH-20250804-0001"
+            batchNumber: "BATCH-\(todayString)-0001",
+            targetDate: today,
+            shift: .morning
         )
         batch1.status = BatchStatus.pendingExecution
         batch1.reviewedAt = Calendar.current.date(byAdding: .hour, value: -2, to: Date())
@@ -294,13 +307,15 @@ class MachineDataInitializationService {
         batch1.products = [product1, product2]
         batches.append(batch1)
         
-        // Batch 2 - Pending review (dual color)
+        // Batch 2 - Today's evening shift, Pending review (dual color)
         let batch2 = ProductionBatch(
             machineId: machine2.id,
             mode: .dualColor,
             submittedBy: "manager2",
             submittedByName: "王经理",
-            batchNumber: "BATCH-20250804-0002"
+            batchNumber: "BATCH-\(todayString)-0002",
+            targetDate: today,
+            shift: .evening
         )
         batch2.status = BatchStatus.pending
         
@@ -316,20 +331,21 @@ class MachineDataInitializationService {
         batch2.products = [product3]
         batches.append(batch2)
         
-        // Batch 3 - Rejected
+        // Batch 3 - Yesterday's morning shift, Rejected
         let batch3 = ProductionBatch(
             machineId: machine2.id,
             mode: .singleColor,
             submittedBy: "manager1",
             submittedByName: "张经理",
-            batchNumber: "BATCH-20250803-0001"
+            batchNumber: "BATCH-\(yesterdayString)-0001",
+            targetDate: yesterday,
+            shift: .morning
         )
         batch3.status = BatchStatus.rejected
         batch3.reviewedAt = Calendar.current.date(byAdding: .day, value: -1, to: Date())
         batch3.reviewedBy = "admin1"
         batch3.reviewedByName = "李管理员"
         batch3.reviewNotes = "工位分配不合理，请重新配置"
-        //batch3.submittedAt = Calendar.current.date(byAdding: .day, value: -2, to: Date()) ?? Date()
         
         let product4 = ProductConfig(
             batchId: batch3.id,

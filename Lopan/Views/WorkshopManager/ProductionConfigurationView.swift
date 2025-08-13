@@ -105,7 +105,12 @@ struct ProductionConfigurationView: View {
                 BatchDetailsSheet(
                     batch: batch,
                     colors: viewModel.activeColors,
-                    machines: viewModel.availableMachines
+                    machines: viewModel.availableMachines,
+                    onExecuteBatch: { batch, executionTime in
+                        Task {
+                            await viewModel.executeBatch(batch, at: executionTime)
+                        }
+                    }
                 )
                 .presentationDetents([.medium, .large])
                 .presentationDragIndicator(.visible)
@@ -218,9 +223,6 @@ struct ProductionConfigurationView: View {
                     batchService: viewModel.batchService,
                     onBatchTapped: { batch in
                         selectedBatchForDetails = batch
-                    },
-                    onExecuteBatch: { batch in
-                        viewModel.handleExecuteBatch(batch)
                     }
                 )
             } else {
@@ -719,12 +721,16 @@ struct AddProductSheet: View {
     @State private var selectedStations: Set<Int> = []
     @State private var selectedStationCount: Int?
     @State private var selectedGun: String = "Gun A"
-    @State private var selectedApprovalTargetDate: Date = Date()
-    @State private var selectedStartTime: Date = Date()
+    @State private var selectedTargetDate: Date = Date()
+    @State private var selectedShift: Shift = .morning
     @State private var isAdding = false
     @State private var showingValidationAlert = false
     @State private var validationAlertTitle = ""
     @State private var validationAlertMessage = ""
+    
+    // Services for shift management
+    private let dateShiftPolicy = StandardDateShiftPolicy()
+    private let timeProvider = SystemTimeProvider()
     
     var availableStations: [Int] {
         let occupiedStations = batch.products.flatMap { $0.occupiedStations }
@@ -838,8 +844,8 @@ struct AddProductSheet: View {
                     // Gun assignment
                     gunAssignmentSection
                     
-                    // Timing configuration (Approval Target Date + Start Time)
-                    timingConfigurationSection
+                    // Shift selection (Date and Shift)
+                    shiftSelectionSection
                     
                     // Station visualization (if station count is selected or if "Other" is selected and stations are chosen)
                     if let stationCount = selectedStationCount, stationCount > 0 {
@@ -1235,88 +1241,20 @@ struct AddProductSheet: View {
         .cornerRadius(12)
     }
     
-    private var timingConfigurationSection: some View {
+    private var shiftSelectionSection: some View {
         VStack(alignment: .leading, spacing: 12) {
             Text("时间配置")
                 .font(.headline)
                 .fontWeight(.semibold)
             
-            VStack(spacing: 16) {
-                // Approval Target Date
-                VStack(alignment: .leading, spacing: 8) {
-                    Text("审批目标日期")
-                        .font(.subheadline)
-                        .fontWeight(.medium)
-                    
-                    HStack(spacing: 12) {
-                        // Today option
-                        Button("今天") {
-                            selectedApprovalTargetDate = Calendar.current.startOfDay(for: Date())
-                            validateStartTime()
-                        }
-                        .frame(maxWidth: .infinity)
-                        .padding(.vertical, 8)
-                        .background(Calendar.current.isDate(selectedApprovalTargetDate, inSameDayAs: Date()) ? Color.blue : Color.gray.opacity(0.2))
-                        .foregroundColor(Calendar.current.isDate(selectedApprovalTargetDate, inSameDayAs: Date()) ? .white : .primary)
-                        .cornerRadius(8)
-                        
-                        // Tomorrow option
-                        Button("明天") {
-                            let tomorrow = Calendar.current.date(byAdding: .day, value: 1, to: Date()) ?? Date()
-                            selectedApprovalTargetDate = Calendar.current.startOfDay(for: tomorrow)
-                            validateStartTime()
-                        }
-                        .frame(maxWidth: .infinity)
-                        .padding(.vertical, 8)
-                        .background(isTomorrowSelected ? Color.blue : Color.gray.opacity(0.2))
-                        .foregroundColor(isTomorrowSelected ? .white : .primary)
-                        .cornerRadius(8)
-                    }
-                    
-                    Text("选定日期: \(formatDate(selectedApprovalTargetDate))")
-                        .font(.caption)
-                        .foregroundColor(.secondary)
-                }
-                
-                // Start Time
-                VStack(alignment: .leading, spacing: 8) {
-                    HStack {
-                        Text("开始时间")
-                            .font(.subheadline)
-                            .fontWeight(.medium)
-                        
-                        Text("*")
-                            .font(.subheadline)
-                            .foregroundColor(.red)
-                        
-                        Spacer()
-                        
-                        if !isStartTimeValid {
-                            Image(systemName: "exclamationmark.triangle.fill")
-                                .font(.caption)
-                                .foregroundColor(.orange)
-                        }
-                    }
-                    
-                    DatePicker("", selection: $selectedStartTime, displayedComponents: [.hourAndMinute])
-                        .datePickerStyle(.compact)
-                        .labelsHidden()
-                        .onChange(of: selectedStartTime) { _, _ in
-                            validateStartTime()
-                        }
-                    
-                    // Validation message
-                    if !isStartTimeValid {
-                        Text(startTimeValidationMessage)
-                            .font(.caption)
-                            .foregroundColor(.orange)
-                            .padding(.horizontal, 8)
-                            .padding(.vertical, 4)
-                            .background(Color.orange.opacity(0.1))
-                            .cornerRadius(4)
-                    }
-                }
-            }
+            // Use the ShiftDateSelector component
+            ShiftDateSelector(
+                selectedDate: $selectedTargetDate,
+                selectedShift: $selectedShift,
+                dateShiftPolicy: dateShiftPolicy,
+                timeProvider: timeProvider,
+                isDisabled: false
+            )
         }
         .padding()
         .background(Color(UIColor.secondarySystemBackground))
@@ -1405,30 +1343,19 @@ struct AddProductSheet: View {
         }
     }
     
-    private var isTomorrowSelected: Bool {
-        let tomorrow = Calendar.current.date(byAdding: .day, value: 1, to: Date()) ?? Date()
-        return Calendar.current.isDate(selectedApprovalTargetDate, inSameDayAs: tomorrow)
+    private var isShiftValid: Bool {
+        // Validate shift selection using the date shift policy
+        do {
+            try dateShiftPolicy.validateShiftSelection(selectedShift, for: selectedTargetDate, currentTime: timeProvider.now)
+            return true
+        } catch {
+            return false
+        }
     }
     
-    private var isStartTimeValid: Bool {
-        let now = Date()
-        let approvalDate = selectedApprovalTargetDate
-        let startDateTime = combineDateTime(date: approvalDate, time: selectedStartTime)
-        
-        // Start time must be in the future if approval date is today
-        if Calendar.current.isDate(approvalDate, inSameDayAs: now) {
-            return startDateTime > now
-        }
-        
-        // For future dates, any time is valid
-        return true
-    }
-    
-    private var startTimeValidationMessage: String {
-        if Calendar.current.isDate(selectedApprovalTargetDate, inSameDayAs: Date()) {
-            return "开始时间必须是将来时间"
-        }
-        return "时间配置无效"
+    private var shiftValidationMessage: String {
+        let cutoffInfo = dateShiftPolicy.getCutoffInfo(for: selectedTargetDate, currentTime: timeProvider.now)
+        return cutoffInfo.restrictionMessage ?? ""
     }
     
     private var isValidConfiguration: Bool {
@@ -1438,7 +1365,7 @@ struct AddProductSheet: View {
         (batch.mode == .singleColor || selectedSecondaryColor != nil) &&
         selectedStations.count >= batch.mode.minStationsPerProduct &&
         (selectedStationCount != nil && (selectedStationCount! > 0 || selectedStationCount! == -1)) &&
-        isStartTimeValid
+        isShiftValid
     }
     
     private func handleAddProductTap() {
@@ -1491,6 +1418,17 @@ struct AddProductSheet: View {
         
         Task {
             isAdding = true
+            
+            // Update batch with shift information if not already set
+            if batch.targetDate == nil || batch.shift == nil {
+                batch.targetDate = selectedTargetDate
+                batch.shift = selectedShift
+                batch.approvalTargetDate = selectedTargetDate
+            }
+            
+            // Combine target date with shift start time
+            let shiftStartTime = createShiftStartTime(for: selectedTargetDate, shift: selectedShift)
+            
             let success = await batchService.addProductToBatch(
                 batch,
                 productName: productName,
@@ -1500,14 +1438,23 @@ struct AddProductSheet: View {
                 productId: selectedProduct?.id,
                 stationCount: selectedStationCount,
                 gunAssignment: selectedGun,
-                approvalTargetDate: selectedApprovalTargetDate,
-                startTime: selectedStartTime
+                approvalTargetDate: selectedTargetDate,
+                startTime: shiftStartTime
             )
             isAdding = false
             if success {
                 onDismiss()
             }
         }
+    }
+    
+    private func createShiftStartTime(for date: Date, shift: Shift) -> Date {
+        let calendar = Calendar.current
+        var components = calendar.dateComponents([.year, .month, .day], from: date)
+        let shiftTime = shift.standardStartTime
+        components.hour = shiftTime.hour
+        components.minute = shiftTime.minute
+        return calendar.date(from: components) ?? date
     }
     
     private func isColorPrePopulated(_ color: ColorCard?, gunName: String) -> Bool {
@@ -1541,9 +1488,9 @@ struct AddProductSheet: View {
         }
     }
     
-    private func validateStartTime() {
+    private func validateShift() {
         // Trigger validation by accessing the computed property
-        _ = isStartTimeValid
+        _ = isShiftValid
     }
     
     private func combineDateTime(date: Date, time: Date) -> Date {
@@ -1618,8 +1565,8 @@ struct AddProductSheet: View {
     }
     
     private func validateTimeConfiguration() -> (isValid: Bool, title: String, message: String) {
-        if !isStartTimeValid {
-            return (false, "时间配置无效", startTimeValidationMessage)
+        if !isShiftValid {
+            return (false, "时间配置无效", shiftValidationMessage)
         }
         return (true, "", "")
     }
@@ -2057,10 +2004,29 @@ struct BatchDetailsSheet: View {
     let batch: ProductionBatch
     let colors: [ColorCard]
     let machines: [WorkshopMachine]
+    let onExecuteBatch: ((ProductionBatch, Date) -> Void)?
     @Environment(\.dismiss) private var dismiss
+    
+    // Execution time selection states
+    @State private var selectedDate: Date
+    @State private var selectedTime: Date
+    @State private var showingError = false
+    @State private var errorMessage = ""
     
     private var machine: WorkshopMachine? {
         machines.first { $0.id == batch.machineId }
+    }
+    
+    init(batch: ProductionBatch, colors: [ColorCard], machines: [WorkshopMachine], onExecuteBatch: ((ProductionBatch, Date) -> Void)? = nil) {
+        self.batch = batch
+        self.colors = colors
+        self.machines = machines
+        self.onExecuteBatch = onExecuteBatch
+        
+        // Initialize with current time or batch target date
+        let initialDate = batch.targetDate ?? Date()
+        self._selectedDate = State(initialValue: initialDate)
+        self._selectedTime = State(initialValue: Date())
     }
     
     var body: some View {
@@ -2092,6 +2058,11 @@ struct BatchDetailsSheet: View {
                         dismiss()
                     }
                 }
+            }
+            .alert("错误", isPresented: $showingError) {
+                Button("确定", role: .cancel) { }
+            } message: {
+                Text(errorMessage)
             }
         }
     }
@@ -2310,6 +2281,136 @@ struct BatchDetailsSheet: View {
                             .cornerRadius(8)
                     }
                 }
+                
+                // Execution action section for pending execution batches
+                if batch.status == .pendingExecution, onExecuteBatch != nil {
+                    Divider()
+                        .padding(.vertical, 8)
+                    
+                    VStack(spacing: 16) {
+                        HStack {
+                            Image(systemName: "play.circle.fill")
+                                .font(.title2)
+                                .foregroundColor(.blue)
+                            
+                            VStack(alignment: .leading, spacing: 2) {
+                                Text("准备执行")
+                                    .font(.headline)
+                                    .fontWeight(.semibold)
+                                
+                                Text("批次已通过审批，可以设置执行时间开始生产")
+                                    .font(.caption)
+                                    .foregroundColor(.secondary)
+                            }
+                            
+                            Spacer()
+                        }
+                        
+                        // Date Time Selection
+                        VStack(alignment: .leading, spacing: 16) {
+                            Text("选择执行时间")
+                                .font(.headline)
+                                .foregroundColor(.primary)
+                            
+                            VStack(spacing: 12) {
+                                // Date Picker
+                                HStack {
+                                    Label("日期", systemImage: "calendar")
+                                        .font(.body)
+                                        .foregroundColor(.secondary)
+                                    
+                                    Spacer()
+                                    
+                                    DatePicker(
+                                        "",
+                                        selection: $selectedDate,
+                                        in: ...Date(),
+                                        displayedComponents: .date
+                                    )
+                                    .labelsHidden()
+                                }
+                                
+                                Divider()
+                                
+                                // Time Picker
+                                HStack {
+                                    Label("时间", systemImage: "clock")
+                                        .font(.body)
+                                        .foregroundColor(.secondary)
+                                    
+                                    Spacer()
+                                    
+                                    DatePicker(
+                                        "",
+                                        selection: $selectedTime,
+                                        displayedComponents: .hourAndMinute
+                                    )
+                                    .labelsHidden()
+                                }
+                            }
+                        }
+                        
+                        // Validation Section
+                        VStack(alignment: .leading, spacing: 8) {
+                            Label("验证条件", systemImage: "checkmark.shield")
+                                .font(.caption)
+                                .fontWeight(.medium)
+                                .foregroundColor(.secondary)
+                            
+                            VStack(spacing: 6) {
+                                validationItem(
+                                    title: "时间限制",
+                                    isValid: combinedDateTime <= Date(),
+                                    message: combinedDateTime <= Date() ? "执行时间有效" : "执行时间不能晚于当前时间"
+                                )
+                                
+                                if let shift = batch.shift {
+                                    validationItem(
+                                        title: "班次时间",
+                                        isValid: isWithinShiftHours,
+                                        message: isWithinShiftHours ? "在班次时间范围内" : "不在 \(shift.timeRangeDisplay) 范围内"
+                                    )
+                                }
+                            }
+                        }
+                        .padding()
+                        .background(Color(.tertiarySystemBackground))
+                        .cornerRadius(8)
+                        
+                        // Action Buttons
+                        HStack(spacing: 12) {
+                            Button("取消") {
+                                dismiss()
+                            }
+                            .font(.body)
+                            .fontWeight(.medium)
+                            .foregroundColor(.red)
+                            .frame(maxWidth: .infinity, minHeight: 44)
+                            .background(Color.red.opacity(0.1))
+                            .cornerRadius(12)
+                            .overlay(
+                                RoundedRectangle(cornerRadius: 12)
+                                    .stroke(Color.red.opacity(0.5), lineWidth: 1)
+                            )
+                            
+                            Button(action: confirmExecution) {
+                                HStack(spacing: 8) {
+                                    Image(systemName: "checkmark.circle.fill")
+                                        .font(.system(size: 16, weight: .medium))
+                                    
+                                    Text("确认执行")
+                                        .font(.body)
+                                        .fontWeight(.medium)
+                                }
+                                .foregroundColor(.white)
+                                .frame(maxWidth: .infinity, minHeight: 44)
+                                .background(canConfirm ? Color.blue : Color.gray)
+                                .cornerRadius(12)
+                            }
+                            .disabled(!canConfirm)
+                        }
+                    }
+                }
             }
         }
         .padding()
@@ -2330,6 +2431,78 @@ struct BatchDetailsSheet: View {
         formatter.timeStyle = .short
         formatter.locale = Locale(identifier: "zh_CN")
         return formatter.string(from: date)
+    }
+    
+    // MARK: - Execution Time Helper Properties
+    
+    private var combinedDateTime: Date {
+        let calendar = Calendar.current
+        let dateComponents = calendar.dateComponents([.year, .month, .day], from: selectedDate)
+        let timeComponents = calendar.dateComponents([.hour, .minute], from: selectedTime)
+        
+        var combined = DateComponents()
+        combined.year = dateComponents.year
+        combined.month = dateComponents.month
+        combined.day = dateComponents.day
+        combined.hour = timeComponents.hour
+        combined.minute = timeComponents.minute
+        
+        return calendar.date(from: combined) ?? Date()
+    }
+    
+    private var isWithinShiftHours: Bool {
+        guard let shift = batch.shift else { return true }
+        
+        let calendar = Calendar.current
+        let hour = calendar.component(.hour, from: combinedDateTime)
+        
+        switch shift {
+        case .morning:
+            // Morning shift: 07:00 - 19:00
+            return hour >= 7 && hour < 19
+        case .evening:
+            // Evening shift: 19:00 - 07:00 (next day)
+            return hour >= 19 || hour < 7
+        }
+    }
+    
+    private var canConfirm: Bool {
+        return combinedDateTime <= Date() && isWithinShiftHours
+    }
+    
+    private func confirmExecution() {
+        guard canConfirm else {
+            errorMessage = "请选择有效的执行时间"
+            showingError = true
+            return
+        }
+        
+        if let onExecuteBatch = onExecuteBatch {
+            onExecuteBatch(batch, combinedDateTime)
+        }
+        
+        dismiss()
+    }
+    
+    private func validationItem(title: String, isValid: Bool, message: String) -> some View {
+        HStack(spacing: 8) {
+            Image(systemName: isValid ? "checkmark.circle.fill" : "xmark.circle.fill")
+                .font(.system(size: 16, weight: .medium))
+                .foregroundColor(isValid ? .green : .red)
+            
+            VStack(alignment: .leading, spacing: 2) {
+                Text(title)
+                    .font(.caption2)
+                    .fontWeight(.medium)
+                    .foregroundColor(.primary)
+                
+                Text(message)
+                    .font(.caption2)
+                    .foregroundColor(isValid ? .green : .red)
+            }
+            
+            Spacer()
+        }
     }
 }
 

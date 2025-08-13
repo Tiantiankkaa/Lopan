@@ -12,7 +12,6 @@ struct MachineApprovalStatusView: View {
     let machineId: String
     let batchService: ProductionBatchService
     let onBatchTapped: (ProductionBatch) -> Void
-    let onExecuteBatch: (ProductionBatch) -> Void
     
     @State private var approvalBatches: [ProductionBatch] = []
     @State private var isLoading = false
@@ -63,8 +62,7 @@ struct MachineApprovalStatusView: View {
                     ForEach(approvalBatches.prefix(3), id: \.id) { batch in
                         ApprovalBatchCompactRow(
                             batch: batch,
-                            onTap: { onBatchTapped(batch) },
-                            onExecute: { onExecuteBatch(batch) }
+                            onTap: { onBatchTapped(batch) }
                         )
                     }
                     
@@ -152,9 +150,7 @@ struct MachineApprovalStatusView: View {
 struct ApprovalBatchCompactRow: View {
     let batch: ProductionBatch
     let onTap: () -> Void
-    let onExecute: () -> Void
     
-    @State private var showExecuteConfirmation = false
     
     var body: some View {
         Button(action: onTap) {
@@ -231,21 +227,8 @@ struct ApprovalBatchCompactRow: View {
                     }
                 }
                 
-                // Action button for pending execution, active, and completed batches
-                if batch.status == .pendingExecution {
-                    Button("执行") {
-                        onExecute()
-                    }
-                    .font(.caption2)
-                    .padding(.horizontal, 8)
-                    .padding(.vertical, 3)
-                    .background(Color.cyan)
-                    .foregroundColor(.white)
-                    .cornerRadius(4)
-                    .onTapGesture {
-                        onExecute()
-                    }
-                } else if batch.status == .active {
+                // Action button for active and completed batches
+                if batch.status == .active {
                     Button("执行中") {
                         // No action - just status display
                     }
@@ -275,29 +258,6 @@ struct ApprovalBatchCompactRow: View {
         .padding(.vertical, 8)
         .background(Color(UIColor.tertiarySystemBackground))
         .cornerRadius(6)
-        .gesture(
-            // Add swipe gesture for pendingExecution batches
-            batch.status == .pendingExecution ?
-            DragGesture(minimumDistance: 50, coordinateSpace: .local)
-                .onEnded { value in
-                    if value.translation.width > 0 && abs(value.translation.height) < 100 {
-                        // Swiped right - show confirmation
-                        showExecuteConfirmation = true
-                    }
-                } : nil
-        )
-        .confirmationDialog(
-            "执行批次",
-            isPresented: $showExecuteConfirmation,
-            titleVisibility: .visible
-        ) {
-            Button("确认执行") {
-                onExecute()
-            }
-            Button("取消", role: .cancel) { }
-        } message: {
-            Text("确定要执行批次 \(batch.batchNumber) 吗？")
-        }
     }
     
     private func timeAgoString(from date: Date) -> String {
@@ -342,8 +302,7 @@ struct MachineApprovalStatusView_Previews: PreviewProvider {
         MachineApprovalStatusView(
             machineId: "test-machine-id",
             batchService: batchService,
-            onBatchTapped: { _ in },
-            onExecuteBatch: { _ in }
+            onBatchTapped: { _ in }
         )
     }
 }

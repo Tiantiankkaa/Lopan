@@ -38,6 +38,59 @@ class StandardDateShiftPolicy: ObservableObject, DateShiftPolicy {
         self.cutoffHour = cutoffHour
     }
     
+    // MARK: - Execution Validation (执行验证)
+    
+    func canExecuteBatch(batch: ProductionBatch, at executionTime: Date, allBatches: [ProductionBatch]) -> (canExecute: Bool, reason: String?) {
+        // Check if execution time is not in the future
+        if executionTime > timeProvider.now {
+            return (false, "执行时间不能晚于当前时间")
+        }
+        
+        // Check if batch is already executed
+        if batch.isExecuted {
+            return (false, "批次已执行")
+        }
+        
+        // Check status
+        if batch.status != .pendingExecution {
+            return (false, "批次状态必须为'待执行'")
+        }
+        
+        // For shift batches, check sequential execution rules
+        if let targetDate = batch.targetDate, let shift = batch.shift {
+            // Check if previous shift is executed
+            let previousShiftInfo = getPreviousShift(for: targetDate, shift: shift)
+            
+            // Find batches from previous shift
+            let previousShiftBatches = allBatches.filter { otherBatch in
+                guard let otherDate = otherBatch.targetDate, let otherShift = otherBatch.shift else { return false }
+                return otherDate == previousShiftInfo.date && otherShift == previousShiftInfo.shift
+            }
+            
+            // If there are unexecuted batches in previous shift, cannot execute current batch
+            let hasUnexecutedPreviousShift = previousShiftBatches.contains { !$0.isExecuted && $0.status == .pendingExecution }
+            if hasUnexecutedPreviousShift {
+                let dateFormatter = DateFormatter()
+                dateFormatter.dateFormat = "MM-dd"
+                return (false, "必须先执行 \(dateFormatter.string(from: previousShiftInfo.date)) \(previousShiftInfo.shift.displayName) 的批次")
+            }
+        }
+        
+        return (true, nil)
+    }
+    
+    private func getPreviousShift(for date: Date, shift: Shift) -> (date: Date, shift: Shift) {
+        if shift == .evening {
+            // Evening shift's previous is same day morning
+            return (date: date, shift: .morning)
+        } else {
+            // Morning shift's previous is previous day evening
+            let calendar = Calendar.current
+            let previousDay = calendar.date(byAdding: .day, value: -1, to: date) ?? date
+            return (date: previousDay, shift: .evening)
+        }
+    }
+    
     // MARK: - Policy Implementation (策略实现)
     
     func allowedShifts(for targetDate: Date, currentTime: Date = Date()) -> Set<Shift> {

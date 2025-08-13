@@ -601,6 +601,62 @@ class ProductionBatchService: ObservableObject {
         }
     }
     
+    // MARK: - Execution Functions (执行功能)
+    @MainActor
+    func executeBatch(_ batch: ProductionBatch, at executionTime: Date) async -> Bool {
+        guard batch.canExecute else {
+            errorMessage = "批次不能执行：状态必须为'待执行'"
+            return false
+        }
+        
+        // Validate execution time
+        if executionTime > Date() {
+            errorMessage = "执行时间不能晚于当前时间"
+            return false
+        }
+        
+        // Get all batches for validation
+        do {
+            let allBatches = try await productionBatchRepository.fetchAllBatches()
+            
+            // Use DateShiftPolicy to validate execution
+            let dateShiftPolicy = StandardDateShiftPolicy()
+            let validationResult = dateShiftPolicy.canExecuteBatch(
+                batch: batch,
+                at: executionTime,
+                allBatches: allBatches
+            )
+            
+            if !validationResult.canExecute {
+                errorMessage = validationResult.reason ?? "无法执行批次"
+                return false
+            }
+            
+            // Set execution time and update status
+            batch.setExecutionTime(executionTime)
+            
+            // Save changes
+            try await productionBatchRepository.updateBatch(batch)
+            
+            // Audit log
+            await auditService.logUpdate(
+                entityType: .productionBatch,
+                entityId: batch.id,
+                entityDescription: "批次 \(batch.batchNumber)",
+                operatorUserId: authService.currentUser?.id ?? "system",
+                operatorUserName: authService.currentUser?.name ?? "系统",
+                beforeData: ["status": "pendingExecution", "executionTime": "nil"],
+                afterData: ["status": "active", "executionTime": "\(executionTime)"],
+                changedFields: ["status", "executionTime"]
+            )
+            
+            return true
+        } catch {
+            errorMessage = "执行批次失败: \(error.localizedDescription)"
+            return false
+        }
+    }
+    
     // MARK: - Admin Review Functions
     func approveBatch(_ batch: ProductionBatch, notes: String? = nil) async -> Bool {
         guard let currentUser = authService.currentUser,

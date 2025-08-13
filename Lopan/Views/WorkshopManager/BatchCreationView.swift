@@ -191,15 +191,22 @@ struct BatchCreationView: View {
                         .fontWeight(.medium)
                         .foregroundColor(.secondary)
                     
-                    HStack(spacing: 6) {
-                        Image(systemName: selectedShift == .morning ? "sun.min" : "moon")
-                            .font(.system(size: 16, weight: .medium))
-                            .foregroundColor(selectedShift == .morning ? .orange : .indigo)
+                    VStack(alignment: .leading, spacing: 4) {
+                        HStack(spacing: 6) {
+                            Image(systemName: selectedShift == .morning ? "sun.min" : "moon")
+                                .font(.system(size: 16, weight: .medium))
+                                .foregroundColor(selectedShift == .morning ? .orange : .indigo)
+                            
+                            Text(selectedShift.displayName)
+                                .font(.body)
+                                .fontWeight(.medium)
+                                .foregroundColor(.primary)
+                        }
                         
-                        Text(selectedShift.displayName)
-                            .font(.body)
+                        Text(selectedShift.timeRangeDisplay)
+                            .font(.caption2)
                             .fontWeight(.medium)
-                            .foregroundColor(.primary)
+                            .foregroundColor(.blue)
                     }
                 }
                 
@@ -956,10 +963,13 @@ struct BatchCreationView: View {
                 return
             }
             
+            // Infer production mode from existing product configurations
+            let inferredMode = inferProductionMode(from: productConfigs)
+            
             // Create batch using ProductionBatchService
             if let batch = await productionBatchService.createShiftBatch(
                 machineId: currentMachine.id,
-                mode: .singleColor,
+                mode: inferredMode,
                 targetDate: selectedDate,
                 shift: selectedShift
             ) {
@@ -982,6 +992,27 @@ struct BatchCreationView: View {
         await MainActor.run {
             isCreating = false
         }
+    }
+    
+    /// Infer production mode from existing product configurations
+    private func inferProductionMode(from configs: [ProductConfig]) -> ProductionMode {
+        // Check if any product has dual colors (secondary color is not nil)
+        let hasDualColorProducts = configs.contains { config in
+            config.secondaryColorId != nil && !config.secondaryColorId!.isEmpty
+        }
+        
+        // Also check the minimum stations per product to determine mode
+        let hasHighStationCount = configs.contains { config in
+            config.occupiedStations.count >= ProductionMode.dualColor.minStationsPerProduct
+        }
+        
+        // If we have dual color products or high station counts, assume dual color mode
+        if hasDualColorProducts || hasHighStationCount {
+            return .dualColor
+        }
+        
+        // Default to single color mode
+        return .singleColor
     }
     
     private func showError(_ message: String) async {

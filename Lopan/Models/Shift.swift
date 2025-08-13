@@ -40,15 +40,29 @@ enum Shift: String, CaseIterable, Codable {
     // MARK: - Shift Time Ranges
     var standardStartTime: (hour: Int, minute: Int) {
         switch self {
-        case .morning: return (8, 0)  // 08:00
-        case .evening: return (20, 0) // 20:00
+        case .morning: return (7, 0)   // 07:00
+        case .evening: return (19, 0)  // 19:00
         }
     }
     
     var standardEndTime: (hour: Int, minute: Int) {
         switch self {
-        case .morning: return (20, 0)  // 20:00
-        case .evening: return (8, 0)   // 08:00 next day
+        case .morning: return (19, 0)  // 19:00
+        case .evening: return (7, 0)   // 07:00 next day
+        }
+    }
+    
+    var timeRangeDisplay: String {
+        switch self {
+        case .morning: return "07:00 - 19:00"
+        case .evening: return "19:00 - 次日07:00"
+        }
+    }
+    
+    var englishTimeRangeDisplay: String {
+        switch self {
+        case .morning: return "07:00 - 19:00"
+        case .evening: return "19:00 - 07:00 (Next Day)"
         }
     }
 }
