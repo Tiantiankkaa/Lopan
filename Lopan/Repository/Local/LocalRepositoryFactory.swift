@@ -23,10 +23,6 @@ class LocalRepositoryFactory: RepositoryFactory {
     lazy var machineRepository: MachineRepository = LocalMachineRepository(context: modelContext)
     lazy var colorRepository: ColorRepository = LocalColorRepository(modelContext: modelContext)
     lazy var productionBatchRepository: ProductionBatchRepository = LocalProductionBatchRepository(modelContext: modelContext)
-    lazy var batchOperationRepository: BatchOperationRepository = LocalBatchOperationRepository(
-        modelContext: modelContext,
-        auditingService: auditingService
-    )
     
     init(modelContext: ModelContext) {
         self.modelContext = modelContext

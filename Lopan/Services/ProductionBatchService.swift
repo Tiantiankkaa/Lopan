@@ -684,7 +684,7 @@ class ProductionBatchService: ObservableObject {
     private func startCleanupTimer() {
         cleanupTimer?.invalidate()
         cleanupTimer = Timer.scheduledTimer(withTimeInterval: 30 * 60, repeats: true) { [weak self] _ in
-            Task {
+            Task { @MainActor in
                 await self?.cleanupOldBatches()
             }
         }

@@ -10,7 +10,8 @@ import SwiftData
 
 @main
 struct LopanApp: App {
-    var sharedModelContainer: ModelContainer = {
+    
+    static let sharedModelContainer: ModelContainer = {
         let schema = Schema([
             User.self,
             CustomerOutOfStock.self,
@@ -39,15 +40,19 @@ struct LopanApp: App {
         let modelConfiguration = ModelConfiguration(schema: schema, isStoredInMemoryOnly: true)
 
         do {
-            return try ModelContainer(for: schema, configurations: [modelConfiguration])
+            print("Creating ModelContainer...")
+            let container = try ModelContainer(for: schema, configurations: [modelConfiguration])
+            print("ModelContainer created successfully")
+            return container
         } catch {
+            print("ModelContainer creation failed: \(error)")
             fatalError("Could not create ModelContainer: \(error)")
         }
     }()
 
     var body: some Scene {
         WindowGroup {
-            let repositoryFactory = LocalRepositoryFactory(modelContext: sharedModelContainer.mainContext)
+            let repositoryFactory = LocalRepositoryFactory(modelContext: Self.sharedModelContainer.mainContext)
             let serviceFactory = ServiceFactory(repositoryFactory: repositoryFactory)
             
             DashboardView(authService: serviceFactory.authenticationService)
@@ -61,6 +66,6 @@ struct LopanApp: App {
                     }
                 }
         }
-        .modelContainer(sharedModelContainer)
+        .modelContainer(Self.sharedModelContainer)
     }
 }

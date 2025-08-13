@@ -187,7 +187,7 @@ final class ProductConfig {
     var productId: String? // Reference to existing Product in sales platform
     var primaryColorId: String
     var secondaryColorId: String? // Only for dual-color products
-    var occupiedStations: [Int]
+    private var occupiedStationsString: String
     var stationCount: Int? // Number of stations selected (3/6/9/12/Other)
     var gunAssignment: String? // "Gun A" or "Gun B"
     var expectedOutput: Int
@@ -197,6 +197,19 @@ final class ProductConfig {
     var createdAt: Date
     var updatedAt: Date
     
+    // Computed property for occupiedStations
+    var occupiedStations: [Int] {
+        get {
+            guard !occupiedStationsString.isEmpty else { return [] }
+            return occupiedStationsString.components(separatedBy: ",")
+                .compactMap { Int($0.trimmingCharacters(in: .whitespaces)) }
+                .sorted()
+        }
+        set {
+            occupiedStationsString = newValue.sorted().map { String($0) }.joined(separator: ",")
+        }
+    }
+    
     init(batchId: String, productName: String, primaryColorId: String, occupiedStations: [Int], expectedOutput: Int = 1000, priority: Int = 1, secondaryColorId: String? = nil, productId: String? = nil, stationCount: Int? = nil, gunAssignment: String? = nil, approvalTargetDate: Date? = nil, startTime: Date? = nil) {
         self.id = UUID().uuidString
         self.batchId = batchId
@@ -204,7 +217,7 @@ final class ProductConfig {
         self.productId = productId
         self.primaryColorId = primaryColorId
         self.secondaryColorId = secondaryColorId
-        self.occupiedStations = occupiedStations.sorted()
+        self.occupiedStationsString = occupiedStations.sorted().map { String($0) }.joined(separator: ",")
         self.stationCount = stationCount
         self.gunAssignment = gunAssignment
         self.expectedOutput = expectedOutput

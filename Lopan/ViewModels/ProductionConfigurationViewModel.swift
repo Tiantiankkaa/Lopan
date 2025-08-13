@@ -178,6 +178,23 @@ class ProductionConfigurationViewModel: ObservableObject {
     func createNewBatch() {
         guard let machine = selectedMachine else { return }
         
+        // Validate machine status before attempting batch creation
+        guard machine.canReceiveNewTasks else {
+            let statusMessage: String
+            switch machine.status {
+            case .maintenance:
+                statusMessage = "设备 A-\(String(format: "%03d", machine.machineNumber)) 正在维护中，无法创建新的生产批次。请等待维护完成后重试。"
+            case .error:
+                statusMessage = "设备 A-\(String(format: "%03d", machine.machineNumber)) 出现故障，无法创建新的生产批次。请联系技术人员处理。"
+            case .stopped:
+                statusMessage = "设备 A-\(String(format: "%03d", machine.machineNumber)) 已停机，无法创建新的生产批次。请先启动设备。"
+            default:
+                statusMessage = "设备 A-\(String(format: "%03d", machine.machineNumber)) 当前状态不允许创建新的生产批次。"
+            }
+            setError(statusMessage)
+            return
+        }
+        
         Task {
             let batch = await batchService.createBatch(
                 machineId: machine.id,
@@ -358,6 +375,38 @@ class ProductionConfigurationViewModel: ObservableObject {
     var canManageProduction: Bool {
         guard let user = authService.currentUser else { return false }
         return user.hasRole(.workshopManager) || user.hasRole(.administrator)
+    }
+    
+    var canCreateBatch: Bool {
+        guard canManageProduction,
+              let machine = selectedMachine else { return false }
+        
+        return machine.canReceiveNewTasks
+    }
+    
+    var batchCreationDisabledReason: String {
+        if !canManageProduction {
+            return "没有生产管理权限"
+        }
+        
+        guard let machine = selectedMachine else {
+            return "请先选择生产设备"
+        }
+        
+        if !machine.canReceiveNewTasks {
+            switch machine.status {
+            case .maintenance:
+                return "设备正在维护中，请等待维护完成"
+            case .error:
+                return "设备出现故障，请联系技术人员"
+            case .stopped:
+                return "设备已停机，请先启动设备"
+            default:
+                return "设备状态不允许创建批次"
+            }
+        }
+        
+        return ""
     }
     
     var canAddProducts: Bool {

@@ -9,7 +9,7 @@ import SwiftUI
 import SwiftData
 
 struct MachineManagementView: View {
-    @ObservedObject var machineService: MachineService
+    @StateObject private var machineService: MachineService
     @ObservedObject private var authService: AuthenticationService
     
     @Binding var showingAddMachine: Bool
@@ -19,12 +19,18 @@ struct MachineManagementView: View {
     let repositoryFactory: RepositoryFactory
     let auditService: NewAuditingService
     
-    init(machineService: MachineService, authService: AuthenticationService, repositoryFactory: RepositoryFactory, auditService: NewAuditingService, showingAddMachine: Binding<Bool>) {
-        self.machineService = machineService
+    init(authService: AuthenticationService, repositoryFactory: RepositoryFactory, auditService: NewAuditingService, showingAddMachine: Binding<Bool>) {
         self.authService = authService
         self.repositoryFactory = repositoryFactory
         self.auditService = auditService
         self._showingAddMachine = showingAddMachine
+        
+        // Create MachineService in a safer way
+        self._machineService = StateObject(wrappedValue: MachineService(
+            machineRepository: repositoryFactory.machineRepository,
+            auditService: auditService,
+            authService: authService
+        ))
     }
     
     var body: some View {
@@ -392,11 +398,6 @@ struct MachineManagementView_Previews: PreviewProvider {
         let auditService = NewAuditingService(repositoryFactory: repositoryFactory)
         
         MachineManagementView(
-            machineService: MachineService(
-                machineRepository: repositoryFactory.machineRepository,
-                auditService: auditService,
-                authService: authService
-            ),
             authService: authService,
             repositoryFactory: repositoryFactory,
             auditService: auditService,

@@ -9,7 +9,7 @@ import SwiftUI
 import SwiftData
 
 struct ColorManagementView: View {
-    @ObservedObject var colorService: ColorService
+    @StateObject private var colorService: ColorService
     @ObservedObject private var authService: AuthenticationService
     
     @Binding var showingAddColor: Bool
@@ -17,10 +17,23 @@ struct ColorManagementView: View {
     @State private var selectedColorForEdit: ColorCard?
     @State private var searchText = ""
     
-    init(colorService: ColorService, authService: AuthenticationService, showingAddColor: Binding<Bool>) {
-        self.colorService = colorService
+    // Dependencies needed for ColorService creation
+    let repositoryFactory: RepositoryFactory
+    let auditService: NewAuditingService
+    
+    init(authService: AuthenticationService, repositoryFactory: RepositoryFactory, auditService: NewAuditingService, showingAddColor: Binding<Bool>) {
         self.authService = authService
+        self.repositoryFactory = repositoryFactory
+        self.auditService = auditService
         self._showingAddColor = showingAddColor
+        
+        // Create ColorService in a safer way
+        self._colorService = StateObject(wrappedValue: ColorService(
+            colorRepository: repositoryFactory.colorRepository,
+            machineRepository: repositoryFactory.machineRepository,
+            auditService: auditService,
+            authService: authService
+        ))
     }
     
     var filteredColors: [ColorCard] {
@@ -335,13 +348,9 @@ struct ColorManagementView_Previews: PreviewProvider {
         let auditService = NewAuditingService(repositoryFactory: repositoryFactory)
         
         ColorManagementView(
-            colorService: ColorService(
-                colorRepository: repositoryFactory.colorRepository,
-                machineRepository: repositoryFactory.machineRepository,
-                auditService: auditService,
-                authService: authService
-            ),
             authService: authService,
+            repositoryFactory: repositoryFactory,
+            auditService: auditService,
             showingAddColor: .constant(false)
         )
     }

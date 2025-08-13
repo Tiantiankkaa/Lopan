@@ -18,5 +18,4 @@ protocol RepositoryFactory {
     var machineRepository: MachineRepository { get }
     var colorRepository: ColorRepository { get }
     var productionBatchRepository: ProductionBatchRepository { get }
-    var batchOperationRepository: BatchOperationRepository { get }
 }
