@@ -138,6 +138,18 @@ final class WorkshopMachine: Codable, Identifiable {
         return currentBatchId != nil
     }
     
+    var isOperational: Bool {
+        return isActive && status != .maintenance && status != .error
+    }
+    
+    var name: String {
+        return "机器 \(machineNumber)"
+    }
+    
+    var totalGuns: Int {
+        return guns.count
+    }
+    
     var productionModeDisplayName: String {
         return currentProductionMode?.displayName ?? "未配置"
     }

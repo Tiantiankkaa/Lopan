@@ -1,0 +1,120 @@
+{
+  "source": "/Users/bobo/Desktop/Lopan/Lopan/Views/WarehouseKeeper/PackagingManagementView.swift",
+  "tables": {
+    "Localizable": [
+      {
+        "comment": "",
+        "key": "确认删除",
+        "location": {
+          "startingColumn": 16,
+          "startingLine": 163
+        }
+      },
+      {
+        "comment": "",
+        "key": "包装管理",
+        "location": {
+          "startingColumn": 30,
+          "startingLine": 154
+        }
+      },
+      {
+        "comment": "",
+        "key": "选择日期",
+        "location": {
+          "startingColumn": 32,
+          "startingLine": 87
+        }
+      },
+      {
+        "comment": "",
+        "key": "搜索款式或团队",
+        "location": {
+          "startingColumn": 35,
+          "startingLine": 107
+        }
+      },
+      {
+        "comment": "",
+        "key": "点击右上角 + 按钮添加包装记录",
+        "location": {
+          "startingColumn": 34,
+          "startingLine": 136
+        }
+      },
+      {
+        "comment": "",
+        "key": "今日暂无包装记录",
+        "location": {
+          "startingColumn": 51,
+          "startingLine": 132
+        }
+      },
+      {
+        "comment": "",
+        "key": "未找到匹配的记录",
+        "location": {
+          "startingColumn": 80,
+          "startingLine": 132
+        }
+      },
+      {
+        "comment": "",
+        "key": "取消",
+        "location": {
+          "startingColumn": 20,
+          "startingLine": 164
+        }
+      },
+      {
+        "comment": "",
+        "key": "删除",
+        "location": {
+          "startingColumn": 20,
+          "startingLine": 167
+        }
+      },
+      {
+        "comment": "",
+        "key": "确定要删除选中的包装记录吗？此操作无法撤销。",
+        "location": {
+          "startingColumn": 18,
+          "startingLine": 174
+        }
+      },
+      {
+        "comment": "",
+        "key": "%lld 包",
+        "location": {
+          "startingColumn": 27,
+          "startingLine": 240
+        }
+      },
+      {
+        "comment": "",
+        "key": "%lld 个/包",
+        "location": {
+          "startingColumn": 27,
+          "startingLine": 242
+        }
+      },
+      {
+        "comment": "",
+        "key": "%lld",
+        "location": {
+          "startingColumn": 22,
+          "startingLine": 258
+        }
+      },
+      {
+        "comment": "",
+        "key": "总数",
+        "location": {
+          "startingColumn": 22,
+          "startingLine": 262
+        }
+      }
+    ]
+  },
+  "version": 1
+}

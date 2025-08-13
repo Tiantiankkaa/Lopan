@@ -1,0 +1,112 @@
+{
+  "source": "/Users/bobo/Desktop/Lopan/Lopan/Views/Components/BatchMultiSelectInterface.swift",
+  "tables": {
+    "Localizable": [
+      {
+        "comment": "",
+        "key": "搜索设备或产品...",
+        "location": {
+          "startingColumn": 27,
+          "startingLine": 131
+        }
+      },
+      {
+        "comment": "",
+        "key": "清除",
+        "location": {
+          "startingColumn": 28,
+          "startingLine": 135
+        }
+      },
+      {
+        "comment": "",
+        "key": "已选择 %lld 个批次",
+        "location": {
+          "startingColumn": 26,
+          "startingLine": 200
+        }
+      },
+      {
+        "comment": "",
+        "key": "%lld 台设备",
+        "location": {
+          "startingColumn": 31,
+          "startingLine": 205
+        }
+      },
+      {
+        "comment": "",
+        "key": "存在冲突",
+        "location": {
+          "startingColumn": 35,
+          "startingLine": 210
+        }
+      },
+      {
+        "comment": "",
+        "key": "清除选择",
+        "location": {
+          "startingColumn": 28,
+          "startingLine": 221
+        }
+      },
+      {
+        "comment": "",
+        "key": "解决冲突",
+        "location": {
+          "startingColumn": 32,
+          "startingLine": 227
+        }
+      },
+      {
+        "comment": "",
+        "key": "强制审批",
+        "location": {
+          "startingColumn": 60,
+          "startingLine": 234
+        }
+      },
+      {
+        "comment": "",
+        "key": "批量审批",
+        "location": {
+          "startingColumn": 77,
+          "startingLine": 234
+        }
+      },
+      {
+        "comment": "",
+        "key": "%lld",
+        "location": {
+          "startingColumn": 26,
+          "startingLine": 320
+        }
+      },
+      {
+        "comment": "",
+        "key": "设备 %@",
+        "location": {
+          "startingColumn": 26,
+          "startingLine": 359
+        }
+      },
+      {
+        "comment": "",
+        "key": "%lld 个产品",
+        "location": {
+          "startingColumn": 26,
+          "startingLine": 369
+        }
+      },
+      {
+        "comment": "",
+        "key": "存在配置冲突",
+        "location": {
+          "startingColumn": 30,
+          "startingLine": 383
+        }
+      }
+    ]
+  },
+  "version": 1
+}

@@ -142,4 +142,111 @@ class LocalProductionBatchRepository: ProductionBatchRepository {
         
         return maxSequence > 0 ? "\(batchPrefix)\(String(format: "%04d", maxSequence))" : nil
     }
+    
+    // MARK: - Shift-aware Batch Operations Implementation (班次感知批次操作实现)
+    
+    func fetchBatches(forDate date: Date, shift: Shift) async throws -> [ProductionBatch] {
+        // Use a simpler approach due to Predicate complexity issues
+        let allBatches = try await fetchAllBatches()
+        let calendar = Calendar.current
+        let startOfDay = calendar.startOfDay(for: date)
+        let endOfDay = calendar.date(byAdding: .day, value: 1, to: startOfDay) ?? date
+        
+        return allBatches.filter { batch in
+            guard let targetDate = batch.targetDate,
+                  let batchShift = batch.shift else { return false }
+            
+            return targetDate >= startOfDay && 
+                   targetDate < endOfDay && 
+                   batchShift == shift
+        }.sorted { $0.submittedAt > $1.submittedAt }
+    }
+    
+    func fetchBatches(forDate date: Date) async throws -> [ProductionBatch] {
+        // Use a simpler approach due to Predicate complexity issues
+        let allBatches = try await fetchAllBatches()
+        let calendar = Calendar.current
+        let startOfDay = calendar.startOfDay(for: date)
+        let endOfDay = calendar.date(byAdding: .day, value: 1, to: startOfDay) ?? date
+        
+        return allBatches.filter { batch in
+            guard let targetDate = batch.targetDate else { return false }
+            return targetDate >= startOfDay && targetDate < endOfDay
+        }.sorted { $0.submittedAt > $1.submittedAt }
+    }
+    
+    func fetchShiftAwareBatches() async throws -> [ProductionBatch] {
+        // Use a simpler approach due to Predicate complexity issues
+        let allBatches = try await fetchAllBatches()
+        return allBatches.filter { batch in
+            return batch.targetDate != nil && batch.shift != nil
+        }
+    }
+    
+    func fetchLegacyBatches() async throws -> [ProductionBatch] {
+        // Use a simpler approach due to Predicate complexity issues
+        let allBatches = try await fetchAllBatches()
+        return allBatches.filter { batch in
+            return batch.targetDate == nil || batch.shift == nil
+        }
+    }
+    
+    func fetchBatches(from startDate: Date, to endDate: Date, shift: Shift?) async throws -> [ProductionBatch] {
+        // Use a simpler approach due to Predicate complexity issues
+        let allBatches = try await fetchAllBatches()
+        
+        return allBatches.filter { batch in
+            guard let targetDate = batch.targetDate else { return false }
+            
+            let isInDateRange = targetDate >= startDate && targetDate <= endDate
+            
+            if let requiredShift = shift {
+                return isInDateRange && batch.shift == requiredShift
+            } else {
+                return isInDateRange
+            }
+        }
+    }
+    
+    func hasConflictingBatches(forDate date: Date, shift: Shift, machineId: String, excludingBatchId: String?) async throws -> Bool {
+        // Use a simpler approach due to Predicate complexity issues
+        let calendar = Calendar.current
+        let startOfDay = calendar.startOfDay(for: date)
+        let endOfDay = calendar.date(byAdding: .day, value: 1, to: startOfDay) ?? date
+        
+        let allBatches = try await fetchAllBatches()
+        
+        let conflicts = allBatches.filter { batch in
+            guard let targetDate = batch.targetDate,
+                  let batchShift = batch.shift else { return false }
+            
+            // Check if it's in the same date range and shift
+            let isInSameDateShift = targetDate >= startOfDay && 
+                                  targetDate < endOfDay && 
+                                  batchShift == shift
+            
+            // Check if it's the same machine
+            let isSameMachine = batch.machineId == machineId
+            
+            // Check if it's not the excluded batch
+            let isNotExcluded = excludingBatchId == nil || batch.id != excludingBatchId!
+            
+            // Check if it's not rejected or completed
+            let isActive = batch.status != .rejected && batch.status != .completed
+            
+            return isInSameDateShift && isSameMachine && isNotExcluded && isActive
+        }
+        
+        return !conflicts.isEmpty
+    }
+    
+    func fetchBatchesRequiringMigration() async throws -> [ProductionBatch] {
+        // Use a simpler approach due to Predicate complexity issues
+        let allBatches = try await fetchAllBatches()
+        return allBatches.filter { batch in
+            // Legacy batches that could be migrated
+            return (batch.targetDate == nil || batch.shift == nil) && 
+                   batch.status == .unsubmitted
+        }
+    }
 }

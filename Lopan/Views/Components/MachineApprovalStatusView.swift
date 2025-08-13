@@ -195,6 +195,34 @@ struct ApprovalBatchCompactRow: View {
                             .background(Color.blue.opacity(0.1))
                             .cornerRadius(3)
                         
+                        // Show shift information for shift-aware batches
+                        if batch.isShiftBatch, let shift = batch.shift {
+                            HStack(spacing: 2) {
+                                Image(systemName: shift == .morning ? "sun.min" : "moon")
+                                    .font(.caption2)
+                                    .foregroundColor(shift == .morning ? .orange : .indigo)
+                                
+                                Text(shift.displayName)
+                                    .font(.caption2)
+                                    .foregroundColor(shift == .morning ? .orange : .indigo)
+                            }
+                            .padding(.horizontal, 4)
+                            .padding(.vertical, 1)
+                            .background((shift == .morning ? Color.orange : Color.indigo).opacity(0.1))
+                            .cornerRadius(3)
+                        }
+                        
+                        // Color-only indicator
+                        if batch.allowsColorModificationOnly {
+                            Image(systemName: "paintpalette")
+                                .font(.caption2)
+                                .foregroundColor(.orange)
+                                .padding(.horizontal, 3)
+                                .padding(.vertical, 1)
+                                .background(Color.orange.opacity(0.1))
+                                .cornerRadius(3)
+                        }
+                        
                         if !batch.products.isEmpty {
                             Text("\(batch.products.count)产品")
                                 .font(.caption2)

@@ -1,0 +1,24 @@
+{
+  "source": "/Users/bobo/Desktop/Lopan/Lopan/DesignSystem/Components/Foundation/LopanTextField.swift",
+  "tables": {
+    "Localizable": [
+      {
+        "comment": "",
+        "key": "*",
+        "location": {
+          "startingColumn": 30,
+          "startingLine": 75
+        }
+      },
+      {
+        "comment": "",
+        "key": "%lld/%lld",
+        "location": {
+          "startingColumn": 26,
+          "startingLine": 176
+        }
+      }
+    ]
+  },
+  "version": 1
+}

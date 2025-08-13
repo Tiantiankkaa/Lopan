@@ -1,0 +1,16 @@
+{
+  "source": "/Users/bobo/Desktop/Lopan/Lopan/ContentView.swift",
+  "tables": {
+    "Localizable": [
+      {
+        "comment": "",
+        "key": "Please use the main app entry point",
+        "location": {
+          "startingColumn": 14,
+          "startingLine": 17
+        }
+      }
+    ]
+  },
+  "version": 1
+}

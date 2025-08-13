@@ -1,0 +1,16 @@
+{
+  "source": "/Users/bobo/Desktop/Lopan/Lopan/DesignSystem/Components/Foundation/LopanSearchBar.swift",
+  "tables": {
+    "Localizable": [
+      {
+        "comment": "",
+        "key": "清除",
+        "location": {
+          "startingColumn": 24,
+          "startingLine": 31
+        }
+      }
+    ]
+  },
+  "version": 1
+}

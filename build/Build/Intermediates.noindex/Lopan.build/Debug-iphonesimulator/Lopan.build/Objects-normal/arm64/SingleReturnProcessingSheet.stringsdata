@@ -1,0 +1,136 @@
+{
+  "source": "/Users/bobo/Desktop/Lopan/Lopan/Views/Salesperson/SingleReturnProcessingSheet.swift",
+  "tables": {
+    "Localizable": [
+      {
+        "comment": "",
+        "key": "客户信息",
+        "location": {
+          "startingColumn": 17,
+          "startingLine": 60
+        }
+      },
+      {
+        "comment": "",
+        "key": "产品信息",
+        "location": {
+          "startingColumn": 17,
+          "startingLine": 78
+        }
+      },
+      {
+        "comment": "",
+        "key": "客户姓名",
+        "location": {
+          "startingColumn": 22,
+          "startingLine": 62
+        }
+      },
+      {
+        "comment": "",
+        "key": "客户地址",
+        "location": {
+          "startingColumn": 22,
+          "startingLine": 69
+        }
+      },
+      {
+        "comment": "",
+        "key": "产品名称",
+        "location": {
+          "startingColumn": 22,
+          "startingLine": 80
+        }
+      },
+      {
+        "comment": "",
+        "key": "产品规格",
+        "location": {
+          "startingColumn": 22,
+          "startingLine": 87
+        }
+      },
+      {
+        "comment": "",
+        "key": "原始数量",
+        "location": {
+          "startingColumn": 22,
+          "startingLine": 94
+        }
+      },
+      {
+        "comment": "",
+        "key": "%lld",
+        "location": {
+          "startingColumn": 22,
+          "startingLine": 96
+        }
+      },
+      {
+        "comment": "",
+        "key": "已退数量",
+        "location": {
+          "startingColumn": 26,
+          "startingLine": 102
+        }
+      },
+      {
+        "comment": "",
+        "key": "%lld",
+        "location": {
+          "startingColumn": 26,
+          "startingLine": 104
+        }
+      },
+      {
+        "comment": "",
+        "key": "%lld",
+        "location": {
+          "startingColumn": 22,
+          "startingLine": 112
+        }
+      },
+      {
+        "comment": "",
+        "key": "请输入有效的退货数量 (1-%lld)",
+        "location": {
+          "startingColumn": 22,
+          "startingLine": 133
+        }
+      },
+      {
+        "comment": "",
+        "key": "最大可退货数量: %lld",
+        "location": {
+          "startingColumn": 18,
+          "startingLine": 138
+        }
+      },
+      {
+        "comment": "",
+        "key": "输入退货数量",
+        "location": {
+          "startingColumn": 27,
+          "startingLine": 121
+        }
+      },
+      {
+        "comment": "",
+        "key": "最大值",
+        "location": {
+          "startingColumn": 24,
+          "startingLine": 125
+        }
+      },
+      {
+        "comment": "",
+        "key": "可选择填写退货原因或备注",
+        "location": {
+          "startingColumn": 23,
+          "startingLine": 146
+        }
+      }
+    ]
+  },
+  "version": 1
+}

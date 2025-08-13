@@ -1,0 +1,40 @@
+{
+  "source": "/Users/bobo/Desktop/Lopan/Lopan/Views/Salesperson/BatchReturnProcessingSheet.swift",
+  "tables": {
+    "Localizable": [
+      {
+        "comment": "",
+        "key": "填充最大退货数量",
+        "location": {
+          "startingColumn": 22,
+          "startingLine": 86
+        }
+      },
+      {
+        "comment": "",
+        "key": "剩余数量: %lld",
+        "location": {
+          "startingColumn": 22,
+          "startingLine": 193
+        }
+      },
+      {
+        "comment": "",
+        "key": "已退: %lld",
+        "location": {
+          "startingColumn": 26,
+          "startingLine": 198
+        }
+      },
+      {
+        "comment": "",
+        "key": "可选择填写退货原因或备注",
+        "location": {
+          "startingColumn": 23,
+          "startingLine": 226
+        }
+      }
+    ]
+  },
+  "version": 1
+}

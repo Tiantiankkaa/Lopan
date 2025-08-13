@@ -1,0 +1,376 @@
+{
+  "source": "/Users/bobo/Desktop/Lopan/Lopan/Views/Administrator/BatchManagementView.swift",
+  "tables": {
+    "Localizable": [
+      {
+        "comment": "",
+        "key": "批次管理",
+        "location": {
+          "startingColumn": 30,
+          "startingLine": 59
+        }
+      },
+      {
+        "comment": "",
+        "key": "Error",
+        "location": {
+          "startingColumn": 20,
+          "startingLine": 64
+        }
+      },
+      {
+        "comment": "",
+        "key": "待审核",
+        "location": {
+          "startingColumn": 30,
+          "startingLine": 47
+        }
+      },
+      {
+        "comment": "",
+        "key": "历史记录",
+        "location": {
+          "startingColumn": 30,
+          "startingLine": 55
+        }
+      },
+      {
+        "comment": "",
+        "key": "确定",
+        "location": {
+          "startingColumn": 24,
+          "startingLine": 65
+        }
+      },
+      {
+        "comment": "",
+        "key": "加载待审核批次...",
+        "location": {
+          "startingColumn": 30,
+          "startingLine": 102
+        }
+      },
+      {
+        "comment": "",
+        "key": "暂无待审核批次",
+        "location": {
+          "startingColumn": 22,
+          "startingLine": 119
+        }
+      },
+      {
+        "comment": "",
+        "key": "所有生产配置批次已审核完成",
+        "location": {
+          "startingColumn": 22,
+          "startingLine": 123
+        }
+      },
+      {
+        "comment": "",
+        "key": "加载批次历史...",
+        "location": {
+          "startingColumn": 30,
+          "startingLine": 157
+        }
+      },
+      {
+        "comment": "",
+        "key": "暂无批次记录",
+        "location": {
+          "startingColumn": 22,
+          "startingLine": 219
+        }
+      },
+      {
+        "comment": "",
+        "key": "创建生产配置后，批次历史将显示在这里",
+        "location": {
+          "startingColumn": 22,
+          "startingLine": 223
+        }
+      },
+      {
+        "comment": "",
+        "key": "提交人: %@",
+        "location": {
+          "startingColumn": 34,
+          "startingLine": 284
+        }
+      },
+      {
+        "comment": "",
+        "key": "%lld 个产品",
+        "location": {
+          "startingColumn": 35,
+          "startingLine": 310
+        }
+      },
+      {
+        "comment": "",
+        "key": "%lld/12 工位",
+        "location": {
+          "startingColumn": 35,
+          "startingLine": 316
+        }
+      },
+      {
+        "comment": "",
+        "key": "配置有效",
+        "location": {
+          "startingColumn": 63,
+          "startingLine": 326
+        }
+      },
+      {
+        "comment": "",
+        "key": "配置无效",
+        "location": {
+          "startingColumn": 80,
+          "startingLine": 326
+        }
+      },
+      {
+        "comment": "",
+        "key": "拒绝",
+        "location": {
+          "startingColumn": 24,
+          "startingLine": 353
+        }
+      },
+      {
+        "comment": "",
+        "key": "批准",
+        "location": {
+          "startingColumn": 24,
+          "startingLine": 359
+        }
+      },
+      {
+        "comment": "",
+        "key": "批次详情",
+        "location": {
+          "startingColumn": 34,
+          "startingLine": 384
+        }
+      },
+      {
+        "comment": "",
+        "key": "关闭",
+        "location": {
+          "startingColumn": 32,
+          "startingLine": 388
+        }
+      },
+      {
+        "comment": "",
+        "key": "批次信息",
+        "location": {
+          "startingColumn": 18,
+          "startingLine": 400
+        }
+      },
+      {
+        "comment": "",
+        "key": "产品配置",
+        "location": {
+          "startingColumn": 18,
+          "startingLine": 421
+        }
+      },
+      {
+        "comment": "",
+        "key": "双色",
+        "location": {
+          "startingColumn": 22,
+          "startingLine": 451
+        }
+      },
+      {
+        "comment": "",
+        "key": "%lld",
+        "location": {
+          "startingColumn": 22,
+          "startingLine": 488
+        }
+      },
+      {
+        "comment": "",
+        "key": "提交于 %@",
+        "location": {
+          "startingColumn": 30,
+          "startingLine": 524
+        }
+      },
+      {
+        "comment": "",
+        "key": "%lld 个产品",
+        "location": {
+          "startingColumn": 27,
+          "startingLine": 549
+        }
+      },
+      {
+        "comment": "",
+        "key": "%lld/12 工位",
+        "location": {
+          "startingColumn": 27,
+          "startingLine": 555
+        }
+      },
+      {
+        "comment": "",
+        "key": "审核: %@",
+        "location": {
+          "startingColumn": 30,
+          "startingLine": 563
+        }
+      },
+      {
+        "comment": "",
+        "key": "审核批次",
+        "location": {
+          "startingColumn": 30,
+          "startingLine": 637
+        }
+      },
+      {
+        "comment": "",
+        "key": "批次: %@",
+        "location": {
+          "startingColumn": 30,
+          "startingLine": 619
+        }
+      },
+      {
+        "comment": "",
+        "key": "取消",
+        "location": {
+          "startingColumn": 28,
+          "startingLine": 641
+        }
+      },
+      {
+        "comment": "",
+        "key": "批次摘要",
+        "location": {
+          "startingColumn": 18,
+          "startingLine": 652
+        }
+      },
+      {
+        "comment": "",
+        "key": "批准备注 (可选)",
+        "location": {
+          "startingColumn": 39,
+          "startingLine": 673
+        }
+      },
+      {
+        "comment": "",
+        "key": "拒绝原因 (必填)",
+        "location": {
+          "startingColumn": 65,
+          "startingLine": 673
+        }
+      },
+      {
+        "comment": "",
+        "key": "取消",
+        "location": {
+          "startingColumn": 20,
+          "startingLine": 695
+        }
+      },
+      {
+        "comment": "",
+        "key": "批次详情",
+        "location": {
+          "startingColumn": 30,
+          "startingLine": 770
+        }
+      },
+      {
+        "comment": "",
+        "key": "关闭",
+        "location": {
+          "startingColumn": 28,
+          "startingLine": 774
+        }
+      },
+      {
+        "comment": "",
+        "key": "批次信息",
+        "location": {
+          "startingColumn": 18,
+          "startingLine": 785
+        }
+      },
+      {
+        "comment": "",
+        "key": "产品配置",
+        "location": {
+          "startingColumn": 18,
+          "startingLine": 807
+        }
+      },
+      {
+        "comment": "",
+        "key": "审核信息",
+        "location": {
+          "startingColumn": 18,
+          "startingLine": 823
+        }
+      },
+      {
+        "comment": "",
+        "key": "审核备注",
+        "location": {
+          "startingColumn": 30,
+          "startingLine": 839
+        }
+      },
+      {
+        "comment": "",
+        "key": "时间线",
+        "location": {
+          "startingColumn": 18,
+          "startingLine": 858
+        }
+      },
+      {
+        "comment": "",
+        "key": "优先级 %lld",
+        "location": {
+          "startingColumn": 22,
+          "startingLine": 936
+        }
+      },
+      {
+        "comment": "",
+        "key": "工位: %@",
+        "location": {
+          "startingColumn": 22,
+          "startingLine": 942
+        }
+      },
+      {
+        "comment": "",
+        "key": "预期产量: %lld",
+        "location": {
+          "startingColumn": 22,
+          "startingLine": 946
+        }
+      },
+      {
+        "comment": "",
+        "key": "双色生产",
+        "location": {
+          "startingColumn": 26,
+          "startingLine": 951
+        }
+      }
+    ]
+  },
+  "version": 1
+}

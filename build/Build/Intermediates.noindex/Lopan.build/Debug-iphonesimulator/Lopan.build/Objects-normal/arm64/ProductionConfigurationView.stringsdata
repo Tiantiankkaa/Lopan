@@ -1,0 +1,872 @@
+{
+  "source": "/Users/bobo/Desktop/Lopan/Lopan/Views/WorkshopManager/ProductionConfigurationView.swift",
+  "tables": {
+    "Localizable": [
+      {
+        "comment": "",
+        "key": "生产配置",
+        "location": {
+          "startingColumn": 30,
+          "startingLine": 64
+        }
+      },
+      {
+        "comment": "",
+        "key": "Error",
+        "location": {
+          "startingColumn": 20,
+          "startingLine": 69
+        }
+      },
+      {
+        "comment": "",
+        "key": "加载数据...",
+        "location": {
+          "startingColumn": 34,
+          "startingLine": 58
+        }
+      },
+      {
+        "comment": "",
+        "key": "确定",
+        "location": {
+          "startingColumn": 24,
+          "startingLine": 70
+        }
+      },
+      {
+        "comment": "",
+        "key": "选择生产设备",
+        "location": {
+          "startingColumn": 18,
+          "startingLine": 145
+        }
+      },
+      {
+        "comment": "",
+        "key": "生产模式",
+        "location": {
+          "startingColumn": 18,
+          "startingLine": 168
+        }
+      },
+      {
+        "comment": "",
+        "key": "审批状态",
+        "location": {
+          "startingColumn": 22,
+          "startingLine": 190
+        }
+      },
+      {
+        "comment": "",
+        "key": "生产设备 A-%@",
+        "location": {
+          "startingColumn": 26,
+          "startingLine": 197
+        }
+      },
+      {
+        "comment": "",
+        "key": "请选择生产设备",
+        "location": {
+          "startingColumn": 22,
+          "startingLine": 232
+        }
+      },
+      {
+        "comment": "",
+        "key": "选择设备后查看对应的批次审批状态",
+        "location": {
+          "startingColumn": 22,
+          "startingLine": 235
+        }
+      },
+      {
+        "comment": "",
+        "key": "创建生产批次",
+        "location": {
+          "startingColumn": 22,
+          "startingLine": 261
+        }
+      },
+      {
+        "comment": "",
+        "key": "选择设备和生产模式后，创建新的生产配置批次",
+        "location": {
+          "startingColumn": 22,
+          "startingLine": 265
+        }
+      },
+      {
+        "comment": "",
+        "key": "添加产品",
+        "location": {
+          "startingColumn": 24,
+          "startingLine": 314
+        }
+      },
+      {
+        "comment": "",
+        "key": "批次编号",
+        "location": {
+          "startingColumn": 26,
+          "startingLine": 347
+        }
+      },
+      {
+        "comment": "",
+        "key": "状态",
+        "location": {
+          "startingColumn": 26,
+          "startingLine": 358
+        }
+      },
+      {
+        "comment": "",
+        "key": "当前批次工位: %lld/12",
+        "location": {
+          "startingColumn": 26,
+          "startingLine": 375
+        }
+      },
+      {
+        "comment": "",
+        "key": "|%@",
+        "location": {
+          "startingColumn": 26,
+          "startingLine": 379
+        }
+      },
+      {
+        "comment": "",
+        "key": "产品数量: %lld/%lld",
+        "location": {
+          "startingColumn": 26,
+          "startingLine": 385
+        }
+      },
+      {
+        "comment": "",
+        "key": "产品配置",
+        "location": {
+          "startingColumn": 18,
+          "startingLine": 407
+        }
+      },
+      {
+        "comment": "",
+        "key": "暂无产品配置",
+        "location": {
+          "startingColumn": 26,
+          "startingLine": 417
+        }
+      },
+      {
+        "comment": "",
+        "key": "工位分配",
+        "location": {
+          "startingColumn": 18,
+          "startingLine": 444
+        }
+      },
+      {
+        "comment": "",
+        "key": "Gun A",
+        "location": {
+          "startingColumn": 30,
+          "startingLine": 452
+        }
+      },
+      {
+        "comment": "",
+        "key": "Gun B",
+        "location": {
+          "startingColumn": 30,
+          "startingLine": 468
+        }
+      },
+      {
+        "comment": "",
+        "key": "Machine #%lld",
+        "location": {
+          "startingColumn": 18,
+          "startingLine": 502
+        }
+      },
+      {
+        "comment": "",
+        "key": "%lld 工位可用",
+        "location": {
+          "startingColumn": 22,
+          "startingLine": 515
+        }
+      },
+      {
+        "comment": "",
+        "key": "≥%lld 工位/产品",
+        "location": {
+          "startingColumn": 22,
+          "startingLine": 552
+        }
+      },
+      {
+        "comment": "",
+        "key": "最多 %lld 个产品",
+        "location": {
+          "startingColumn": 22,
+          "startingLine": 555
+        }
+      },
+      {
+        "comment": "",
+        "key": "%lld",
+        "location": {
+          "startingColumn": 26,
+          "startingLine": 662
+        }
+      },
+      {
+        "comment": "",
+        "key": "添加产品",
+        "location": {
+          "startingColumn": 30,
+          "startingLine": 843
+        }
+      },
+      {
+        "comment": "",
+        "key": "添加产品",
+        "location": {
+          "startingColumn": 32,
+          "startingLine": 828
+        }
+      },
+      {
+        "comment": "",
+        "key": "取消",
+        "location": {
+          "startingColumn": 32,
+          "startingLine": 834
+        }
+      },
+      {
+        "comment": "",
+        "key": "确定",
+        "location": {
+          "startingColumn": 20,
+          "startingLine": 881
+        }
+      },
+      {
+        "comment": "",
+        "key": "产品选择",
+        "location": {
+          "startingColumn": 18,
+          "startingLine": 891
+        }
+      },
+      {
+        "comment": "",
+        "key": "选择产品",
+        "location": {
+          "startingColumn": 24,
+          "startingLine": 896
+        }
+      },
+      {
+        "comment": "",
+        "key": "请选择产品...",
+        "location": {
+          "startingColumn": 26,
+          "startingLine": 897
+        }
+      },
+      {
+        "comment": "",
+        "key": "暂无可用产品",
+        "location": {
+          "startingColumn": 30,
+          "startingLine": 915
+        }
+      },
+      {
+        "comment": "",
+        "key": "请联系管理员添加产品",
+        "location": {
+          "startingColumn": 30,
+          "startingLine": 918
+        }
+      },
+      {
+        "comment": "",
+        "key": "颜色选择",
+        "location": {
+          "startingColumn": 22,
+          "startingLine": 936
+        }
+      },
+      {
+        "comment": "",
+        "key": "已从喷枪配置自动填充",
+        "location": {
+          "startingColumn": 30,
+          "startingLine": 948
+        }
+      },
+      {
+        "comment": "",
+        "key": "工位数量选择",
+        "location": {
+          "startingColumn": 18,
+          "startingLine": 1011
+        }
+      },
+      {
+        "comment": "",
+        "key": "其他",
+        "location": {
+          "startingColumn": 24,
+          "startingLine": 1028
+        }
+      },
+      {
+        "comment": "",
+        "key": "%lld 工位",
+        "location": {
+          "startingColumn": 28,
+          "startingLine": 1017
+        }
+      },
+      {
+        "comment": "",
+        "key": "选择所需工位 (至少 %lld 个) - 仅限 %@ 工位",
+        "location": {
+          "startingColumn": 26,
+          "startingLine": 1042
+        }
+      },
+      {
+        "comment": "",
+        "key": "所选喷枪无可用工位",
+        "location": {
+          "startingColumn": 30,
+          "startingLine": 1067
+        }
+      },
+      {
+        "comment": "",
+        "key": "%lld",
+        "location": {
+          "startingColumn": 36,
+          "startingLine": 1052
+        }
+      },
+      {
+        "comment": "",
+        "key": "喷枪分配",
+        "location": {
+          "startingColumn": 18,
+          "startingLine": 1085
+        }
+      },
+      {
+        "comment": "",
+        "key": "双色产品自动分配：主颜色→Gun A，副颜色→Gun B",
+        "location": {
+          "startingColumn": 26,
+          "startingLine": 1091
+        }
+      },
+      {
+        "comment": "",
+        "key": "Gun A",
+        "location": {
+          "startingColumn": 34,
+          "startingLine": 1098
+        }
+      },
+      {
+        "comment": "",
+        "key": "主颜色",
+        "location": {
+          "startingColumn": 34,
+          "startingLine": 1101
+        }
+      },
+      {
+        "comment": "",
+        "key": "Gun B",
+        "location": {
+          "startingColumn": 34,
+          "startingLine": 1124
+        }
+      },
+      {
+        "comment": "",
+        "key": "副颜色",
+        "location": {
+          "startingColumn": 34,
+          "startingLine": 1127
+        }
+      },
+      {
+        "comment": "",
+        "key": "%lld 个可用",
+        "location": {
+          "startingColumn": 34,
+          "startingLine": 1172
+        }
+      },
+      {
+        "comment": "",
+        "key": "Gun A",
+        "location": {
+          "startingColumn": 32,
+          "startingLine": 1153
+        }
+      },
+      {
+        "comment": "",
+        "key": "已满",
+        "location": {
+          "startingColumn": 47,
+          "startingLine": 1168
+        }
+      },
+      {
+        "comment": "",
+        "key": "工位不足",
+        "location": {
+          "startingColumn": 58,
+          "startingLine": 1168
+        }
+      },
+      {
+        "comment": "",
+        "key": "%lld 个可用",
+        "location": {
+          "startingColumn": 34,
+          "startingLine": 1198
+        }
+      },
+      {
+        "comment": "",
+        "key": "Gun B",
+        "location": {
+          "startingColumn": 32,
+          "startingLine": 1179
+        }
+      },
+      {
+        "comment": "",
+        "key": "已满",
+        "location": {
+          "startingColumn": 47,
+          "startingLine": 1194
+        }
+      },
+      {
+        "comment": "",
+        "key": "工位不足",
+        "location": {
+          "startingColumn": 58,
+          "startingLine": 1194
+        }
+      },
+      {
+        "comment": "",
+        "key": "时间配置",
+        "location": {
+          "startingColumn": 18,
+          "startingLine": 1213
+        }
+      },
+      {
+        "comment": "",
+        "key": "审批目标日期",
+        "location": {
+          "startingColumn": 26,
+          "startingLine": 1220
+        }
+      },
+      {
+        "comment": "",
+        "key": "选定日期: %@",
+        "location": {
+          "startingColumn": 26,
+          "startingLine": 1249
+        }
+      },
+      {
+        "comment": "",
+        "key": "今天",
+        "location": {
+          "startingColumn": 32,
+          "startingLine": 1226
+        }
+      },
+      {
+        "comment": "",
+        "key": "明天",
+        "location": {
+          "startingColumn": 32,
+          "startingLine": 1237
+        }
+      },
+      {
+        "comment": "",
+        "key": "",
+        "location": {
+          "startingColumn": 32,
+          "startingLine": 1274
+        }
+      },
+      {
+        "comment": "",
+        "key": "开始时间",
+        "location": {
+          "startingColumn": 30,
+          "startingLine": 1257
+        }
+      },
+      {
+        "comment": "",
+        "key": "*",
+        "location": {
+          "startingColumn": 30,
+          "startingLine": 1261
+        }
+      },
+      {
+        "comment": "",
+        "key": "工位分配预览",
+        "location": {
+          "startingColumn": 18,
+          "startingLine": 1301
+        }
+      },
+      {
+        "comment": "",
+        "key": "已选择 %lld 个工位",
+        "location": {
+          "startingColumn": 18,
+          "startingLine": 1305
+        }
+      },
+      {
+        "comment": "",
+        "key": "Gun A",
+        "location": {
+          "startingColumn": 30,
+          "startingLine": 1313
+        }
+      },
+      {
+        "comment": "",
+        "key": "Gun B",
+        "location": {
+          "startingColumn": 30,
+          "startingLine": 1330
+        }
+      },
+      {
+        "comment": "",
+        "key": "工位选择",
+        "location": {
+          "startingColumn": 18,
+          "startingLine": 1355
+        }
+      },
+      {
+        "comment": "",
+        "key": "至少选择 %lld 个工位",
+        "location": {
+          "startingColumn": 18,
+          "startingLine": 1359
+        }
+      },
+      {
+        "comment": "",
+        "key": "%lld",
+        "location": {
+          "startingColumn": 28,
+          "startingLine": 1365
+        }
+      },
+      {
+        "comment": "",
+        "key": "已配置",
+        "location": {
+          "startingColumn": 22,
+          "startingLine": 1678
+        }
+      },
+      {
+        "comment": "",
+        "key": "%lld",
+        "location": {
+          "startingColumn": 22,
+          "startingLine": 1769
+        }
+      },
+      {
+        "comment": "",
+        "key": "%lld",
+        "location": {
+          "startingColumn": 38,
+          "startingLine": 1823
+        }
+      },
+      {
+        "comment": "",
+        "key": "拒绝原因: %@",
+        "location": {
+          "startingColumn": 30,
+          "startingLine": 1956
+        }
+      },
+      {
+        "comment": "",
+        "key": "•",
+        "location": {
+          "startingColumn": 38,
+          "startingLine": 1924
+        }
+      },
+      {
+        "comment": "",
+        "key": "%lld 产品",
+        "location": {
+          "startingColumn": 38,
+          "startingLine": 1928
+        }
+      },
+      {
+        "comment": "",
+        "key": "•",
+        "location": {
+          "startingColumn": 38,
+          "startingLine": 1932
+        }
+      },
+      {
+        "comment": "",
+        "key": "%lld 工位",
+        "location": {
+          "startingColumn": 38,
+          "startingLine": 1936
+        }
+      },
+      {
+        "comment": "",
+        "key": "提交者: %@",
+        "location": {
+          "startingColumn": 30,
+          "startingLine": 1944
+        }
+      },
+      {
+        "comment": "",
+        "key": "目标: %@",
+        "location": {
+          "startingColumn": 30,
+          "startingLine": 1950
+        }
+      },
+      {
+        "comment": "",
+        "key": "执行",
+        "location": {
+          "startingColumn": 32,
+          "startingLine": 1966
+        }
+      },
+      {
+        "comment": "",
+        "key": "重新创建",
+        "location": {
+          "startingColumn": 32,
+          "startingLine": 1981
+        }
+      },
+      {
+        "comment": "",
+        "key": "批次详情",
+        "location": {
+          "startingColumn": 30,
+          "startingLine": 2060
+        }
+      },
+      {
+        "comment": "",
+        "key": "关闭",
+        "location": {
+          "startingColumn": 28,
+          "startingLine": 2064
+        }
+      },
+      {
+        "comment": "",
+        "key": "批次编号",
+        "location": {
+          "startingColumn": 26,
+          "startingLine": 2076
+        }
+      },
+      {
+        "comment": "",
+        "key": "状态",
+        "location": {
+          "startingColumn": 26,
+          "startingLine": 2087
+        }
+      },
+      {
+        "comment": "",
+        "key": "提交者: %@",
+        "location": {
+          "startingColumn": 22,
+          "startingLine": 2104
+        }
+      },
+      {
+        "comment": "",
+        "key": "提交时间: %@",
+        "location": {
+          "startingColumn": 22,
+          "startingLine": 2110
+        }
+      },
+      {
+        "comment": "",
+        "key": "设备和生产模式",
+        "location": {
+          "startingColumn": 18,
+          "startingLine": 2122
+        }
+      },
+      {
+        "comment": "",
+        "key": "生产设备",
+        "location": {
+          "startingColumn": 26,
+          "startingLine": 2128
+        }
+      },
+      {
+        "comment": "",
+        "key": "(%@)",
+        "location": {
+          "startingColumn": 30,
+          "startingLine": 2135
+        }
+      },
+      {
+        "comment": "",
+        "key": "生产模式",
+        "location": {
+          "startingColumn": 26,
+          "startingLine": 2143
+        }
+      },
+      {
+        "comment": "",
+        "key": "产品配置 (%lld/%lld)",
+        "location": {
+          "startingColumn": 18,
+          "startingLine": 2163
+        }
+      },
+      {
+        "comment": "",
+        "key": "暂无产品配置",
+        "location": {
+          "startingColumn": 22,
+          "startingLine": 2168
+        }
+      },
+      {
+        "comment": "",
+        "key": "工位分配 (%lld/12)",
+        "location": {
+          "startingColumn": 18,
+          "startingLine": 2188
+        }
+      },
+      {
+        "comment": "",
+        "key": "Gun A",
+        "location": {
+          "startingColumn": 26,
+          "startingLine": 2195
+        }
+      },
+      {
+        "comment": "",
+        "key": "Gun B",
+        "location": {
+          "startingColumn": 26,
+          "startingLine": 2211
+        }
+      },
+      {
+        "comment": "",
+        "key": "审批信息",
+        "location": {
+          "startingColumn": 18,
+          "startingLine": 2233
+        }
+      },
+      {
+        "comment": "",
+        "key": "审批目标日期:",
+        "location": {
+          "startingColumn": 26,
+          "startingLine": 2239
+        }
+      },
+      {
+        "comment": "",
+        "key": "审批时间:",
+        "location": {
+          "startingColumn": 30,
+          "startingLine": 2250
+        }
+      },
+      {
+        "comment": "",
+        "key": "审批人:",
+        "location": {
+          "startingColumn": 30,
+          "startingLine": 2262
+        }
+      },
+      {
+        "comment": "",
+        "key": "审批备注:",
+        "location": {
+          "startingColumn": 30,
+          "startingLine": 2274
+        }
+      },
+      {
+        "comment": "",
+        "key": "开始时间: %@",
+        "location": {
+          "startingColumn": 26,
+          "startingLine": 2365
+        }
+      },
+      {
+        "comment": "",
+        "key": "%lld",
+        "location": {
+          "startingColumn": 26,
+          "startingLine": 2425
+        }
+      }
+    ]
+  },
+  "version": 1
+}

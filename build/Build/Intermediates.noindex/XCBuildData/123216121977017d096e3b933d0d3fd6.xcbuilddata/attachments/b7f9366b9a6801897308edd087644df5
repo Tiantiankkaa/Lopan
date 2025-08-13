@@ -1,0 +1,1328 @@
+{
+  "" : {
+    "diagnostics" : "/Users/bobo/Desktop/Lopan/build/Build/Intermediates.noindex/Lopan.build/Debug-iphonesimulator/Lopan.build/Objects-normal/arm64/Lopan-master.dia",
+    "emit-module-dependencies" : "/Users/bobo/Desktop/Lopan/build/Build/Intermediates.noindex/Lopan.build/Debug-iphonesimulator/Lopan.build/Objects-normal/arm64/Lopan-master-emit-module.d",
+    "emit-module-diagnostics" : "/Users/bobo/Desktop/Lopan/build/Build/Intermediates.noindex/Lopan.build/Debug-iphonesimulator/Lopan.build/Objects-normal/arm64/Lopan-master-emit-module.dia",
+    "swift-dependencies" : "/Users/bobo/Desktop/Lopan/build/Build/Intermediates.noindex/Lopan.build/Debug-iphonesimulator/Lopan.build/Objects-normal/arm64/Lopan-master.swiftdeps"
+  },
+  "/Users/bobo/Desktop/Lopan/Lopan/Configuration/FileSharingConfig.swift" : {
+    "const-values" : "/Users/bobo/Desktop/Lopan/build/Build/Intermediates.noindex/Lopan.build/Debug-iphonesimulator/Lopan.build/Objects-normal/arm64/FileSharingConfig.swiftconstvalues",
+    "dependencies" : "/Users/bobo/Desktop/Lopan/build/Build/Intermediates.noindex/Lopan.build/Debug-iphonesimulator/Lopan.build/Objects-normal/arm64/FileSharingConfig.d",
+    "diagnostics" : "/Users/bobo/Desktop/Lopan/build/Build/Intermediates.noindex/Lopan.build/Debug-iphonesimulator/Lopan.build/Objects-normal/arm64/FileSharingConfig.dia",
+    "index-unit-output-path" : "/Lopan.build/Debug-iphonesimulator/Lopan.build/Objects-normal/arm64/FileSharingConfig.o",
+    "llvm-bc" : "/Users/bobo/Desktop/Lopan/build/Build/Intermediates.noindex/Lopan.build/Debug-iphonesimulator/Lopan.build/Objects-normal/arm64/FileSharingConfig.bc",
+    "object" : "/Users/bobo/Desktop/Lopan/build/Build/Intermediates.noindex/Lopan.build/Debug-iphonesimulator/Lopan.build/Objects-normal/arm64/FileSharingConfig.o",
+    "swift-dependencies" : "/Users/bobo/Desktop/Lopan/build/Build/Intermediates.noindex/Lopan.build/Debug-iphonesimulator/Lopan.build/Objects-normal/arm64/FileSharingConfig.swiftdeps",
+    "swiftmodule" : "/Users/bobo/Desktop/Lopan/build/Build/Intermediates.noindex/Lopan.build/Debug-iphonesimulator/Lopan.build/Objects-normal/arm64/FileSharingConfig~partial.swiftmodule"
+  },
+  "/Users/bobo/Desktop/Lopan/Lopan/ContentView.swift" : {
+    "const-values" : "/Users/bobo/Desktop/Lopan/build/Build/Intermediates.noindex/Lopan.build/Debug-iphonesimulator/Lopan.build/Objects-normal/arm64/ContentView.swiftconstvalues",
+    "dependencies" : "/Users/bobo/Desktop/Lopan/build/Build/Intermediates.noindex/Lopan.build/Debug-iphonesimulator/Lopan.build/Objects-normal/arm64/ContentView.d",
+    "diagnostics" : "/Users/bobo/Desktop/Lopan/build/Build/Intermediates.noindex/Lopan.build/Debug-iphonesimulator/Lopan.build/Objects-normal/arm64/ContentView.dia",
+    "index-unit-output-path" : "/Lopan.build/Debug-iphonesimulator/Lopan.build/Objects-normal/arm64/ContentView.o",
+    "llvm-bc" : "/Users/bobo/Desktop/Lopan/build/Build/Intermediates.noindex/Lopan.build/Debug-iphonesimulator/Lopan.build/Objects-normal/arm64/ContentView.bc",
+    "object" : "/Users/bobo/Desktop/Lopan/build/Build/Intermediates.noindex/Lopan.build/Debug-iphonesimulator/Lopan.build/Objects-normal/arm64/ContentView.o",
+    "swift-dependencies" : "/Users/bobo/Desktop/Lopan/build/Build/Intermediates.noindex/Lopan.build/Debug-iphonesimulator/Lopan.build/Objects-normal/arm64/ContentView.swiftdeps",
+    "swiftmodule" : "/Users/bobo/Desktop/Lopan/build/Build/Intermediates.noindex/Lopan.build/Debug-iphonesimulator/Lopan.build/Objects-normal/arm64/ContentView~partial.swiftmodule"
+  },
+  "/Users/bobo/Desktop/Lopan/Lopan/DesignSystem/Components/Foundation/LopanBadge.swift" : {
+    "const-values" : "/Users/bobo/Desktop/Lopan/build/Build/Intermediates.noindex/Lopan.build/Debug-iphonesimulator/Lopan.build/Objects-normal/arm64/LopanBadge.swiftconstvalues",
+    "dependencies" : "/Users/bobo/Desktop/Lopan/build/Build/Intermediates.noindex/Lopan.build/Debug-iphonesimulator/Lopan.build/Objects-normal/arm64/LopanBadge.d",
+    "diagnostics" : "/Users/bobo/Desktop/Lopan/build/Build/Intermediates.noindex/Lopan.build/Debug-iphonesimulator/Lopan.build/Objects-normal/arm64/LopanBadge.dia",
+    "index-unit-output-path" : "/Lopan.build/Debug-iphonesimulator/Lopan.build/Objects-normal/arm64/LopanBadge.o",
+    "llvm-bc" : "/Users/bobo/Desktop/Lopan/build/Build/Intermediates.noindex/Lopan.build/Debug-iphonesimulator/Lopan.build/Objects-normal/arm64/LopanBadge.bc",
+    "object" : "/Users/bobo/Desktop/Lopan/build/Build/Intermediates.noindex/Lopan.build/Debug-iphonesimulator/Lopan.build/Objects-normal/arm64/LopanBadge.o",
+    "swift-dependencies" : "/Users/bobo/Desktop/Lopan/build/Build/Intermediates.noindex/Lopan.build/Debug-iphonesimulator/Lopan.build/Objects-normal/arm64/LopanBadge.swiftdeps",
+    "swiftmodule" : "/Users/bobo/Desktop/Lopan/build/Build/Intermediates.noindex/Lopan.build/Debug-iphonesimulator/Lopan.build/Objects-normal/arm64/LopanBadge~partial.swiftmodule"
+  },
+  "/Users/bobo/Desktop/Lopan/Lopan/DesignSystem/Components/Foundation/LopanButton.swift" : {
+    "const-values" : "/Users/bobo/Desktop/Lopan/build/Build/Intermediates.noindex/Lopan.build/Debug-iphonesimulator/Lopan.build/Objects-normal/arm64/LopanButton.swiftconstvalues",
+    "dependencies" : "/Users/bobo/Desktop/Lopan/build/Build/Intermediates.noindex/Lopan.build/Debug-iphonesimulator/Lopan.build/Objects-normal/arm64/LopanButton.d",
+    "diagnostics" : "/Users/bobo/Desktop/Lopan/build/Build/Intermediates.noindex/Lopan.build/Debug-iphonesimulator/Lopan.build/Objects-normal/arm64/LopanButton.dia",
+    "index-unit-output-path" : "/Lopan.build/Debug-iphonesimulator/Lopan.build/Objects-normal/arm64/LopanButton.o",
+    "llvm-bc" : "/Users/bobo/Desktop/Lopan/build/Build/Intermediates.noindex/Lopan.build/Debug-iphonesimulator/Lopan.build/Objects-normal/arm64/LopanButton.bc",
+    "object" : "/Users/bobo/Desktop/Lopan/build/Build/Intermediates.noindex/Lopan.build/Debug-iphonesimulator/Lopan.build/Objects-normal/arm64/LopanButton.o",
+    "swift-dependencies" : "/Users/bobo/Desktop/Lopan/build/Build/Intermediates.noindex/Lopan.build/Debug-iphonesimulator/Lopan.build/Objects-normal/arm64/LopanButton.swiftdeps",
+    "swiftmodule" : "/Users/bobo/Desktop/Lopan/build/Build/Intermediates.noindex/Lopan.build/Debug-iphonesimulator/Lopan.build/Objects-normal/arm64/LopanButton~partial.swiftmodule"
+  },
+  "/Users/bobo/Desktop/Lopan/Lopan/DesignSystem/Components/Foundation/LopanCard.swift" : {
+    "const-values" : "/Users/bobo/Desktop/Lopan/build/Build/Intermediates.noindex/Lopan.build/Debug-iphonesimulator/Lopan.build/Objects-normal/arm64/LopanCard.swiftconstvalues",
+    "dependencies" : "/Users/bobo/Desktop/Lopan/build/Build/Intermediates.noindex/Lopan.build/Debug-iphonesimulator/Lopan.build/Objects-normal/arm64/LopanCard.d",
+    "diagnostics" : "/Users/bobo/Desktop/Lopan/build/Build/Intermediates.noindex/Lopan.build/Debug-iphonesimulator/Lopan.build/Objects-normal/arm64/LopanCard.dia",
+    "index-unit-output-path" : "/Lopan.build/Debug-iphonesimulator/Lopan.build/Objects-normal/arm64/LopanCard.o",
+    "llvm-bc" : "/Users/bobo/Desktop/Lopan/build/Build/Intermediates.noindex/Lopan.build/Debug-iphonesimulator/Lopan.build/Objects-normal/arm64/LopanCard.bc",
+    "object" : "/Users/bobo/Desktop/Lopan/build/Build/Intermediates.noindex/Lopan.build/Debug-iphonesimulator/Lopan.build/Objects-normal/arm64/LopanCard.o",
+    "swift-dependencies" : "/Users/bobo/Desktop/Lopan/build/Build/Intermediates.noindex/Lopan.build/Debug-iphonesimulator/Lopan.build/Objects-normal/arm64/LopanCard.swiftdeps",
+    "swiftmodule" : "/Users/bobo/Desktop/Lopan/build/Build/Intermediates.noindex/Lopan.build/Debug-iphonesimulator/Lopan.build/Objects-normal/arm64/LopanCard~partial.swiftmodule"
+  },
+  "/Users/bobo/Desktop/Lopan/Lopan/DesignSystem/Components/Foundation/LopanList.swift" : {
+    "const-values" : "/Users/bobo/Desktop/Lopan/build/Build/Intermediates.noindex/Lopan.build/Debug-iphonesimulator/Lopan.build/Objects-normal/arm64/LopanList.swiftconstvalues",
+    "dependencies" : "/Users/bobo/Desktop/Lopan/build/Build/Intermediates.noindex/Lopan.build/Debug-iphonesimulator/Lopan.build/Objects-normal/arm64/LopanList.d",
+    "diagnostics" : "/Users/bobo/Desktop/Lopan/build/Build/Intermediates.noindex/Lopan.build/Debug-iphonesimulator/Lopan.build/Objects-normal/arm64/LopanList.dia",
+    "index-unit-output-path" : "/Lopan.build/Debug-iphonesimulator/Lopan.build/Objects-normal/arm64/LopanList.o",
+    "llvm-bc" : "/Users/bobo/Desktop/Lopan/build/Build/Intermediates.noindex/Lopan.build/Debug-iphonesimulator/Lopan.build/Objects-normal/arm64/LopanList.bc",
+    "object" : "/Users/bobo/Desktop/Lopan/build/Build/Intermediates.noindex/Lopan.build/Debug-iphonesimulator/Lopan.build/Objects-normal/arm64/LopanList.o",
+    "swift-dependencies" : "/Users/bobo/Desktop/Lopan/build/Build/Intermediates.noindex/Lopan.build/Debug-iphonesimulator/Lopan.build/Objects-normal/arm64/LopanList.swiftdeps",
+    "swiftmodule" : "/Users/bobo/Desktop/Lopan/build/Build/Intermediates.noindex/Lopan.build/Debug-iphonesimulator/Lopan.build/Objects-normal/arm64/LopanList~partial.swiftmodule"
+  },
+  "/Users/bobo/Desktop/Lopan/Lopan/DesignSystem/Components/Foundation/LopanSearchBar.swift" : {
+    "const-values" : "/Users/bobo/Desktop/Lopan/build/Build/Intermediates.noindex/Lopan.build/Debug-iphonesimulator/Lopan.build/Objects-normal/arm64/LopanSearchBar.swiftconstvalues",
+    "dependencies" : "/Users/bobo/Desktop/Lopan/build/Build/Intermediates.noindex/Lopan.build/Debug-iphonesimulator/Lopan.build/Objects-normal/arm64/LopanSearchBar.d",
+    "diagnostics" : "/Users/bobo/Desktop/Lopan/build/Build/Intermediates.noindex/Lopan.build/Debug-iphonesimulator/Lopan.build/Objects-normal/arm64/LopanSearchBar.dia",
+    "index-unit-output-path" : "/Lopan.build/Debug-iphonesimulator/Lopan.build/Objects-normal/arm64/LopanSearchBar.o",
+    "llvm-bc" : "/Users/bobo/Desktop/Lopan/build/Build/Intermediates.noindex/Lopan.build/Debug-iphonesimulator/Lopan.build/Objects-normal/arm64/LopanSearchBar.bc",
+    "object" : "/Users/bobo/Desktop/Lopan/build/Build/Intermediates.noindex/Lopan.build/Debug-iphonesimulator/Lopan.build/Objects-normal/arm64/LopanSearchBar.o",
+    "swift-dependencies" : "/Users/bobo/Desktop/Lopan/build/Build/Intermediates.noindex/Lopan.build/Debug-iphonesimulator/Lopan.build/Objects-normal/arm64/LopanSearchBar.swiftdeps",
+    "swiftmodule" : "/Users/bobo/Desktop/Lopan/build/Build/Intermediates.noindex/Lopan.build/Debug-iphonesimulator/Lopan.build/Objects-normal/arm64/LopanSearchBar~partial.swiftmodule"
+  },
+  "/Users/bobo/Desktop/Lopan/Lopan/DesignSystem/Components/Foundation/LopanTextField.swift" : {
+    "const-values" : "/Users/bobo/Desktop/Lopan/build/Build/Intermediates.noindex/Lopan.build/Debug-iphonesimulator/Lopan.build/Objects-normal/arm64/LopanTextField.swiftconstvalues",
+    "dependencies" : "/Users/bobo/Desktop/Lopan/build/Build/Intermediates.noindex/Lopan.build/Debug-iphonesimulator/Lopan.build/Objects-normal/arm64/LopanTextField.d",
+    "diagnostics" : "/Users/bobo/Desktop/Lopan/build/Build/Intermediates.noindex/Lopan.build/Debug-iphonesimulator/Lopan.build/Objects-normal/arm64/LopanTextField.dia",
+    "index-unit-output-path" : "/Lopan.build/Debug-iphonesimulator/Lopan.build/Objects-normal/arm64/LopanTextField.o",
+    "llvm-bc" : "/Users/bobo/Desktop/Lopan/build/Build/Intermediates.noindex/Lopan.build/Debug-iphonesimulator/Lopan.build/Objects-normal/arm64/LopanTextField.bc",
+    "object" : "/Users/bobo/Desktop/Lopan/build/Build/Intermediates.noindex/Lopan.build/Debug-iphonesimulator/Lopan.build/Objects-normal/arm64/LopanTextField.o",
+    "swift-dependencies" : "/Users/bobo/Desktop/Lopan/build/Build/Intermediates.noindex/Lopan.build/Debug-iphonesimulator/Lopan.build/Objects-normal/arm64/LopanTextField.swiftdeps",
+    "swiftmodule" : "/Users/bobo/Desktop/Lopan/build/Build/Intermediates.noindex/Lopan.build/Debug-iphonesimulator/Lopan.build/Objects-normal/arm64/LopanTextField~partial.swiftmodule"
+  },
+  "/Users/bobo/Desktop/Lopan/Lopan/DesignSystem/Components/Foundation/LopanToolbar.swift" : {
+    "const-values" : "/Users/bobo/Desktop/Lopan/build/Build/Intermediates.noindex/Lopan.build/Debug-iphonesimulator/Lopan.build/Objects-normal/arm64/LopanToolbar.swiftconstvalues",
+    "dependencies" : "/Users/bobo/Desktop/Lopan/build/Build/Intermediates.noindex/Lopan.build/Debug-iphonesimulator/Lopan.build/Objects-normal/arm64/LopanToolbar.d",
+    "diagnostics" : "/Users/bobo/Desktop/Lopan/build/Build/Intermediates.noindex/Lopan.build/Debug-iphonesimulator/Lopan.build/Objects-normal/arm64/LopanToolbar.dia",
+    "index-unit-output-path" : "/Lopan.build/Debug-iphonesimulator/Lopan.build/Objects-normal/arm64/LopanToolbar.o",
+    "llvm-bc" : "/Users/bobo/Desktop/Lopan/build/Build/Intermediates.noindex/Lopan.build/Debug-iphonesimulator/Lopan.build/Objects-normal/arm64/LopanToolbar.bc",
+    "object" : "/Users/bobo/Desktop/Lopan/build/Build/Intermediates.noindex/Lopan.build/Debug-iphonesimulator/Lopan.build/Objects-normal/arm64/LopanToolbar.o",
+    "swift-dependencies" : "/Users/bobo/Desktop/Lopan/build/Build/Intermediates.noindex/Lopan.build/Debug-iphonesimulator/Lopan.build/Objects-normal/arm64/LopanToolbar.swiftdeps",
+    "swiftmodule" : "/Users/bobo/Desktop/Lopan/build/Build/Intermediates.noindex/Lopan.build/Debug-iphonesimulator/Lopan.build/Objects-normal/arm64/LopanToolbar~partial.swiftmodule"
+  },
+  "/Users/bobo/Desktop/Lopan/Lopan/DesignSystem/Components/Foundation/SafeOverlayModifier.swift" : {
+    "const-values" : "/Users/bobo/Desktop/Lopan/build/Build/Intermediates.noindex/Lopan.build/Debug-iphonesimulator/Lopan.build/Objects-normal/arm64/SafeOverlayModifier.swiftconstvalues",
+    "dependencies" : "/Users/bobo/Desktop/Lopan/build/Build/Intermediates.noindex/Lopan.build/Debug-iphonesimulator/Lopan.build/Objects-normal/arm64/SafeOverlayModifier.d",
+    "diagnostics" : "/Users/bobo/Desktop/Lopan/build/Build/Intermediates.noindex/Lopan.build/Debug-iphonesimulator/Lopan.build/Objects-normal/arm64/SafeOverlayModifier.dia",
+    "index-unit-output-path" : "/Lopan.build/Debug-iphonesimulator/Lopan.build/Objects-normal/arm64/SafeOverlayModifier.o",
+    "llvm-bc" : "/Users/bobo/Desktop/Lopan/build/Build/Intermediates.noindex/Lopan.build/Debug-iphonesimulator/Lopan.build/Objects-normal/arm64/SafeOverlayModifier.bc",
+    "object" : "/Users/bobo/Desktop/Lopan/build/Build/Intermediates.noindex/Lopan.build/Debug-iphonesimulator/Lopan.build/Objects-normal/arm64/SafeOverlayModifier.o",
+    "swift-dependencies" : "/Users/bobo/Desktop/Lopan/build/Build/Intermediates.noindex/Lopan.build/Debug-iphonesimulator/Lopan.build/Objects-normal/arm64/SafeOverlayModifier.swiftdeps",
+    "swiftmodule" : "/Users/bobo/Desktop/Lopan/build/Build/Intermediates.noindex/Lopan.build/Debug-iphonesimulator/Lopan.build/Objects-normal/arm64/SafeOverlayModifier~partial.swiftmodule"
+  },
+  "/Users/bobo/Desktop/Lopan/Lopan/DesignSystem/Components/Specialized/LopanEntityRow.swift" : {
+    "const-values" : "/Users/bobo/Desktop/Lopan/build/Build/Intermediates.noindex/Lopan.build/Debug-iphonesimulator/Lopan.build/Objects-normal/arm64/LopanEntityRow.swiftconstvalues",
+    "dependencies" : "/Users/bobo/Desktop/Lopan/build/Build/Intermediates.noindex/Lopan.build/Debug-iphonesimulator/Lopan.build/Objects-normal/arm64/LopanEntityRow.d",
+    "diagnostics" : "/Users/bobo/Desktop/Lopan/build/Build/Intermediates.noindex/Lopan.build/Debug-iphonesimulator/Lopan.build/Objects-normal/arm64/LopanEntityRow.dia",
+    "index-unit-output-path" : "/Lopan.build/Debug-iphonesimulator/Lopan.build/Objects-normal/arm64/LopanEntityRow.o",
+    "llvm-bc" : "/Users/bobo/Desktop/Lopan/build/Build/Intermediates.noindex/Lopan.build/Debug-iphonesimulator/Lopan.build/Objects-normal/arm64/LopanEntityRow.bc",
+    "object" : "/Users/bobo/Desktop/Lopan/build/Build/Intermediates.noindex/Lopan.build/Debug-iphonesimulator/Lopan.build/Objects-normal/arm64/LopanEntityRow.o",
+    "swift-dependencies" : "/Users/bobo/Desktop/Lopan/build/Build/Intermediates.noindex/Lopan.build/Debug-iphonesimulator/Lopan.build/Objects-normal/arm64/LopanEntityRow.swiftdeps",
+    "swiftmodule" : "/Users/bobo/Desktop/Lopan/build/Build/Intermediates.noindex/Lopan.build/Debug-iphonesimulator/Lopan.build/Objects-normal/arm64/LopanEntityRow~partial.swiftmodule"
+  },
+  "/Users/bobo/Desktop/Lopan/Lopan/DesignSystem/Components/Specialized/ModernDashboardCard.swift" : {
+    "const-values" : "/Users/bobo/Desktop/Lopan/build/Build/Intermediates.noindex/Lopan.build/Debug-iphonesimulator/Lopan.build/Objects-normal/arm64/ModernDashboardCard.swiftconstvalues",
+    "dependencies" : "/Users/bobo/Desktop/Lopan/build/Build/Intermediates.noindex/Lopan.build/Debug-iphonesimulator/Lopan.build/Objects-normal/arm64/ModernDashboardCard.d",
+    "diagnostics" : "/Users/bobo/Desktop/Lopan/build/Build/Intermediates.noindex/Lopan.build/Debug-iphonesimulator/Lopan.build/Objects-normal/arm64/ModernDashboardCard.dia",
+    "index-unit-output-path" : "/Lopan.build/Debug-iphonesimulator/Lopan.build/Objects-normal/arm64/ModernDashboardCard.o",
+    "llvm-bc" : "/Users/bobo/Desktop/Lopan/build/Build/Intermediates.noindex/Lopan.build/Debug-iphonesimulator/Lopan.build/Objects-normal/arm64/ModernDashboardCard.bc",
+    "object" : "/Users/bobo/Desktop/Lopan/build/Build/Intermediates.noindex/Lopan.build/Debug-iphonesimulator/Lopan.build/Objects-normal/arm64/ModernDashboardCard.o",
+    "swift-dependencies" : "/Users/bobo/Desktop/Lopan/build/Build/Intermediates.noindex/Lopan.build/Debug-iphonesimulator/Lopan.build/Objects-normal/arm64/ModernDashboardCard.swiftdeps",
+    "swiftmodule" : "/Users/bobo/Desktop/Lopan/build/Build/Intermediates.noindex/Lopan.build/Debug-iphonesimulator/Lopan.build/Objects-normal/arm64/ModernDashboardCard~partial.swiftmodule"
+  },
+  "/Users/bobo/Desktop/Lopan/Lopan/DesignSystem/Theme/ThemeProvider.swift" : {
+    "const-values" : "/Users/bobo/Desktop/Lopan/build/Build/Intermediates.noindex/Lopan.build/Debug-iphonesimulator/Lopan.build/Objects-normal/arm64/ThemeProvider.swiftconstvalues",
+    "dependencies" : "/Users/bobo/Desktop/Lopan/build/Build/Intermediates.noindex/Lopan.build/Debug-iphonesimulator/Lopan.build/Objects-normal/arm64/ThemeProvider.d",
+    "diagnostics" : "/Users/bobo/Desktop/Lopan/build/Build/Intermediates.noindex/Lopan.build/Debug-iphonesimulator/Lopan.build/Objects-normal/arm64/ThemeProvider.dia",
+    "index-unit-output-path" : "/Lopan.build/Debug-iphonesimulator/Lopan.build/Objects-normal/arm64/ThemeProvider.o",
+    "llvm-bc" : "/Users/bobo/Desktop/Lopan/build/Build/Intermediates.noindex/Lopan.build/Debug-iphonesimulator/Lopan.build/Objects-normal/arm64/ThemeProvider.bc",
+    "object" : "/Users/bobo/Desktop/Lopan/build/Build/Intermediates.noindex/Lopan.build/Debug-iphonesimulator/Lopan.build/Objects-normal/arm64/ThemeProvider.o",
+    "swift-dependencies" : "/Users/bobo/Desktop/Lopan/build/Build/Intermediates.noindex/Lopan.build/Debug-iphonesimulator/Lopan.build/Objects-normal/arm64/ThemeProvider.swiftdeps",
+    "swiftmodule" : "/Users/bobo/Desktop/Lopan/build/Build/Intermediates.noindex/Lopan.build/Debug-iphonesimulator/Lopan.build/Objects-normal/arm64/ThemeProvider~partial.swiftmodule"
+  },
+  "/Users/bobo/Desktop/Lopan/Lopan/DesignSystem/Tokens/LopanAnimation.swift" : {
+    "const-values" : "/Users/bobo/Desktop/Lopan/build/Build/Intermediates.noindex/Lopan.build/Debug-iphonesimulator/Lopan.build/Objects-normal/arm64/LopanAnimation.swiftconstvalues",
+    "dependencies" : "/Users/bobo/Desktop/Lopan/build/Build/Intermediates.noindex/Lopan.build/Debug-iphonesimulator/Lopan.build/Objects-normal/arm64/LopanAnimation.d",
+    "diagnostics" : "/Users/bobo/Desktop/Lopan/build/Build/Intermediates.noindex/Lopan.build/Debug-iphonesimulator/Lopan.build/Objects-normal/arm64/LopanAnimation.dia",
+    "index-unit-output-path" : "/Lopan.build/Debug-iphonesimulator/Lopan.build/Objects-normal/arm64/LopanAnimation.o",
+    "llvm-bc" : "/Users/bobo/Desktop/Lopan/build/Build/Intermediates.noindex/Lopan.build/Debug-iphonesimulator/Lopan.build/Objects-normal/arm64/LopanAnimation.bc",
+    "object" : "/Users/bobo/Desktop/Lopan/build/Build/Intermediates.noindex/Lopan.build/Debug-iphonesimulator/Lopan.build/Objects-normal/arm64/LopanAnimation.o",
+    "swift-dependencies" : "/Users/bobo/Desktop/Lopan/build/Build/Intermediates.noindex/Lopan.build/Debug-iphonesimulator/Lopan.build/Objects-normal/arm64/LopanAnimation.swiftdeps",
+    "swiftmodule" : "/Users/bobo/Desktop/Lopan/build/Build/Intermediates.noindex/Lopan.build/Debug-iphonesimulator/Lopan.build/Objects-normal/arm64/LopanAnimation~partial.swiftmodule"
+  },
+  "/Users/bobo/Desktop/Lopan/Lopan/DesignSystem/Tokens/LopanColors.swift" : {
+    "const-values" : "/Users/bobo/Desktop/Lopan/build/Build/Intermediates.noindex/Lopan.build/Debug-iphonesimulator/Lopan.build/Objects-normal/arm64/LopanColors.swiftconstvalues",
+    "dependencies" : "/Users/bobo/Desktop/Lopan/build/Build/Intermediates.noindex/Lopan.build/Debug-iphonesimulator/Lopan.build/Objects-normal/arm64/LopanColors.d",
+    "diagnostics" : "/Users/bobo/Desktop/Lopan/build/Build/Intermediates.noindex/Lopan.build/Debug-iphonesimulator/Lopan.build/Objects-normal/arm64/LopanColors.dia",
+    "index-unit-output-path" : "/Lopan.build/Debug-iphonesimulator/Lopan.build/Objects-normal/arm64/LopanColors.o",
+    "llvm-bc" : "/Users/bobo/Desktop/Lopan/build/Build/Intermediates.noindex/Lopan.build/Debug-iphonesimulator/Lopan.build/Objects-normal/arm64/LopanColors.bc",
+    "object" : "/Users/bobo/Desktop/Lopan/build/Build/Intermediates.noindex/Lopan.build/Debug-iphonesimulator/Lopan.build/Objects-normal/arm64/LopanColors.o",
+    "swift-dependencies" : "/Users/bobo/Desktop/Lopan/build/Build/Intermediates.noindex/Lopan.build/Debug-iphonesimulator/Lopan.build/Objects-normal/arm64/LopanColors.swiftdeps",
+    "swiftmodule" : "/Users/bobo/Desktop/Lopan/build/Build/Intermediates.noindex/Lopan.build/Debug-iphonesimulator/Lopan.build/Objects-normal/arm64/LopanColors~partial.swiftmodule"
+  },
+  "/Users/bobo/Desktop/Lopan/Lopan/DesignSystem/Tokens/LopanCornerRadius.swift" : {
+    "const-values" : "/Users/bobo/Desktop/Lopan/build/Build/Intermediates.noindex/Lopan.build/Debug-iphonesimulator/Lopan.build/Objects-normal/arm64/LopanCornerRadius.swiftconstvalues",
+    "dependencies" : "/Users/bobo/Desktop/Lopan/build/Build/Intermediates.noindex/Lopan.build/Debug-iphonesimulator/Lopan.build/Objects-normal/arm64/LopanCornerRadius.d",
+    "diagnostics" : "/Users/bobo/Desktop/Lopan/build/Build/Intermediates.noindex/Lopan.build/Debug-iphonesimulator/Lopan.build/Objects-normal/arm64/LopanCornerRadius.dia",
+    "index-unit-output-path" : "/Lopan.build/Debug-iphonesimulator/Lopan.build/Objects-normal/arm64/LopanCornerRadius.o",
+    "llvm-bc" : "/Users/bobo/Desktop/Lopan/build/Build/Intermediates.noindex/Lopan.build/Debug-iphonesimulator/Lopan.build/Objects-normal/arm64/LopanCornerRadius.bc",
+    "object" : "/Users/bobo/Desktop/Lopan/build/Build/Intermediates.noindex/Lopan.build/Debug-iphonesimulator/Lopan.build/Objects-normal/arm64/LopanCornerRadius.o",
+    "swift-dependencies" : "/Users/bobo/Desktop/Lopan/build/Build/Intermediates.noindex/Lopan.build/Debug-iphonesimulator/Lopan.build/Objects-normal/arm64/LopanCornerRadius.swiftdeps",
+    "swiftmodule" : "/Users/bobo/Desktop/Lopan/build/Build/Intermediates.noindex/Lopan.build/Debug-iphonesimulator/Lopan.build/Objects-normal/arm64/LopanCornerRadius~partial.swiftmodule"
+  },
+  "/Users/bobo/Desktop/Lopan/Lopan/DesignSystem/Tokens/LopanShadows.swift" : {
+    "const-values" : "/Users/bobo/Desktop/Lopan/build/Build/Intermediates.noindex/Lopan.build/Debug-iphonesimulator/Lopan.build/Objects-normal/arm64/LopanShadows.swiftconstvalues",
+    "dependencies" : "/Users/bobo/Desktop/Lopan/build/Build/Intermediates.noindex/Lopan.build/Debug-iphonesimulator/Lopan.build/Objects-normal/arm64/LopanShadows.d",
+    "diagnostics" : "/Users/bobo/Desktop/Lopan/build/Build/Intermediates.noindex/Lopan.build/Debug-iphonesimulator/Lopan.build/Objects-normal/arm64/LopanShadows.dia",
+    "index-unit-output-path" : "/Lopan.build/Debug-iphonesimulator/Lopan.build/Objects-normal/arm64/LopanShadows.o",
+    "llvm-bc" : "/Users/bobo/Desktop/Lopan/build/Build/Intermediates.noindex/Lopan.build/Debug-iphonesimulator/Lopan.build/Objects-normal/arm64/LopanShadows.bc",
+    "object" : "/Users/bobo/Desktop/Lopan/build/Build/Intermediates.noindex/Lopan.build/Debug-iphonesimulator/Lopan.build/Objects-normal/arm64/LopanShadows.o",
+    "swift-dependencies" : "/Users/bobo/Desktop/Lopan/build/Build/Intermediates.noindex/Lopan.build/Debug-iphonesimulator/Lopan.build/Objects-normal/arm64/LopanShadows.swiftdeps",
+    "swiftmodule" : "/Users/bobo/Desktop/Lopan/build/Build/Intermediates.noindex/Lopan.build/Debug-iphonesimulator/Lopan.build/Objects-normal/arm64/LopanShadows~partial.swiftmodule"
+  },
+  "/Users/bobo/Desktop/Lopan/Lopan/DesignSystem/Tokens/LopanSpacing.swift" : {
+    "const-values" : "/Users/bobo/Desktop/Lopan/build/Build/Intermediates.noindex/Lopan.build/Debug-iphonesimulator/Lopan.build/Objects-normal/arm64/LopanSpacing.swiftconstvalues",
+    "dependencies" : "/Users/bobo/Desktop/Lopan/build/Build/Intermediates.noindex/Lopan.build/Debug-iphonesimulator/Lopan.build/Objects-normal/arm64/LopanSpacing.d",
+    "diagnostics" : "/Users/bobo/Desktop/Lopan/build/Build/Intermediates.noindex/Lopan.build/Debug-iphonesimulator/Lopan.build/Objects-normal/arm64/LopanSpacing.dia",
+    "index-unit-output-path" : "/Lopan.build/Debug-iphonesimulator/Lopan.build/Objects-normal/arm64/LopanSpacing.o",
+    "llvm-bc" : "/Users/bobo/Desktop/Lopan/build/Build/Intermediates.noindex/Lopan.build/Debug-iphonesimulator/Lopan.build/Objects-normal/arm64/LopanSpacing.bc",
+    "object" : "/Users/bobo/Desktop/Lopan/build/Build/Intermediates.noindex/Lopan.build/Debug-iphonesimulator/Lopan.build/Objects-normal/arm64/LopanSpacing.o",
+    "swift-dependencies" : "/Users/bobo/Desktop/Lopan/build/Build/Intermediates.noindex/Lopan.build/Debug-iphonesimulator/Lopan.build/Objects-normal/arm64/LopanSpacing.swiftdeps",
+    "swiftmodule" : "/Users/bobo/Desktop/Lopan/build/Build/Intermediates.noindex/Lopan.build/Debug-iphonesimulator/Lopan.build/Objects-normal/arm64/LopanSpacing~partial.swiftmodule"
+  },
+  "/Users/bobo/Desktop/Lopan/Lopan/DesignSystem/Tokens/LopanTypography.swift" : {
+    "const-values" : "/Users/bobo/Desktop/Lopan/build/Build/Intermediates.noindex/Lopan.build/Debug-iphonesimulator/Lopan.build/Objects-normal/arm64/LopanTypography.swiftconstvalues",
+    "dependencies" : "/Users/bobo/Desktop/Lopan/build/Build/Intermediates.noindex/Lopan.build/Debug-iphonesimulator/Lopan.build/Objects-normal/arm64/LopanTypography.d",
+    "diagnostics" : "/Users/bobo/Desktop/Lopan/build/Build/Intermediates.noindex/Lopan.build/Debug-iphonesimulator/Lopan.build/Objects-normal/arm64/LopanTypography.dia",
+    "index-unit-output-path" : "/Lopan.build/Debug-iphonesimulator/Lopan.build/Objects-normal/arm64/LopanTypography.o",
+    "llvm-bc" : "/Users/bobo/Desktop/Lopan/build/Build/Intermediates.noindex/Lopan.build/Debug-iphonesimulator/Lopan.build/Objects-normal/arm64/LopanTypography.bc",
+    "object" : "/Users/bobo/Desktop/Lopan/build/Build/Intermediates.noindex/Lopan.build/Debug-iphonesimulator/Lopan.build/Objects-normal/arm64/LopanTypography.o",
+    "swift-dependencies" : "/Users/bobo/Desktop/Lopan/build/Build/Intermediates.noindex/Lopan.build/Debug-iphonesimulator/Lopan.build/Objects-normal/arm64/LopanTypography.swiftdeps",
+    "swiftmodule" : "/Users/bobo/Desktop/Lopan/build/Build/Intermediates.noindex/Lopan.build/Debug-iphonesimulator/Lopan.build/Objects-normal/arm64/LopanTypography~partial.swiftmodule"
+  },
+  "/Users/bobo/Desktop/Lopan/Lopan/Examples/AuditLoggingExample.swift" : {
+    "const-values" : "/Users/bobo/Desktop/Lopan/build/Build/Intermediates.noindex/Lopan.build/Debug-iphonesimulator/Lopan.build/Objects-normal/arm64/AuditLoggingExample.swiftconstvalues",
+    "dependencies" : "/Users/bobo/Desktop/Lopan/build/Build/Intermediates.noindex/Lopan.build/Debug-iphonesimulator/Lopan.build/Objects-normal/arm64/AuditLoggingExample.d",
+    "diagnostics" : "/Users/bobo/Desktop/Lopan/build/Build/Intermediates.noindex/Lopan.build/Debug-iphonesimulator/Lopan.build/Objects-normal/arm64/AuditLoggingExample.dia",
+    "index-unit-output-path" : "/Lopan.build/Debug-iphonesimulator/Lopan.build/Objects-normal/arm64/AuditLoggingExample.o",
+    "llvm-bc" : "/Users/bobo/Desktop/Lopan/build/Build/Intermediates.noindex/Lopan.build/Debug-iphonesimulator/Lopan.build/Objects-normal/arm64/AuditLoggingExample.bc",
+    "object" : "/Users/bobo/Desktop/Lopan/build/Build/Intermediates.noindex/Lopan.build/Debug-iphonesimulator/Lopan.build/Objects-normal/arm64/AuditLoggingExample.o",
+    "swift-dependencies" : "/Users/bobo/Desktop/Lopan/build/Build/Intermediates.noindex/Lopan.build/Debug-iphonesimulator/Lopan.build/Objects-normal/arm64/AuditLoggingExample.swiftdeps",
+    "swiftmodule" : "/Users/bobo/Desktop/Lopan/build/Build/Intermediates.noindex/Lopan.build/Debug-iphonesimulator/Lopan.build/Objects-normal/arm64/AuditLoggingExample~partial.swiftmodule"
+  },
+  "/Users/bobo/Desktop/Lopan/Lopan/Extensions/NotificationExtensions.swift" : {
+    "const-values" : "/Users/bobo/Desktop/Lopan/build/Build/Intermediates.noindex/Lopan.build/Debug-iphonesimulator/Lopan.build/Objects-normal/arm64/NotificationExtensions.swiftconstvalues",
+    "dependencies" : "/Users/bobo/Desktop/Lopan/build/Build/Intermediates.noindex/Lopan.build/Debug-iphonesimulator/Lopan.build/Objects-normal/arm64/NotificationExtensions.d",
+    "diagnostics" : "/Users/bobo/Desktop/Lopan/build/Build/Intermediates.noindex/Lopan.build/Debug-iphonesimulator/Lopan.build/Objects-normal/arm64/NotificationExtensions.dia",
+    "index-unit-output-path" : "/Lopan.build/Debug-iphonesimulator/Lopan.build/Objects-normal/arm64/NotificationExtensions.o",
+    "llvm-bc" : "/Users/bobo/Desktop/Lopan/build/Build/Intermediates.noindex/Lopan.build/Debug-iphonesimulator/Lopan.build/Objects-normal/arm64/NotificationExtensions.bc",
+    "object" : "/Users/bobo/Desktop/Lopan/build/Build/Intermediates.noindex/Lopan.build/Debug-iphonesimulator/Lopan.build/Objects-normal/arm64/NotificationExtensions.o",
+    "swift-dependencies" : "/Users/bobo/Desktop/Lopan/build/Build/Intermediates.noindex/Lopan.build/Debug-iphonesimulator/Lopan.build/Objects-normal/arm64/NotificationExtensions.swiftdeps",
+    "swiftmodule" : "/Users/bobo/Desktop/Lopan/build/Build/Intermediates.noindex/Lopan.build/Debug-iphonesimulator/Lopan.build/Objects-normal/arm64/NotificationExtensions~partial.swiftmodule"
+  },
+  "/Users/bobo/Desktop/Lopan/Lopan/Item.swift" : {
+    "const-values" : "/Users/bobo/Desktop/Lopan/build/Build/Intermediates.noindex/Lopan.build/Debug-iphonesimulator/Lopan.build/Objects-normal/arm64/Item.swiftconstvalues",
+    "dependencies" : "/Users/bobo/Desktop/Lopan/build/Build/Intermediates.noindex/Lopan.build/Debug-iphonesimulator/Lopan.build/Objects-normal/arm64/Item.d",
+    "diagnostics" : "/Users/bobo/Desktop/Lopan/build/Build/Intermediates.noindex/Lopan.build/Debug-iphonesimulator/Lopan.build/Objects-normal/arm64/Item.dia",
+    "index-unit-output-path" : "/Lopan.build/Debug-iphonesimulator/Lopan.build/Objects-normal/arm64/Item.o",
+    "llvm-bc" : "/Users/bobo/Desktop/Lopan/build/Build/Intermediates.noindex/Lopan.build/Debug-iphonesimulator/Lopan.build/Objects-normal/arm64/Item.bc",
+    "object" : "/Users/bobo/Desktop/Lopan/build/Build/Intermediates.noindex/Lopan.build/Debug-iphonesimulator/Lopan.build/Objects-normal/arm64/Item.o",
+    "swift-dependencies" : "/Users/bobo/Desktop/Lopan/build/Build/Intermediates.noindex/Lopan.build/Debug-iphonesimulator/Lopan.build/Objects-normal/arm64/Item.swiftdeps",
+    "swiftmodule" : "/Users/bobo/Desktop/Lopan/build/Build/Intermediates.noindex/Lopan.build/Debug-iphonesimulator/Lopan.build/Objects-normal/arm64/Item~partial.swiftmodule"
+  },
+  "/Users/bobo/Desktop/Lopan/Lopan/LopanApp.swift" : {
+    "const-values" : "/Users/bobo/Desktop/Lopan/build/Build/Intermediates.noindex/Lopan.build/Debug-iphonesimulator/Lopan.build/Objects-normal/arm64/LopanApp.swiftconstvalues",
+    "dependencies" : "/Users/bobo/Desktop/Lopan/build/Build/Intermediates.noindex/Lopan.build/Debug-iphonesimulator/Lopan.build/Objects-normal/arm64/LopanApp.d",
+    "diagnostics" : "/Users/bobo/Desktop/Lopan/build/Build/Intermediates.noindex/Lopan.build/Debug-iphonesimulator/Lopan.build/Objects-normal/arm64/LopanApp.dia",
+    "index-unit-output-path" : "/Lopan.build/Debug-iphonesimulator/Lopan.build/Objects-normal/arm64/LopanApp.o",
+    "llvm-bc" : "/Users/bobo/Desktop/Lopan/build/Build/Intermediates.noindex/Lopan.build/Debug-iphonesimulator/Lopan.build/Objects-normal/arm64/LopanApp.bc",
+    "object" : "/Users/bobo/Desktop/Lopan/build/Build/Intermediates.noindex/Lopan.build/Debug-iphonesimulator/Lopan.build/Objects-normal/arm64/LopanApp.o",
+    "swift-dependencies" : "/Users/bobo/Desktop/Lopan/build/Build/Intermediates.noindex/Lopan.build/Debug-iphonesimulator/Lopan.build/Objects-normal/arm64/LopanApp.swiftdeps",
+    "swiftmodule" : "/Users/bobo/Desktop/Lopan/build/Build/Intermediates.noindex/Lopan.build/Debug-iphonesimulator/Lopan.build/Objects-normal/arm64/LopanApp~partial.swiftmodule"
+  },
+  "/Users/bobo/Desktop/Lopan/Lopan/Models/AuditLog.swift" : {
+    "const-values" : "/Users/bobo/Desktop/Lopan/build/Build/Intermediates.noindex/Lopan.build/Debug-iphonesimulator/Lopan.build/Objects-normal/arm64/AuditLog.swiftconstvalues",
+    "dependencies" : "/Users/bobo/Desktop/Lopan/build/Build/Intermediates.noindex/Lopan.build/Debug-iphonesimulator/Lopan.build/Objects-normal/arm64/AuditLog.d",
+    "diagnostics" : "/Users/bobo/Desktop/Lopan/build/Build/Intermediates.noindex/Lopan.build/Debug-iphonesimulator/Lopan.build/Objects-normal/arm64/AuditLog.dia",
+    "index-unit-output-path" : "/Lopan.build/Debug-iphonesimulator/Lopan.build/Objects-normal/arm64/AuditLog.o",
+    "llvm-bc" : "/Users/bobo/Desktop/Lopan/build/Build/Intermediates.noindex/Lopan.build/Debug-iphonesimulator/Lopan.build/Objects-normal/arm64/AuditLog.bc",
+    "object" : "/Users/bobo/Desktop/Lopan/build/Build/Intermediates.noindex/Lopan.build/Debug-iphonesimulator/Lopan.build/Objects-normal/arm64/AuditLog.o",
+    "swift-dependencies" : "/Users/bobo/Desktop/Lopan/build/Build/Intermediates.noindex/Lopan.build/Debug-iphonesimulator/Lopan.build/Objects-normal/arm64/AuditLog.swiftdeps",
+    "swiftmodule" : "/Users/bobo/Desktop/Lopan/build/Build/Intermediates.noindex/Lopan.build/Debug-iphonesimulator/Lopan.build/Objects-normal/arm64/AuditLog~partial.swiftmodule"
+  },
+  "/Users/bobo/Desktop/Lopan/Lopan/Models/BatchApprovalModels.swift" : {
+    "const-values" : "/Users/bobo/Desktop/Lopan/build/Build/Intermediates.noindex/Lopan.build/Debug-iphonesimulator/Lopan.build/Objects-normal/arm64/BatchApprovalModels.swiftconstvalues",
+    "dependencies" : "/Users/bobo/Desktop/Lopan/build/Build/Intermediates.noindex/Lopan.build/Debug-iphonesimulator/Lopan.build/Objects-normal/arm64/BatchApprovalModels.d",
+    "diagnostics" : "/Users/bobo/Desktop/Lopan/build/Build/Intermediates.noindex/Lopan.build/Debug-iphonesimulator/Lopan.build/Objects-normal/arm64/BatchApprovalModels.dia",
+    "index-unit-output-path" : "/Lopan.build/Debug-iphonesimulator/Lopan.build/Objects-normal/arm64/BatchApprovalModels.o",
+    "llvm-bc" : "/Users/bobo/Desktop/Lopan/build/Build/Intermediates.noindex/Lopan.build/Debug-iphonesimulator/Lopan.build/Objects-normal/arm64/BatchApprovalModels.bc",
+    "object" : "/Users/bobo/Desktop/Lopan/build/Build/Intermediates.noindex/Lopan.build/Debug-iphonesimulator/Lopan.build/Objects-normal/arm64/BatchApprovalModels.o",
+    "swift-dependencies" : "/Users/bobo/Desktop/Lopan/build/Build/Intermediates.noindex/Lopan.build/Debug-iphonesimulator/Lopan.build/Objects-normal/arm64/BatchApprovalModels.swiftdeps",
+    "swiftmodule" : "/Users/bobo/Desktop/Lopan/build/Build/Intermediates.noindex/Lopan.build/Debug-iphonesimulator/Lopan.build/Objects-normal/arm64/BatchApprovalModels~partial.swiftmodule"
+  },
+  "/Users/bobo/Desktop/Lopan/Lopan/Models/ColorCard.swift" : {
+    "const-values" : "/Users/bobo/Desktop/Lopan/build/Build/Intermediates.noindex/Lopan.build/Debug-iphonesimulator/Lopan.build/Objects-normal/arm64/ColorCard.swiftconstvalues",
+    "dependencies" : "/Users/bobo/Desktop/Lopan/build/Build/Intermediates.noindex/Lopan.build/Debug-iphonesimulator/Lopan.build/Objects-normal/arm64/ColorCard.d",
+    "diagnostics" : "/Users/bobo/Desktop/Lopan/build/Build/Intermediates.noindex/Lopan.build/Debug-iphonesimulator/Lopan.build/Objects-normal/arm64/ColorCard.dia",
+    "index-unit-output-path" : "/Lopan.build/Debug-iphonesimulator/Lopan.build/Objects-normal/arm64/ColorCard.o",
+    "llvm-bc" : "/Users/bobo/Desktop/Lopan/build/Build/Intermediates.noindex/Lopan.build/Debug-iphonesimulator/Lopan.build/Objects-normal/arm64/ColorCard.bc",
+    "object" : "/Users/bobo/Desktop/Lopan/build/Build/Intermediates.noindex/Lopan.build/Debug-iphonesimulator/Lopan.build/Objects-normal/arm64/ColorCard.o",
+    "swift-dependencies" : "/Users/bobo/Desktop/Lopan/build/Build/Intermediates.noindex/Lopan.build/Debug-iphonesimulator/Lopan.build/Objects-normal/arm64/ColorCard.swiftdeps",
+    "swiftmodule" : "/Users/bobo/Desktop/Lopan/build/Build/Intermediates.noindex/Lopan.build/Debug-iphonesimulator/Lopan.build/Objects-normal/arm64/ColorCard~partial.swiftmodule"
+  },
+  "/Users/bobo/Desktop/Lopan/Lopan/Models/Customer.swift" : {
+    "const-values" : "/Users/bobo/Desktop/Lopan/build/Build/Intermediates.noindex/Lopan.build/Debug-iphonesimulator/Lopan.build/Objects-normal/arm64/Customer.swiftconstvalues",
+    "dependencies" : "/Users/bobo/Desktop/Lopan/build/Build/Intermediates.noindex/Lopan.build/Debug-iphonesimulator/Lopan.build/Objects-normal/arm64/Customer.d",
+    "diagnostics" : "/Users/bobo/Desktop/Lopan/build/Build/Intermediates.noindex/Lopan.build/Debug-iphonesimulator/Lopan.build/Objects-normal/arm64/Customer.dia",
+    "index-unit-output-path" : "/Lopan.build/Debug-iphonesimulator/Lopan.build/Objects-normal/arm64/Customer.o",
+    "llvm-bc" : "/Users/bobo/Desktop/Lopan/build/Build/Intermediates.noindex/Lopan.build/Debug-iphonesimulator/Lopan.build/Objects-normal/arm64/Customer.bc",
+    "object" : "/Users/bobo/Desktop/Lopan/build/Build/Intermediates.noindex/Lopan.build/Debug-iphonesimulator/Lopan.build/Objects-normal/arm64/Customer.o",
+    "swift-dependencies" : "/Users/bobo/Desktop/Lopan/build/Build/Intermediates.noindex/Lopan.build/Debug-iphonesimulator/Lopan.build/Objects-normal/arm64/Customer.swiftdeps",
+    "swiftmodule" : "/Users/bobo/Desktop/Lopan/build/Build/Intermediates.noindex/Lopan.build/Debug-iphonesimulator/Lopan.build/Objects-normal/arm64/Customer~partial.swiftmodule"
+  },
+  "/Users/bobo/Desktop/Lopan/Lopan/Models/CustomerOutOfStock.swift" : {
+    "const-values" : "/Users/bobo/Desktop/Lopan/build/Build/Intermediates.noindex/Lopan.build/Debug-iphonesimulator/Lopan.build/Objects-normal/arm64/CustomerOutOfStock.swiftconstvalues",
+    "dependencies" : "/Users/bobo/Desktop/Lopan/build/Build/Intermediates.noindex/Lopan.build/Debug-iphonesimulator/Lopan.build/Objects-normal/arm64/CustomerOutOfStock.d",
+    "diagnostics" : "/Users/bobo/Desktop/Lopan/build/Build/Intermediates.noindex/Lopan.build/Debug-iphonesimulator/Lopan.build/Objects-normal/arm64/CustomerOutOfStock.dia",
+    "index-unit-output-path" : "/Lopan.build/Debug-iphonesimulator/Lopan.build/Objects-normal/arm64/CustomerOutOfStock.o",
+    "llvm-bc" : "/Users/bobo/Desktop/Lopan/build/Build/Intermediates.noindex/Lopan.build/Debug-iphonesimulator/Lopan.build/Objects-normal/arm64/CustomerOutOfStock.bc",
+    "object" : "/Users/bobo/Desktop/Lopan/build/Build/Intermediates.noindex/Lopan.build/Debug-iphonesimulator/Lopan.build/Objects-normal/arm64/CustomerOutOfStock.o",
+    "swift-dependencies" : "/Users/bobo/Desktop/Lopan/build/Build/Intermediates.noindex/Lopan.build/Debug-iphonesimulator/Lopan.build/Objects-normal/arm64/CustomerOutOfStock.swiftdeps",
+    "swiftmodule" : "/Users/bobo/Desktop/Lopan/build/Build/Intermediates.noindex/Lopan.build/Debug-iphonesimulator/Lopan.build/Objects-normal/arm64/CustomerOutOfStock~partial.swiftmodule"
+  },
+  "/Users/bobo/Desktop/Lopan/Lopan/Models/EVAGranulation.swift" : {
+    "const-values" : "/Users/bobo/Desktop/Lopan/build/Build/Intermediates.noindex/Lopan.build/Debug-iphonesimulator/Lopan.build/Objects-normal/arm64/EVAGranulation.swiftconstvalues",
+    "dependencies" : "/Users/bobo/Desktop/Lopan/build/Build/Intermediates.noindex/Lopan.build/Debug-iphonesimulator/Lopan.build/Objects-normal/arm64/EVAGranulation.d",
+    "diagnostics" : "/Users/bobo/Desktop/Lopan/build/Build/Intermediates.noindex/Lopan.build/Debug-iphonesimulator/Lopan.build/Objects-normal/arm64/EVAGranulation.dia",
+    "index-unit-output-path" : "/Lopan.build/Debug-iphonesimulator/Lopan.build/Objects-normal/arm64/EVAGranulation.o",
+    "llvm-bc" : "/Users/bobo/Desktop/Lopan/build/Build/Intermediates.noindex/Lopan.build/Debug-iphonesimulator/Lopan.build/Objects-normal/arm64/EVAGranulation.bc",
+    "object" : "/Users/bobo/Desktop/Lopan/build/Build/Intermediates.noindex/Lopan.build/Debug-iphonesimulator/Lopan.build/Objects-normal/arm64/EVAGranulation.o",
+    "swift-dependencies" : "/Users/bobo/Desktop/Lopan/build/Build/Intermediates.noindex/Lopan.build/Debug-iphonesimulator/Lopan.build/Objects-normal/arm64/EVAGranulation.swiftdeps",
+    "swiftmodule" : "/Users/bobo/Desktop/Lopan/build/Build/Intermediates.noindex/Lopan.build/Debug-iphonesimulator/Lopan.build/Objects-normal/arm64/EVAGranulation~partial.swiftmodule"
+  },
+  "/Users/bobo/Desktop/Lopan/Lopan/Models/PackagingModels.swift" : {
+    "const-values" : "/Users/bobo/Desktop/Lopan/build/Build/Intermediates.noindex/Lopan.build/Debug-iphonesimulator/Lopan.build/Objects-normal/arm64/PackagingModels.swiftconstvalues",
+    "dependencies" : "/Users/bobo/Desktop/Lopan/build/Build/Intermediates.noindex/Lopan.build/Debug-iphonesimulator/Lopan.build/Objects-normal/arm64/PackagingModels.d",
+    "diagnostics" : "/Users/bobo/Desktop/Lopan/build/Build/Intermediates.noindex/Lopan.build/Debug-iphonesimulator/Lopan.build/Objects-normal/arm64/PackagingModels.dia",
+    "index-unit-output-path" : "/Lopan.build/Debug-iphonesimulator/Lopan.build/Objects-normal/arm64/PackagingModels.o",
+    "llvm-bc" : "/Users/bobo/Desktop/Lopan/build/Build/Intermediates.noindex/Lopan.build/Debug-iphonesimulator/Lopan.build/Objects-normal/arm64/PackagingModels.bc",
+    "object" : "/Users/bobo/Desktop/Lopan/build/Build/Intermediates.noindex/Lopan.build/Debug-iphonesimulator/Lopan.build/Objects-normal/arm64/PackagingModels.o",
+    "swift-dependencies" : "/Users/bobo/Desktop/Lopan/build/Build/Intermediates.noindex/Lopan.build/Debug-iphonesimulator/Lopan.build/Objects-normal/arm64/PackagingModels.swiftdeps",
+    "swiftmodule" : "/Users/bobo/Desktop/Lopan/build/Build/Intermediates.noindex/Lopan.build/Debug-iphonesimulator/Lopan.build/Objects-normal/arm64/PackagingModels~partial.swiftmodule"
+  },
+  "/Users/bobo/Desktop/Lopan/Lopan/Models/Product.swift" : {
+    "const-values" : "/Users/bobo/Desktop/Lopan/build/Build/Intermediates.noindex/Lopan.build/Debug-iphonesimulator/Lopan.build/Objects-normal/arm64/Product.swiftconstvalues",
+    "dependencies" : "/Users/bobo/Desktop/Lopan/build/Build/Intermediates.noindex/Lopan.build/Debug-iphonesimulator/Lopan.build/Objects-normal/arm64/Product.d",
+    "diagnostics" : "/Users/bobo/Desktop/Lopan/build/Build/Intermediates.noindex/Lopan.build/Debug-iphonesimulator/Lopan.build/Objects-normal/arm64/Product.dia",
+    "index-unit-output-path" : "/Lopan.build/Debug-iphonesimulator/Lopan.build/Objects-normal/arm64/Product.o",
+    "llvm-bc" : "/Users/bobo/Desktop/Lopan/build/Build/Intermediates.noindex/Lopan.build/Debug-iphonesimulator/Lopan.build/Objects-normal/arm64/Product.bc",
+    "object" : "/Users/bobo/Desktop/Lopan/build/Build/Intermediates.noindex/Lopan.build/Debug-iphonesimulator/Lopan.build/Objects-normal/arm64/Product.o",
+    "swift-dependencies" : "/Users/bobo/Desktop/Lopan/build/Build/Intermediates.noindex/Lopan.build/Debug-iphonesimulator/Lopan.build/Objects-normal/arm64/Product.swiftdeps",
+    "swiftmodule" : "/Users/bobo/Desktop/Lopan/build/Build/Intermediates.noindex/Lopan.build/Debug-iphonesimulator/Lopan.build/Objects-normal/arm64/Product~partial.swiftmodule"
+  },
+  "/Users/bobo/Desktop/Lopan/Lopan/Models/ProductionBatch.swift" : {
+    "const-values" : "/Users/bobo/Desktop/Lopan/build/Build/Intermediates.noindex/Lopan.build/Debug-iphonesimulator/Lopan.build/Objects-normal/arm64/ProductionBatch.swiftconstvalues",
+    "dependencies" : "/Users/bobo/Desktop/Lopan/build/Build/Intermediates.noindex/Lopan.build/Debug-iphonesimulator/Lopan.build/Objects-normal/arm64/ProductionBatch.d",
+    "diagnostics" : "/Users/bobo/Desktop/Lopan/build/Build/Intermediates.noindex/Lopan.build/Debug-iphonesimulator/Lopan.build/Objects-normal/arm64/ProductionBatch.dia",
+    "index-unit-output-path" : "/Lopan.build/Debug-iphonesimulator/Lopan.build/Objects-normal/arm64/ProductionBatch.o",
+    "llvm-bc" : "/Users/bobo/Desktop/Lopan/build/Build/Intermediates.noindex/Lopan.build/Debug-iphonesimulator/Lopan.build/Objects-normal/arm64/ProductionBatch.bc",
+    "object" : "/Users/bobo/Desktop/Lopan/build/Build/Intermediates.noindex/Lopan.build/Debug-iphonesimulator/Lopan.build/Objects-normal/arm64/ProductionBatch.o",
+    "swift-dependencies" : "/Users/bobo/Desktop/Lopan/build/Build/Intermediates.noindex/Lopan.build/Debug-iphonesimulator/Lopan.build/Objects-normal/arm64/ProductionBatch.swiftdeps",
+    "swiftmodule" : "/Users/bobo/Desktop/Lopan/build/Build/Intermediates.noindex/Lopan.build/Debug-iphonesimulator/Lopan.build/Objects-normal/arm64/ProductionBatch~partial.swiftmodule"
+  },
+  "/Users/bobo/Desktop/Lopan/Lopan/Models/ProductionStyle.swift" : {
+    "const-values" : "/Users/bobo/Desktop/Lopan/build/Build/Intermediates.noindex/Lopan.build/Debug-iphonesimulator/Lopan.build/Objects-normal/arm64/ProductionStyle.swiftconstvalues",
+    "dependencies" : "/Users/bobo/Desktop/Lopan/build/Build/Intermediates.noindex/Lopan.build/Debug-iphonesimulator/Lopan.build/Objects-normal/arm64/ProductionStyle.d",
+    "diagnostics" : "/Users/bobo/Desktop/Lopan/build/Build/Intermediates.noindex/Lopan.build/Debug-iphonesimulator/Lopan.build/Objects-normal/arm64/ProductionStyle.dia",
+    "index-unit-output-path" : "/Lopan.build/Debug-iphonesimulator/Lopan.build/Objects-normal/arm64/ProductionStyle.o",
+    "llvm-bc" : "/Users/bobo/Desktop/Lopan/build/Build/Intermediates.noindex/Lopan.build/Debug-iphonesimulator/Lopan.build/Objects-normal/arm64/ProductionStyle.bc",
+    "object" : "/Users/bobo/Desktop/Lopan/build/Build/Intermediates.noindex/Lopan.build/Debug-iphonesimulator/Lopan.build/Objects-normal/arm64/ProductionStyle.o",
+    "swift-dependencies" : "/Users/bobo/Desktop/Lopan/build/Build/Intermediates.noindex/Lopan.build/Debug-iphonesimulator/Lopan.build/Objects-normal/arm64/ProductionStyle.swiftdeps",
+    "swiftmodule" : "/Users/bobo/Desktop/Lopan/build/Build/Intermediates.noindex/Lopan.build/Debug-iphonesimulator/Lopan.build/Objects-normal/arm64/ProductionStyle~partial.swiftmodule"
+  },
+  "/Users/bobo/Desktop/Lopan/Lopan/Models/User.swift" : {
+    "const-values" : "/Users/bobo/Desktop/Lopan/build/Build/Intermediates.noindex/Lopan.build/Debug-iphonesimulator/Lopan.build/Objects-normal/arm64/User.swiftconstvalues",
+    "dependencies" : "/Users/bobo/Desktop/Lopan/build/Build/Intermediates.noindex/Lopan.build/Debug-iphonesimulator/Lopan.build/Objects-normal/arm64/User.d",
+    "diagnostics" : "/Users/bobo/Desktop/Lopan/build/Build/Intermediates.noindex/Lopan.build/Debug-iphonesimulator/Lopan.build/Objects-normal/arm64/User.dia",
+    "index-unit-output-path" : "/Lopan.build/Debug-iphonesimulator/Lopan.build/Objects-normal/arm64/User.o",
+    "llvm-bc" : "/Users/bobo/Desktop/Lopan/build/Build/Intermediates.noindex/Lopan.build/Debug-iphonesimulator/Lopan.build/Objects-normal/arm64/User.bc",
+    "object" : "/Users/bobo/Desktop/Lopan/build/Build/Intermediates.noindex/Lopan.build/Debug-iphonesimulator/Lopan.build/Objects-normal/arm64/User.o",
+    "swift-dependencies" : "/Users/bobo/Desktop/Lopan/build/Build/Intermediates.noindex/Lopan.build/Debug-iphonesimulator/Lopan.build/Objects-normal/arm64/User.swiftdeps",
+    "swiftmodule" : "/Users/bobo/Desktop/Lopan/build/Build/Intermediates.noindex/Lopan.build/Debug-iphonesimulator/Lopan.build/Objects-normal/arm64/User~partial.swiftmodule"
+  },
+  "/Users/bobo/Desktop/Lopan/Lopan/Models/WorkshopIssue.swift" : {
+    "const-values" : "/Users/bobo/Desktop/Lopan/build/Build/Intermediates.noindex/Lopan.build/Debug-iphonesimulator/Lopan.build/Objects-normal/arm64/WorkshopIssue.swiftconstvalues",
+    "dependencies" : "/Users/bobo/Desktop/Lopan/build/Build/Intermediates.noindex/Lopan.build/Debug-iphonesimulator/Lopan.build/Objects-normal/arm64/WorkshopIssue.d",
+    "diagnostics" : "/Users/bobo/Desktop/Lopan/build/Build/Intermediates.noindex/Lopan.build/Debug-iphonesimulator/Lopan.build/Objects-normal/arm64/WorkshopIssue.dia",
+    "index-unit-output-path" : "/Lopan.build/Debug-iphonesimulator/Lopan.build/Objects-normal/arm64/WorkshopIssue.o",
+    "llvm-bc" : "/Users/bobo/Desktop/Lopan/build/Build/Intermediates.noindex/Lopan.build/Debug-iphonesimulator/Lopan.build/Objects-normal/arm64/WorkshopIssue.bc",
+    "object" : "/Users/bobo/Desktop/Lopan/build/Build/Intermediates.noindex/Lopan.build/Debug-iphonesimulator/Lopan.build/Objects-normal/arm64/WorkshopIssue.o",
+    "swift-dependencies" : "/Users/bobo/Desktop/Lopan/build/Build/Intermediates.noindex/Lopan.build/Debug-iphonesimulator/Lopan.build/Objects-normal/arm64/WorkshopIssue.swiftdeps",
+    "swiftmodule" : "/Users/bobo/Desktop/Lopan/build/Build/Intermediates.noindex/Lopan.build/Debug-iphonesimulator/Lopan.build/Objects-normal/arm64/WorkshopIssue~partial.swiftmodule"
+  },
+  "/Users/bobo/Desktop/Lopan/Lopan/Models/WorkshopMachine.swift" : {
+    "const-values" : "/Users/bobo/Desktop/Lopan/build/Build/Intermediates.noindex/Lopan.build/Debug-iphonesimulator/Lopan.build/Objects-normal/arm64/WorkshopMachine.swiftconstvalues",
+    "dependencies" : "/Users/bobo/Desktop/Lopan/build/Build/Intermediates.noindex/Lopan.build/Debug-iphonesimulator/Lopan.build/Objects-normal/arm64/WorkshopMachine.d",
+    "diagnostics" : "/Users/bobo/Desktop/Lopan/build/Build/Intermediates.noindex/Lopan.build/Debug-iphonesimulator/Lopan.build/Objects-normal/arm64/WorkshopMachine.dia",
+    "index-unit-output-path" : "/Lopan.build/Debug-iphonesimulator/Lopan.build/Objects-normal/arm64/WorkshopMachine.o",
+    "llvm-bc" : "/Users/bobo/Desktop/Lopan/build/Build/Intermediates.noindex/Lopan.build/Debug-iphonesimulator/Lopan.build/Objects-normal/arm64/WorkshopMachine.bc",
+    "object" : "/Users/bobo/Desktop/Lopan/build/Build/Intermediates.noindex/Lopan.build/Debug-iphonesimulator/Lopan.build/Objects-normal/arm64/WorkshopMachine.o",
+    "swift-dependencies" : "/Users/bobo/Desktop/Lopan/build/Build/Intermediates.noindex/Lopan.build/Debug-iphonesimulator/Lopan.build/Objects-normal/arm64/WorkshopMachine.swiftdeps",
+    "swiftmodule" : "/Users/bobo/Desktop/Lopan/build/Build/Intermediates.noindex/Lopan.build/Debug-iphonesimulator/Lopan.build/Objects-normal/arm64/WorkshopMachine~partial.swiftmodule"
+  },
+  "/Users/bobo/Desktop/Lopan/Lopan/Models/WorkshopProduction.swift" : {
+    "const-values" : "/Users/bobo/Desktop/Lopan/build/Build/Intermediates.noindex/Lopan.build/Debug-iphonesimulator/Lopan.build/Objects-normal/arm64/WorkshopProduction.swiftconstvalues",
+    "dependencies" : "/Users/bobo/Desktop/Lopan/build/Build/Intermediates.noindex/Lopan.build/Debug-iphonesimulator/Lopan.build/Objects-normal/arm64/WorkshopProduction.d",
+    "diagnostics" : "/Users/bobo/Desktop/Lopan/build/Build/Intermediates.noindex/Lopan.build/Debug-iphonesimulator/Lopan.build/Objects-normal/arm64/WorkshopProduction.dia",
+    "index-unit-output-path" : "/Lopan.build/Debug-iphonesimulator/Lopan.build/Objects-normal/arm64/WorkshopProduction.o",
+    "llvm-bc" : "/Users/bobo/Desktop/Lopan/build/Build/Intermediates.noindex/Lopan.build/Debug-iphonesimulator/Lopan.build/Objects-normal/arm64/WorkshopProduction.bc",
+    "object" : "/Users/bobo/Desktop/Lopan/build/Build/Intermediates.noindex/Lopan.build/Debug-iphonesimulator/Lopan.build/Objects-normal/arm64/WorkshopProduction.o",
+    "swift-dependencies" : "/Users/bobo/Desktop/Lopan/build/Build/Intermediates.noindex/Lopan.build/Debug-iphonesimulator/Lopan.build/Objects-normal/arm64/WorkshopProduction.swiftdeps",
+    "swiftmodule" : "/Users/bobo/Desktop/Lopan/build/Build/Intermediates.noindex/Lopan.build/Debug-iphonesimulator/Lopan.build/Objects-normal/arm64/WorkshopProduction~partial.swiftmodule"
+  },
+  "/Users/bobo/Desktop/Lopan/Lopan/Repository/AuditRepository.swift" : {
+    "const-values" : "/Users/bobo/Desktop/Lopan/build/Build/Intermediates.noindex/Lopan.build/Debug-iphonesimulator/Lopan.build/Objects-normal/arm64/AuditRepository.swiftconstvalues",
+    "dependencies" : "/Users/bobo/Desktop/Lopan/build/Build/Intermediates.noindex/Lopan.build/Debug-iphonesimulator/Lopan.build/Objects-normal/arm64/AuditRepository.d",
+    "diagnostics" : "/Users/bobo/Desktop/Lopan/build/Build/Intermediates.noindex/Lopan.build/Debug-iphonesimulator/Lopan.build/Objects-normal/arm64/AuditRepository.dia",
+    "index-unit-output-path" : "/Lopan.build/Debug-iphonesimulator/Lopan.build/Objects-normal/arm64/AuditRepository.o",
+    "llvm-bc" : "/Users/bobo/Desktop/Lopan/build/Build/Intermediates.noindex/Lopan.build/Debug-iphonesimulator/Lopan.build/Objects-normal/arm64/AuditRepository.bc",
+    "object" : "/Users/bobo/Desktop/Lopan/build/Build/Intermediates.noindex/Lopan.build/Debug-iphonesimulator/Lopan.build/Objects-normal/arm64/AuditRepository.o",
+    "swift-dependencies" : "/Users/bobo/Desktop/Lopan/build/Build/Intermediates.noindex/Lopan.build/Debug-iphonesimulator/Lopan.build/Objects-normal/arm64/AuditRepository.swiftdeps",
+    "swiftmodule" : "/Users/bobo/Desktop/Lopan/build/Build/Intermediates.noindex/Lopan.build/Debug-iphonesimulator/Lopan.build/Objects-normal/arm64/AuditRepository~partial.swiftmodule"
+  },
+  "/Users/bobo/Desktop/Lopan/Lopan/Repository/BatchOperationRepository.swift" : {
+    "const-values" : "/Users/bobo/Desktop/Lopan/build/Build/Intermediates.noindex/Lopan.build/Debug-iphonesimulator/Lopan.build/Objects-normal/arm64/BatchOperationRepository.swiftconstvalues",
+    "dependencies" : "/Users/bobo/Desktop/Lopan/build/Build/Intermediates.noindex/Lopan.build/Debug-iphonesimulator/Lopan.build/Objects-normal/arm64/BatchOperationRepository.d",
+    "diagnostics" : "/Users/bobo/Desktop/Lopan/build/Build/Intermediates.noindex/Lopan.build/Debug-iphonesimulator/Lopan.build/Objects-normal/arm64/BatchOperationRepository.dia",
+    "index-unit-output-path" : "/Lopan.build/Debug-iphonesimulator/Lopan.build/Objects-normal/arm64/BatchOperationRepository.o",
+    "llvm-bc" : "/Users/bobo/Desktop/Lopan/build/Build/Intermediates.noindex/Lopan.build/Debug-iphonesimulator/Lopan.build/Objects-normal/arm64/BatchOperationRepository.bc",
+    "object" : "/Users/bobo/Desktop/Lopan/build/Build/Intermediates.noindex/Lopan.build/Debug-iphonesimulator/Lopan.build/Objects-normal/arm64/BatchOperationRepository.o",
+    "swift-dependencies" : "/Users/bobo/Desktop/Lopan/build/Build/Intermediates.noindex/Lopan.build/Debug-iphonesimulator/Lopan.build/Objects-normal/arm64/BatchOperationRepository.swiftdeps",
+    "swiftmodule" : "/Users/bobo/Desktop/Lopan/build/Build/Intermediates.noindex/Lopan.build/Debug-iphonesimulator/Lopan.build/Objects-normal/arm64/BatchOperationRepository~partial.swiftmodule"
+  },
+  "/Users/bobo/Desktop/Lopan/Lopan/Repository/ColorRepository.swift" : {
+    "const-values" : "/Users/bobo/Desktop/Lopan/build/Build/Intermediates.noindex/Lopan.build/Debug-iphonesimulator/Lopan.build/Objects-normal/arm64/ColorRepository.swiftconstvalues",
+    "dependencies" : "/Users/bobo/Desktop/Lopan/build/Build/Intermediates.noindex/Lopan.build/Debug-iphonesimulator/Lopan.build/Objects-normal/arm64/ColorRepository.d",
+    "diagnostics" : "/Users/bobo/Desktop/Lopan/build/Build/Intermediates.noindex/Lopan.build/Debug-iphonesimulator/Lopan.build/Objects-normal/arm64/ColorRepository.dia",
+    "index-unit-output-path" : "/Lopan.build/Debug-iphonesimulator/Lopan.build/Objects-normal/arm64/ColorRepository.o",
+    "llvm-bc" : "/Users/bobo/Desktop/Lopan/build/Build/Intermediates.noindex/Lopan.build/Debug-iphonesimulator/Lopan.build/Objects-normal/arm64/ColorRepository.bc",
+    "object" : "/Users/bobo/Desktop/Lopan/build/Build/Intermediates.noindex/Lopan.build/Debug-iphonesimulator/Lopan.build/Objects-normal/arm64/ColorRepository.o",
+    "swift-dependencies" : "/Users/bobo/Desktop/Lopan/build/Build/Intermediates.noindex/Lopan.build/Debug-iphonesimulator/Lopan.build/Objects-normal/arm64/ColorRepository.swiftdeps",
+    "swiftmodule" : "/Users/bobo/Desktop/Lopan/build/Build/Intermediates.noindex/Lopan.build/Debug-iphonesimulator/Lopan.build/Objects-normal/arm64/ColorRepository~partial.swiftmodule"
+  },
+  "/Users/bobo/Desktop/Lopan/Lopan/Repository/CustomerOutOfStockRepository.swift" : {
+    "const-values" : "/Users/bobo/Desktop/Lopan/build/Build/Intermediates.noindex/Lopan.build/Debug-iphonesimulator/Lopan.build/Objects-normal/arm64/CustomerOutOfStockRepository.swiftconstvalues",
+    "dependencies" : "/Users/bobo/Desktop/Lopan/build/Build/Intermediates.noindex/Lopan.build/Debug-iphonesimulator/Lopan.build/Objects-normal/arm64/CustomerOutOfStockRepository.d",
+    "diagnostics" : "/Users/bobo/Desktop/Lopan/build/Build/Intermediates.noindex/Lopan.build/Debug-iphonesimulator/Lopan.build/Objects-normal/arm64/CustomerOutOfStockRepository.dia",
+    "index-unit-output-path" : "/Lopan.build/Debug-iphonesimulator/Lopan.build/Objects-normal/arm64/CustomerOutOfStockRepository.o",
+    "llvm-bc" : "/Users/bobo/Desktop/Lopan/build/Build/Intermediates.noindex/Lopan.build/Debug-iphonesimulator/Lopan.build/Objects-normal/arm64/CustomerOutOfStockRepository.bc",
+    "object" : "/Users/bobo/Desktop/Lopan/build/Build/Intermediates.noindex/Lopan.build/Debug-iphonesimulator/Lopan.build/Objects-normal/arm64/CustomerOutOfStockRepository.o",
+    "swift-dependencies" : "/Users/bobo/Desktop/Lopan/build/Build/Intermediates.noindex/Lopan.build/Debug-iphonesimulator/Lopan.build/Objects-normal/arm64/CustomerOutOfStockRepository.swiftdeps",
+    "swiftmodule" : "/Users/bobo/Desktop/Lopan/build/Build/Intermediates.noindex/Lopan.build/Debug-iphonesimulator/Lopan.build/Objects-normal/arm64/CustomerOutOfStockRepository~partial.swiftmodule"
+  },
+  "/Users/bobo/Desktop/Lopan/Lopan/Repository/CustomerRepository.swift" : {
+    "const-values" : "/Users/bobo/Desktop/Lopan/build/Build/Intermediates.noindex/Lopan.build/Debug-iphonesimulator/Lopan.build/Objects-normal/arm64/CustomerRepository.swiftconstvalues",
+    "dependencies" : "/Users/bobo/Desktop/Lopan/build/Build/Intermediates.noindex/Lopan.build/Debug-iphonesimulator/Lopan.build/Objects-normal/arm64/CustomerRepository.d",
+    "diagnostics" : "/Users/bobo/Desktop/Lopan/build/Build/Intermediates.noindex/Lopan.build/Debug-iphonesimulator/Lopan.build/Objects-normal/arm64/CustomerRepository.dia",
+    "index-unit-output-path" : "/Lopan.build/Debug-iphonesimulator/Lopan.build/Objects-normal/arm64/CustomerRepository.o",
+    "llvm-bc" : "/Users/bobo/Desktop/Lopan/build/Build/Intermediates.noindex/Lopan.build/Debug-iphonesimulator/Lopan.build/Objects-normal/arm64/CustomerRepository.bc",
+    "object" : "/Users/bobo/Desktop/Lopan/build/Build/Intermediates.noindex/Lopan.build/Debug-iphonesimulator/Lopan.build/Objects-normal/arm64/CustomerRepository.o",
+    "swift-dependencies" : "/Users/bobo/Desktop/Lopan/build/Build/Intermediates.noindex/Lopan.build/Debug-iphonesimulator/Lopan.build/Objects-normal/arm64/CustomerRepository.swiftdeps",
+    "swiftmodule" : "/Users/bobo/Desktop/Lopan/build/Build/Intermediates.noindex/Lopan.build/Debug-iphonesimulator/Lopan.build/Objects-normal/arm64/CustomerRepository~partial.swiftmodule"
+  },
+  "/Users/bobo/Desktop/Lopan/Lopan/Repository/Local/LocalAuditRepository.swift" : {
+    "const-values" : "/Users/bobo/Desktop/Lopan/build/Build/Intermediates.noindex/Lopan.build/Debug-iphonesimulator/Lopan.build/Objects-normal/arm64/LocalAuditRepository.swiftconstvalues",
+    "dependencies" : "/Users/bobo/Desktop/Lopan/build/Build/Intermediates.noindex/Lopan.build/Debug-iphonesimulator/Lopan.build/Objects-normal/arm64/LocalAuditRepository.d",
+    "diagnostics" : "/Users/bobo/Desktop/Lopan/build/Build/Intermediates.noindex/Lopan.build/Debug-iphonesimulator/Lopan.build/Objects-normal/arm64/LocalAuditRepository.dia",
+    "index-unit-output-path" : "/Lopan.build/Debug-iphonesimulator/Lopan.build/Objects-normal/arm64/LocalAuditRepository.o",
+    "llvm-bc" : "/Users/bobo/Desktop/Lopan/build/Build/Intermediates.noindex/Lopan.build/Debug-iphonesimulator/Lopan.build/Objects-normal/arm64/LocalAuditRepository.bc",
+    "object" : "/Users/bobo/Desktop/Lopan/build/Build/Intermediates.noindex/Lopan.build/Debug-iphonesimulator/Lopan.build/Objects-normal/arm64/LocalAuditRepository.o",
+    "swift-dependencies" : "/Users/bobo/Desktop/Lopan/build/Build/Intermediates.noindex/Lopan.build/Debug-iphonesimulator/Lopan.build/Objects-normal/arm64/LocalAuditRepository.swiftdeps",
+    "swiftmodule" : "/Users/bobo/Desktop/Lopan/build/Build/Intermediates.noindex/Lopan.build/Debug-iphonesimulator/Lopan.build/Objects-normal/arm64/LocalAuditRepository~partial.swiftmodule"
+  },
+  "/Users/bobo/Desktop/Lopan/Lopan/Repository/Local/LocalBatchOperationRepository.swift" : {
+    "const-values" : "/Users/bobo/Desktop/Lopan/build/Build/Intermediates.noindex/Lopan.build/Debug-iphonesimulator/Lopan.build/Objects-normal/arm64/LocalBatchOperationRepository.swiftconstvalues",
+    "dependencies" : "/Users/bobo/Desktop/Lopan/build/Build/Intermediates.noindex/Lopan.build/Debug-iphonesimulator/Lopan.build/Objects-normal/arm64/LocalBatchOperationRepository.d",
+    "diagnostics" : "/Users/bobo/Desktop/Lopan/build/Build/Intermediates.noindex/Lopan.build/Debug-iphonesimulator/Lopan.build/Objects-normal/arm64/LocalBatchOperationRepository.dia",
+    "index-unit-output-path" : "/Lopan.build/Debug-iphonesimulator/Lopan.build/Objects-normal/arm64/LocalBatchOperationRepository.o",
+    "llvm-bc" : "/Users/bobo/Desktop/Lopan/build/Build/Intermediates.noindex/Lopan.build/Debug-iphonesimulator/Lopan.build/Objects-normal/arm64/LocalBatchOperationRepository.bc",
+    "object" : "/Users/bobo/Desktop/Lopan/build/Build/Intermediates.noindex/Lopan.build/Debug-iphonesimulator/Lopan.build/Objects-normal/arm64/LocalBatchOperationRepository.o",
+    "swift-dependencies" : "/Users/bobo/Desktop/Lopan/build/Build/Intermediates.noindex/Lopan.build/Debug-iphonesimulator/Lopan.build/Objects-normal/arm64/LocalBatchOperationRepository.swiftdeps",
+    "swiftmodule" : "/Users/bobo/Desktop/Lopan/build/Build/Intermediates.noindex/Lopan.build/Debug-iphonesimulator/Lopan.build/Objects-normal/arm64/LocalBatchOperationRepository~partial.swiftmodule"
+  },
+  "/Users/bobo/Desktop/Lopan/Lopan/Repository/Local/LocalColorRepository.swift" : {
+    "const-values" : "/Users/bobo/Desktop/Lopan/build/Build/Intermediates.noindex/Lopan.build/Debug-iphonesimulator/Lopan.build/Objects-normal/arm64/LocalColorRepository.swiftconstvalues",
+    "dependencies" : "/Users/bobo/Desktop/Lopan/build/Build/Intermediates.noindex/Lopan.build/Debug-iphonesimulator/Lopan.build/Objects-normal/arm64/LocalColorRepository.d",
+    "diagnostics" : "/Users/bobo/Desktop/Lopan/build/Build/Intermediates.noindex/Lopan.build/Debug-iphonesimulator/Lopan.build/Objects-normal/arm64/LocalColorRepository.dia",
+    "index-unit-output-path" : "/Lopan.build/Debug-iphonesimulator/Lopan.build/Objects-normal/arm64/LocalColorRepository.o",
+    "llvm-bc" : "/Users/bobo/Desktop/Lopan/build/Build/Intermediates.noindex/Lopan.build/Debug-iphonesimulator/Lopan.build/Objects-normal/arm64/LocalColorRepository.bc",
+    "object" : "/Users/bobo/Desktop/Lopan/build/Build/Intermediates.noindex/Lopan.build/Debug-iphonesimulator/Lopan.build/Objects-normal/arm64/LocalColorRepository.o",
+    "swift-dependencies" : "/Users/bobo/Desktop/Lopan/build/Build/Intermediates.noindex/Lopan.build/Debug-iphonesimulator/Lopan.build/Objects-normal/arm64/LocalColorRepository.swiftdeps",
+    "swiftmodule" : "/Users/bobo/Desktop/Lopan/build/Build/Intermediates.noindex/Lopan.build/Debug-iphonesimulator/Lopan.build/Objects-normal/arm64/LocalColorRepository~partial.swiftmodule"
+  },
+  "/Users/bobo/Desktop/Lopan/Lopan/Repository/Local/LocalCustomerOutOfStockRepository.swift" : {
+    "const-values" : "/Users/bobo/Desktop/Lopan/build/Build/Intermediates.noindex/Lopan.build/Debug-iphonesimulator/Lopan.build/Objects-normal/arm64/LocalCustomerOutOfStockRepository.swiftconstvalues",
+    "dependencies" : "/Users/bobo/Desktop/Lopan/build/Build/Intermediates.noindex/Lopan.build/Debug-iphonesimulator/Lopan.build/Objects-normal/arm64/LocalCustomerOutOfStockRepository.d",
+    "diagnostics" : "/Users/bobo/Desktop/Lopan/build/Build/Intermediates.noindex/Lopan.build/Debug-iphonesimulator/Lopan.build/Objects-normal/arm64/LocalCustomerOutOfStockRepository.dia",
+    "index-unit-output-path" : "/Lopan.build/Debug-iphonesimulator/Lopan.build/Objects-normal/arm64/LocalCustomerOutOfStockRepository.o",
+    "llvm-bc" : "/Users/bobo/Desktop/Lopan/build/Build/Intermediates.noindex/Lopan.build/Debug-iphonesimulator/Lopan.build/Objects-normal/arm64/LocalCustomerOutOfStockRepository.bc",
+    "object" : "/Users/bobo/Desktop/Lopan/build/Build/Intermediates.noindex/Lopan.build/Debug-iphonesimulator/Lopan.build/Objects-normal/arm64/LocalCustomerOutOfStockRepository.o",
+    "swift-dependencies" : "/Users/bobo/Desktop/Lopan/build/Build/Intermediates.noindex/Lopan.build/Debug-iphonesimulator/Lopan.build/Objects-normal/arm64/LocalCustomerOutOfStockRepository.swiftdeps",
+    "swiftmodule" : "/Users/bobo/Desktop/Lopan/build/Build/Intermediates.noindex/Lopan.build/Debug-iphonesimulator/Lopan.build/Objects-normal/arm64/LocalCustomerOutOfStockRepository~partial.swiftmodule"
+  },
+  "/Users/bobo/Desktop/Lopan/Lopan/Repository/Local/LocalCustomerRepository.swift" : {
+    "const-values" : "/Users/bobo/Desktop/Lopan/build/Build/Intermediates.noindex/Lopan.build/Debug-iphonesimulator/Lopan.build/Objects-normal/arm64/LocalCustomerRepository.swiftconstvalues",
+    "dependencies" : "/Users/bobo/Desktop/Lopan/build/Build/Intermediates.noindex/Lopan.build/Debug-iphonesimulator/Lopan.build/Objects-normal/arm64/LocalCustomerRepository.d",
+    "diagnostics" : "/Users/bobo/Desktop/Lopan/build/Build/Intermediates.noindex/Lopan.build/Debug-iphonesimulator/Lopan.build/Objects-normal/arm64/LocalCustomerRepository.dia",
+    "index-unit-output-path" : "/Lopan.build/Debug-iphonesimulator/Lopan.build/Objects-normal/arm64/LocalCustomerRepository.o",
+    "llvm-bc" : "/Users/bobo/Desktop/Lopan/build/Build/Intermediates.noindex/Lopan.build/Debug-iphonesimulator/Lopan.build/Objects-normal/arm64/LocalCustomerRepository.bc",
+    "object" : "/Users/bobo/Desktop/Lopan/build/Build/Intermediates.noindex/Lopan.build/Debug-iphonesimulator/Lopan.build/Objects-normal/arm64/LocalCustomerRepository.o",
+    "swift-dependencies" : "/Users/bobo/Desktop/Lopan/build/Build/Intermediates.noindex/Lopan.build/Debug-iphonesimulator/Lopan.build/Objects-normal/arm64/LocalCustomerRepository.swiftdeps",
+    "swiftmodule" : "/Users/bobo/Desktop/Lopan/build/Build/Intermediates.noindex/Lopan.build/Debug-iphonesimulator/Lopan.build/Objects-normal/arm64/LocalCustomerRepository~partial.swiftmodule"
+  },
+  "/Users/bobo/Desktop/Lopan/Lopan/Repository/Local/LocalMachineRepository.swift" : {
+    "const-values" : "/Users/bobo/Desktop/Lopan/build/Build/Intermediates.noindex/Lopan.build/Debug-iphonesimulator/Lopan.build/Objects-normal/arm64/LocalMachineRepository.swiftconstvalues",
+    "dependencies" : "/Users/bobo/Desktop/Lopan/build/Build/Intermediates.noindex/Lopan.build/Debug-iphonesimulator/Lopan.build/Objects-normal/arm64/LocalMachineRepository.d",
+    "diagnostics" : "/Users/bobo/Desktop/Lopan/build/Build/Intermediates.noindex/Lopan.build/Debug-iphonesimulator/Lopan.build/Objects-normal/arm64/LocalMachineRepository.dia",
+    "index-unit-output-path" : "/Lopan.build/Debug-iphonesimulator/Lopan.build/Objects-normal/arm64/LocalMachineRepository.o",
+    "llvm-bc" : "/Users/bobo/Desktop/Lopan/build/Build/Intermediates.noindex/Lopan.build/Debug-iphonesimulator/Lopan.build/Objects-normal/arm64/LocalMachineRepository.bc",
+    "object" : "/Users/bobo/Desktop/Lopan/build/Build/Intermediates.noindex/Lopan.build/Debug-iphonesimulator/Lopan.build/Objects-normal/arm64/LocalMachineRepository.o",
+    "swift-dependencies" : "/Users/bobo/Desktop/Lopan/build/Build/Intermediates.noindex/Lopan.build/Debug-iphonesimulator/Lopan.build/Objects-normal/arm64/LocalMachineRepository.swiftdeps",
+    "swiftmodule" : "/Users/bobo/Desktop/Lopan/build/Build/Intermediates.noindex/Lopan.build/Debug-iphonesimulator/Lopan.build/Objects-normal/arm64/LocalMachineRepository~partial.swiftmodule"
+  },
+  "/Users/bobo/Desktop/Lopan/Lopan/Repository/Local/LocalPackagingRepository.swift" : {
+    "const-values" : "/Users/bobo/Desktop/Lopan/build/Build/Intermediates.noindex/Lopan.build/Debug-iphonesimulator/Lopan.build/Objects-normal/arm64/LocalPackagingRepository.swiftconstvalues",
+    "dependencies" : "/Users/bobo/Desktop/Lopan/build/Build/Intermediates.noindex/Lopan.build/Debug-iphonesimulator/Lopan.build/Objects-normal/arm64/LocalPackagingRepository.d",
+    "diagnostics" : "/Users/bobo/Desktop/Lopan/build/Build/Intermediates.noindex/Lopan.build/Debug-iphonesimulator/Lopan.build/Objects-normal/arm64/LocalPackagingRepository.dia",
+    "index-unit-output-path" : "/Lopan.build/Debug-iphonesimulator/Lopan.build/Objects-normal/arm64/LocalPackagingRepository.o",
+    "llvm-bc" : "/Users/bobo/Desktop/Lopan/build/Build/Intermediates.noindex/Lopan.build/Debug-iphonesimulator/Lopan.build/Objects-normal/arm64/LocalPackagingRepository.bc",
+    "object" : "/Users/bobo/Desktop/Lopan/build/Build/Intermediates.noindex/Lopan.build/Debug-iphonesimulator/Lopan.build/Objects-normal/arm64/LocalPackagingRepository.o",
+    "swift-dependencies" : "/Users/bobo/Desktop/Lopan/build/Build/Intermediates.noindex/Lopan.build/Debug-iphonesimulator/Lopan.build/Objects-normal/arm64/LocalPackagingRepository.swiftdeps",
+    "swiftmodule" : "/Users/bobo/Desktop/Lopan/build/Build/Intermediates.noindex/Lopan.build/Debug-iphonesimulator/Lopan.build/Objects-normal/arm64/LocalPackagingRepository~partial.swiftmodule"
+  },
+  "/Users/bobo/Desktop/Lopan/Lopan/Repository/Local/LocalProductRepository.swift" : {
+    "const-values" : "/Users/bobo/Desktop/Lopan/build/Build/Intermediates.noindex/Lopan.build/Debug-iphonesimulator/Lopan.build/Objects-normal/arm64/LocalProductRepository.swiftconstvalues",
+    "dependencies" : "/Users/bobo/Desktop/Lopan/build/Build/Intermediates.noindex/Lopan.build/Debug-iphonesimulator/Lopan.build/Objects-normal/arm64/LocalProductRepository.d",
+    "diagnostics" : "/Users/bobo/Desktop/Lopan/build/Build/Intermediates.noindex/Lopan.build/Debug-iphonesimulator/Lopan.build/Objects-normal/arm64/LocalProductRepository.dia",
+    "index-unit-output-path" : "/Lopan.build/Debug-iphonesimulator/Lopan.build/Objects-normal/arm64/LocalProductRepository.o",
+    "llvm-bc" : "/Users/bobo/Desktop/Lopan/build/Build/Intermediates.noindex/Lopan.build/Debug-iphonesimulator/Lopan.build/Objects-normal/arm64/LocalProductRepository.bc",
+    "object" : "/Users/bobo/Desktop/Lopan/build/Build/Intermediates.noindex/Lopan.build/Debug-iphonesimulator/Lopan.build/Objects-normal/arm64/LocalProductRepository.o",
+    "swift-dependencies" : "/Users/bobo/Desktop/Lopan/build/Build/Intermediates.noindex/Lopan.build/Debug-iphonesimulator/Lopan.build/Objects-normal/arm64/LocalProductRepository.swiftdeps",
+    "swiftmodule" : "/Users/bobo/Desktop/Lopan/build/Build/Intermediates.noindex/Lopan.build/Debug-iphonesimulator/Lopan.build/Objects-normal/arm64/LocalProductRepository~partial.swiftmodule"
+  },
+  "/Users/bobo/Desktop/Lopan/Lopan/Repository/Local/LocalProductionBatchRepository.swift" : {
+    "const-values" : "/Users/bobo/Desktop/Lopan/build/Build/Intermediates.noindex/Lopan.build/Debug-iphonesimulator/Lopan.build/Objects-normal/arm64/LocalProductionBatchRepository.swiftconstvalues",
+    "dependencies" : "/Users/bobo/Desktop/Lopan/build/Build/Intermediates.noindex/Lopan.build/Debug-iphonesimulator/Lopan.build/Objects-normal/arm64/LocalProductionBatchRepository.d",
+    "diagnostics" : "/Users/bobo/Desktop/Lopan/build/Build/Intermediates.noindex/Lopan.build/Debug-iphonesimulator/Lopan.build/Objects-normal/arm64/LocalProductionBatchRepository.dia",
+    "index-unit-output-path" : "/Lopan.build/Debug-iphonesimulator/Lopan.build/Objects-normal/arm64/LocalProductionBatchRepository.o",
+    "llvm-bc" : "/Users/bobo/Desktop/Lopan/build/Build/Intermediates.noindex/Lopan.build/Debug-iphonesimulator/Lopan.build/Objects-normal/arm64/LocalProductionBatchRepository.bc",
+    "object" : "/Users/bobo/Desktop/Lopan/build/Build/Intermediates.noindex/Lopan.build/Debug-iphonesimulator/Lopan.build/Objects-normal/arm64/LocalProductionBatchRepository.o",
+    "swift-dependencies" : "/Users/bobo/Desktop/Lopan/build/Build/Intermediates.noindex/Lopan.build/Debug-iphonesimulator/Lopan.build/Objects-normal/arm64/LocalProductionBatchRepository.swiftdeps",
+    "swiftmodule" : "/Users/bobo/Desktop/Lopan/build/Build/Intermediates.noindex/Lopan.build/Debug-iphonesimulator/Lopan.build/Objects-normal/arm64/LocalProductionBatchRepository~partial.swiftmodule"
+  },
+  "/Users/bobo/Desktop/Lopan/Lopan/Repository/Local/LocalProductionRepository.swift" : {
+    "const-values" : "/Users/bobo/Desktop/Lopan/build/Build/Intermediates.noindex/Lopan.build/Debug-iphonesimulator/Lopan.build/Objects-normal/arm64/LocalProductionRepository.swiftconstvalues",
+    "dependencies" : "/Users/bobo/Desktop/Lopan/build/Build/Intermediates.noindex/Lopan.build/Debug-iphonesimulator/Lopan.build/Objects-normal/arm64/LocalProductionRepository.d",
+    "diagnostics" : "/Users/bobo/Desktop/Lopan/build/Build/Intermediates.noindex/Lopan.build/Debug-iphonesimulator/Lopan.build/Objects-normal/arm64/LocalProductionRepository.dia",
+    "index-unit-output-path" : "/Lopan.build/Debug-iphonesimulator/Lopan.build/Objects-normal/arm64/LocalProductionRepository.o",
+    "llvm-bc" : "/Users/bobo/Desktop/Lopan/build/Build/Intermediates.noindex/Lopan.build/Debug-iphonesimulator/Lopan.build/Objects-normal/arm64/LocalProductionRepository.bc",
+    "object" : "/Users/bobo/Desktop/Lopan/build/Build/Intermediates.noindex/Lopan.build/Debug-iphonesimulator/Lopan.build/Objects-normal/arm64/LocalProductionRepository.o",
+    "swift-dependencies" : "/Users/bobo/Desktop/Lopan/build/Build/Intermediates.noindex/Lopan.build/Debug-iphonesimulator/Lopan.build/Objects-normal/arm64/LocalProductionRepository.swiftdeps",
+    "swiftmodule" : "/Users/bobo/Desktop/Lopan/build/Build/Intermediates.noindex/Lopan.build/Debug-iphonesimulator/Lopan.build/Objects-normal/arm64/LocalProductionRepository~partial.swiftmodule"
+  },
+  "/Users/bobo/Desktop/Lopan/Lopan/Repository/Local/LocalRepositoryFactory.swift" : {
+    "const-values" : "/Users/bobo/Desktop/Lopan/build/Build/Intermediates.noindex/Lopan.build/Debug-iphonesimulator/Lopan.build/Objects-normal/arm64/LocalRepositoryFactory.swiftconstvalues",
+    "dependencies" : "/Users/bobo/Desktop/Lopan/build/Build/Intermediates.noindex/Lopan.build/Debug-iphonesimulator/Lopan.build/Objects-normal/arm64/LocalRepositoryFactory.d",
+    "diagnostics" : "/Users/bobo/Desktop/Lopan/build/Build/Intermediates.noindex/Lopan.build/Debug-iphonesimulator/Lopan.build/Objects-normal/arm64/LocalRepositoryFactory.dia",
+    "index-unit-output-path" : "/Lopan.build/Debug-iphonesimulator/Lopan.build/Objects-normal/arm64/LocalRepositoryFactory.o",
+    "llvm-bc" : "/Users/bobo/Desktop/Lopan/build/Build/Intermediates.noindex/Lopan.build/Debug-iphonesimulator/Lopan.build/Objects-normal/arm64/LocalRepositoryFactory.bc",
+    "object" : "/Users/bobo/Desktop/Lopan/build/Build/Intermediates.noindex/Lopan.build/Debug-iphonesimulator/Lopan.build/Objects-normal/arm64/LocalRepositoryFactory.o",
+    "swift-dependencies" : "/Users/bobo/Desktop/Lopan/build/Build/Intermediates.noindex/Lopan.build/Debug-iphonesimulator/Lopan.build/Objects-normal/arm64/LocalRepositoryFactory.swiftdeps",
+    "swiftmodule" : "/Users/bobo/Desktop/Lopan/build/Build/Intermediates.noindex/Lopan.build/Debug-iphonesimulator/Lopan.build/Objects-normal/arm64/LocalRepositoryFactory~partial.swiftmodule"
+  },
+  "/Users/bobo/Desktop/Lopan/Lopan/Repository/Local/LocalUserRepository.swift" : {
+    "const-values" : "/Users/bobo/Desktop/Lopan/build/Build/Intermediates.noindex/Lopan.build/Debug-iphonesimulator/Lopan.build/Objects-normal/arm64/LocalUserRepository.swiftconstvalues",
+    "dependencies" : "/Users/bobo/Desktop/Lopan/build/Build/Intermediates.noindex/Lopan.build/Debug-iphonesimulator/Lopan.build/Objects-normal/arm64/LocalUserRepository.d",
+    "diagnostics" : "/Users/bobo/Desktop/Lopan/build/Build/Intermediates.noindex/Lopan.build/Debug-iphonesimulator/Lopan.build/Objects-normal/arm64/LocalUserRepository.dia",
+    "index-unit-output-path" : "/Lopan.build/Debug-iphonesimulator/Lopan.build/Objects-normal/arm64/LocalUserRepository.o",
+    "llvm-bc" : "/Users/bobo/Desktop/Lopan/build/Build/Intermediates.noindex/Lopan.build/Debug-iphonesimulator/Lopan.build/Objects-normal/arm64/LocalUserRepository.bc",
+    "object" : "/Users/bobo/Desktop/Lopan/build/Build/Intermediates.noindex/Lopan.build/Debug-iphonesimulator/Lopan.build/Objects-normal/arm64/LocalUserRepository.o",
+    "swift-dependencies" : "/Users/bobo/Desktop/Lopan/build/Build/Intermediates.noindex/Lopan.build/Debug-iphonesimulator/Lopan.build/Objects-normal/arm64/LocalUserRepository.swiftdeps",
+    "swiftmodule" : "/Users/bobo/Desktop/Lopan/build/Build/Intermediates.noindex/Lopan.build/Debug-iphonesimulator/Lopan.build/Objects-normal/arm64/LocalUserRepository~partial.swiftmodule"
+  },
+  "/Users/bobo/Desktop/Lopan/Lopan/Repository/MachineRepository.swift" : {
+    "const-values" : "/Users/bobo/Desktop/Lopan/build/Build/Intermediates.noindex/Lopan.build/Debug-iphonesimulator/Lopan.build/Objects-normal/arm64/MachineRepository.swiftconstvalues",
+    "dependencies" : "/Users/bobo/Desktop/Lopan/build/Build/Intermediates.noindex/Lopan.build/Debug-iphonesimulator/Lopan.build/Objects-normal/arm64/MachineRepository.d",
+    "diagnostics" : "/Users/bobo/Desktop/Lopan/build/Build/Intermediates.noindex/Lopan.build/Debug-iphonesimulator/Lopan.build/Objects-normal/arm64/MachineRepository.dia",
+    "index-unit-output-path" : "/Lopan.build/Debug-iphonesimulator/Lopan.build/Objects-normal/arm64/MachineRepository.o",
+    "llvm-bc" : "/Users/bobo/Desktop/Lopan/build/Build/Intermediates.noindex/Lopan.build/Debug-iphonesimulator/Lopan.build/Objects-normal/arm64/MachineRepository.bc",
+    "object" : "/Users/bobo/Desktop/Lopan/build/Build/Intermediates.noindex/Lopan.build/Debug-iphonesimulator/Lopan.build/Objects-normal/arm64/MachineRepository.o",
+    "swift-dependencies" : "/Users/bobo/Desktop/Lopan/build/Build/Intermediates.noindex/Lopan.build/Debug-iphonesimulator/Lopan.build/Objects-normal/arm64/MachineRepository.swiftdeps",
+    "swiftmodule" : "/Users/bobo/Desktop/Lopan/build/Build/Intermediates.noindex/Lopan.build/Debug-iphonesimulator/Lopan.build/Objects-normal/arm64/MachineRepository~partial.swiftmodule"
+  },
+  "/Users/bobo/Desktop/Lopan/Lopan/Repository/PackagingRepository.swift" : {
+    "const-values" : "/Users/bobo/Desktop/Lopan/build/Build/Intermediates.noindex/Lopan.build/Debug-iphonesimulator/Lopan.build/Objects-normal/arm64/PackagingRepository.swiftconstvalues",
+    "dependencies" : "/Users/bobo/Desktop/Lopan/build/Build/Intermediates.noindex/Lopan.build/Debug-iphonesimulator/Lopan.build/Objects-normal/arm64/PackagingRepository.d",
+    "diagnostics" : "/Users/bobo/Desktop/Lopan/build/Build/Intermediates.noindex/Lopan.build/Debug-iphonesimulator/Lopan.build/Objects-normal/arm64/PackagingRepository.dia",
+    "index-unit-output-path" : "/Lopan.build/Debug-iphonesimulator/Lopan.build/Objects-normal/arm64/PackagingRepository.o",
+    "llvm-bc" : "/Users/bobo/Desktop/Lopan/build/Build/Intermediates.noindex/Lopan.build/Debug-iphonesimulator/Lopan.build/Objects-normal/arm64/PackagingRepository.bc",
+    "object" : "/Users/bobo/Desktop/Lopan/build/Build/Intermediates.noindex/Lopan.build/Debug-iphonesimulator/Lopan.build/Objects-normal/arm64/PackagingRepository.o",
+    "swift-dependencies" : "/Users/bobo/Desktop/Lopan/build/Build/Intermediates.noindex/Lopan.build/Debug-iphonesimulator/Lopan.build/Objects-normal/arm64/PackagingRepository.swiftdeps",
+    "swiftmodule" : "/Users/bobo/Desktop/Lopan/build/Build/Intermediates.noindex/Lopan.build/Debug-iphonesimulator/Lopan.build/Objects-normal/arm64/PackagingRepository~partial.swiftmodule"
+  },
+  "/Users/bobo/Desktop/Lopan/Lopan/Repository/ProductRepository.swift" : {
+    "const-values" : "/Users/bobo/Desktop/Lopan/build/Build/Intermediates.noindex/Lopan.build/Debug-iphonesimulator/Lopan.build/Objects-normal/arm64/ProductRepository.swiftconstvalues",
+    "dependencies" : "/Users/bobo/Desktop/Lopan/build/Build/Intermediates.noindex/Lopan.build/Debug-iphonesimulator/Lopan.build/Objects-normal/arm64/ProductRepository.d",
+    "diagnostics" : "/Users/bobo/Desktop/Lopan/build/Build/Intermediates.noindex/Lopan.build/Debug-iphonesimulator/Lopan.build/Objects-normal/arm64/ProductRepository.dia",
+    "index-unit-output-path" : "/Lopan.build/Debug-iphonesimulator/Lopan.build/Objects-normal/arm64/ProductRepository.o",
+    "llvm-bc" : "/Users/bobo/Desktop/Lopan/build/Build/Intermediates.noindex/Lopan.build/Debug-iphonesimulator/Lopan.build/Objects-normal/arm64/ProductRepository.bc",
+    "object" : "/Users/bobo/Desktop/Lopan/build/Build/Intermediates.noindex/Lopan.build/Debug-iphonesimulator/Lopan.build/Objects-normal/arm64/ProductRepository.o",
+    "swift-dependencies" : "/Users/bobo/Desktop/Lopan/build/Build/Intermediates.noindex/Lopan.build/Debug-iphonesimulator/Lopan.build/Objects-normal/arm64/ProductRepository.swiftdeps",
+    "swiftmodule" : "/Users/bobo/Desktop/Lopan/build/Build/Intermediates.noindex/Lopan.build/Debug-iphonesimulator/Lopan.build/Objects-normal/arm64/ProductRepository~partial.swiftmodule"
+  },
+  "/Users/bobo/Desktop/Lopan/Lopan/Repository/ProductionBatchRepository.swift" : {
+    "const-values" : "/Users/bobo/Desktop/Lopan/build/Build/Intermediates.noindex/Lopan.build/Debug-iphonesimulator/Lopan.build/Objects-normal/arm64/ProductionBatchRepository.swiftconstvalues",
+    "dependencies" : "/Users/bobo/Desktop/Lopan/build/Build/Intermediates.noindex/Lopan.build/Debug-iphonesimulator/Lopan.build/Objects-normal/arm64/ProductionBatchRepository.d",
+    "diagnostics" : "/Users/bobo/Desktop/Lopan/build/Build/Intermediates.noindex/Lopan.build/Debug-iphonesimulator/Lopan.build/Objects-normal/arm64/ProductionBatchRepository.dia",
+    "index-unit-output-path" : "/Lopan.build/Debug-iphonesimulator/Lopan.build/Objects-normal/arm64/ProductionBatchRepository.o",
+    "llvm-bc" : "/Users/bobo/Desktop/Lopan/build/Build/Intermediates.noindex/Lopan.build/Debug-iphonesimulator/Lopan.build/Objects-normal/arm64/ProductionBatchRepository.bc",
+    "object" : "/Users/bobo/Desktop/Lopan/build/Build/Intermediates.noindex/Lopan.build/Debug-iphonesimulator/Lopan.build/Objects-normal/arm64/ProductionBatchRepository.o",
+    "swift-dependencies" : "/Users/bobo/Desktop/Lopan/build/Build/Intermediates.noindex/Lopan.build/Debug-iphonesimulator/Lopan.build/Objects-normal/arm64/ProductionBatchRepository.swiftdeps",
+    "swiftmodule" : "/Users/bobo/Desktop/Lopan/build/Build/Intermediates.noindex/Lopan.build/Debug-iphonesimulator/Lopan.build/Objects-normal/arm64/ProductionBatchRepository~partial.swiftmodule"
+  },
+  "/Users/bobo/Desktop/Lopan/Lopan/Repository/ProductionRepository.swift" : {
+    "const-values" : "/Users/bobo/Desktop/Lopan/build/Build/Intermediates.noindex/Lopan.build/Debug-iphonesimulator/Lopan.build/Objects-normal/arm64/ProductionRepository.swiftconstvalues",
+    "dependencies" : "/Users/bobo/Desktop/Lopan/build/Build/Intermediates.noindex/Lopan.build/Debug-iphonesimulator/Lopan.build/Objects-normal/arm64/ProductionRepository.d",
+    "diagnostics" : "/Users/bobo/Desktop/Lopan/build/Build/Intermediates.noindex/Lopan.build/Debug-iphonesimulator/Lopan.build/Objects-normal/arm64/ProductionRepository.dia",
+    "index-unit-output-path" : "/Lopan.build/Debug-iphonesimulator/Lopan.build/Objects-normal/arm64/ProductionRepository.o",
+    "llvm-bc" : "/Users/bobo/Desktop/Lopan/build/Build/Intermediates.noindex/Lopan.build/Debug-iphonesimulator/Lopan.build/Objects-normal/arm64/ProductionRepository.bc",
+    "object" : "/Users/bobo/Desktop/Lopan/build/Build/Intermediates.noindex/Lopan.build/Debug-iphonesimulator/Lopan.build/Objects-normal/arm64/ProductionRepository.o",
+    "swift-dependencies" : "/Users/bobo/Desktop/Lopan/build/Build/Intermediates.noindex/Lopan.build/Debug-iphonesimulator/Lopan.build/Objects-normal/arm64/ProductionRepository.swiftdeps",
+    "swiftmodule" : "/Users/bobo/Desktop/Lopan/build/Build/Intermediates.noindex/Lopan.build/Debug-iphonesimulator/Lopan.build/Objects-normal/arm64/ProductionRepository~partial.swiftmodule"
+  },
+  "/Users/bobo/Desktop/Lopan/Lopan/Repository/RepositoryFactory.swift" : {
+    "const-values" : "/Users/bobo/Desktop/Lopan/build/Build/Intermediates.noindex/Lopan.build/Debug-iphonesimulator/Lopan.build/Objects-normal/arm64/RepositoryFactory.swiftconstvalues",
+    "dependencies" : "/Users/bobo/Desktop/Lopan/build/Build/Intermediates.noindex/Lopan.build/Debug-iphonesimulator/Lopan.build/Objects-normal/arm64/RepositoryFactory.d",
+    "diagnostics" : "/Users/bobo/Desktop/Lopan/build/Build/Intermediates.noindex/Lopan.build/Debug-iphonesimulator/Lopan.build/Objects-normal/arm64/RepositoryFactory.dia",
+    "index-unit-output-path" : "/Lopan.build/Debug-iphonesimulator/Lopan.build/Objects-normal/arm64/RepositoryFactory.o",
+    "llvm-bc" : "/Users/bobo/Desktop/Lopan/build/Build/Intermediates.noindex/Lopan.build/Debug-iphonesimulator/Lopan.build/Objects-normal/arm64/RepositoryFactory.bc",
+    "object" : "/Users/bobo/Desktop/Lopan/build/Build/Intermediates.noindex/Lopan.build/Debug-iphonesimulator/Lopan.build/Objects-normal/arm64/RepositoryFactory.o",
+    "swift-dependencies" : "/Users/bobo/Desktop/Lopan/build/Build/Intermediates.noindex/Lopan.build/Debug-iphonesimulator/Lopan.build/Objects-normal/arm64/RepositoryFactory.swiftdeps",
+    "swiftmodule" : "/Users/bobo/Desktop/Lopan/build/Build/Intermediates.noindex/Lopan.build/Debug-iphonesimulator/Lopan.build/Objects-normal/arm64/RepositoryFactory~partial.swiftmodule"
+  },
+  "/Users/bobo/Desktop/Lopan/Lopan/Repository/UserRepository.swift" : {
+    "const-values" : "/Users/bobo/Desktop/Lopan/build/Build/Intermediates.noindex/Lopan.build/Debug-iphonesimulator/Lopan.build/Objects-normal/arm64/UserRepository.swiftconstvalues",
+    "dependencies" : "/Users/bobo/Desktop/Lopan/build/Build/Intermediates.noindex/Lopan.build/Debug-iphonesimulator/Lopan.build/Objects-normal/arm64/UserRepository.d",
+    "diagnostics" : "/Users/bobo/Desktop/Lopan/build/Build/Intermediates.noindex/Lopan.build/Debug-iphonesimulator/Lopan.build/Objects-normal/arm64/UserRepository.dia",
+    "index-unit-output-path" : "/Lopan.build/Debug-iphonesimulator/Lopan.build/Objects-normal/arm64/UserRepository.o",
+    "llvm-bc" : "/Users/bobo/Desktop/Lopan/build/Build/Intermediates.noindex/Lopan.build/Debug-iphonesimulator/Lopan.build/Objects-normal/arm64/UserRepository.bc",
+    "object" : "/Users/bobo/Desktop/Lopan/build/Build/Intermediates.noindex/Lopan.build/Debug-iphonesimulator/Lopan.build/Objects-normal/arm64/UserRepository.o",
+    "swift-dependencies" : "/Users/bobo/Desktop/Lopan/build/Build/Intermediates.noindex/Lopan.build/Debug-iphonesimulator/Lopan.build/Objects-normal/arm64/UserRepository.swiftdeps",
+    "swiftmodule" : "/Users/bobo/Desktop/Lopan/build/Build/Intermediates.noindex/Lopan.build/Debug-iphonesimulator/Lopan.build/Objects-normal/arm64/UserRepository~partial.swiftmodule"
+  },
+  "/Users/bobo/Desktop/Lopan/Lopan/Services/AuditingService.swift" : {
+    "const-values" : "/Users/bobo/Desktop/Lopan/build/Build/Intermediates.noindex/Lopan.build/Debug-iphonesimulator/Lopan.build/Objects-normal/arm64/AuditingService.swiftconstvalues",
+    "dependencies" : "/Users/bobo/Desktop/Lopan/build/Build/Intermediates.noindex/Lopan.build/Debug-iphonesimulator/Lopan.build/Objects-normal/arm64/AuditingService.d",
+    "diagnostics" : "/Users/bobo/Desktop/Lopan/build/Build/Intermediates.noindex/Lopan.build/Debug-iphonesimulator/Lopan.build/Objects-normal/arm64/AuditingService.dia",
+    "index-unit-output-path" : "/Lopan.build/Debug-iphonesimulator/Lopan.build/Objects-normal/arm64/AuditingService.o",
+    "llvm-bc" : "/Users/bobo/Desktop/Lopan/build/Build/Intermediates.noindex/Lopan.build/Debug-iphonesimulator/Lopan.build/Objects-normal/arm64/AuditingService.bc",
+    "object" : "/Users/bobo/Desktop/Lopan/build/Build/Intermediates.noindex/Lopan.build/Debug-iphonesimulator/Lopan.build/Objects-normal/arm64/AuditingService.o",
+    "swift-dependencies" : "/Users/bobo/Desktop/Lopan/build/Build/Intermediates.noindex/Lopan.build/Debug-iphonesimulator/Lopan.build/Objects-normal/arm64/AuditingService.swiftdeps",
+    "swiftmodule" : "/Users/bobo/Desktop/Lopan/build/Build/Intermediates.noindex/Lopan.build/Debug-iphonesimulator/Lopan.build/Objects-normal/arm64/AuditingService~partial.swiftmodule"
+  },
+  "/Users/bobo/Desktop/Lopan/Lopan/Services/AuthenticationService.swift" : {
+    "const-values" : "/Users/bobo/Desktop/Lopan/build/Build/Intermediates.noindex/Lopan.build/Debug-iphonesimulator/Lopan.build/Objects-normal/arm64/AuthenticationService.swiftconstvalues",
+    "dependencies" : "/Users/bobo/Desktop/Lopan/build/Build/Intermediates.noindex/Lopan.build/Debug-iphonesimulator/Lopan.build/Objects-normal/arm64/AuthenticationService.d",
+    "diagnostics" : "/Users/bobo/Desktop/Lopan/build/Build/Intermediates.noindex/Lopan.build/Debug-iphonesimulator/Lopan.build/Objects-normal/arm64/AuthenticationService.dia",
+    "index-unit-output-path" : "/Lopan.build/Debug-iphonesimulator/Lopan.build/Objects-normal/arm64/AuthenticationService.o",
+    "llvm-bc" : "/Users/bobo/Desktop/Lopan/build/Build/Intermediates.noindex/Lopan.build/Debug-iphonesimulator/Lopan.build/Objects-normal/arm64/AuthenticationService.bc",
+    "object" : "/Users/bobo/Desktop/Lopan/build/Build/Intermediates.noindex/Lopan.build/Debug-iphonesimulator/Lopan.build/Objects-normal/arm64/AuthenticationService.o",
+    "swift-dependencies" : "/Users/bobo/Desktop/Lopan/build/Build/Intermediates.noindex/Lopan.build/Debug-iphonesimulator/Lopan.build/Objects-normal/arm64/AuthenticationService.swiftdeps",
+    "swiftmodule" : "/Users/bobo/Desktop/Lopan/build/Build/Intermediates.noindex/Lopan.build/Debug-iphonesimulator/Lopan.build/Objects-normal/arm64/AuthenticationService~partial.swiftmodule"
+  },
+  "/Users/bobo/Desktop/Lopan/Lopan/Services/BatchOperationCoordinator.swift" : {
+    "const-values" : "/Users/bobo/Desktop/Lopan/build/Build/Intermediates.noindex/Lopan.build/Debug-iphonesimulator/Lopan.build/Objects-normal/arm64/BatchOperationCoordinator.swiftconstvalues",
+    "dependencies" : "/Users/bobo/Desktop/Lopan/build/Build/Intermediates.noindex/Lopan.build/Debug-iphonesimulator/Lopan.build/Objects-normal/arm64/BatchOperationCoordinator.d",
+    "diagnostics" : "/Users/bobo/Desktop/Lopan/build/Build/Intermediates.noindex/Lopan.build/Debug-iphonesimulator/Lopan.build/Objects-normal/arm64/BatchOperationCoordinator.dia",
+    "index-unit-output-path" : "/Lopan.build/Debug-iphonesimulator/Lopan.build/Objects-normal/arm64/BatchOperationCoordinator.o",
+    "llvm-bc" : "/Users/bobo/Desktop/Lopan/build/Build/Intermediates.noindex/Lopan.build/Debug-iphonesimulator/Lopan.build/Objects-normal/arm64/BatchOperationCoordinator.bc",
+    "object" : "/Users/bobo/Desktop/Lopan/build/Build/Intermediates.noindex/Lopan.build/Debug-iphonesimulator/Lopan.build/Objects-normal/arm64/BatchOperationCoordinator.o",
+    "swift-dependencies" : "/Users/bobo/Desktop/Lopan/build/Build/Intermediates.noindex/Lopan.build/Debug-iphonesimulator/Lopan.build/Objects-normal/arm64/BatchOperationCoordinator.swiftdeps",
+    "swiftmodule" : "/Users/bobo/Desktop/Lopan/build/Build/Intermediates.noindex/Lopan.build/Debug-iphonesimulator/Lopan.build/Objects-normal/arm64/BatchOperationCoordinator~partial.swiftmodule"
+  },
+  "/Users/bobo/Desktop/Lopan/Lopan/Services/ColorService.swift" : {
+    "const-values" : "/Users/bobo/Desktop/Lopan/build/Build/Intermediates.noindex/Lopan.build/Debug-iphonesimulator/Lopan.build/Objects-normal/arm64/ColorService.swiftconstvalues",
+    "dependencies" : "/Users/bobo/Desktop/Lopan/build/Build/Intermediates.noindex/Lopan.build/Debug-iphonesimulator/Lopan.build/Objects-normal/arm64/ColorService.d",
+    "diagnostics" : "/Users/bobo/Desktop/Lopan/build/Build/Intermediates.noindex/Lopan.build/Debug-iphonesimulator/Lopan.build/Objects-normal/arm64/ColorService.dia",
+    "index-unit-output-path" : "/Lopan.build/Debug-iphonesimulator/Lopan.build/Objects-normal/arm64/ColorService.o",
+    "llvm-bc" : "/Users/bobo/Desktop/Lopan/build/Build/Intermediates.noindex/Lopan.build/Debug-iphonesimulator/Lopan.build/Objects-normal/arm64/ColorService.bc",
+    "object" : "/Users/bobo/Desktop/Lopan/build/Build/Intermediates.noindex/Lopan.build/Debug-iphonesimulator/Lopan.build/Objects-normal/arm64/ColorService.o",
+    "swift-dependencies" : "/Users/bobo/Desktop/Lopan/build/Build/Intermediates.noindex/Lopan.build/Debug-iphonesimulator/Lopan.build/Objects-normal/arm64/ColorService.swiftdeps",
+    "swiftmodule" : "/Users/bobo/Desktop/Lopan/build/Build/Intermediates.noindex/Lopan.build/Debug-iphonesimulator/Lopan.build/Objects-normal/arm64/ColorService~partial.swiftmodule"
+  },
+  "/Users/bobo/Desktop/Lopan/Lopan/Services/CustomerService.swift" : {
+    "const-values" : "/Users/bobo/Desktop/Lopan/build/Build/Intermediates.noindex/Lopan.build/Debug-iphonesimulator/Lopan.build/Objects-normal/arm64/CustomerService.swiftconstvalues",
+    "dependencies" : "/Users/bobo/Desktop/Lopan/build/Build/Intermediates.noindex/Lopan.build/Debug-iphonesimulator/Lopan.build/Objects-normal/arm64/CustomerService.d",
+    "diagnostics" : "/Users/bobo/Desktop/Lopan/build/Build/Intermediates.noindex/Lopan.build/Debug-iphonesimulator/Lopan.build/Objects-normal/arm64/CustomerService.dia",
+    "index-unit-output-path" : "/Lopan.build/Debug-iphonesimulator/Lopan.build/Objects-normal/arm64/CustomerService.o",
+    "llvm-bc" : "/Users/bobo/Desktop/Lopan/build/Build/Intermediates.noindex/Lopan.build/Debug-iphonesimulator/Lopan.build/Objects-normal/arm64/CustomerService.bc",
+    "object" : "/Users/bobo/Desktop/Lopan/build/Build/Intermediates.noindex/Lopan.build/Debug-iphonesimulator/Lopan.build/Objects-normal/arm64/CustomerService.o",
+    "swift-dependencies" : "/Users/bobo/Desktop/Lopan/build/Build/Intermediates.noindex/Lopan.build/Debug-iphonesimulator/Lopan.build/Objects-normal/arm64/CustomerService.swiftdeps",
+    "swiftmodule" : "/Users/bobo/Desktop/Lopan/build/Build/Intermediates.noindex/Lopan.build/Debug-iphonesimulator/Lopan.build/Objects-normal/arm64/CustomerService~partial.swiftmodule"
+  },
+  "/Users/bobo/Desktop/Lopan/Lopan/Services/ExcelService.swift" : {
+    "const-values" : "/Users/bobo/Desktop/Lopan/build/Build/Intermediates.noindex/Lopan.build/Debug-iphonesimulator/Lopan.build/Objects-normal/arm64/ExcelService.swiftconstvalues",
+    "dependencies" : "/Users/bobo/Desktop/Lopan/build/Build/Intermediates.noindex/Lopan.build/Debug-iphonesimulator/Lopan.build/Objects-normal/arm64/ExcelService.d",
+    "diagnostics" : "/Users/bobo/Desktop/Lopan/build/Build/Intermediates.noindex/Lopan.build/Debug-iphonesimulator/Lopan.build/Objects-normal/arm64/ExcelService.dia",
+    "index-unit-output-path" : "/Lopan.build/Debug-iphonesimulator/Lopan.build/Objects-normal/arm64/ExcelService.o",
+    "llvm-bc" : "/Users/bobo/Desktop/Lopan/build/Build/Intermediates.noindex/Lopan.build/Debug-iphonesimulator/Lopan.build/Objects-normal/arm64/ExcelService.bc",
+    "object" : "/Users/bobo/Desktop/Lopan/build/Build/Intermediates.noindex/Lopan.build/Debug-iphonesimulator/Lopan.build/Objects-normal/arm64/ExcelService.o",
+    "swift-dependencies" : "/Users/bobo/Desktop/Lopan/build/Build/Intermediates.noindex/Lopan.build/Debug-iphonesimulator/Lopan.build/Objects-normal/arm64/ExcelService.swiftdeps",
+    "swiftmodule" : "/Users/bobo/Desktop/Lopan/build/Build/Intermediates.noindex/Lopan.build/Debug-iphonesimulator/Lopan.build/Objects-normal/arm64/ExcelService~partial.swiftmodule"
+  },
+  "/Users/bobo/Desktop/Lopan/Lopan/Services/FileShareService.swift" : {
+    "const-values" : "/Users/bobo/Desktop/Lopan/build/Build/Intermediates.noindex/Lopan.build/Debug-iphonesimulator/Lopan.build/Objects-normal/arm64/FileShareService.swiftconstvalues",
+    "dependencies" : "/Users/bobo/Desktop/Lopan/build/Build/Intermediates.noindex/Lopan.build/Debug-iphonesimulator/Lopan.build/Objects-normal/arm64/FileShareService.d",
+    "diagnostics" : "/Users/bobo/Desktop/Lopan/build/Build/Intermediates.noindex/Lopan.build/Debug-iphonesimulator/Lopan.build/Objects-normal/arm64/FileShareService.dia",
+    "index-unit-output-path" : "/Lopan.build/Debug-iphonesimulator/Lopan.build/Objects-normal/arm64/FileShareService.o",
+    "llvm-bc" : "/Users/bobo/Desktop/Lopan/build/Build/Intermediates.noindex/Lopan.build/Debug-iphonesimulator/Lopan.build/Objects-normal/arm64/FileShareService.bc",
+    "object" : "/Users/bobo/Desktop/Lopan/build/Build/Intermediates.noindex/Lopan.build/Debug-iphonesimulator/Lopan.build/Objects-normal/arm64/FileShareService.o",
+    "swift-dependencies" : "/Users/bobo/Desktop/Lopan/build/Build/Intermediates.noindex/Lopan.build/Debug-iphonesimulator/Lopan.build/Objects-normal/arm64/FileShareService.swiftdeps",
+    "swiftmodule" : "/Users/bobo/Desktop/Lopan/build/Build/Intermediates.noindex/Lopan.build/Debug-iphonesimulator/Lopan.build/Objects-normal/arm64/FileShareService~partial.swiftmodule"
+  },
+  "/Users/bobo/Desktop/Lopan/Lopan/Services/FileSharingService.swift" : {
+    "const-values" : "/Users/bobo/Desktop/Lopan/build/Build/Intermediates.noindex/Lopan.build/Debug-iphonesimulator/Lopan.build/Objects-normal/arm64/FileSharingService.swiftconstvalues",
+    "dependencies" : "/Users/bobo/Desktop/Lopan/build/Build/Intermediates.noindex/Lopan.build/Debug-iphonesimulator/Lopan.build/Objects-normal/arm64/FileSharingService.d",
+    "diagnostics" : "/Users/bobo/Desktop/Lopan/build/Build/Intermediates.noindex/Lopan.build/Debug-iphonesimulator/Lopan.build/Objects-normal/arm64/FileSharingService.dia",
+    "index-unit-output-path" : "/Lopan.build/Debug-iphonesimulator/Lopan.build/Objects-normal/arm64/FileSharingService.o",
+    "llvm-bc" : "/Users/bobo/Desktop/Lopan/build/Build/Intermediates.noindex/Lopan.build/Debug-iphonesimulator/Lopan.build/Objects-normal/arm64/FileSharingService.bc",
+    "object" : "/Users/bobo/Desktop/Lopan/build/Build/Intermediates.noindex/Lopan.build/Debug-iphonesimulator/Lopan.build/Objects-normal/arm64/FileSharingService.o",
+    "swift-dependencies" : "/Users/bobo/Desktop/Lopan/build/Build/Intermediates.noindex/Lopan.build/Debug-iphonesimulator/Lopan.build/Objects-normal/arm64/FileSharingService.swiftdeps",
+    "swiftmodule" : "/Users/bobo/Desktop/Lopan/build/Build/Intermediates.noindex/Lopan.build/Debug-iphonesimulator/Lopan.build/Objects-normal/arm64/FileSharingService~partial.swiftmodule"
+  },
+  "/Users/bobo/Desktop/Lopan/Lopan/Services/MachineDataInitializationService.swift" : {
+    "const-values" : "/Users/bobo/Desktop/Lopan/build/Build/Intermediates.noindex/Lopan.build/Debug-iphonesimulator/Lopan.build/Objects-normal/arm64/MachineDataInitializationService.swiftconstvalues",
+    "dependencies" : "/Users/bobo/Desktop/Lopan/build/Build/Intermediates.noindex/Lopan.build/Debug-iphonesimulator/Lopan.build/Objects-normal/arm64/MachineDataInitializationService.d",
+    "diagnostics" : "/Users/bobo/Desktop/Lopan/build/Build/Intermediates.noindex/Lopan.build/Debug-iphonesimulator/Lopan.build/Objects-normal/arm64/MachineDataInitializationService.dia",
+    "index-unit-output-path" : "/Lopan.build/Debug-iphonesimulator/Lopan.build/Objects-normal/arm64/MachineDataInitializationService.o",
+    "llvm-bc" : "/Users/bobo/Desktop/Lopan/build/Build/Intermediates.noindex/Lopan.build/Debug-iphonesimulator/Lopan.build/Objects-normal/arm64/MachineDataInitializationService.bc",
+    "object" : "/Users/bobo/Desktop/Lopan/build/Build/Intermediates.noindex/Lopan.build/Debug-iphonesimulator/Lopan.build/Objects-normal/arm64/MachineDataInitializationService.o",
+    "swift-dependencies" : "/Users/bobo/Desktop/Lopan/build/Build/Intermediates.noindex/Lopan.build/Debug-iphonesimulator/Lopan.build/Objects-normal/arm64/MachineDataInitializationService.swiftdeps",
+    "swiftmodule" : "/Users/bobo/Desktop/Lopan/build/Build/Intermediates.noindex/Lopan.build/Debug-iphonesimulator/Lopan.build/Objects-normal/arm64/MachineDataInitializationService~partial.swiftmodule"
+  },
+  "/Users/bobo/Desktop/Lopan/Lopan/Services/MachineService.swift" : {
+    "const-values" : "/Users/bobo/Desktop/Lopan/build/Build/Intermediates.noindex/Lopan.build/Debug-iphonesimulator/Lopan.build/Objects-normal/arm64/MachineService.swiftconstvalues",
+    "dependencies" : "/Users/bobo/Desktop/Lopan/build/Build/Intermediates.noindex/Lopan.build/Debug-iphonesimulator/Lopan.build/Objects-normal/arm64/MachineService.d",
+    "diagnostics" : "/Users/bobo/Desktop/Lopan/build/Build/Intermediates.noindex/Lopan.build/Debug-iphonesimulator/Lopan.build/Objects-normal/arm64/MachineService.dia",
+    "index-unit-output-path" : "/Lopan.build/Debug-iphonesimulator/Lopan.build/Objects-normal/arm64/MachineService.o",
+    "llvm-bc" : "/Users/bobo/Desktop/Lopan/build/Build/Intermediates.noindex/Lopan.build/Debug-iphonesimulator/Lopan.build/Objects-normal/arm64/MachineService.bc",
+    "object" : "/Users/bobo/Desktop/Lopan/build/Build/Intermediates.noindex/Lopan.build/Debug-iphonesimulator/Lopan.build/Objects-normal/arm64/MachineService.o",
+    "swift-dependencies" : "/Users/bobo/Desktop/Lopan/build/Build/Intermediates.noindex/Lopan.build/Debug-iphonesimulator/Lopan.build/Objects-normal/arm64/MachineService.swiftdeps",
+    "swiftmodule" : "/Users/bobo/Desktop/Lopan/build/Build/Intermediates.noindex/Lopan.build/Debug-iphonesimulator/Lopan.build/Objects-normal/arm64/MachineService~partial.swiftmodule"
+  },
+  "/Users/bobo/Desktop/Lopan/Lopan/Services/NewAuditingService.swift" : {
+    "const-values" : "/Users/bobo/Desktop/Lopan/build/Build/Intermediates.noindex/Lopan.build/Debug-iphonesimulator/Lopan.build/Objects-normal/arm64/NewAuditingService.swiftconstvalues",
+    "dependencies" : "/Users/bobo/Desktop/Lopan/build/Build/Intermediates.noindex/Lopan.build/Debug-iphonesimulator/Lopan.build/Objects-normal/arm64/NewAuditingService.d",
+    "diagnostics" : "/Users/bobo/Desktop/Lopan/build/Build/Intermediates.noindex/Lopan.build/Debug-iphonesimulator/Lopan.build/Objects-normal/arm64/NewAuditingService.dia",
+    "index-unit-output-path" : "/Lopan.build/Debug-iphonesimulator/Lopan.build/Objects-normal/arm64/NewAuditingService.o",
+    "llvm-bc" : "/Users/bobo/Desktop/Lopan/build/Build/Intermediates.noindex/Lopan.build/Debug-iphonesimulator/Lopan.build/Objects-normal/arm64/NewAuditingService.bc",
+    "object" : "/Users/bobo/Desktop/Lopan/build/Build/Intermediates.noindex/Lopan.build/Debug-iphonesimulator/Lopan.build/Objects-normal/arm64/NewAuditingService.o",
+    "swift-dependencies" : "/Users/bobo/Desktop/Lopan/build/Build/Intermediates.noindex/Lopan.build/Debug-iphonesimulator/Lopan.build/Objects-normal/arm64/NewAuditingService.swiftdeps",
+    "swiftmodule" : "/Users/bobo/Desktop/Lopan/build/Build/Intermediates.noindex/Lopan.build/Debug-iphonesimulator/Lopan.build/Objects-normal/arm64/NewAuditingService~partial.swiftmodule"
+  },
+  "/Users/bobo/Desktop/Lopan/Lopan/Services/NewDataInitializationService.swift" : {
+    "const-values" : "/Users/bobo/Desktop/Lopan/build/Build/Intermediates.noindex/Lopan.build/Debug-iphonesimulator/Lopan.build/Objects-normal/arm64/NewDataInitializationService.swiftconstvalues",
+    "dependencies" : "/Users/bobo/Desktop/Lopan/build/Build/Intermediates.noindex/Lopan.build/Debug-iphonesimulator/Lopan.build/Objects-normal/arm64/NewDataInitializationService.d",
+    "diagnostics" : "/Users/bobo/Desktop/Lopan/build/Build/Intermediates.noindex/Lopan.build/Debug-iphonesimulator/Lopan.build/Objects-normal/arm64/NewDataInitializationService.dia",
+    "index-unit-output-path" : "/Lopan.build/Debug-iphonesimulator/Lopan.build/Objects-normal/arm64/NewDataInitializationService.o",
+    "llvm-bc" : "/Users/bobo/Desktop/Lopan/build/Build/Intermediates.noindex/Lopan.build/Debug-iphonesimulator/Lopan.build/Objects-normal/arm64/NewDataInitializationService.bc",
+    "object" : "/Users/bobo/Desktop/Lopan/build/Build/Intermediates.noindex/Lopan.build/Debug-iphonesimulator/Lopan.build/Objects-normal/arm64/NewDataInitializationService.o",
+    "swift-dependencies" : "/Users/bobo/Desktop/Lopan/build/Build/Intermediates.noindex/Lopan.build/Debug-iphonesimulator/Lopan.build/Objects-normal/arm64/NewDataInitializationService.swiftdeps",
+    "swiftmodule" : "/Users/bobo/Desktop/Lopan/build/Build/Intermediates.noindex/Lopan.build/Debug-iphonesimulator/Lopan.build/Objects-normal/arm64/NewDataInitializationService~partial.swiftmodule"
+  },
+  "/Users/bobo/Desktop/Lopan/Lopan/Services/ProductService.swift" : {
+    "const-values" : "/Users/bobo/Desktop/Lopan/build/Build/Intermediates.noindex/Lopan.build/Debug-iphonesimulator/Lopan.build/Objects-normal/arm64/ProductService.swiftconstvalues",
+    "dependencies" : "/Users/bobo/Desktop/Lopan/build/Build/Intermediates.noindex/Lopan.build/Debug-iphonesimulator/Lopan.build/Objects-normal/arm64/ProductService.d",
+    "diagnostics" : "/Users/bobo/Desktop/Lopan/build/Build/Intermediates.noindex/Lopan.build/Debug-iphonesimulator/Lopan.build/Objects-normal/arm64/ProductService.dia",
+    "index-unit-output-path" : "/Lopan.build/Debug-iphonesimulator/Lopan.build/Objects-normal/arm64/ProductService.o",
+    "llvm-bc" : "/Users/bobo/Desktop/Lopan/build/Build/Intermediates.noindex/Lopan.build/Debug-iphonesimulator/Lopan.build/Objects-normal/arm64/ProductService.bc",
+    "object" : "/Users/bobo/Desktop/Lopan/build/Build/Intermediates.noindex/Lopan.build/Debug-iphonesimulator/Lopan.build/Objects-normal/arm64/ProductService.o",
+    "swift-dependencies" : "/Users/bobo/Desktop/Lopan/build/Build/Intermediates.noindex/Lopan.build/Debug-iphonesimulator/Lopan.build/Objects-normal/arm64/ProductService.swiftdeps",
+    "swiftmodule" : "/Users/bobo/Desktop/Lopan/build/Build/Intermediates.noindex/Lopan.build/Debug-iphonesimulator/Lopan.build/Objects-normal/arm64/ProductService~partial.swiftmodule"
+  },
+  "/Users/bobo/Desktop/Lopan/Lopan/Services/ProductionBatchService.swift" : {
+    "const-values" : "/Users/bobo/Desktop/Lopan/build/Build/Intermediates.noindex/Lopan.build/Debug-iphonesimulator/Lopan.build/Objects-normal/arm64/ProductionBatchService.swiftconstvalues",
+    "dependencies" : "/Users/bobo/Desktop/Lopan/build/Build/Intermediates.noindex/Lopan.build/Debug-iphonesimulator/Lopan.build/Objects-normal/arm64/ProductionBatchService.d",
+    "diagnostics" : "/Users/bobo/Desktop/Lopan/build/Build/Intermediates.noindex/Lopan.build/Debug-iphonesimulator/Lopan.build/Objects-normal/arm64/ProductionBatchService.dia",
+    "index-unit-output-path" : "/Lopan.build/Debug-iphonesimulator/Lopan.build/Objects-normal/arm64/ProductionBatchService.o",
+    "llvm-bc" : "/Users/bobo/Desktop/Lopan/build/Build/Intermediates.noindex/Lopan.build/Debug-iphonesimulator/Lopan.build/Objects-normal/arm64/ProductionBatchService.bc",
+    "object" : "/Users/bobo/Desktop/Lopan/build/Build/Intermediates.noindex/Lopan.build/Debug-iphonesimulator/Lopan.build/Objects-normal/arm64/ProductionBatchService.o",
+    "swift-dependencies" : "/Users/bobo/Desktop/Lopan/build/Build/Intermediates.noindex/Lopan.build/Debug-iphonesimulator/Lopan.build/Objects-normal/arm64/ProductionBatchService.swiftdeps",
+    "swiftmodule" : "/Users/bobo/Desktop/Lopan/build/Build/Intermediates.noindex/Lopan.build/Debug-iphonesimulator/Lopan.build/Objects-normal/arm64/ProductionBatchService~partial.swiftmodule"
+  },
+  "/Users/bobo/Desktop/Lopan/Lopan/Services/ServiceFactory.swift" : {
+    "const-values" : "/Users/bobo/Desktop/Lopan/build/Build/Intermediates.noindex/Lopan.build/Debug-iphonesimulator/Lopan.build/Objects-normal/arm64/ServiceFactory.swiftconstvalues",
+    "dependencies" : "/Users/bobo/Desktop/Lopan/build/Build/Intermediates.noindex/Lopan.build/Debug-iphonesimulator/Lopan.build/Objects-normal/arm64/ServiceFactory.d",
+    "diagnostics" : "/Users/bobo/Desktop/Lopan/build/Build/Intermediates.noindex/Lopan.build/Debug-iphonesimulator/Lopan.build/Objects-normal/arm64/ServiceFactory.dia",
+    "index-unit-output-path" : "/Lopan.build/Debug-iphonesimulator/Lopan.build/Objects-normal/arm64/ServiceFactory.o",
+    "llvm-bc" : "/Users/bobo/Desktop/Lopan/build/Build/Intermediates.noindex/Lopan.build/Debug-iphonesimulator/Lopan.build/Objects-normal/arm64/ServiceFactory.bc",
+    "object" : "/Users/bobo/Desktop/Lopan/build/Build/Intermediates.noindex/Lopan.build/Debug-iphonesimulator/Lopan.build/Objects-normal/arm64/ServiceFactory.o",
+    "swift-dependencies" : "/Users/bobo/Desktop/Lopan/build/Build/Intermediates.noindex/Lopan.build/Debug-iphonesimulator/Lopan.build/Objects-normal/arm64/ServiceFactory.swiftdeps",
+    "swiftmodule" : "/Users/bobo/Desktop/Lopan/build/Build/Intermediates.noindex/Lopan.build/Debug-iphonesimulator/Lopan.build/Objects-normal/arm64/ServiceFactory~partial.swiftmodule"
+  },
+  "/Users/bobo/Desktop/Lopan/Lopan/Services/SessionSecurityService.swift" : {
+    "const-values" : "/Users/bobo/Desktop/Lopan/build/Build/Intermediates.noindex/Lopan.build/Debug-iphonesimulator/Lopan.build/Objects-normal/arm64/SessionSecurityService.swiftconstvalues",
+    "dependencies" : "/Users/bobo/Desktop/Lopan/build/Build/Intermediates.noindex/Lopan.build/Debug-iphonesimulator/Lopan.build/Objects-normal/arm64/SessionSecurityService.d",
+    "diagnostics" : "/Users/bobo/Desktop/Lopan/build/Build/Intermediates.noindex/Lopan.build/Debug-iphonesimulator/Lopan.build/Objects-normal/arm64/SessionSecurityService.dia",
+    "index-unit-output-path" : "/Lopan.build/Debug-iphonesimulator/Lopan.build/Objects-normal/arm64/SessionSecurityService.o",
+    "llvm-bc" : "/Users/bobo/Desktop/Lopan/build/Build/Intermediates.noindex/Lopan.build/Debug-iphonesimulator/Lopan.build/Objects-normal/arm64/SessionSecurityService.bc",
+    "object" : "/Users/bobo/Desktop/Lopan/build/Build/Intermediates.noindex/Lopan.build/Debug-iphonesimulator/Lopan.build/Objects-normal/arm64/SessionSecurityService.o",
+    "swift-dependencies" : "/Users/bobo/Desktop/Lopan/build/Build/Intermediates.noindex/Lopan.build/Debug-iphonesimulator/Lopan.build/Objects-normal/arm64/SessionSecurityService.swiftdeps",
+    "swiftmodule" : "/Users/bobo/Desktop/Lopan/build/Build/Intermediates.noindex/Lopan.build/Debug-iphonesimulator/Lopan.build/Objects-normal/arm64/SessionSecurityService~partial.swiftmodule"
+  },
+  "/Users/bobo/Desktop/Lopan/Lopan/Services/UserService.swift" : {
+    "const-values" : "/Users/bobo/Desktop/Lopan/build/Build/Intermediates.noindex/Lopan.build/Debug-iphonesimulator/Lopan.build/Objects-normal/arm64/UserService.swiftconstvalues",
+    "dependencies" : "/Users/bobo/Desktop/Lopan/build/Build/Intermediates.noindex/Lopan.build/Debug-iphonesimulator/Lopan.build/Objects-normal/arm64/UserService.d",
+    "diagnostics" : "/Users/bobo/Desktop/Lopan/build/Build/Intermediates.noindex/Lopan.build/Debug-iphonesimulator/Lopan.build/Objects-normal/arm64/UserService.dia",
+    "index-unit-output-path" : "/Lopan.build/Debug-iphonesimulator/Lopan.build/Objects-normal/arm64/UserService.o",
+    "llvm-bc" : "/Users/bobo/Desktop/Lopan/build/Build/Intermediates.noindex/Lopan.build/Debug-iphonesimulator/Lopan.build/Objects-normal/arm64/UserService.bc",
+    "object" : "/Users/bobo/Desktop/Lopan/build/Build/Intermediates.noindex/Lopan.build/Debug-iphonesimulator/Lopan.build/Objects-normal/arm64/UserService.o",
+    "swift-dependencies" : "/Users/bobo/Desktop/Lopan/build/Build/Intermediates.noindex/Lopan.build/Debug-iphonesimulator/Lopan.build/Objects-normal/arm64/UserService.swiftdeps",
+    "swiftmodule" : "/Users/bobo/Desktop/Lopan/build/Build/Intermediates.noindex/Lopan.build/Debug-iphonesimulator/Lopan.build/Objects-normal/arm64/UserService~partial.swiftmodule"
+  },
+  "/Users/bobo/Desktop/Lopan/Lopan/Services/WorkbenchNavigationService.swift" : {
+    "const-values" : "/Users/bobo/Desktop/Lopan/build/Build/Intermediates.noindex/Lopan.build/Debug-iphonesimulator/Lopan.build/Objects-normal/arm64/WorkbenchNavigationService.swiftconstvalues",
+    "dependencies" : "/Users/bobo/Desktop/Lopan/build/Build/Intermediates.noindex/Lopan.build/Debug-iphonesimulator/Lopan.build/Objects-normal/arm64/WorkbenchNavigationService.d",
+    "diagnostics" : "/Users/bobo/Desktop/Lopan/build/Build/Intermediates.noindex/Lopan.build/Debug-iphonesimulator/Lopan.build/Objects-normal/arm64/WorkbenchNavigationService.dia",
+    "index-unit-output-path" : "/Lopan.build/Debug-iphonesimulator/Lopan.build/Objects-normal/arm64/WorkbenchNavigationService.o",
+    "llvm-bc" : "/Users/bobo/Desktop/Lopan/build/Build/Intermediates.noindex/Lopan.build/Debug-iphonesimulator/Lopan.build/Objects-normal/arm64/WorkbenchNavigationService.bc",
+    "object" : "/Users/bobo/Desktop/Lopan/build/Build/Intermediates.noindex/Lopan.build/Debug-iphonesimulator/Lopan.build/Objects-normal/arm64/WorkbenchNavigationService.o",
+    "swift-dependencies" : "/Users/bobo/Desktop/Lopan/build/Build/Intermediates.noindex/Lopan.build/Debug-iphonesimulator/Lopan.build/Objects-normal/arm64/WorkbenchNavigationService.swiftdeps",
+    "swiftmodule" : "/Users/bobo/Desktop/Lopan/build/Build/Intermediates.noindex/Lopan.build/Debug-iphonesimulator/Lopan.build/Objects-normal/arm64/WorkbenchNavigationService~partial.swiftmodule"
+  },
+  "/Users/bobo/Desktop/Lopan/Lopan/Services/WorkshopIntegrationService.swift" : {
+    "const-values" : "/Users/bobo/Desktop/Lopan/build/Build/Intermediates.noindex/Lopan.build/Debug-iphonesimulator/Lopan.build/Objects-normal/arm64/WorkshopIntegrationService.swiftconstvalues",
+    "dependencies" : "/Users/bobo/Desktop/Lopan/build/Build/Intermediates.noindex/Lopan.build/Debug-iphonesimulator/Lopan.build/Objects-normal/arm64/WorkshopIntegrationService.d",
+    "diagnostics" : "/Users/bobo/Desktop/Lopan/build/Build/Intermediates.noindex/Lopan.build/Debug-iphonesimulator/Lopan.build/Objects-normal/arm64/WorkshopIntegrationService.dia",
+    "index-unit-output-path" : "/Lopan.build/Debug-iphonesimulator/Lopan.build/Objects-normal/arm64/WorkshopIntegrationService.o",
+    "llvm-bc" : "/Users/bobo/Desktop/Lopan/build/Build/Intermediates.noindex/Lopan.build/Debug-iphonesimulator/Lopan.build/Objects-normal/arm64/WorkshopIntegrationService.bc",
+    "object" : "/Users/bobo/Desktop/Lopan/build/Build/Intermediates.noindex/Lopan.build/Debug-iphonesimulator/Lopan.build/Objects-normal/arm64/WorkshopIntegrationService.o",
+    "swift-dependencies" : "/Users/bobo/Desktop/Lopan/build/Build/Intermediates.noindex/Lopan.build/Debug-iphonesimulator/Lopan.build/Objects-normal/arm64/WorkshopIntegrationService.swiftdeps",
+    "swiftmodule" : "/Users/bobo/Desktop/Lopan/build/Build/Intermediates.noindex/Lopan.build/Debug-iphonesimulator/Lopan.build/Objects-normal/arm64/WorkshopIntegrationService~partial.swiftmodule"
+  },
+  "/Users/bobo/Desktop/Lopan/Lopan/Utils/CryptographicSecurity.swift" : {
+    "const-values" : "/Users/bobo/Desktop/Lopan/build/Build/Intermediates.noindex/Lopan.build/Debug-iphonesimulator/Lopan.build/Objects-normal/arm64/CryptographicSecurity.swiftconstvalues",
+    "dependencies" : "/Users/bobo/Desktop/Lopan/build/Build/Intermediates.noindex/Lopan.build/Debug-iphonesimulator/Lopan.build/Objects-normal/arm64/CryptographicSecurity.d",
+    "diagnostics" : "/Users/bobo/Desktop/Lopan/build/Build/Intermediates.noindex/Lopan.build/Debug-iphonesimulator/Lopan.build/Objects-normal/arm64/CryptographicSecurity.dia",
+    "index-unit-output-path" : "/Lopan.build/Debug-iphonesimulator/Lopan.build/Objects-normal/arm64/CryptographicSecurity.o",
+    "llvm-bc" : "/Users/bobo/Desktop/Lopan/build/Build/Intermediates.noindex/Lopan.build/Debug-iphonesimulator/Lopan.build/Objects-normal/arm64/CryptographicSecurity.bc",
+    "object" : "/Users/bobo/Desktop/Lopan/build/Build/Intermediates.noindex/Lopan.build/Debug-iphonesimulator/Lopan.build/Objects-normal/arm64/CryptographicSecurity.o",
+    "swift-dependencies" : "/Users/bobo/Desktop/Lopan/build/Build/Intermediates.noindex/Lopan.build/Debug-iphonesimulator/Lopan.build/Objects-normal/arm64/CryptographicSecurity.swiftdeps",
+    "swiftmodule" : "/Users/bobo/Desktop/Lopan/build/Build/Intermediates.noindex/Lopan.build/Debug-iphonesimulator/Lopan.build/Objects-normal/arm64/CryptographicSecurity~partial.swiftmodule"
+  },
+  "/Users/bobo/Desktop/Lopan/Lopan/Utils/LocalizationHelper.swift" : {
+    "const-values" : "/Users/bobo/Desktop/Lopan/build/Build/Intermediates.noindex/Lopan.build/Debug-iphonesimulator/Lopan.build/Objects-normal/arm64/LocalizationHelper.swiftconstvalues",
+    "dependencies" : "/Users/bobo/Desktop/Lopan/build/Build/Intermediates.noindex/Lopan.build/Debug-iphonesimulator/Lopan.build/Objects-normal/arm64/LocalizationHelper.d",
+    "diagnostics" : "/Users/bobo/Desktop/Lopan/build/Build/Intermediates.noindex/Lopan.build/Debug-iphonesimulator/Lopan.build/Objects-normal/arm64/LocalizationHelper.dia",
+    "index-unit-output-path" : "/Lopan.build/Debug-iphonesimulator/Lopan.build/Objects-normal/arm64/LocalizationHelper.o",
+    "llvm-bc" : "/Users/bobo/Desktop/Lopan/build/Build/Intermediates.noindex/Lopan.build/Debug-iphonesimulator/Lopan.build/Objects-normal/arm64/LocalizationHelper.bc",
+    "object" : "/Users/bobo/Desktop/Lopan/build/Build/Intermediates.noindex/Lopan.build/Debug-iphonesimulator/Lopan.build/Objects-normal/arm64/LocalizationHelper.o",
+    "swift-dependencies" : "/Users/bobo/Desktop/Lopan/build/Build/Intermediates.noindex/Lopan.build/Debug-iphonesimulator/Lopan.build/Objects-normal/arm64/LocalizationHelper.swiftdeps",
+    "swiftmodule" : "/Users/bobo/Desktop/Lopan/build/Build/Intermediates.noindex/Lopan.build/Debug-iphonesimulator/Lopan.build/Objects-normal/arm64/LocalizationHelper~partial.swiftmodule"
+  },
+  "/Users/bobo/Desktop/Lopan/Lopan/Utils/SecurityValidation.swift" : {
+    "const-values" : "/Users/bobo/Desktop/Lopan/build/Build/Intermediates.noindex/Lopan.build/Debug-iphonesimulator/Lopan.build/Objects-normal/arm64/SecurityValidation.swiftconstvalues",
+    "dependencies" : "/Users/bobo/Desktop/Lopan/build/Build/Intermediates.noindex/Lopan.build/Debug-iphonesimulator/Lopan.build/Objects-normal/arm64/SecurityValidation.d",
+    "diagnostics" : "/Users/bobo/Desktop/Lopan/build/Build/Intermediates.noindex/Lopan.build/Debug-iphonesimulator/Lopan.build/Objects-normal/arm64/SecurityValidation.dia",
+    "index-unit-output-path" : "/Lopan.build/Debug-iphonesimulator/Lopan.build/Objects-normal/arm64/SecurityValidation.o",
+    "llvm-bc" : "/Users/bobo/Desktop/Lopan/build/Build/Intermediates.noindex/Lopan.build/Debug-iphonesimulator/Lopan.build/Objects-normal/arm64/SecurityValidation.bc",
+    "object" : "/Users/bobo/Desktop/Lopan/build/Build/Intermediates.noindex/Lopan.build/Debug-iphonesimulator/Lopan.build/Objects-normal/arm64/SecurityValidation.o",
+    "swift-dependencies" : "/Users/bobo/Desktop/Lopan/build/Build/Intermediates.noindex/Lopan.build/Debug-iphonesimulator/Lopan.build/Objects-normal/arm64/SecurityValidation.swiftdeps",
+    "swiftmodule" : "/Users/bobo/Desktop/Lopan/build/Build/Intermediates.noindex/Lopan.build/Debug-iphonesimulator/Lopan.build/Objects-normal/arm64/SecurityValidation~partial.swiftmodule"
+  },
+  "/Users/bobo/Desktop/Lopan/Lopan/ViewModels/ProductionConfigurationViewModel.swift" : {
+    "const-values" : "/Users/bobo/Desktop/Lopan/build/Build/Intermediates.noindex/Lopan.build/Debug-iphonesimulator/Lopan.build/Objects-normal/arm64/ProductionConfigurationViewModel.swiftconstvalues",
+    "dependencies" : "/Users/bobo/Desktop/Lopan/build/Build/Intermediates.noindex/Lopan.build/Debug-iphonesimulator/Lopan.build/Objects-normal/arm64/ProductionConfigurationViewModel.d",
+    "diagnostics" : "/Users/bobo/Desktop/Lopan/build/Build/Intermediates.noindex/Lopan.build/Debug-iphonesimulator/Lopan.build/Objects-normal/arm64/ProductionConfigurationViewModel.dia",
+    "index-unit-output-path" : "/Lopan.build/Debug-iphonesimulator/Lopan.build/Objects-normal/arm64/ProductionConfigurationViewModel.o",
+    "llvm-bc" : "/Users/bobo/Desktop/Lopan/build/Build/Intermediates.noindex/Lopan.build/Debug-iphonesimulator/Lopan.build/Objects-normal/arm64/ProductionConfigurationViewModel.bc",
+    "object" : "/Users/bobo/Desktop/Lopan/build/Build/Intermediates.noindex/Lopan.build/Debug-iphonesimulator/Lopan.build/Objects-normal/arm64/ProductionConfigurationViewModel.o",
+    "swift-dependencies" : "/Users/bobo/Desktop/Lopan/build/Build/Intermediates.noindex/Lopan.build/Debug-iphonesimulator/Lopan.build/Objects-normal/arm64/ProductionConfigurationViewModel.swiftdeps",
+    "swiftmodule" : "/Users/bobo/Desktop/Lopan/build/Build/Intermediates.noindex/Lopan.build/Debug-iphonesimulator/Lopan.build/Objects-normal/arm64/ProductionConfigurationViewModel~partial.swiftmodule"
+  },
+  "/Users/bobo/Desktop/Lopan/Lopan/Views/Administrator/BatchManagementView.swift" : {
+    "const-values" : "/Users/bobo/Desktop/Lopan/build/Build/Intermediates.noindex/Lopan.build/Debug-iphonesimulator/Lopan.build/Objects-normal/arm64/BatchManagementView.swiftconstvalues",
+    "dependencies" : "/Users/bobo/Desktop/Lopan/build/Build/Intermediates.noindex/Lopan.build/Debug-iphonesimulator/Lopan.build/Objects-normal/arm64/BatchManagementView.d",
+    "diagnostics" : "/Users/bobo/Desktop/Lopan/build/Build/Intermediates.noindex/Lopan.build/Debug-iphonesimulator/Lopan.build/Objects-normal/arm64/BatchManagementView.dia",
+    "index-unit-output-path" : "/Lopan.build/Debug-iphonesimulator/Lopan.build/Objects-normal/arm64/BatchManagementView.o",
+    "llvm-bc" : "/Users/bobo/Desktop/Lopan/build/Build/Intermediates.noindex/Lopan.build/Debug-iphonesimulator/Lopan.build/Objects-normal/arm64/BatchManagementView.bc",
+    "object" : "/Users/bobo/Desktop/Lopan/build/Build/Intermediates.noindex/Lopan.build/Debug-iphonesimulator/Lopan.build/Objects-normal/arm64/BatchManagementView.o",
+    "swift-dependencies" : "/Users/bobo/Desktop/Lopan/build/Build/Intermediates.noindex/Lopan.build/Debug-iphonesimulator/Lopan.build/Objects-normal/arm64/BatchManagementView.swiftdeps",
+    "swiftmodule" : "/Users/bobo/Desktop/Lopan/build/Build/Intermediates.noindex/Lopan.build/Debug-iphonesimulator/Lopan.build/Objects-normal/arm64/BatchManagementView~partial.swiftmodule"
+  },
+  "/Users/bobo/Desktop/Lopan/Lopan/Views/Administrator/UserManagementView.swift" : {
+    "const-values" : "/Users/bobo/Desktop/Lopan/build/Build/Intermediates.noindex/Lopan.build/Debug-iphonesimulator/Lopan.build/Objects-normal/arm64/UserManagementView.swiftconstvalues",
+    "dependencies" : "/Users/bobo/Desktop/Lopan/build/Build/Intermediates.noindex/Lopan.build/Debug-iphonesimulator/Lopan.build/Objects-normal/arm64/UserManagementView.d",
+    "diagnostics" : "/Users/bobo/Desktop/Lopan/build/Build/Intermediates.noindex/Lopan.build/Debug-iphonesimulator/Lopan.build/Objects-normal/arm64/UserManagementView.dia",
+    "index-unit-output-path" : "/Lopan.build/Debug-iphonesimulator/Lopan.build/Objects-normal/arm64/UserManagementView.o",
+    "llvm-bc" : "/Users/bobo/Desktop/Lopan/build/Build/Intermediates.noindex/Lopan.build/Debug-iphonesimulator/Lopan.build/Objects-normal/arm64/UserManagementView.bc",
+    "object" : "/Users/bobo/Desktop/Lopan/build/Build/Intermediates.noindex/Lopan.build/Debug-iphonesimulator/Lopan.build/Objects-normal/arm64/UserManagementView.o",
+    "swift-dependencies" : "/Users/bobo/Desktop/Lopan/build/Build/Intermediates.noindex/Lopan.build/Debug-iphonesimulator/Lopan.build/Objects-normal/arm64/UserManagementView.swiftdeps",
+    "swiftmodule" : "/Users/bobo/Desktop/Lopan/build/Build/Intermediates.noindex/Lopan.build/Debug-iphonesimulator/Lopan.build/Objects-normal/arm64/UserManagementView~partial.swiftmodule"
+  },
+  "/Users/bobo/Desktop/Lopan/Lopan/Views/Components/AddCustomerView.swift" : {
+    "const-values" : "/Users/bobo/Desktop/Lopan/build/Build/Intermediates.noindex/Lopan.build/Debug-iphonesimulator/Lopan.build/Objects-normal/arm64/AddCustomerView.swiftconstvalues",
+    "dependencies" : "/Users/bobo/Desktop/Lopan/build/Build/Intermediates.noindex/Lopan.build/Debug-iphonesimulator/Lopan.build/Objects-normal/arm64/AddCustomerView.d",
+    "diagnostics" : "/Users/bobo/Desktop/Lopan/build/Build/Intermediates.noindex/Lopan.build/Debug-iphonesimulator/Lopan.build/Objects-normal/arm64/AddCustomerView.dia",
+    "index-unit-output-path" : "/Lopan.build/Debug-iphonesimulator/Lopan.build/Objects-normal/arm64/AddCustomerView.o",
+    "llvm-bc" : "/Users/bobo/Desktop/Lopan/build/Build/Intermediates.noindex/Lopan.build/Debug-iphonesimulator/Lopan.build/Objects-normal/arm64/AddCustomerView.bc",
+    "object" : "/Users/bobo/Desktop/Lopan/build/Build/Intermediates.noindex/Lopan.build/Debug-iphonesimulator/Lopan.build/Objects-normal/arm64/AddCustomerView.o",
+    "swift-dependencies" : "/Users/bobo/Desktop/Lopan/build/Build/Intermediates.noindex/Lopan.build/Debug-iphonesimulator/Lopan.build/Objects-normal/arm64/AddCustomerView.swiftdeps",
+    "swiftmodule" : "/Users/bobo/Desktop/Lopan/build/Build/Intermediates.noindex/Lopan.build/Debug-iphonesimulator/Lopan.build/Objects-normal/arm64/AddCustomerView~partial.swiftmodule"
+  },
+  "/Users/bobo/Desktop/Lopan/Lopan/Views/Components/AddProductView.swift" : {
+    "const-values" : "/Users/bobo/Desktop/Lopan/build/Build/Intermediates.noindex/Lopan.build/Debug-iphonesimulator/Lopan.build/Objects-normal/arm64/AddProductView.swiftconstvalues",
+    "dependencies" : "/Users/bobo/Desktop/Lopan/build/Build/Intermediates.noindex/Lopan.build/Debug-iphonesimulator/Lopan.build/Objects-normal/arm64/AddProductView.d",
+    "diagnostics" : "/Users/bobo/Desktop/Lopan/build/Build/Intermediates.noindex/Lopan.build/Debug-iphonesimulator/Lopan.build/Objects-normal/arm64/AddProductView.dia",
+    "index-unit-output-path" : "/Lopan.build/Debug-iphonesimulator/Lopan.build/Objects-normal/arm64/AddProductView.o",
+    "llvm-bc" : "/Users/bobo/Desktop/Lopan/build/Build/Intermediates.noindex/Lopan.build/Debug-iphonesimulator/Lopan.build/Objects-normal/arm64/AddProductView.bc",
+    "object" : "/Users/bobo/Desktop/Lopan/build/Build/Intermediates.noindex/Lopan.build/Debug-iphonesimulator/Lopan.build/Objects-normal/arm64/AddProductView.o",
+    "swift-dependencies" : "/Users/bobo/Desktop/Lopan/build/Build/Intermediates.noindex/Lopan.build/Debug-iphonesimulator/Lopan.build/Objects-normal/arm64/AddProductView.swiftdeps",
+    "swiftmodule" : "/Users/bobo/Desktop/Lopan/build/Build/Intermediates.noindex/Lopan.build/Debug-iphonesimulator/Lopan.build/Objects-normal/arm64/AddProductView~partial.swiftmodule"
+  },
+  "/Users/bobo/Desktop/Lopan/Lopan/Views/Components/BatchConflictResolutionSheet.swift" : {
+    "const-values" : "/Users/bobo/Desktop/Lopan/build/Build/Intermediates.noindex/Lopan.build/Debug-iphonesimulator/Lopan.build/Objects-normal/arm64/BatchConflictResolutionSheet.swiftconstvalues",
+    "dependencies" : "/Users/bobo/Desktop/Lopan/build/Build/Intermediates.noindex/Lopan.build/Debug-iphonesimulator/Lopan.build/Objects-normal/arm64/BatchConflictResolutionSheet.d",
+    "diagnostics" : "/Users/bobo/Desktop/Lopan/build/Build/Intermediates.noindex/Lopan.build/Debug-iphonesimulator/Lopan.build/Objects-normal/arm64/BatchConflictResolutionSheet.dia",
+    "index-unit-output-path" : "/Lopan.build/Debug-iphonesimulator/Lopan.build/Objects-normal/arm64/BatchConflictResolutionSheet.o",
+    "llvm-bc" : "/Users/bobo/Desktop/Lopan/build/Build/Intermediates.noindex/Lopan.build/Debug-iphonesimulator/Lopan.build/Objects-normal/arm64/BatchConflictResolutionSheet.bc",
+    "object" : "/Users/bobo/Desktop/Lopan/build/Build/Intermediates.noindex/Lopan.build/Debug-iphonesimulator/Lopan.build/Objects-normal/arm64/BatchConflictResolutionSheet.o",
+    "swift-dependencies" : "/Users/bobo/Desktop/Lopan/build/Build/Intermediates.noindex/Lopan.build/Debug-iphonesimulator/Lopan.build/Objects-normal/arm64/BatchConflictResolutionSheet.swiftdeps",
+    "swiftmodule" : "/Users/bobo/Desktop/Lopan/build/Build/Intermediates.noindex/Lopan.build/Debug-iphonesimulator/Lopan.build/Objects-normal/arm64/BatchConflictResolutionSheet~partial.swiftmodule"
+  },
+  "/Users/bobo/Desktop/Lopan/Lopan/Views/Components/BatchCreationSheet.swift" : {
+    "const-values" : "/Users/bobo/Desktop/Lopan/build/Build/Intermediates.noindex/Lopan.build/Debug-iphonesimulator/Lopan.build/Objects-normal/arm64/BatchCreationSheet.swiftconstvalues",
+    "dependencies" : "/Users/bobo/Desktop/Lopan/build/Build/Intermediates.noindex/Lopan.build/Debug-iphonesimulator/Lopan.build/Objects-normal/arm64/BatchCreationSheet.d",
+    "diagnostics" : "/Users/bobo/Desktop/Lopan/build/Build/Intermediates.noindex/Lopan.build/Debug-iphonesimulator/Lopan.build/Objects-normal/arm64/BatchCreationSheet.dia",
+    "index-unit-output-path" : "/Lopan.build/Debug-iphonesimulator/Lopan.build/Objects-normal/arm64/BatchCreationSheet.o",
+    "llvm-bc" : "/Users/bobo/Desktop/Lopan/build/Build/Intermediates.noindex/Lopan.build/Debug-iphonesimulator/Lopan.build/Objects-normal/arm64/BatchCreationSheet.bc",
+    "object" : "/Users/bobo/Desktop/Lopan/build/Build/Intermediates.noindex/Lopan.build/Debug-iphonesimulator/Lopan.build/Objects-normal/arm64/BatchCreationSheet.o",
+    "swift-dependencies" : "/Users/bobo/Desktop/Lopan/build/Build/Intermediates.noindex/Lopan.build/Debug-iphonesimulator/Lopan.build/Objects-normal/arm64/BatchCreationSheet.swiftdeps",
+    "swiftmodule" : "/Users/bobo/Desktop/Lopan/build/Build/Intermediates.noindex/Lopan.build/Debug-iphonesimulator/Lopan.build/Objects-normal/arm64/BatchCreationSheet~partial.swiftmodule"
+  },
+  "/Users/bobo/Desktop/Lopan/Lopan/Views/Components/BatchMultiSelectInterface.swift" : {
+    "const-values" : "/Users/bobo/Desktop/Lopan/build/Build/Intermediates.noindex/Lopan.build/Debug-iphonesimulator/Lopan.build/Objects-normal/arm64/BatchMultiSelectInterface.swiftconstvalues",
+    "dependencies" : "/Users/bobo/Desktop/Lopan/build/Build/Intermediates.noindex/Lopan.build/Debug-iphonesimulator/Lopan.build/Objects-normal/arm64/BatchMultiSelectInterface.d",
+    "diagnostics" : "/Users/bobo/Desktop/Lopan/build/Build/Intermediates.noindex/Lopan.build/Debug-iphonesimulator/Lopan.build/Objects-normal/arm64/BatchMultiSelectInterface.dia",
+    "index-unit-output-path" : "/Lopan.build/Debug-iphonesimulator/Lopan.build/Objects-normal/arm64/BatchMultiSelectInterface.o",
+    "llvm-bc" : "/Users/bobo/Desktop/Lopan/build/Build/Intermediates.noindex/Lopan.build/Debug-iphonesimulator/Lopan.build/Objects-normal/arm64/BatchMultiSelectInterface.bc",
+    "object" : "/Users/bobo/Desktop/Lopan/build/Build/Intermediates.noindex/Lopan.build/Debug-iphonesimulator/Lopan.build/Objects-normal/arm64/BatchMultiSelectInterface.o",
+    "swift-dependencies" : "/Users/bobo/Desktop/Lopan/build/Build/Intermediates.noindex/Lopan.build/Debug-iphonesimulator/Lopan.build/Objects-normal/arm64/BatchMultiSelectInterface.swiftdeps",
+    "swiftmodule" : "/Users/bobo/Desktop/Lopan/build/Build/Intermediates.noindex/Lopan.build/Debug-iphonesimulator/Lopan.build/Objects-normal/arm64/BatchMultiSelectInterface~partial.swiftmodule"
+  },
+  "/Users/bobo/Desktop/Lopan/Lopan/Views/Components/BatchTemplateSelector.swift" : {
+    "const-values" : "/Users/bobo/Desktop/Lopan/build/Build/Intermediates.noindex/Lopan.build/Debug-iphonesimulator/Lopan.build/Objects-normal/arm64/BatchTemplateSelector.swiftconstvalues",
+    "dependencies" : "/Users/bobo/Desktop/Lopan/build/Build/Intermediates.noindex/Lopan.build/Debug-iphonesimulator/Lopan.build/Objects-normal/arm64/BatchTemplateSelector.d",
+    "diagnostics" : "/Users/bobo/Desktop/Lopan/build/Build/Intermediates.noindex/Lopan.build/Debug-iphonesimulator/Lopan.build/Objects-normal/arm64/BatchTemplateSelector.dia",
+    "index-unit-output-path" : "/Lopan.build/Debug-iphonesimulator/Lopan.build/Objects-normal/arm64/BatchTemplateSelector.o",
+    "llvm-bc" : "/Users/bobo/Desktop/Lopan/build/Build/Intermediates.noindex/Lopan.build/Debug-iphonesimulator/Lopan.build/Objects-normal/arm64/BatchTemplateSelector.bc",
+    "object" : "/Users/bobo/Desktop/Lopan/build/Build/Intermediates.noindex/Lopan.build/Debug-iphonesimulator/Lopan.build/Objects-normal/arm64/BatchTemplateSelector.o",
+    "swift-dependencies" : "/Users/bobo/Desktop/Lopan/build/Build/Intermediates.noindex/Lopan.build/Debug-iphonesimulator/Lopan.build/Objects-normal/arm64/BatchTemplateSelector.swiftdeps",
+    "swiftmodule" : "/Users/bobo/Desktop/Lopan/build/Build/Intermediates.noindex/Lopan.build/Debug-iphonesimulator/Lopan.build/Objects-normal/arm64/BatchTemplateSelector~partial.swiftmodule"
+  },
+  "/Users/bobo/Desktop/Lopan/Lopan/Views/Components/BulkApprovalSummarySheet.swift" : {
+    "const-values" : "/Users/bobo/Desktop/Lopan/build/Build/Intermediates.noindex/Lopan.build/Debug-iphonesimulator/Lopan.build/Objects-normal/arm64/BulkApprovalSummarySheet.swiftconstvalues",
+    "dependencies" : "/Users/bobo/Desktop/Lopan/build/Build/Intermediates.noindex/Lopan.build/Debug-iphonesimulator/Lopan.build/Objects-normal/arm64/BulkApprovalSummarySheet.d",
+    "diagnostics" : "/Users/bobo/Desktop/Lopan/build/Build/Intermediates.noindex/Lopan.build/Debug-iphonesimulator/Lopan.build/Objects-normal/arm64/BulkApprovalSummarySheet.dia",
+    "index-unit-output-path" : "/Lopan.build/Debug-iphonesimulator/Lopan.build/Objects-normal/arm64/BulkApprovalSummarySheet.o",
+    "llvm-bc" : "/Users/bobo/Desktop/Lopan/build/Build/Intermediates.noindex/Lopan.build/Debug-iphonesimulator/Lopan.build/Objects-normal/arm64/BulkApprovalSummarySheet.bc",
+    "object" : "/Users/bobo/Desktop/Lopan/build/Build/Intermediates.noindex/Lopan.build/Debug-iphonesimulator/Lopan.build/Objects-normal/arm64/BulkApprovalSummarySheet.o",
+    "swift-dependencies" : "/Users/bobo/Desktop/Lopan/build/Build/Intermediates.noindex/Lopan.build/Debug-iphonesimulator/Lopan.build/Objects-normal/arm64/BulkApprovalSummarySheet.swiftdeps",
+    "swiftmodule" : "/Users/bobo/Desktop/Lopan/build/Build/Intermediates.noindex/Lopan.build/Debug-iphonesimulator/Lopan.build/Objects-normal/arm64/BulkApprovalSummarySheet~partial.swiftmodule"
+  },
+  "/Users/bobo/Desktop/Lopan/Lopan/Views/Components/DocumentPicker.swift" : {
+    "const-values" : "/Users/bobo/Desktop/Lopan/build/Build/Intermediates.noindex/Lopan.build/Debug-iphonesimulator/Lopan.build/Objects-normal/arm64/DocumentPicker.swiftconstvalues",
+    "dependencies" : "/Users/bobo/Desktop/Lopan/build/Build/Intermediates.noindex/Lopan.build/Debug-iphonesimulator/Lopan.build/Objects-normal/arm64/DocumentPicker.d",
+    "diagnostics" : "/Users/bobo/Desktop/Lopan/build/Build/Intermediates.noindex/Lopan.build/Debug-iphonesimulator/Lopan.build/Objects-normal/arm64/DocumentPicker.dia",
+    "index-unit-output-path" : "/Lopan.build/Debug-iphonesimulator/Lopan.build/Objects-normal/arm64/DocumentPicker.o",
+    "llvm-bc" : "/Users/bobo/Desktop/Lopan/build/Build/Intermediates.noindex/Lopan.build/Debug-iphonesimulator/Lopan.build/Objects-normal/arm64/DocumentPicker.bc",
+    "object" : "/Users/bobo/Desktop/Lopan/build/Build/Intermediates.noindex/Lopan.build/Debug-iphonesimulator/Lopan.build/Objects-normal/arm64/DocumentPicker.o",
+    "swift-dependencies" : "/Users/bobo/Desktop/Lopan/build/Build/Intermediates.noindex/Lopan.build/Debug-iphonesimulator/Lopan.build/Objects-normal/arm64/DocumentPicker.swiftdeps",
+    "swiftmodule" : "/Users/bobo/Desktop/Lopan/build/Build/Intermediates.noindex/Lopan.build/Debug-iphonesimulator/Lopan.build/Objects-normal/arm64/DocumentPicker~partial.swiftmodule"
+  },
+  "/Users/bobo/Desktop/Lopan/Lopan/Views/Components/ExcelExportView.swift" : {
+    "const-values" : "/Users/bobo/Desktop/Lopan/build/Build/Intermediates.noindex/Lopan.build/Debug-iphonesimulator/Lopan.build/Objects-normal/arm64/ExcelExportView.swiftconstvalues",
+    "dependencies" : "/Users/bobo/Desktop/Lopan/build/Build/Intermediates.noindex/Lopan.build/Debug-iphonesimulator/Lopan.build/Objects-normal/arm64/ExcelExportView.d",
+    "diagnostics" : "/Users/bobo/Desktop/Lopan/build/Build/Intermediates.noindex/Lopan.build/Debug-iphonesimulator/Lopan.build/Objects-normal/arm64/ExcelExportView.dia",
+    "index-unit-output-path" : "/Lopan.build/Debug-iphonesimulator/Lopan.build/Objects-normal/arm64/ExcelExportView.o",
+    "llvm-bc" : "/Users/bobo/Desktop/Lopan/build/Build/Intermediates.noindex/Lopan.build/Debug-iphonesimulator/Lopan.build/Objects-normal/arm64/ExcelExportView.bc",
+    "object" : "/Users/bobo/Desktop/Lopan/build/Build/Intermediates.noindex/Lopan.build/Debug-iphonesimulator/Lopan.build/Objects-normal/arm64/ExcelExportView.o",
+    "swift-dependencies" : "/Users/bobo/Desktop/Lopan/build/Build/Intermediates.noindex/Lopan.build/Debug-iphonesimulator/Lopan.build/Objects-normal/arm64/ExcelExportView.swiftdeps",
+    "swiftmodule" : "/Users/bobo/Desktop/Lopan/build/Build/Intermediates.noindex/Lopan.build/Debug-iphonesimulator/Lopan.build/Objects-normal/arm64/ExcelExportView~partial.swiftmodule"
+  },
+  "/Users/bobo/Desktop/Lopan/Lopan/Views/Components/ExcelImportView.swift" : {
+    "const-values" : "/Users/bobo/Desktop/Lopan/build/Build/Intermediates.noindex/Lopan.build/Debug-iphonesimulator/Lopan.build/Objects-normal/arm64/ExcelImportView.swiftconstvalues",
+    "dependencies" : "/Users/bobo/Desktop/Lopan/build/Build/Intermediates.noindex/Lopan.build/Debug-iphonesimulator/Lopan.build/Objects-normal/arm64/ExcelImportView.d",
+    "diagnostics" : "/Users/bobo/Desktop/Lopan/build/Build/Intermediates.noindex/Lopan.build/Debug-iphonesimulator/Lopan.build/Objects-normal/arm64/ExcelImportView.dia",
+    "index-unit-output-path" : "/Lopan.build/Debug-iphonesimulator/Lopan.build/Objects-normal/arm64/ExcelImportView.o",
+    "llvm-bc" : "/Users/bobo/Desktop/Lopan/build/Build/Intermediates.noindex/Lopan.build/Debug-iphonesimulator/Lopan.build/Objects-normal/arm64/ExcelImportView.bc",
+    "object" : "/Users/bobo/Desktop/Lopan/build/Build/Intermediates.noindex/Lopan.build/Debug-iphonesimulator/Lopan.build/Objects-normal/arm64/ExcelImportView.o",
+    "swift-dependencies" : "/Users/bobo/Desktop/Lopan/build/Build/Intermediates.noindex/Lopan.build/Debug-iphonesimulator/Lopan.build/Objects-normal/arm64/ExcelImportView.swiftdeps",
+    "swiftmodule" : "/Users/bobo/Desktop/Lopan/build/Build/Intermediates.noindex/Lopan.build/Debug-iphonesimulator/Lopan.build/Objects-normal/arm64/ExcelImportView~partial.swiftmodule"
+  },
+  "/Users/bobo/Desktop/Lopan/Lopan/Views/Components/ImagePicker.swift" : {
+    "const-values" : "/Users/bobo/Desktop/Lopan/build/Build/Intermediates.noindex/Lopan.build/Debug-iphonesimulator/Lopan.build/Objects-normal/arm64/ImagePicker.swiftconstvalues",
+    "dependencies" : "/Users/bobo/Desktop/Lopan/build/Build/Intermediates.noindex/Lopan.build/Debug-iphonesimulator/Lopan.build/Objects-normal/arm64/ImagePicker.d",
+    "diagnostics" : "/Users/bobo/Desktop/Lopan/build/Build/Intermediates.noindex/Lopan.build/Debug-iphonesimulator/Lopan.build/Objects-normal/arm64/ImagePicker.dia",
+    "index-unit-output-path" : "/Lopan.build/Debug-iphonesimulator/Lopan.build/Objects-normal/arm64/ImagePicker.o",
+    "llvm-bc" : "/Users/bobo/Desktop/Lopan/build/Build/Intermediates.noindex/Lopan.build/Debug-iphonesimulator/Lopan.build/Objects-normal/arm64/ImagePicker.bc",
+    "object" : "/Users/bobo/Desktop/Lopan/build/Build/Intermediates.noindex/Lopan.build/Debug-iphonesimulator/Lopan.build/Objects-normal/arm64/ImagePicker.o",
+    "swift-dependencies" : "/Users/bobo/Desktop/Lopan/build/Build/Intermediates.noindex/Lopan.build/Debug-iphonesimulator/Lopan.build/Objects-normal/arm64/ImagePicker.swiftdeps",
+    "swiftmodule" : "/Users/bobo/Desktop/Lopan/build/Build/Intermediates.noindex/Lopan.build/Debug-iphonesimulator/Lopan.build/Objects-normal/arm64/ImagePicker~partial.swiftmodule"
+  },
+  "/Users/bobo/Desktop/Lopan/Lopan/Views/Components/MachineApprovalStatusView.swift" : {
+    "const-values" : "/Users/bobo/Desktop/Lopan/build/Build/Intermediates.noindex/Lopan.build/Debug-iphonesimulator/Lopan.build/Objects-normal/arm64/MachineApprovalStatusView.swiftconstvalues",
+    "dependencies" : "/Users/bobo/Desktop/Lopan/build/Build/Intermediates.noindex/Lopan.build/Debug-iphonesimulator/Lopan.build/Objects-normal/arm64/MachineApprovalStatusView.d",
+    "diagnostics" : "/Users/bobo/Desktop/Lopan/build/Build/Intermediates.noindex/Lopan.build/Debug-iphonesimulator/Lopan.build/Objects-normal/arm64/MachineApprovalStatusView.dia",
+    "index-unit-output-path" : "/Lopan.build/Debug-iphonesimulator/Lopan.build/Objects-normal/arm64/MachineApprovalStatusView.o",
+    "llvm-bc" : "/Users/bobo/Desktop/Lopan/build/Build/Intermediates.noindex/Lopan.build/Debug-iphonesimulator/Lopan.build/Objects-normal/arm64/MachineApprovalStatusView.bc",
+    "object" : "/Users/bobo/Desktop/Lopan/build/Build/Intermediates.noindex/Lopan.build/Debug-iphonesimulator/Lopan.build/Objects-normal/arm64/MachineApprovalStatusView.o",
+    "swift-dependencies" : "/Users/bobo/Desktop/Lopan/build/Build/Intermediates.noindex/Lopan.build/Debug-iphonesimulator/Lopan.build/Objects-normal/arm64/MachineApprovalStatusView.swiftdeps",
+    "swiftmodule" : "/Users/bobo/Desktop/Lopan/build/Build/Intermediates.noindex/Lopan.build/Debug-iphonesimulator/Lopan.build/Objects-normal/arm64/MachineApprovalStatusView~partial.swiftmodule"
+  },
+  "/Users/bobo/Desktop/Lopan/Lopan/Views/Components/ShareSheet.swift" : {
+    "const-values" : "/Users/bobo/Desktop/Lopan/build/Build/Intermediates.noindex/Lopan.build/Debug-iphonesimulator/Lopan.build/Objects-normal/arm64/ShareSheet.swiftconstvalues",
+    "dependencies" : "/Users/bobo/Desktop/Lopan/build/Build/Intermediates.noindex/Lopan.build/Debug-iphonesimulator/Lopan.build/Objects-normal/arm64/ShareSheet.d",
+    "diagnostics" : "/Users/bobo/Desktop/Lopan/build/Build/Intermediates.noindex/Lopan.build/Debug-iphonesimulator/Lopan.build/Objects-normal/arm64/ShareSheet.dia",
+    "index-unit-output-path" : "/Lopan.build/Debug-iphonesimulator/Lopan.build/Objects-normal/arm64/ShareSheet.o",
+    "llvm-bc" : "/Users/bobo/Desktop/Lopan/build/Build/Intermediates.noindex/Lopan.build/Debug-iphonesimulator/Lopan.build/Objects-normal/arm64/ShareSheet.bc",
+    "object" : "/Users/bobo/Desktop/Lopan/build/Build/Intermediates.noindex/Lopan.build/Debug-iphonesimulator/Lopan.build/Objects-normal/arm64/ShareSheet.o",
+    "swift-dependencies" : "/Users/bobo/Desktop/Lopan/build/Build/Intermediates.noindex/Lopan.build/Debug-iphonesimulator/Lopan.build/Objects-normal/arm64/ShareSheet.swiftdeps",
+    "swiftmodule" : "/Users/bobo/Desktop/Lopan/build/Build/Intermediates.noindex/Lopan.build/Debug-iphonesimulator/Lopan.build/Objects-normal/arm64/ShareSheet~partial.swiftmodule"
+  },
+  "/Users/bobo/Desktop/Lopan/Lopan/Views/Components/StatCard.swift" : {
+    "const-values" : "/Users/bobo/Desktop/Lopan/build/Build/Intermediates.noindex/Lopan.build/Debug-iphonesimulator/Lopan.build/Objects-normal/arm64/StatCard.swiftconstvalues",
+    "dependencies" : "/Users/bobo/Desktop/Lopan/build/Build/Intermediates.noindex/Lopan.build/Debug-iphonesimulator/Lopan.build/Objects-normal/arm64/StatCard.d",
+    "diagnostics" : "/Users/bobo/Desktop/Lopan/build/Build/Intermediates.noindex/Lopan.build/Debug-iphonesimulator/Lopan.build/Objects-normal/arm64/StatCard.dia",
+    "index-unit-output-path" : "/Lopan.build/Debug-iphonesimulator/Lopan.build/Objects-normal/arm64/StatCard.o",
+    "llvm-bc" : "/Users/bobo/Desktop/Lopan/build/Build/Intermediates.noindex/Lopan.build/Debug-iphonesimulator/Lopan.build/Objects-normal/arm64/StatCard.bc",
+    "object" : "/Users/bobo/Desktop/Lopan/build/Build/Intermediates.noindex/Lopan.build/Debug-iphonesimulator/Lopan.build/Objects-normal/arm64/StatCard.o",
+    "swift-dependencies" : "/Users/bobo/Desktop/Lopan/build/Build/Intermediates.noindex/Lopan.build/Debug-iphonesimulator/Lopan.build/Objects-normal/arm64/StatCard.swiftdeps",
+    "swiftmodule" : "/Users/bobo/Desktop/Lopan/build/Build/Intermediates.noindex/Lopan.build/Debug-iphonesimulator/Lopan.build/Objects-normal/arm64/StatCard~partial.swiftmodule"
+  },
+  "/Users/bobo/Desktop/Lopan/Lopan/Views/Components/WorkbenchSelectorView.swift" : {
+    "const-values" : "/Users/bobo/Desktop/Lopan/build/Build/Intermediates.noindex/Lopan.build/Debug-iphonesimulator/Lopan.build/Objects-normal/arm64/WorkbenchSelectorView.swiftconstvalues",
+    "dependencies" : "/Users/bobo/Desktop/Lopan/build/Build/Intermediates.noindex/Lopan.build/Debug-iphonesimulator/Lopan.build/Objects-normal/arm64/WorkbenchSelectorView.d",
+    "diagnostics" : "/Users/bobo/Desktop/Lopan/build/Build/Intermediates.noindex/Lopan.build/Debug-iphonesimulator/Lopan.build/Objects-normal/arm64/WorkbenchSelectorView.dia",
+    "index-unit-output-path" : "/Lopan.build/Debug-iphonesimulator/Lopan.build/Objects-normal/arm64/WorkbenchSelectorView.o",
+    "llvm-bc" : "/Users/bobo/Desktop/Lopan/build/Build/Intermediates.noindex/Lopan.build/Debug-iphonesimulator/Lopan.build/Objects-normal/arm64/WorkbenchSelectorView.bc",
+    "object" : "/Users/bobo/Desktop/Lopan/build/Build/Intermediates.noindex/Lopan.build/Debug-iphonesimulator/Lopan.build/Objects-normal/arm64/WorkbenchSelectorView.o",
+    "swift-dependencies" : "/Users/bobo/Desktop/Lopan/build/Build/Intermediates.noindex/Lopan.build/Debug-iphonesimulator/Lopan.build/Objects-normal/arm64/WorkbenchSelectorView.swiftdeps",
+    "swiftmodule" : "/Users/bobo/Desktop/Lopan/build/Build/Intermediates.noindex/Lopan.build/Debug-iphonesimulator/Lopan.build/Objects-normal/arm64/WorkbenchSelectorView~partial.swiftmodule"
+  },
+  "/Users/bobo/Desktop/Lopan/Lopan/Views/DashboardView.swift" : {
+    "const-values" : "/Users/bobo/Desktop/Lopan/build/Build/Intermediates.noindex/Lopan.build/Debug-iphonesimulator/Lopan.build/Objects-normal/arm64/DashboardView.swiftconstvalues",
+    "dependencies" : "/Users/bobo/Desktop/Lopan/build/Build/Intermediates.noindex/Lopan.build/Debug-iphonesimulator/Lopan.build/Objects-normal/arm64/DashboardView.d",
+    "diagnostics" : "/Users/bobo/Desktop/Lopan/build/Build/Intermediates.noindex/Lopan.build/Debug-iphonesimulator/Lopan.build/Objects-normal/arm64/DashboardView.dia",
+    "index-unit-output-path" : "/Lopan.build/Debug-iphonesimulator/Lopan.build/Objects-normal/arm64/DashboardView.o",
+    "llvm-bc" : "/Users/bobo/Desktop/Lopan/build/Build/Intermediates.noindex/Lopan.build/Debug-iphonesimulator/Lopan.build/Objects-normal/arm64/DashboardView.bc",
+    "object" : "/Users/bobo/Desktop/Lopan/build/Build/Intermediates.noindex/Lopan.build/Debug-iphonesimulator/Lopan.build/Objects-normal/arm64/DashboardView.o",
+    "swift-dependencies" : "/Users/bobo/Desktop/Lopan/build/Build/Intermediates.noindex/Lopan.build/Debug-iphonesimulator/Lopan.build/Objects-normal/arm64/DashboardView.swiftdeps",
+    "swiftmodule" : "/Users/bobo/Desktop/Lopan/build/Build/Intermediates.noindex/Lopan.build/Debug-iphonesimulator/Lopan.build/Objects-normal/arm64/DashboardView~partial.swiftmodule"
+  },
+  "/Users/bobo/Desktop/Lopan/Lopan/Views/LoginView.swift" : {
+    "const-values" : "/Users/bobo/Desktop/Lopan/build/Build/Intermediates.noindex/Lopan.build/Debug-iphonesimulator/Lopan.build/Objects-normal/arm64/LoginView.swiftconstvalues",
+    "dependencies" : "/Users/bobo/Desktop/Lopan/build/Build/Intermediates.noindex/Lopan.build/Debug-iphonesimulator/Lopan.build/Objects-normal/arm64/LoginView.d",
+    "diagnostics" : "/Users/bobo/Desktop/Lopan/build/Build/Intermediates.noindex/Lopan.build/Debug-iphonesimulator/Lopan.build/Objects-normal/arm64/LoginView.dia",
+    "index-unit-output-path" : "/Lopan.build/Debug-iphonesimulator/Lopan.build/Objects-normal/arm64/LoginView.o",
+    "llvm-bc" : "/Users/bobo/Desktop/Lopan/build/Build/Intermediates.noindex/Lopan.build/Debug-iphonesimulator/Lopan.build/Objects-normal/arm64/LoginView.bc",
+    "object" : "/Users/bobo/Desktop/Lopan/build/Build/Intermediates.noindex/Lopan.build/Debug-iphonesimulator/Lopan.build/Objects-normal/arm64/LoginView.o",
+    "swift-dependencies" : "/Users/bobo/Desktop/Lopan/build/Build/Intermediates.noindex/Lopan.build/Debug-iphonesimulator/Lopan.build/Objects-normal/arm64/LoginView.swiftdeps",
+    "swiftmodule" : "/Users/bobo/Desktop/Lopan/build/Build/Intermediates.noindex/Lopan.build/Debug-iphonesimulator/Lopan.build/Objects-normal/arm64/LoginView~partial.swiftmodule"
+  },
+  "/Users/bobo/Desktop/Lopan/Lopan/Views/PlaceholderViews.swift" : {
+    "const-values" : "/Users/bobo/Desktop/Lopan/build/Build/Intermediates.noindex/Lopan.build/Debug-iphonesimulator/Lopan.build/Objects-normal/arm64/PlaceholderViews.swiftconstvalues",
+    "dependencies" : "/Users/bobo/Desktop/Lopan/build/Build/Intermediates.noindex/Lopan.build/Debug-iphonesimulator/Lopan.build/Objects-normal/arm64/PlaceholderViews.d",
+    "diagnostics" : "/Users/bobo/Desktop/Lopan/build/Build/Intermediates.noindex/Lopan.build/Debug-iphonesimulator/Lopan.build/Objects-normal/arm64/PlaceholderViews.dia",
+    "index-unit-output-path" : "/Lopan.build/Debug-iphonesimulator/Lopan.build/Objects-normal/arm64/PlaceholderViews.o",
+    "llvm-bc" : "/Users/bobo/Desktop/Lopan/build/Build/Intermediates.noindex/Lopan.build/Debug-iphonesimulator/Lopan.build/Objects-normal/arm64/PlaceholderViews.bc",
+    "object" : "/Users/bobo/Desktop/Lopan/build/Build/Intermediates.noindex/Lopan.build/Debug-iphonesimulator/Lopan.build/Objects-normal/arm64/PlaceholderViews.o",
+    "swift-dependencies" : "/Users/bobo/Desktop/Lopan/build/Build/Intermediates.noindex/Lopan.build/Debug-iphonesimulator/Lopan.build/Objects-normal/arm64/PlaceholderViews.swiftdeps",
+    "swiftmodule" : "/Users/bobo/Desktop/Lopan/build/Build/Intermediates.noindex/Lopan.build/Debug-iphonesimulator/Lopan.build/Objects-normal/arm64/PlaceholderViews~partial.swiftmodule"
+  },
+  "/Users/bobo/Desktop/Lopan/Lopan/Views/Salesperson/AuditLogDetailViews.swift" : {
+    "const-values" : "/Users/bobo/Desktop/Lopan/build/Build/Intermediates.noindex/Lopan.build/Debug-iphonesimulator/Lopan.build/Objects-normal/arm64/AuditLogDetailViews.swiftconstvalues",
+    "dependencies" : "/Users/bobo/Desktop/Lopan/build/Build/Intermediates.noindex/Lopan.build/Debug-iphonesimulator/Lopan.build/Objects-normal/arm64/AuditLogDetailViews.d",
+    "diagnostics" : "/Users/bobo/Desktop/Lopan/build/Build/Intermediates.noindex/Lopan.build/Debug-iphonesimulator/Lopan.build/Objects-normal/arm64/AuditLogDetailViews.dia",
+    "index-unit-output-path" : "/Lopan.build/Debug-iphonesimulator/Lopan.build/Objects-normal/arm64/AuditLogDetailViews.o",
+    "llvm-bc" : "/Users/bobo/Desktop/Lopan/build/Build/Intermediates.noindex/Lopan.build/Debug-iphonesimulator/Lopan.build/Objects-normal/arm64/AuditLogDetailViews.bc",
+    "object" : "/Users/bobo/Desktop/Lopan/build/Build/Intermediates.noindex/Lopan.build/Debug-iphonesimulator/Lopan.build/Objects-normal/arm64/AuditLogDetailViews.o",
+    "swift-dependencies" : "/Users/bobo/Desktop/Lopan/build/Build/Intermediates.noindex/Lopan.build/Debug-iphonesimulator/Lopan.build/Objects-normal/arm64/AuditLogDetailViews.swiftdeps",
+    "swiftmodule" : "/Users/bobo/Desktop/Lopan/build/Build/Intermediates.noindex/Lopan.build/Debug-iphonesimulator/Lopan.build/Objects-normal/arm64/AuditLogDetailViews~partial.swiftmodule"
+  },
+  "/Users/bobo/Desktop/Lopan/Lopan/Views/Salesperson/BatchReturnProcessingSheet.swift" : {
+    "const-values" : "/Users/bobo/Desktop/Lopan/build/Build/Intermediates.noindex/Lopan.build/Debug-iphonesimulator/Lopan.build/Objects-normal/arm64/BatchReturnProcessingSheet.swiftconstvalues",
+    "dependencies" : "/Users/bobo/Desktop/Lopan/build/Build/Intermediates.noindex/Lopan.build/Debug-iphonesimulator/Lopan.build/Objects-normal/arm64/BatchReturnProcessingSheet.d",
+    "diagnostics" : "/Users/bobo/Desktop/Lopan/build/Build/Intermediates.noindex/Lopan.build/Debug-iphonesimulator/Lopan.build/Objects-normal/arm64/BatchReturnProcessingSheet.dia",
+    "index-unit-output-path" : "/Lopan.build/Debug-iphonesimulator/Lopan.build/Objects-normal/arm64/BatchReturnProcessingSheet.o",
+    "llvm-bc" : "/Users/bobo/Desktop/Lopan/build/Build/Intermediates.noindex/Lopan.build/Debug-iphonesimulator/Lopan.build/Objects-normal/arm64/BatchReturnProcessingSheet.bc",
+    "object" : "/Users/bobo/Desktop/Lopan/build/Build/Intermediates.noindex/Lopan.build/Debug-iphonesimulator/Lopan.build/Objects-normal/arm64/BatchReturnProcessingSheet.o",
+    "swift-dependencies" : "/Users/bobo/Desktop/Lopan/build/Build/Intermediates.noindex/Lopan.build/Debug-iphonesimulator/Lopan.build/Objects-normal/arm64/BatchReturnProcessingSheet.swiftdeps",
+    "swiftmodule" : "/Users/bobo/Desktop/Lopan/build/Build/Intermediates.noindex/Lopan.build/Debug-iphonesimulator/Lopan.build/Objects-normal/arm64/BatchReturnProcessingSheet~partial.swiftmodule"
+  },
+  "/Users/bobo/Desktop/Lopan/Lopan/Views/Salesperson/CustomerManagementView.swift" : {
+    "const-values" : "/Users/bobo/Desktop/Lopan/build/Build/Intermediates.noindex/Lopan.build/Debug-iphonesimulator/Lopan.build/Objects-normal/arm64/CustomerManagementView.swiftconstvalues",
+    "dependencies" : "/Users/bobo/Desktop/Lopan/build/Build/Intermediates.noindex/Lopan.build/Debug-iphonesimulator/Lopan.build/Objects-normal/arm64/CustomerManagementView.d",
+    "diagnostics" : "/Users/bobo/Desktop/Lopan/build/Build/Intermediates.noindex/Lopan.build/Debug-iphonesimulator/Lopan.build/Objects-normal/arm64/CustomerManagementView.dia",
+    "index-unit-output-path" : "/Lopan.build/Debug-iphonesimulator/Lopan.build/Objects-normal/arm64/CustomerManagementView.o",
+    "llvm-bc" : "/Users/bobo/Desktop/Lopan/build/Build/Intermediates.noindex/Lopan.build/Debug-iphonesimulator/Lopan.build/Objects-normal/arm64/CustomerManagementView.bc",
+    "object" : "/Users/bobo/Desktop/Lopan/build/Build/Intermediates.noindex/Lopan.build/Debug-iphonesimulator/Lopan.build/Objects-normal/arm64/CustomerManagementView.o",
+    "swift-dependencies" : "/Users/bobo/Desktop/Lopan/build/Build/Intermediates.noindex/Lopan.build/Debug-iphonesimulator/Lopan.build/Objects-normal/arm64/CustomerManagementView.swiftdeps",
+    "swiftmodule" : "/Users/bobo/Desktop/Lopan/build/Build/Intermediates.noindex/Lopan.build/Debug-iphonesimulator/Lopan.build/Objects-normal/arm64/CustomerManagementView~partial.swiftmodule"
+  },
+  "/Users/bobo/Desktop/Lopan/Lopan/Views/Salesperson/CustomerOutOfStockAnalyticsView.swift" : {
+    "const-values" : "/Users/bobo/Desktop/Lopan/build/Build/Intermediates.noindex/Lopan.build/Debug-iphonesimulator/Lopan.build/Objects-normal/arm64/CustomerOutOfStockAnalyticsView.swiftconstvalues",
+    "dependencies" : "/Users/bobo/Desktop/Lopan/build/Build/Intermediates.noindex/Lopan.build/Debug-iphonesimulator/Lopan.build/Objects-normal/arm64/CustomerOutOfStockAnalyticsView.d",
+    "diagnostics" : "/Users/bobo/Desktop/Lopan/build/Build/Intermediates.noindex/Lopan.build/Debug-iphonesimulator/Lopan.build/Objects-normal/arm64/CustomerOutOfStockAnalyticsView.dia",
+    "index-unit-output-path" : "/Lopan.build/Debug-iphonesimulator/Lopan.build/Objects-normal/arm64/CustomerOutOfStockAnalyticsView.o",
+    "llvm-bc" : "/Users/bobo/Desktop/Lopan/build/Build/Intermediates.noindex/Lopan.build/Debug-iphonesimulator/Lopan.build/Objects-normal/arm64/CustomerOutOfStockAnalyticsView.bc",
+    "object" : "/Users/bobo/Desktop/Lopan/build/Build/Intermediates.noindex/Lopan.build/Debug-iphonesimulator/Lopan.build/Objects-normal/arm64/CustomerOutOfStockAnalyticsView.o",
+    "swift-dependencies" : "/Users/bobo/Desktop/Lopan/build/Build/Intermediates.noindex/Lopan.build/Debug-iphonesimulator/Lopan.build/Objects-normal/arm64/CustomerOutOfStockAnalyticsView.swiftdeps",
+    "swiftmodule" : "/Users/bobo/Desktop/Lopan/build/Build/Intermediates.noindex/Lopan.build/Debug-iphonesimulator/Lopan.build/Objects-normal/arm64/CustomerOutOfStockAnalyticsView~partial.swiftmodule"
+  },
+  "/Users/bobo/Desktop/Lopan/Lopan/Views/Salesperson/CustomerOutOfStockListView.swift" : {
+    "const-values" : "/Users/bobo/Desktop/Lopan/build/Build/Intermediates.noindex/Lopan.build/Debug-iphonesimulator/Lopan.build/Objects-normal/arm64/CustomerOutOfStockListView.swiftconstvalues",
+    "dependencies" : "/Users/bobo/Desktop/Lopan/build/Build/Intermediates.noindex/Lopan.build/Debug-iphonesimulator/Lopan.build/Objects-normal/arm64/CustomerOutOfStockListView.d",
+    "diagnostics" : "/Users/bobo/Desktop/Lopan/build/Build/Intermediates.noindex/Lopan.build/Debug-iphonesimulator/Lopan.build/Objects-normal/arm64/CustomerOutOfStockListView.dia",
+    "index-unit-output-path" : "/Lopan.build/Debug-iphonesimulator/Lopan.build/Objects-normal/arm64/CustomerOutOfStockListView.o",
+    "llvm-bc" : "/Users/bobo/Desktop/Lopan/build/Build/Intermediates.noindex/Lopan.build/Debug-iphonesimulator/Lopan.build/Objects-normal/arm64/CustomerOutOfStockListView.bc",
+    "object" : "/Users/bobo/Desktop/Lopan/build/Build/Intermediates.noindex/Lopan.build/Debug-iphonesimulator/Lopan.build/Objects-normal/arm64/CustomerOutOfStockListView.o",
+    "swift-dependencies" : "/Users/bobo/Desktop/Lopan/build/Build/Intermediates.noindex/Lopan.build/Debug-iphonesimulator/Lopan.build/Objects-normal/arm64/CustomerOutOfStockListView.swiftdeps",
+    "swiftmodule" : "/Users/bobo/Desktop/Lopan/build/Build/Intermediates.noindex/Lopan.build/Debug-iphonesimulator/Lopan.build/Objects-normal/arm64/CustomerOutOfStockListView~partial.swiftmodule"
+  },
+  "/Users/bobo/Desktop/Lopan/Lopan/Views/Salesperson/HistoricalBacktrackingView.swift" : {
+    "const-values" : "/Users/bobo/Desktop/Lopan/build/Build/Intermediates.noindex/Lopan.build/Debug-iphonesimulator/Lopan.build/Objects-normal/arm64/HistoricalBacktrackingView.swiftconstvalues",
+    "dependencies" : "/Users/bobo/Desktop/Lopan/build/Build/Intermediates.noindex/Lopan.build/Debug-iphonesimulator/Lopan.build/Objects-normal/arm64/HistoricalBacktrackingView.d",
+    "diagnostics" : "/Users/bobo/Desktop/Lopan/build/Build/Intermediates.noindex/Lopan.build/Debug-iphonesimulator/Lopan.build/Objects-normal/arm64/HistoricalBacktrackingView.dia",
+    "index-unit-output-path" : "/Lopan.build/Debug-iphonesimulator/Lopan.build/Objects-normal/arm64/HistoricalBacktrackingView.o",
+    "llvm-bc" : "/Users/bobo/Desktop/Lopan/build/Build/Intermediates.noindex/Lopan.build/Debug-iphonesimulator/Lopan.build/Objects-normal/arm64/HistoricalBacktrackingView.bc",
+    "object" : "/Users/bobo/Desktop/Lopan/build/Build/Intermediates.noindex/Lopan.build/Debug-iphonesimulator/Lopan.build/Objects-normal/arm64/HistoricalBacktrackingView.o",
+    "swift-dependencies" : "/Users/bobo/Desktop/Lopan/build/Build/Intermediates.noindex/Lopan.build/Debug-iphonesimulator/Lopan.build/Objects-normal/arm64/HistoricalBacktrackingView.swiftdeps",
+    "swiftmodule" : "/Users/bobo/Desktop/Lopan/build/Build/Intermediates.noindex/Lopan.build/Debug-iphonesimulator/Lopan.build/Objects-normal/arm64/HistoricalBacktrackingView~partial.swiftmodule"
+  },
+  "/Users/bobo/Desktop/Lopan/Lopan/Views/Salesperson/NewCustomerManagementView.swift" : {
+    "const-values" : "/Users/bobo/Desktop/Lopan/build/Build/Intermediates.noindex/Lopan.build/Debug-iphonesimulator/Lopan.build/Objects-normal/arm64/NewCustomerManagementView.swiftconstvalues",
+    "dependencies" : "/Users/bobo/Desktop/Lopan/build/Build/Intermediates.noindex/Lopan.build/Debug-iphonesimulator/Lopan.build/Objects-normal/arm64/NewCustomerManagementView.d",
+    "diagnostics" : "/Users/bobo/Desktop/Lopan/build/Build/Intermediates.noindex/Lopan.build/Debug-iphonesimulator/Lopan.build/Objects-normal/arm64/NewCustomerManagementView.dia",
+    "index-unit-output-path" : "/Lopan.build/Debug-iphonesimulator/Lopan.build/Objects-normal/arm64/NewCustomerManagementView.o",
+    "llvm-bc" : "/Users/bobo/Desktop/Lopan/build/Build/Intermediates.noindex/Lopan.build/Debug-iphonesimulator/Lopan.build/Objects-normal/arm64/NewCustomerManagementView.bc",
+    "object" : "/Users/bobo/Desktop/Lopan/build/Build/Intermediates.noindex/Lopan.build/Debug-iphonesimulator/Lopan.build/Objects-normal/arm64/NewCustomerManagementView.o",
+    "swift-dependencies" : "/Users/bobo/Desktop/Lopan/build/Build/Intermediates.noindex/Lopan.build/Debug-iphonesimulator/Lopan.build/Objects-normal/arm64/NewCustomerManagementView.swiftdeps",
+    "swiftmodule" : "/Users/bobo/Desktop/Lopan/build/Build/Intermediates.noindex/Lopan.build/Debug-iphonesimulator/Lopan.build/Objects-normal/arm64/NewCustomerManagementView~partial.swiftmodule"
+  },
+  "/Users/bobo/Desktop/Lopan/Lopan/Views/Salesperson/ProductManagementView.swift" : {
+    "const-values" : "/Users/bobo/Desktop/Lopan/build/Build/Intermediates.noindex/Lopan.build/Debug-iphonesimulator/Lopan.build/Objects-normal/arm64/ProductManagementView.swiftconstvalues",
+    "dependencies" : "/Users/bobo/Desktop/Lopan/build/Build/Intermediates.noindex/Lopan.build/Debug-iphonesimulator/Lopan.build/Objects-normal/arm64/ProductManagementView.d",
+    "diagnostics" : "/Users/bobo/Desktop/Lopan/build/Build/Intermediates.noindex/Lopan.build/Debug-iphonesimulator/Lopan.build/Objects-normal/arm64/ProductManagementView.dia",
+    "index-unit-output-path" : "/Lopan.build/Debug-iphonesimulator/Lopan.build/Objects-normal/arm64/ProductManagementView.o",
+    "llvm-bc" : "/Users/bobo/Desktop/Lopan/build/Build/Intermediates.noindex/Lopan.build/Debug-iphonesimulator/Lopan.build/Objects-normal/arm64/ProductManagementView.bc",
+    "object" : "/Users/bobo/Desktop/Lopan/build/Build/Intermediates.noindex/Lopan.build/Debug-iphonesimulator/Lopan.build/Objects-normal/arm64/ProductManagementView.o",
+    "swift-dependencies" : "/Users/bobo/Desktop/Lopan/build/Build/Intermediates.noindex/Lopan.build/Debug-iphonesimulator/Lopan.build/Objects-normal/arm64/ProductManagementView.swiftdeps",
+    "swiftmodule" : "/Users/bobo/Desktop/Lopan/build/Build/Intermediates.noindex/Lopan.build/Debug-iphonesimulator/Lopan.build/Objects-normal/arm64/ProductManagementView~partial.swiftmodule"
+  },
+  "/Users/bobo/Desktop/Lopan/Lopan/Views/Salesperson/ReturnGoodsDetailView.swift" : {
+    "const-values" : "/Users/bobo/Desktop/Lopan/build/Build/Intermediates.noindex/Lopan.build/Debug-iphonesimulator/Lopan.build/Objects-normal/arm64/ReturnGoodsDetailView.swiftconstvalues",
+    "dependencies" : "/Users/bobo/Desktop/Lopan/build/Build/Intermediates.noindex/Lopan.build/Debug-iphonesimulator/Lopan.build/Objects-normal/arm64/ReturnGoodsDetailView.d",
+    "diagnostics" : "/Users/bobo/Desktop/Lopan/build/Build/Intermediates.noindex/Lopan.build/Debug-iphonesimulator/Lopan.build/Objects-normal/arm64/ReturnGoodsDetailView.dia",
+    "index-unit-output-path" : "/Lopan.build/Debug-iphonesimulator/Lopan.build/Objects-normal/arm64/ReturnGoodsDetailView.o",
+    "llvm-bc" : "/Users/bobo/Desktop/Lopan/build/Build/Intermediates.noindex/Lopan.build/Debug-iphonesimulator/Lopan.build/Objects-normal/arm64/ReturnGoodsDetailView.bc",
+    "object" : "/Users/bobo/Desktop/Lopan/build/Build/Intermediates.noindex/Lopan.build/Debug-iphonesimulator/Lopan.build/Objects-normal/arm64/ReturnGoodsDetailView.o",
+    "swift-dependencies" : "/Users/bobo/Desktop/Lopan/build/Build/Intermediates.noindex/Lopan.build/Debug-iphonesimulator/Lopan.build/Objects-normal/arm64/ReturnGoodsDetailView.swiftdeps",
+    "swiftmodule" : "/Users/bobo/Desktop/Lopan/build/Build/Intermediates.noindex/Lopan.build/Debug-iphonesimulator/Lopan.build/Objects-normal/arm64/ReturnGoodsDetailView~partial.swiftmodule"
+  },
+  "/Users/bobo/Desktop/Lopan/Lopan/Views/Salesperson/ReturnGoodsManagementView.swift" : {
+    "const-values" : "/Users/bobo/Desktop/Lopan/build/Build/Intermediates.noindex/Lopan.build/Debug-iphonesimulator/Lopan.build/Objects-normal/arm64/ReturnGoodsManagementView.swiftconstvalues",
+    "dependencies" : "/Users/bobo/Desktop/Lopan/build/Build/Intermediates.noindex/Lopan.build/Debug-iphonesimulator/Lopan.build/Objects-normal/arm64/ReturnGoodsManagementView.d",
+    "diagnostics" : "/Users/bobo/Desktop/Lopan/build/Build/Intermediates.noindex/Lopan.build/Debug-iphonesimulator/Lopan.build/Objects-normal/arm64/ReturnGoodsManagementView.dia",
+    "index-unit-output-path" : "/Lopan.build/Debug-iphonesimulator/Lopan.build/Objects-normal/arm64/ReturnGoodsManagementView.o",
+    "llvm-bc" : "/Users/bobo/Desktop/Lopan/build/Build/Intermediates.noindex/Lopan.build/Debug-iphonesimulator/Lopan.build/Objects-normal/arm64/ReturnGoodsManagementView.bc",
+    "object" : "/Users/bobo/Desktop/Lopan/build/Build/Intermediates.noindex/Lopan.build/Debug-iphonesimulator/Lopan.build/Objects-normal/arm64/ReturnGoodsManagementView.o",
+    "swift-dependencies" : "/Users/bobo/Desktop/Lopan/build/Build/Intermediates.noindex/Lopan.build/Debug-iphonesimulator/Lopan.build/Objects-normal/arm64/ReturnGoodsManagementView.swiftdeps",
+    "swiftmodule" : "/Users/bobo/Desktop/Lopan/build/Build/Intermediates.noindex/Lopan.build/Debug-iphonesimulator/Lopan.build/Objects-normal/arm64/ReturnGoodsManagementView~partial.swiftmodule"
+  },
+  "/Users/bobo/Desktop/Lopan/Lopan/Views/Salesperson/ReturnOrderExportView.swift" : {
+    "const-values" : "/Users/bobo/Desktop/Lopan/build/Build/Intermediates.noindex/Lopan.build/Debug-iphonesimulator/Lopan.build/Objects-normal/arm64/ReturnOrderExportView.swiftconstvalues",
+    "dependencies" : "/Users/bobo/Desktop/Lopan/build/Build/Intermediates.noindex/Lopan.build/Debug-iphonesimulator/Lopan.build/Objects-normal/arm64/ReturnOrderExportView.d",
+    "diagnostics" : "/Users/bobo/Desktop/Lopan/build/Build/Intermediates.noindex/Lopan.build/Debug-iphonesimulator/Lopan.build/Objects-normal/arm64/ReturnOrderExportView.dia",
+    "index-unit-output-path" : "/Lopan.build/Debug-iphonesimulator/Lopan.build/Objects-normal/arm64/ReturnOrderExportView.o",
+    "llvm-bc" : "/Users/bobo/Desktop/Lopan/build/Build/Intermediates.noindex/Lopan.build/Debug-iphonesimulator/Lopan.build/Objects-normal/arm64/ReturnOrderExportView.bc",
+    "object" : "/Users/bobo/Desktop/Lopan/build/Build/Intermediates.noindex/Lopan.build/Debug-iphonesimulator/Lopan.build/Objects-normal/arm64/ReturnOrderExportView.o",
+    "swift-dependencies" : "/Users/bobo/Desktop/Lopan/build/Build/Intermediates.noindex/Lopan.build/Debug-iphonesimulator/Lopan.build/Objects-normal/arm64/ReturnOrderExportView.swiftdeps",
+    "swiftmodule" : "/Users/bobo/Desktop/Lopan/build/Build/Intermediates.noindex/Lopan.build/Debug-iphonesimulator/Lopan.build/Objects-normal/arm64/ReturnOrderExportView~partial.swiftmodule"
+  },
+  "/Users/bobo/Desktop/Lopan/Lopan/Views/Salesperson/SingleReturnProcessingSheet.swift" : {
+    "const-values" : "/Users/bobo/Desktop/Lopan/build/Build/Intermediates.noindex/Lopan.build/Debug-iphonesimulator/Lopan.build/Objects-normal/arm64/SingleReturnProcessingSheet.swiftconstvalues",
+    "dependencies" : "/Users/bobo/Desktop/Lopan/build/Build/Intermediates.noindex/Lopan.build/Debug-iphonesimulator/Lopan.build/Objects-normal/arm64/SingleReturnProcessingSheet.d",
+    "diagnostics" : "/Users/bobo/Desktop/Lopan/build/Build/Intermediates.noindex/Lopan.build/Debug-iphonesimulator/Lopan.build/Objects-normal/arm64/SingleReturnProcessingSheet.dia",
+    "index-unit-output-path" : "/Lopan.build/Debug-iphonesimulator/Lopan.build/Objects-normal/arm64/SingleReturnProcessingSheet.o",
+    "llvm-bc" : "/Users/bobo/Desktop/Lopan/build/Build/Intermediates.noindex/Lopan.build/Debug-iphonesimulator/Lopan.build/Objects-normal/arm64/SingleReturnProcessingSheet.bc",
+    "object" : "/Users/bobo/Desktop/Lopan/build/Build/Intermediates.noindex/Lopan.build/Debug-iphonesimulator/Lopan.build/Objects-normal/arm64/SingleReturnProcessingSheet.o",
+    "swift-dependencies" : "/Users/bobo/Desktop/Lopan/build/Build/Intermediates.noindex/Lopan.build/Debug-iphonesimulator/Lopan.build/Objects-normal/arm64/SingleReturnProcessingSheet.swiftdeps",
+    "swiftmodule" : "/Users/bobo/Desktop/Lopan/build/Build/Intermediates.noindex/Lopan.build/Debug-iphonesimulator/Lopan.build/Objects-normal/arm64/SingleReturnProcessingSheet~partial.swiftmodule"
+  },
+  "/Users/bobo/Desktop/Lopan/Lopan/Views/WarehouseKeeper/AddPackagingRecordView.swift" : {
+    "const-values" : "/Users/bobo/Desktop/Lopan/build/Build/Intermediates.noindex/Lopan.build/Debug-iphonesimulator/Lopan.build/Objects-normal/arm64/AddPackagingRecordView.swiftconstvalues",
+    "dependencies" : "/Users/bobo/Desktop/Lopan/build/Build/Intermediates.noindex/Lopan.build/Debug-iphonesimulator/Lopan.build/Objects-normal/arm64/AddPackagingRecordView.d",
+    "diagnostics" : "/Users/bobo/Desktop/Lopan/build/Build/Intermediates.noindex/Lopan.build/Debug-iphonesimulator/Lopan.build/Objects-normal/arm64/AddPackagingRecordView.dia",
+    "index-unit-output-path" : "/Lopan.build/Debug-iphonesimulator/Lopan.build/Objects-normal/arm64/AddPackagingRecordView.o",
+    "llvm-bc" : "/Users/bobo/Desktop/Lopan/build/Build/Intermediates.noindex/Lopan.build/Debug-iphonesimulator/Lopan.build/Objects-normal/arm64/AddPackagingRecordView.bc",
+    "object" : "/Users/bobo/Desktop/Lopan/build/Build/Intermediates.noindex/Lopan.build/Debug-iphonesimulator/Lopan.build/Objects-normal/arm64/AddPackagingRecordView.o",
+    "swift-dependencies" : "/Users/bobo/Desktop/Lopan/build/Build/Intermediates.noindex/Lopan.build/Debug-iphonesimulator/Lopan.build/Objects-normal/arm64/AddPackagingRecordView.swiftdeps",
+    "swiftmodule" : "/Users/bobo/Desktop/Lopan/build/Build/Intermediates.noindex/Lopan.build/Debug-iphonesimulator/Lopan.build/Objects-normal/arm64/AddPackagingRecordView~partial.swiftmodule"
+  },
+  "/Users/bobo/Desktop/Lopan/Lopan/Views/WarehouseKeeper/EditPackagingRecordView.swift" : {
+    "const-values" : "/Users/bobo/Desktop/Lopan/build/Build/Intermediates.noindex/Lopan.build/Debug-iphonesimulator/Lopan.build/Objects-normal/arm64/EditPackagingRecordView.swiftconstvalues",
+    "dependencies" : "/Users/bobo/Desktop/Lopan/build/Build/Intermediates.noindex/Lopan.build/Debug-iphonesimulator/Lopan.build/Objects-normal/arm64/EditPackagingRecordView.d",
+    "diagnostics" : "/Users/bobo/Desktop/Lopan/build/Build/Intermediates.noindex/Lopan.build/Debug-iphonesimulator/Lopan.build/Objects-normal/arm64/EditPackagingRecordView.dia",
+    "index-unit-output-path" : "/Lopan.build/Debug-iphonesimulator/Lopan.build/Objects-normal/arm64/EditPackagingRecordView.o",
+    "llvm-bc" : "/Users/bobo/Desktop/Lopan/build/Build/Intermediates.noindex/Lopan.build/Debug-iphonesimulator/Lopan.build/Objects-normal/arm64/EditPackagingRecordView.bc",
+    "object" : "/Users/bobo/Desktop/Lopan/build/Build/Intermediates.noindex/Lopan.build/Debug-iphonesimulator/Lopan.build/Objects-normal/arm64/EditPackagingRecordView.o",
+    "swift-dependencies" : "/Users/bobo/Desktop/Lopan/build/Build/Intermediates.noindex/Lopan.build/Debug-iphonesimulator/Lopan.build/Objects-normal/arm64/EditPackagingRecordView.swiftdeps",
+    "swiftmodule" : "/Users/bobo/Desktop/Lopan/build/Build/Intermediates.noindex/Lopan.build/Debug-iphonesimulator/Lopan.build/Objects-normal/arm64/EditPackagingRecordView~partial.swiftmodule"
+  },
+  "/Users/bobo/Desktop/Lopan/Lopan/Views/WarehouseKeeper/PackagingManagementView.swift" : {
+    "const-values" : "/Users/bobo/Desktop/Lopan/build/Build/Intermediates.noindex/Lopan.build/Debug-iphonesimulator/Lopan.build/Objects-normal/arm64/PackagingManagementView.swiftconstvalues",
+    "dependencies" : "/Users/bobo/Desktop/Lopan/build/Build/Intermediates.noindex/Lopan.build/Debug-iphonesimulator/Lopan.build/Objects-normal/arm64/PackagingManagementView.d",
+    "diagnostics" : "/Users/bobo/Desktop/Lopan/build/Build/Intermediates.noindex/Lopan.build/Debug-iphonesimulator/Lopan.build/Objects-normal/arm64/PackagingManagementView.dia",
+    "index-unit-output-path" : "/Lopan.build/Debug-iphonesimulator/Lopan.build/Objects-normal/arm64/PackagingManagementView.o",
+    "llvm-bc" : "/Users/bobo/Desktop/Lopan/build/Build/Intermediates.noindex/Lopan.build/Debug-iphonesimulator/Lopan.build/Objects-normal/arm64/PackagingManagementView.bc",
+    "object" : "/Users/bobo/Desktop/Lopan/build/Build/Intermediates.noindex/Lopan.build/Debug-iphonesimulator/Lopan.build/Objects-normal/arm64/PackagingManagementView.o",
+    "swift-dependencies" : "/Users/bobo/Desktop/Lopan/build/Build/Intermediates.noindex/Lopan.build/Debug-iphonesimulator/Lopan.build/Objects-normal/arm64/PackagingManagementView.swiftdeps",
+    "swiftmodule" : "/Users/bobo/Desktop/Lopan/build/Build/Intermediates.noindex/Lopan.build/Debug-iphonesimulator/Lopan.build/Objects-normal/arm64/PackagingManagementView~partial.swiftmodule"
+  },
+  "/Users/bobo/Desktop/Lopan/Lopan/Views/WarehouseKeeper/PackagingReminderView.swift" : {
+    "const-values" : "/Users/bobo/Desktop/Lopan/build/Build/Intermediates.noindex/Lopan.build/Debug-iphonesimulator/Lopan.build/Objects-normal/arm64/PackagingReminderView.swiftconstvalues",
+    "dependencies" : "/Users/bobo/Desktop/Lopan/build/Build/Intermediates.noindex/Lopan.build/Debug-iphonesimulator/Lopan.build/Objects-normal/arm64/PackagingReminderView.d",
+    "diagnostics" : "/Users/bobo/Desktop/Lopan/build/Build/Intermediates.noindex/Lopan.build/Debug-iphonesimulator/Lopan.build/Objects-normal/arm64/PackagingReminderView.dia",
+    "index-unit-output-path" : "/Lopan.build/Debug-iphonesimulator/Lopan.build/Objects-normal/arm64/PackagingReminderView.o",
+    "llvm-bc" : "/Users/bobo/Desktop/Lopan/build/Build/Intermediates.noindex/Lopan.build/Debug-iphonesimulator/Lopan.build/Objects-normal/arm64/PackagingReminderView.bc",
+    "object" : "/Users/bobo/Desktop/Lopan/build/Build/Intermediates.noindex/Lopan.build/Debug-iphonesimulator/Lopan.build/Objects-normal/arm64/PackagingReminderView.o",
+    "swift-dependencies" : "/Users/bobo/Desktop/Lopan/build/Build/Intermediates.noindex/Lopan.build/Debug-iphonesimulator/Lopan.build/Objects-normal/arm64/PackagingReminderView.swiftdeps",
+    "swiftmodule" : "/Users/bobo/Desktop/Lopan/build/Build/Intermediates.noindex/Lopan.build/Debug-iphonesimulator/Lopan.build/Objects-normal/arm64/PackagingReminderView~partial.swiftmodule"
+  },
+  "/Users/bobo/Desktop/Lopan/Lopan/Views/WarehouseKeeper/PackagingStatisticsView.swift" : {
+    "const-values" : "/Users/bobo/Desktop/Lopan/build/Build/Intermediates.noindex/Lopan.build/Debug-iphonesimulator/Lopan.build/Objects-normal/arm64/PackagingStatisticsView.swiftconstvalues",
+    "dependencies" : "/Users/bobo/Desktop/Lopan/build/Build/Intermediates.noindex/Lopan.build/Debug-iphonesimulator/Lopan.build/Objects-normal/arm64/PackagingStatisticsView.d",
+    "diagnostics" : "/Users/bobo/Desktop/Lopan/build/Build/Intermediates.noindex/Lopan.build/Debug-iphonesimulator/Lopan.build/Objects-normal/arm64/PackagingStatisticsView.dia",
+    "index-unit-output-path" : "/Lopan.build/Debug-iphonesimulator/Lopan.build/Objects-normal/arm64/PackagingStatisticsView.o",
+    "llvm-bc" : "/Users/bobo/Desktop/Lopan/build/Build/Intermediates.noindex/Lopan.build/Debug-iphonesimulator/Lopan.build/Objects-normal/arm64/PackagingStatisticsView.bc",
+    "object" : "/Users/bobo/Desktop/Lopan/build/Build/Intermediates.noindex/Lopan.build/Debug-iphonesimulator/Lopan.build/Objects-normal/arm64/PackagingStatisticsView.o",
+    "swift-dependencies" : "/Users/bobo/Desktop/Lopan/build/Build/Intermediates.noindex/Lopan.build/Debug-iphonesimulator/Lopan.build/Objects-normal/arm64/PackagingStatisticsView.swiftdeps",
+    "swiftmodule" : "/Users/bobo/Desktop/Lopan/build/Build/Intermediates.noindex/Lopan.build/Debug-iphonesimulator/Lopan.build/Objects-normal/arm64/PackagingStatisticsView~partial.swiftmodule"
+  },
+  "/Users/bobo/Desktop/Lopan/Lopan/Views/WarehouseKeeper/PackagingTeamManagementView.swift" : {
+    "const-values" : "/Users/bobo/Desktop/Lopan/build/Build/Intermediates.noindex/Lopan.build/Debug-iphonesimulator/Lopan.build/Objects-normal/arm64/PackagingTeamManagementView.swiftconstvalues",
+    "dependencies" : "/Users/bobo/Desktop/Lopan/build/Build/Intermediates.noindex/Lopan.build/Debug-iphonesimulator/Lopan.build/Objects-normal/arm64/PackagingTeamManagementView.d",
+    "diagnostics" : "/Users/bobo/Desktop/Lopan/build/Build/Intermediates.noindex/Lopan.build/Debug-iphonesimulator/Lopan.build/Objects-normal/arm64/PackagingTeamManagementView.dia",
+    "index-unit-output-path" : "/Lopan.build/Debug-iphonesimulator/Lopan.build/Objects-normal/arm64/PackagingTeamManagementView.o",
+    "llvm-bc" : "/Users/bobo/Desktop/Lopan/build/Build/Intermediates.noindex/Lopan.build/Debug-iphonesimulator/Lopan.build/Objects-normal/arm64/PackagingTeamManagementView.bc",
+    "object" : "/Users/bobo/Desktop/Lopan/build/Build/Intermediates.noindex/Lopan.build/Debug-iphonesimulator/Lopan.build/Objects-normal/arm64/PackagingTeamManagementView.o",
+    "swift-dependencies" : "/Users/bobo/Desktop/Lopan/build/Build/Intermediates.noindex/Lopan.build/Debug-iphonesimulator/Lopan.build/Objects-normal/arm64/PackagingTeamManagementView.swiftdeps",
+    "swiftmodule" : "/Users/bobo/Desktop/Lopan/build/Build/Intermediates.noindex/Lopan.build/Debug-iphonesimulator/Lopan.build/Objects-normal/arm64/PackagingTeamManagementView~partial.swiftmodule"
+  },
+  "/Users/bobo/Desktop/Lopan/Lopan/Views/WorkshopManager/BatchProcessingDashboardView.swift" : {
+    "const-values" : "/Users/bobo/Desktop/Lopan/build/Build/Intermediates.noindex/Lopan.build/Debug-iphonesimulator/Lopan.build/Objects-normal/arm64/BatchProcessingDashboardView.swiftconstvalues",
+    "dependencies" : "/Users/bobo/Desktop/Lopan/build/Build/Intermediates.noindex/Lopan.build/Debug-iphonesimulator/Lopan.build/Objects-normal/arm64/BatchProcessingDashboardView.d",
+    "diagnostics" : "/Users/bobo/Desktop/Lopan/build/Build/Intermediates.noindex/Lopan.build/Debug-iphonesimulator/Lopan.build/Objects-normal/arm64/BatchProcessingDashboardView.dia",
+    "index-unit-output-path" : "/Lopan.build/Debug-iphonesimulator/Lopan.build/Objects-normal/arm64/BatchProcessingDashboardView.o",
+    "llvm-bc" : "/Users/bobo/Desktop/Lopan/build/Build/Intermediates.noindex/Lopan.build/Debug-iphonesimulator/Lopan.build/Objects-normal/arm64/BatchProcessingDashboardView.bc",
+    "object" : "/Users/bobo/Desktop/Lopan/build/Build/Intermediates.noindex/Lopan.build/Debug-iphonesimulator/Lopan.build/Objects-normal/arm64/BatchProcessingDashboardView.o",
+    "swift-dependencies" : "/Users/bobo/Desktop/Lopan/build/Build/Intermediates.noindex/Lopan.build/Debug-iphonesimulator/Lopan.build/Objects-normal/arm64/BatchProcessingDashboardView.swiftdeps",
+    "swiftmodule" : "/Users/bobo/Desktop/Lopan/build/Build/Intermediates.noindex/Lopan.build/Debug-iphonesimulator/Lopan.build/Objects-normal/arm64/BatchProcessingDashboardView~partial.swiftmodule"
+  },
+  "/Users/bobo/Desktop/Lopan/Lopan/Views/WorkshopManager/ColorManagementView.swift" : {
+    "const-values" : "/Users/bobo/Desktop/Lopan/build/Build/Intermediates.noindex/Lopan.build/Debug-iphonesimulator/Lopan.build/Objects-normal/arm64/ColorManagementView.swiftconstvalues",
+    "dependencies" : "/Users/bobo/Desktop/Lopan/build/Build/Intermediates.noindex/Lopan.build/Debug-iphonesimulator/Lopan.build/Objects-normal/arm64/ColorManagementView.d",
+    "diagnostics" : "/Users/bobo/Desktop/Lopan/build/Build/Intermediates.noindex/Lopan.build/Debug-iphonesimulator/Lopan.build/Objects-normal/arm64/ColorManagementView.dia",
+    "index-unit-output-path" : "/Lopan.build/Debug-iphonesimulator/Lopan.build/Objects-normal/arm64/ColorManagementView.o",
+    "llvm-bc" : "/Users/bobo/Desktop/Lopan/build/Build/Intermediates.noindex/Lopan.build/Debug-iphonesimulator/Lopan.build/Objects-normal/arm64/ColorManagementView.bc",
+    "object" : "/Users/bobo/Desktop/Lopan/build/Build/Intermediates.noindex/Lopan.build/Debug-iphonesimulator/Lopan.build/Objects-normal/arm64/ColorManagementView.o",
+    "swift-dependencies" : "/Users/bobo/Desktop/Lopan/build/Build/Intermediates.noindex/Lopan.build/Debug-iphonesimulator/Lopan.build/Objects-normal/arm64/ColorManagementView.swiftdeps",
+    "swiftmodule" : "/Users/bobo/Desktop/Lopan/build/Build/Intermediates.noindex/Lopan.build/Debug-iphonesimulator/Lopan.build/Objects-normal/arm64/ColorManagementView~partial.swiftmodule"
+  },
+  "/Users/bobo/Desktop/Lopan/Lopan/Views/WorkshopManager/EditColorSheet.swift" : {
+    "const-values" : "/Users/bobo/Desktop/Lopan/build/Build/Intermediates.noindex/Lopan.build/Debug-iphonesimulator/Lopan.build/Objects-normal/arm64/EditColorSheet.swiftconstvalues",
+    "dependencies" : "/Users/bobo/Desktop/Lopan/build/Build/Intermediates.noindex/Lopan.build/Debug-iphonesimulator/Lopan.build/Objects-normal/arm64/EditColorSheet.d",
+    "diagnostics" : "/Users/bobo/Desktop/Lopan/build/Build/Intermediates.noindex/Lopan.build/Debug-iphonesimulator/Lopan.build/Objects-normal/arm64/EditColorSheet.dia",
+    "index-unit-output-path" : "/Lopan.build/Debug-iphonesimulator/Lopan.build/Objects-normal/arm64/EditColorSheet.o",
+    "llvm-bc" : "/Users/bobo/Desktop/Lopan/build/Build/Intermediates.noindex/Lopan.build/Debug-iphonesimulator/Lopan.build/Objects-normal/arm64/EditColorSheet.bc",
+    "object" : "/Users/bobo/Desktop/Lopan/build/Build/Intermediates.noindex/Lopan.build/Debug-iphonesimulator/Lopan.build/Objects-normal/arm64/EditColorSheet.o",
+    "swift-dependencies" : "/Users/bobo/Desktop/Lopan/build/Build/Intermediates.noindex/Lopan.build/Debug-iphonesimulator/Lopan.build/Objects-normal/arm64/EditColorSheet.swiftdeps",
+    "swiftmodule" : "/Users/bobo/Desktop/Lopan/build/Build/Intermediates.noindex/Lopan.build/Debug-iphonesimulator/Lopan.build/Objects-normal/arm64/EditColorSheet~partial.swiftmodule"
+  },
+  "/Users/bobo/Desktop/Lopan/Lopan/Views/WorkshopManager/GunColorSettingsView.swift" : {
+    "const-values" : "/Users/bobo/Desktop/Lopan/build/Build/Intermediates.noindex/Lopan.build/Debug-iphonesimulator/Lopan.build/Objects-normal/arm64/GunColorSettingsView.swiftconstvalues",
+    "dependencies" : "/Users/bobo/Desktop/Lopan/build/Build/Intermediates.noindex/Lopan.build/Debug-iphonesimulator/Lopan.build/Objects-normal/arm64/GunColorSettingsView.d",
+    "diagnostics" : "/Users/bobo/Desktop/Lopan/build/Build/Intermediates.noindex/Lopan.build/Debug-iphonesimulator/Lopan.build/Objects-normal/arm64/GunColorSettingsView.dia",
+    "index-unit-output-path" : "/Lopan.build/Debug-iphonesimulator/Lopan.build/Objects-normal/arm64/GunColorSettingsView.o",
+    "llvm-bc" : "/Users/bobo/Desktop/Lopan/build/Build/Intermediates.noindex/Lopan.build/Debug-iphonesimulator/Lopan.build/Objects-normal/arm64/GunColorSettingsView.bc",
+    "object" : "/Users/bobo/Desktop/Lopan/build/Build/Intermediates.noindex/Lopan.build/Debug-iphonesimulator/Lopan.build/Objects-normal/arm64/GunColorSettingsView.o",
+    "swift-dependencies" : "/Users/bobo/Desktop/Lopan/build/Build/Intermediates.noindex/Lopan.build/Debug-iphonesimulator/Lopan.build/Objects-normal/arm64/GunColorSettingsView.swiftdeps",
+    "swiftmodule" : "/Users/bobo/Desktop/Lopan/build/Build/Intermediates.noindex/Lopan.build/Debug-iphonesimulator/Lopan.build/Objects-normal/arm64/GunColorSettingsView~partial.swiftmodule"
+  },
+  "/Users/bobo/Desktop/Lopan/Lopan/Views/WorkshopManager/MachineDetailView.swift" : {
+    "const-values" : "/Users/bobo/Desktop/Lopan/build/Build/Intermediates.noindex/Lopan.build/Debug-iphonesimulator/Lopan.build/Objects-normal/arm64/MachineDetailView.swiftconstvalues",
+    "dependencies" : "/Users/bobo/Desktop/Lopan/build/Build/Intermediates.noindex/Lopan.build/Debug-iphonesimulator/Lopan.build/Objects-normal/arm64/MachineDetailView.d",
+    "diagnostics" : "/Users/bobo/Desktop/Lopan/build/Build/Intermediates.noindex/Lopan.build/Debug-iphonesimulator/Lopan.build/Objects-normal/arm64/MachineDetailView.dia",
+    "index-unit-output-path" : "/Lopan.build/Debug-iphonesimulator/Lopan.build/Objects-normal/arm64/MachineDetailView.o",
+    "llvm-bc" : "/Users/bobo/Desktop/Lopan/build/Build/Intermediates.noindex/Lopan.build/Debug-iphonesimulator/Lopan.build/Objects-normal/arm64/MachineDetailView.bc",
+    "object" : "/Users/bobo/Desktop/Lopan/build/Build/Intermediates.noindex/Lopan.build/Debug-iphonesimulator/Lopan.build/Objects-normal/arm64/MachineDetailView.o",
+    "swift-dependencies" : "/Users/bobo/Desktop/Lopan/build/Build/Intermediates.noindex/Lopan.build/Debug-iphonesimulator/Lopan.build/Objects-normal/arm64/MachineDetailView.swiftdeps",
+    "swiftmodule" : "/Users/bobo/Desktop/Lopan/build/Build/Intermediates.noindex/Lopan.build/Debug-iphonesimulator/Lopan.build/Objects-normal/arm64/MachineDetailView~partial.swiftmodule"
+  },
+  "/Users/bobo/Desktop/Lopan/Lopan/Views/WorkshopManager/MachineManagementView.swift" : {
+    "const-values" : "/Users/bobo/Desktop/Lopan/build/Build/Intermediates.noindex/Lopan.build/Debug-iphonesimulator/Lopan.build/Objects-normal/arm64/MachineManagementView.swiftconstvalues",
+    "dependencies" : "/Users/bobo/Desktop/Lopan/build/Build/Intermediates.noindex/Lopan.build/Debug-iphonesimulator/Lopan.build/Objects-normal/arm64/MachineManagementView.d",
+    "diagnostics" : "/Users/bobo/Desktop/Lopan/build/Build/Intermediates.noindex/Lopan.build/Debug-iphonesimulator/Lopan.build/Objects-normal/arm64/MachineManagementView.dia",
+    "index-unit-output-path" : "/Lopan.build/Debug-iphonesimulator/Lopan.build/Objects-normal/arm64/MachineManagementView.o",
+    "llvm-bc" : "/Users/bobo/Desktop/Lopan/build/Build/Intermediates.noindex/Lopan.build/Debug-iphonesimulator/Lopan.build/Objects-normal/arm64/MachineManagementView.bc",
+    "object" : "/Users/bobo/Desktop/Lopan/build/Build/Intermediates.noindex/Lopan.build/Debug-iphonesimulator/Lopan.build/Objects-normal/arm64/MachineManagementView.o",
+    "swift-dependencies" : "/Users/bobo/Desktop/Lopan/build/Build/Intermediates.noindex/Lopan.build/Debug-iphonesimulator/Lopan.build/Objects-normal/arm64/MachineManagementView.swiftdeps",
+    "swiftmodule" : "/Users/bobo/Desktop/Lopan/build/Build/Intermediates.noindex/Lopan.build/Debug-iphonesimulator/Lopan.build/Objects-normal/arm64/MachineManagementView~partial.swiftmodule"
+  },
+  "/Users/bobo/Desktop/Lopan/Lopan/Views/WorkshopManager/MachineStatisticsView.swift" : {
+    "const-values" : "/Users/bobo/Desktop/Lopan/build/Build/Intermediates.noindex/Lopan.build/Debug-iphonesimulator/Lopan.build/Objects-normal/arm64/MachineStatisticsView.swiftconstvalues",
+    "dependencies" : "/Users/bobo/Desktop/Lopan/build/Build/Intermediates.noindex/Lopan.build/Debug-iphonesimulator/Lopan.build/Objects-normal/arm64/MachineStatisticsView.d",
+    "diagnostics" : "/Users/bobo/Desktop/Lopan/build/Build/Intermediates.noindex/Lopan.build/Debug-iphonesimulator/Lopan.build/Objects-normal/arm64/MachineStatisticsView.dia",
+    "index-unit-output-path" : "/Lopan.build/Debug-iphonesimulator/Lopan.build/Objects-normal/arm64/MachineStatisticsView.o",
+    "llvm-bc" : "/Users/bobo/Desktop/Lopan/build/Build/Intermediates.noindex/Lopan.build/Debug-iphonesimulator/Lopan.build/Objects-normal/arm64/MachineStatisticsView.bc",
+    "object" : "/Users/bobo/Desktop/Lopan/build/Build/Intermediates.noindex/Lopan.build/Debug-iphonesimulator/Lopan.build/Objects-normal/arm64/MachineStatisticsView.o",
+    "swift-dependencies" : "/Users/bobo/Desktop/Lopan/build/Build/Intermediates.noindex/Lopan.build/Debug-iphonesimulator/Lopan.build/Objects-normal/arm64/MachineStatisticsView.swiftdeps",
+    "swiftmodule" : "/Users/bobo/Desktop/Lopan/build/Build/Intermediates.noindex/Lopan.build/Debug-iphonesimulator/Lopan.build/Objects-normal/arm64/MachineStatisticsView~partial.swiftmodule"
+  },
+  "/Users/bobo/Desktop/Lopan/Lopan/Views/WorkshopManager/ProductionConfigurationView.swift" : {
+    "const-values" : "/Users/bobo/Desktop/Lopan/build/Build/Intermediates.noindex/Lopan.build/Debug-iphonesimulator/Lopan.build/Objects-normal/arm64/ProductionConfigurationView.swiftconstvalues",
+    "dependencies" : "/Users/bobo/Desktop/Lopan/build/Build/Intermediates.noindex/Lopan.build/Debug-iphonesimulator/Lopan.build/Objects-normal/arm64/ProductionConfigurationView.d",
+    "diagnostics" : "/Users/bobo/Desktop/Lopan/build/Build/Intermediates.noindex/Lopan.build/Debug-iphonesimulator/Lopan.build/Objects-normal/arm64/ProductionConfigurationView.dia",
+    "index-unit-output-path" : "/Lopan.build/Debug-iphonesimulator/Lopan.build/Objects-normal/arm64/ProductionConfigurationView.o",
+    "llvm-bc" : "/Users/bobo/Desktop/Lopan/build/Build/Intermediates.noindex/Lopan.build/Debug-iphonesimulator/Lopan.build/Objects-normal/arm64/ProductionConfigurationView.bc",
+    "object" : "/Users/bobo/Desktop/Lopan/build/Build/Intermediates.noindex/Lopan.build/Debug-iphonesimulator/Lopan.build/Objects-normal/arm64/ProductionConfigurationView.o",
+    "swift-dependencies" : "/Users/bobo/Desktop/Lopan/build/Build/Intermediates.noindex/Lopan.build/Debug-iphonesimulator/Lopan.build/Objects-normal/arm64/ProductionConfigurationView.swiftdeps",
+    "swiftmodule" : "/Users/bobo/Desktop/Lopan/build/Build/Intermediates.noindex/Lopan.build/Debug-iphonesimulator/Lopan.build/Objects-normal/arm64/ProductionConfigurationView~partial.swiftmodule"
+  },
+  "/Users/bobo/Desktop/Lopan/Lopan/Views/WorkshopManager/WorkshopManagerDashboard.swift" : {
+    "const-values" : "/Users/bobo/Desktop/Lopan/build/Build/Intermediates.noindex/Lopan.build/Debug-iphonesimulator/Lopan.build/Objects-normal/arm64/WorkshopManagerDashboard.swiftconstvalues",
+    "dependencies" : "/Users/bobo/Desktop/Lopan/build/Build/Intermediates.noindex/Lopan.build/Debug-iphonesimulator/Lopan.build/Objects-normal/arm64/WorkshopManagerDashboard.d",
+    "diagnostics" : "/Users/bobo/Desktop/Lopan/build/Build/Intermediates.noindex/Lopan.build/Debug-iphonesimulator/Lopan.build/Objects-normal/arm64/WorkshopManagerDashboard.dia",
+    "index-unit-output-path" : "/Lopan.build/Debug-iphonesimulator/Lopan.build/Objects-normal/arm64/WorkshopManagerDashboard.o",
+    "llvm-bc" : "/Users/bobo/Desktop/Lopan/build/Build/Intermediates.noindex/Lopan.build/Debug-iphonesimulator/Lopan.build/Objects-normal/arm64/WorkshopManagerDashboard.bc",
+    "object" : "/Users/bobo/Desktop/Lopan/build/Build/Intermediates.noindex/Lopan.build/Debug-iphonesimulator/Lopan.build/Objects-normal/arm64/WorkshopManagerDashboard.o",
+    "swift-dependencies" : "/Users/bobo/Desktop/Lopan/build/Build/Intermediates.noindex/Lopan.build/Debug-iphonesimulator/Lopan.build/Objects-normal/arm64/WorkshopManagerDashboard.swiftdeps",
+    "swiftmodule" : "/Users/bobo/Desktop/Lopan/build/Build/Intermediates.noindex/Lopan.build/Debug-iphonesimulator/Lopan.build/Objects-normal/arm64/WorkshopManagerDashboard~partial.swiftmodule"
+  },
+  "/Users/bobo/Desktop/Lopan/build/Build/Intermediates.noindex/Lopan.build/Debug-iphonesimulator/Lopan.build/DerivedSources/GeneratedAssetSymbols.swift" : {
+    "const-values" : "/Users/bobo/Desktop/Lopan/build/Build/Intermediates.noindex/Lopan.build/Debug-iphonesimulator/Lopan.build/Objects-normal/arm64/GeneratedAssetSymbols.swiftconstvalues",
+    "dependencies" : "/Users/bobo/Desktop/Lopan/build/Build/Intermediates.noindex/Lopan.build/Debug-iphonesimulator/Lopan.build/Objects-normal/arm64/GeneratedAssetSymbols.d",
+    "diagnostics" : "/Users/bobo/Desktop/Lopan/build/Build/Intermediates.noindex/Lopan.build/Debug-iphonesimulator/Lopan.build/Objects-normal/arm64/GeneratedAssetSymbols.dia",
+    "index-unit-output-path" : "/Lopan.build/Debug-iphonesimulator/Lopan.build/Objects-normal/arm64/GeneratedAssetSymbols.o",
+    "llvm-bc" : "/Users/bobo/Desktop/Lopan/build/Build/Intermediates.noindex/Lopan.build/Debug-iphonesimulator/Lopan.build/Objects-normal/arm64/GeneratedAssetSymbols.bc",
+    "object" : "/Users/bobo/Desktop/Lopan/build/Build/Intermediates.noindex/Lopan.build/Debug-iphonesimulator/Lopan.build/Objects-normal/arm64/GeneratedAssetSymbols.o",
+    "swift-dependencies" : "/Users/bobo/Desktop/Lopan/build/Build/Intermediates.noindex/Lopan.build/Debug-iphonesimulator/Lopan.build/Objects-normal/arm64/GeneratedAssetSymbols.swiftdeps",
+    "swiftmodule" : "/Users/bobo/Desktop/Lopan/build/Build/Intermediates.noindex/Lopan.build/Debug-iphonesimulator/Lopan.build/Objects-normal/arm64/GeneratedAssetSymbols~partial.swiftmodule"
+  }
+}

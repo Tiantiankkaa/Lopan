@@ -1,0 +1,944 @@
+{
+  "source": "/Users/bobo/Desktop/Lopan/Lopan/Views/Salesperson/CustomerOutOfStockListView.swift",
+  "tables": {
+    "Localizable": [
+      {
+        "comment": "",
+        "key": "客户缺货管理",
+        "location": {
+          "startingColumn": 26,
+          "startingLine": 50
+        }
+      },
+      {
+        "comment": "",
+        "key": "确认删除",
+        "location": {
+          "startingColumn": 16,
+          "startingLine": 92
+        }
+      },
+      {
+        "comment": "",
+        "key": "确认批量删除",
+        "location": {
+          "startingColumn": 16,
+          "startingLine": 100
+        }
+      },
+      {
+        "comment": "",
+        "key": "取消",
+        "location": {
+          "startingColumn": 20,
+          "startingLine": 93
+        }
+      },
+      {
+        "comment": "",
+        "key": "删除",
+        "location": {
+          "startingColumn": 20,
+          "startingLine": 94
+        }
+      },
+      {
+        "comment": "",
+        "key": "确定要删除选中的 %lld 个缺货记录吗？此操作无法撤销。",
+        "location": {
+          "startingColumn": 18,
+          "startingLine": 98
+        }
+      },
+      {
+        "comment": "",
+        "key": "取消",
+        "location": {
+          "startingColumn": 20,
+          "startingLine": 101
+        }
+      },
+      {
+        "comment": "",
+        "key": "删除",
+        "location": {
+          "startingColumn": 20,
+          "startingLine": 102
+        }
+      },
+      {
+        "comment": "",
+        "key": "确定要删除选中的 %lld 个缺货记录吗？此操作无法撤销。",
+        "location": {
+          "startingColumn": 18,
+          "startingLine": 106
+        }
+      },
+      {
+        "comment": "",
+        "key": "高级筛选",
+        "location": {
+          "startingColumn": 26,
+          "startingLine": 142
+        }
+      },
+      {
+        "comment": "",
+        "key": "批量操作",
+        "location": {
+          "startingColumn": 22,
+          "startingLine": 150
+        }
+      },
+      {
+        "comment": "",
+        "key": "状态",
+        "location": {
+          "startingColumn": 22,
+          "startingLine": 161
+        }
+      },
+      {
+        "comment": "",
+        "key": "优先级",
+        "location": {
+          "startingColumn": 22,
+          "startingLine": 173
+        }
+      },
+      {
+        "comment": "",
+        "key": "删除",
+        "location": {
+          "startingColumn": 22,
+          "startingLine": 188
+        }
+      },
+      {
+        "comment": "",
+        "key": "取消",
+        "location": {
+          "startingColumn": 22,
+          "startingLine": 200
+        }
+      },
+      {
+        "comment": "",
+        "key": "已选择 %lld 个记录",
+        "location": {
+          "startingColumn": 26,
+          "startingLine": 220
+        }
+      },
+      {
+        "comment": "",
+        "key": "搜索客户、产品、尺寸、颜色、备注...",
+        "location": {
+          "startingColumn": 23,
+          "startingLine": 237
+        }
+      },
+      {
+        "comment": "",
+        "key": "清除所有筛选",
+        "location": {
+          "startingColumn": 26,
+          "startingLine": 265
+        }
+      },
+      {
+        "comment": "",
+        "key": "数量: %lld",
+        "location": {
+          "startingColumn": 30,
+          "startingLine": 732
+        }
+      },
+      {
+        "comment": "",
+        "key": "已退: %lld",
+        "location": {
+          "startingColumn": 34,
+          "startingLine": 734
+        }
+      },
+      {
+        "comment": "",
+        "key": "剩余: %lld",
+        "location": {
+          "startingColumn": 34,
+          "startingLine": 739
+        }
+      },
+      {
+        "comment": "",
+        "key": "新增缺货记录",
+        "location": {
+          "startingColumn": 30,
+          "startingLine": 840
+        }
+      },
+      {
+        "comment": "",
+        "key": "客户信息",
+        "location": {
+          "startingColumn": 17,
+          "startingLine": 878
+        }
+      },
+      {
+        "comment": "",
+        "key": "产品信息",
+        "location": {
+          "startingColumn": 17,
+          "startingLine": 900
+        }
+      },
+      {
+        "comment": "",
+        "key": "缺货数量",
+        "location": {
+          "startingColumn": 17,
+          "startingLine": 954
+        }
+      },
+      {
+        "comment": "",
+        "key": "优先级",
+        "location": {
+          "startingColumn": 17,
+          "startingLine": 961
+        }
+      },
+      {
+        "comment": "",
+        "key": "备注",
+        "location": {
+          "startingColumn": 17,
+          "startingLine": 972
+        }
+      },
+      {
+        "comment": "",
+        "key": "取消",
+        "location": {
+          "startingColumn": 28,
+          "startingLine": 844
+        }
+      },
+      {
+        "comment": "",
+        "key": "保存",
+        "location": {
+          "startingColumn": 28,
+          "startingLine": 847
+        }
+      },
+      {
+        "comment": "",
+        "key": "添加新客户",
+        "location": {
+          "startingColumn": 20,
+          "startingLine": 895
+        }
+      },
+      {
+        "comment": "",
+        "key": "选择",
+        "location": {
+          "startingColumn": 24,
+          "startingLine": 890
+        }
+      },
+      {
+        "comment": "",
+        "key": "添加新产品",
+        "location": {
+          "startingColumn": 20,
+          "startingLine": 923
+        }
+      },
+      {
+        "comment": "",
+        "key": "选择",
+        "location": {
+          "startingColumn": 24,
+          "startingLine": 918
+        }
+      },
+      {
+        "comment": "",
+        "key": "无颜色",
+        "location": {
+          "startingColumn": 34,
+          "startingLine": 911
+        }
+      },
+      {
+        "comment": "",
+        "key": "选择尺寸",
+        "location": {
+          "startingColumn": 26,
+          "startingLine": 927
+        }
+      },
+      {
+        "comment": "",
+        "key": "数量",
+        "location": {
+          "startingColumn": 23,
+          "startingLine": 955
+        }
+      },
+      {
+        "comment": "",
+        "key": "优先级",
+        "location": {
+          "startingColumn": 20,
+          "startingLine": 962
+        }
+      },
+      {
+        "comment": "",
+        "key": "备注信息",
+        "location": {
+          "startingColumn": 23,
+          "startingLine": 973
+        }
+      },
+      {
+        "comment": "",
+        "key": "选择客户",
+        "location": {
+          "startingColumn": 30,
+          "startingLine": 1061
+        }
+      },
+      {
+        "comment": "",
+        "key": "搜索客户姓名、地址、电话...",
+        "location": {
+          "startingColumn": 27,
+          "startingLine": 1032
+        }
+      },
+      {
+        "comment": "",
+        "key": "取消",
+        "location": {
+          "startingColumn": 28,
+          "startingLine": 1065
+        }
+      },
+      {
+        "comment": "",
+        "key": "选择产品",
+        "location": {
+          "startingColumn": 30,
+          "startingLine": 1135
+        }
+      },
+      {
+        "comment": "",
+        "key": "确认选择",
+        "location": {
+          "startingColumn": 20,
+          "startingLine": 1154
+        }
+      },
+      {
+        "comment": "",
+        "key": "可用产品: %lld 个",
+        "location": {
+          "startingColumn": 22,
+          "startingLine": 1112
+        }
+      },
+      {
+        "comment": "",
+        "key": "搜索产品名称、尺寸、颜色 (支持多关键词)",
+        "location": {
+          "startingColumn": 27,
+          "startingLine": 1117
+        }
+      },
+      {
+        "comment": "",
+        "key": "取消",
+        "location": {
+          "startingColumn": 28,
+          "startingLine": 1139
+        }
+      },
+      {
+        "comment": "",
+        "key": "确认",
+        "location": {
+          "startingColumn": 28,
+          "startingLine": 1145
+        }
+      },
+      {
+        "comment": "",
+        "key": "取消",
+        "location": {
+          "startingColumn": 24,
+          "startingLine": 1155
+        }
+      },
+      {
+        "comment": "",
+        "key": "确认",
+        "location": {
+          "startingColumn": 24,
+          "startingLine": 1156
+        }
+      },
+      {
+        "comment": "",
+        "key": "请先选择一个产品",
+        "location": {
+          "startingColumn": 26,
+          "startingLine": 1164
+        }
+      },
+      {
+        "comment": "",
+        "key": "您已选择: %@-%@",
+        "location": {
+          "startingColumn": 26,
+          "startingLine": 1162
+        }
+      },
+      {
+        "comment": "",
+        "key": "暂无颜色",
+        "location": {
+          "startingColumn": 22,
+          "startingLine": 1254
+        }
+      },
+      {
+        "comment": "",
+        "key": "暂无尺寸",
+        "location": {
+          "startingColumn": 22,
+          "startingLine": 1274
+        }
+      },
+      {
+        "comment": "",
+        "key": "选择状态",
+        "location": {
+          "startingColumn": 30,
+          "startingLine": 1318
+        }
+      },
+      {
+        "comment": "",
+        "key": "取消",
+        "location": {
+          "startingColumn": 28,
+          "startingLine": 1322
+        }
+      },
+      {
+        "comment": "",
+        "key": "选择优先级",
+        "location": {
+          "startingColumn": 30,
+          "startingLine": 1351
+        }
+      },
+      {
+        "comment": "",
+        "key": "取消",
+        "location": {
+          "startingColumn": 28,
+          "startingLine": 1355
+        }
+      },
+      {
+        "comment": "",
+        "key": "缺货详情",
+        "location": {
+          "startingColumn": 26,
+          "startingLine": 1383
+        }
+      },
+      {
+        "comment": "",
+        "key": "编辑",
+        "location": {
+          "startingColumn": 24,
+          "startingLine": 1387
+        }
+      },
+      {
+        "comment": "",
+        "key": "处理状态",
+        "location": {
+          "startingColumn": 18,
+          "startingLine": 1399
+        }
+      },
+      {
+        "comment": "",
+        "key": "客户信息",
+        "location": {
+          "startingColumn": 18,
+          "startingLine": 1426
+        }
+      },
+      {
+        "comment": "",
+        "key": "客户姓名:",
+        "location": {
+          "startingColumn": 26,
+          "startingLine": 1431
+        }
+      },
+      {
+        "comment": "",
+        "key": "客户地址:",
+        "location": {
+          "startingColumn": 26,
+          "startingLine": 1435
+        }
+      },
+      {
+        "comment": "",
+        "key": "联系电话:",
+        "location": {
+          "startingColumn": 26,
+          "startingLine": 1439
+        }
+      },
+      {
+        "comment": "",
+        "key": "缺货信息",
+        "location": {
+          "startingColumn": 18,
+          "startingLine": 1451
+        }
+      },
+      {
+        "comment": "",
+        "key": "缺货款式:",
+        "location": {
+          "startingColumn": 26,
+          "startingLine": 1456
+        }
+      },
+      {
+        "comment": "",
+        "key": "尺寸:",
+        "location": {
+          "startingColumn": 26,
+          "startingLine": 1460
+        }
+      },
+      {
+        "comment": "",
+        "key": "颜色:",
+        "location": {
+          "startingColumn": 26,
+          "startingLine": 1464
+        }
+      },
+      {
+        "comment": "",
+        "key": "数量:",
+        "location": {
+          "startingColumn": 26,
+          "startingLine": 1468
+        }
+      },
+      {
+        "comment": "",
+        "key": "%lld",
+        "location": {
+          "startingColumn": 26,
+          "startingLine": 1469
+        }
+      },
+      {
+        "comment": "",
+        "key": "优先级:",
+        "location": {
+          "startingColumn": 26,
+          "startingLine": 1472
+        }
+      },
+      {
+        "comment": "",
+        "key": "时间信息",
+        "location": {
+          "startingColumn": 18,
+          "startingLine": 1485
+        }
+      },
+      {
+        "comment": "",
+        "key": "申请时间:",
+        "location": {
+          "startingColumn": 26,
+          "startingLine": 1490
+        }
+      },
+      {
+        "comment": "",
+        "key": "实际完成:",
+        "location": {
+          "startingColumn": 30,
+          "startingLine": 1496
+        }
+      },
+      {
+        "comment": "",
+        "key": "备注",
+        "location": {
+          "startingColumn": 26,
+          "startingLine": 1511
+        }
+      },
+      {
+        "comment": "",
+        "key": "编辑缺货记录",
+        "location": {
+          "startingColumn": 30,
+          "startingLine": 1680
+        }
+      },
+      {
+        "comment": "",
+        "key": "客户信息",
+        "location": {
+          "startingColumn": 25,
+          "startingLine": 1574
+        }
+      },
+      {
+        "comment": "",
+        "key": "产品信息",
+        "location": {
+          "startingColumn": 25,
+          "startingLine": 1583
+        }
+      },
+      {
+        "comment": "",
+        "key": "缺货信息",
+        "location": {
+          "startingColumn": 25,
+          "startingLine": 1648
+        }
+      },
+      {
+        "comment": "",
+        "key": "优先级",
+        "location": {
+          "startingColumn": 25,
+          "startingLine": 1653
+        }
+      },
+      {
+        "comment": "",
+        "key": "处理状态",
+        "location": {
+          "startingColumn": 25,
+          "startingLine": 1662
+        }
+      },
+      {
+        "comment": "",
+        "key": "备注",
+        "location": {
+          "startingColumn": 25,
+          "startingLine": 1675
+        }
+      },
+      {
+        "comment": "",
+        "key": "客户姓名",
+        "location": {
+          "startingColumn": 30,
+          "startingLine": 1576
+        }
+      },
+      {
+        "comment": "",
+        "key": "选择产品",
+        "location": {
+          "startingColumn": 30,
+          "startingLine": 1585
+        }
+      },
+      {
+        "comment": "",
+        "key": "产品详情",
+        "location": {
+          "startingColumn": 34,
+          "startingLine": 1597
+        }
+      },
+      {
+        "comment": "",
+        "key": "无颜色",
+        "location": {
+          "startingColumn": 38,
+          "startingLine": 1603
+        }
+      },
+      {
+        "comment": "",
+        "key": "选择尺寸",
+        "location": {
+          "startingColumn": 38,
+          "startingLine": 1610
+        }
+      },
+      {
+        "comment": "",
+        "key": "产品图片",
+        "location": {
+          "startingColumn": 38,
+          "startingLine": 1636
+        }
+      },
+      {
+        "comment": "",
+        "key": "数量",
+        "location": {
+          "startingColumn": 31,
+          "startingLine": 1649
+        }
+      },
+      {
+        "comment": "",
+        "key": "优先级",
+        "location": {
+          "startingColumn": 28,
+          "startingLine": 1654
+        }
+      },
+      {
+        "comment": "",
+        "key": "提示：状态由系统根据还货处理情况自动更新",
+        "location": {
+          "startingColumn": 26,
+          "startingLine": 1670
+        }
+      },
+      {
+        "comment": "",
+        "key": "当前状态",
+        "location": {
+          "startingColumn": 30,
+          "startingLine": 1664
+        }
+      },
+      {
+        "comment": "",
+        "key": "备注信息",
+        "location": {
+          "startingColumn": 31,
+          "startingLine": 1676
+        }
+      },
+      {
+        "comment": "",
+        "key": "取消",
+        "location": {
+          "startingColumn": 28,
+          "startingLine": 1684
+        }
+      },
+      {
+        "comment": "",
+        "key": "保存",
+        "location": {
+          "startingColumn": 28,
+          "startingLine": 1690
+        }
+      },
+      {
+        "comment": "",
+        "key": "选择状态",
+        "location": {
+          "startingColumn": 30,
+          "startingLine": 1838
+        }
+      },
+      {
+        "comment": "",
+        "key": "全部状态",
+        "location": {
+          "startingColumn": 30,
+          "startingLine": 1811
+        }
+      },
+      {
+        "comment": "",
+        "key": "取消",
+        "location": {
+          "startingColumn": 28,
+          "startingLine": 1842
+        }
+      },
+      {
+        "comment": "",
+        "key": "选择优先级",
+        "location": {
+          "startingColumn": 30,
+          "startingLine": 1888
+        }
+      },
+      {
+        "comment": "",
+        "key": "全部优先级",
+        "location": {
+          "startingColumn": 30,
+          "startingLine": 1861
+        }
+      },
+      {
+        "comment": "",
+        "key": "取消",
+        "location": {
+          "startingColumn": 28,
+          "startingLine": 1892
+        }
+      },
+      {
+        "comment": "",
+        "key": "选择客户",
+        "location": {
+          "startingColumn": 30,
+          "startingLine": 1964
+        }
+      },
+      {
+        "comment": "",
+        "key": "搜索客户...",
+        "location": {
+          "startingColumn": 27,
+          "startingLine": 1920
+        }
+      },
+      {
+        "comment": "",
+        "key": "全部客户",
+        "location": {
+          "startingColumn": 34,
+          "startingLine": 1930
+        }
+      },
+      {
+        "comment": "",
+        "key": "取消",
+        "location": {
+          "startingColumn": 28,
+          "startingLine": 1968
+        }
+      },
+      {
+        "comment": "",
+        "key": "选择产品",
+        "location": {
+          "startingColumn": 30,
+          "startingLine": 2042
+        }
+      },
+      {
+        "comment": "",
+        "key": "搜索产品...",
+        "location": {
+          "startingColumn": 27,
+          "startingLine": 1996
+        }
+      },
+      {
+        "comment": "",
+        "key": "全部产品",
+        "location": {
+          "startingColumn": 34,
+          "startingLine": 2006
+        }
+      },
+      {
+        "comment": "",
+        "key": "取消",
+        "location": {
+          "startingColumn": 28,
+          "startingLine": 2046
+        }
+      },
+      {
+        "comment": "",
+        "key": "选择尺寸",
+        "location": {
+          "startingColumn": 30,
+          "startingLine": 2119
+        }
+      },
+      {
+        "comment": "",
+        "key": "搜索尺寸...",
+        "location": {
+          "startingColumn": 27,
+          "startingLine": 2080
+        }
+      },
+      {
+        "comment": "",
+        "key": "全部尺寸",
+        "location": {
+          "startingColumn": 34,
+          "startingLine": 2090
+        }
+      },
+      {
+        "comment": "",
+        "key": "取消",
+        "location": {
+          "startingColumn": 28,
+          "startingLine": 2123
+        }
+      },
+      {
+        "comment": "",
+        "key": "选择地址",
+        "location": {
+          "startingColumn": 30,
+          "startingLine": 2193
+        }
+      },
+      {
+        "comment": "",
+        "key": "搜索地址...",
+        "location": {
+          "startingColumn": 27,
+          "startingLine": 2154
+        }
+      },
+      {
+        "comment": "",
+        "key": "全部地址",
+        "location": {
+          "startingColumn": 34,
+          "startingLine": 2164
+        }
+      },
+      {
+        "comment": "",
+        "key": "取消",
+        "location": {
+          "startingColumn": 28,
+          "startingLine": 2197
+        }
+      }
+    ]
+  },
+  "version": 1
+}

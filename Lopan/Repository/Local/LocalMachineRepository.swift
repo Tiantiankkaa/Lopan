@@ -30,6 +30,13 @@ class LocalMachineRepository: MachineRepository {
         return try context.fetch(descriptor).first
     }
     
+    func fetchMachineById(_ id: String) async throws -> WorkshopMachine? {
+        let descriptor = FetchDescriptor<WorkshopMachine>(
+            predicate: #Predicate { $0.id == id }
+        )
+        return try context.fetch(descriptor).first
+    }
+    
     func fetchMachine(byNumber number: Int) async throws -> WorkshopMachine? {
         let descriptor = FetchDescriptor<WorkshopMachine>(
             predicate: #Predicate { $0.machineNumber == number }
@@ -111,5 +118,44 @@ class LocalMachineRepository: MachineRepository {
     func updateGun(_ gun: WorkshopGun) async throws {
         gun.updatedAt = Date()
         try context.save()
+    }
+    
+    // MARK: - Batch-aware Machine Queries
+    func fetchMachinesWithoutPendingApprovalBatches() async throws -> [WorkshopMachine] {
+        do {
+            // Fetch all machines first
+            let allMachines = try await fetchAllMachines()
+            
+            // If no machines exist, return empty array
+            guard !allMachines.isEmpty else {
+                return []
+            }
+            
+            // Fetch all production batches safely
+            let allBatchesDescriptor = FetchDescriptor<ProductionBatch>()
+            let allBatches = try context.fetch(allBatchesDescriptor)
+            
+            // Filter to pending batches in memory (safe even if allBatches is empty)
+            let pendingBatches = allBatches.filter { $0.status == BatchStatus.pending }
+            
+            // Get machine IDs with pending approval batches
+            let machinesWithPendingBatches = Set(pendingBatches.map { $0.machineId })
+            
+            // Filter machines that:
+            // 1. Don't have pending approval batches
+            // 2. Are in running status only (for batch creation)
+            // 3. Are active
+            return allMachines.filter { machine in
+                !machinesWithPendingBatches.contains(machine.id) &&
+                machine.status == .running &&
+                machine.isActive
+            }
+            
+        } catch {
+            // If there's any error, log it but still try to return running machines as fallback
+            print("Error in fetchMachinesWithoutPendingApprovalBatches: \(error)")
+            // Fallback to running machines only if batch filtering fails
+            return try await fetchMachinesWithStatus(.running).filter { $0.isActive }
+        }
     }
 }

@@ -1,0 +1,72 @@
+{
+  "source": "/Users/bobo/Desktop/Lopan/Lopan/Views/WorkshopManager/MachineStatisticsView.swift",
+  "tables": {
+    "Localizable": [
+      {
+        "comment": "",
+        "key": "生产统计",
+        "location": {
+          "startingColumn": 30,
+          "startingLine": 57
+        }
+      },
+      {
+        "comment": "",
+        "key": "Time Range",
+        "location": {
+          "startingColumn": 28,
+          "startingLine": 37
+        }
+      },
+      {
+        "comment": "",
+        "key": "正在加载统计数据...",
+        "location": {
+          "startingColumn": 38,
+          "startingLine": 45
+        }
+      },
+      {
+        "comment": "",
+        "key": "关闭",
+        "location": {
+          "startingColumn": 28,
+          "startingLine": 61
+        }
+      },
+      {
+        "comment": "",
+        "key": "刷新",
+        "location": {
+          "startingColumn": 28,
+          "startingLine": 67
+        }
+      },
+      {
+        "comment": "",
+        "key": "整体概览",
+        "location": {
+          "startingColumn": 22,
+          "startingLine": 83
+        }
+      },
+      {
+        "comment": "",
+        "key": "设备详情",
+        "location": {
+          "startingColumn": 22,
+          "startingLine": 105
+        }
+      },
+      {
+        "comment": "",
+        "key": "Machine #%lld",
+        "location": {
+          "startingColumn": 22,
+          "startingLine": 142
+        }
+      }
+    ]
+  },
+  "version": 1
+}

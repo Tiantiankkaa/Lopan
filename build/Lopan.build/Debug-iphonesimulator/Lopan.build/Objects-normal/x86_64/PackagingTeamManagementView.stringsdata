@@ -1,0 +1,344 @@
+{
+  "source": "/Users/bobo/Desktop/Lopan/Lopan/Views/WarehouseKeeper/PackagingTeamManagementView.swift",
+  "tables": {
+    "Localizable": [
+      {
+        "comment": "",
+        "key": "确认删除",
+        "location": {
+          "startingColumn": 16,
+          "startingLine": 98
+        }
+      },
+      {
+        "comment": "",
+        "key": "团队管理",
+        "location": {
+          "startingColumn": 30,
+          "startingLine": 89
+        }
+      },
+      {
+        "comment": "",
+        "key": "搜索团队或成员",
+        "location": {
+          "startingColumn": 35,
+          "startingLine": 42
+        }
+      },
+      {
+        "comment": "",
+        "key": "点击右上角 + 按钮添加团队",
+        "location": {
+          "startingColumn": 34,
+          "startingLine": 71
+        }
+      },
+      {
+        "comment": "",
+        "key": "暂无包装团队",
+        "location": {
+          "startingColumn": 51,
+          "startingLine": 67
+        }
+      },
+      {
+        "comment": "",
+        "key": "未找到匹配的团队",
+        "location": {
+          "startingColumn": 74,
+          "startingLine": 67
+        }
+      },
+      {
+        "comment": "",
+        "key": "取消",
+        "location": {
+          "startingColumn": 20,
+          "startingLine": 99
+        }
+      },
+      {
+        "comment": "",
+        "key": "删除",
+        "location": {
+          "startingColumn": 20,
+          "startingLine": 102
+        }
+      },
+      {
+        "comment": "",
+        "key": "确定要删除选中的团队吗？此操作无法撤销。",
+        "location": {
+          "startingColumn": 18,
+          "startingLine": 109
+        }
+      },
+      {
+        "comment": "",
+        "key": "成员: %@",
+        "location": {
+          "startingColumn": 26,
+          "startingLine": 182
+        }
+      },
+      {
+        "comment": "",
+        "key": "%lld 成员",
+        "location": {
+          "startingColumn": 27,
+          "startingLine": 155
+        }
+      },
+      {
+        "comment": "",
+        "key": "+%lld",
+        "location": {
+          "startingColumn": 38,
+          "startingLine": 173
+        }
+      },
+      {
+        "comment": "",
+        "key": "提示",
+        "location": {
+          "startingColumn": 16,
+          "startingLine": 286
+        }
+      },
+      {
+        "comment": "",
+        "key": "添加团队",
+        "location": {
+          "startingColumn": 30,
+          "startingLine": 269
+        }
+      },
+      {
+        "comment": "",
+        "key": "团队信息",
+        "location": {
+          "startingColumn": 38,
+          "startingLine": 217
+        }
+      },
+      {
+        "comment": "",
+        "key": "团队成员",
+        "location": {
+          "startingColumn": 38,
+          "startingLine": 222
+        }
+      },
+      {
+        "comment": "",
+        "key": "专业款式 (可选)",
+        "location": {
+          "startingColumn": 38,
+          "startingLine": 245
+        }
+      },
+      {
+        "comment": "",
+        "key": "团队名称",
+        "location": {
+          "startingColumn": 31,
+          "startingLine": 218
+        }
+      },
+      {
+        "comment": "",
+        "key": "团队负责人",
+        "location": {
+          "startingColumn": 31,
+          "startingLine": 219
+        }
+      },
+      {
+        "comment": "",
+        "key": "添加成员",
+        "location": {
+          "startingColumn": 35,
+          "startingLine": 224
+        }
+      },
+      {
+        "comment": "",
+        "key": "添加",
+        "location": {
+          "startingColumn": 32,
+          "startingLine": 225
+        }
+      },
+      {
+        "comment": "",
+        "key": "暂无可选款式",
+        "location": {
+          "startingColumn": 30,
+          "startingLine": 247
+        }
+      },
+      {
+        "comment": "",
+        "key": "取消",
+        "location": {
+          "startingColumn": 28,
+          "startingLine": 273
+        }
+      },
+      {
+        "comment": "",
+        "key": "保存",
+        "location": {
+          "startingColumn": 28,
+          "startingLine": 279
+        }
+      },
+      {
+        "comment": "",
+        "key": "确定",
+        "location": {
+          "startingColumn": 20,
+          "startingLine": 287
+        }
+      },
+      {
+        "comment": "",
+        "key": "提示",
+        "location": {
+          "startingColumn": 16,
+          "startingLine": 452
+        }
+      },
+      {
+        "comment": "",
+        "key": "编辑团队",
+        "location": {
+          "startingColumn": 30,
+          "startingLine": 435
+        }
+      },
+      {
+        "comment": "",
+        "key": "团队信息",
+        "location": {
+          "startingColumn": 38,
+          "startingLine": 366
+        }
+      },
+      {
+        "comment": "",
+        "key": "团队成员",
+        "location": {
+          "startingColumn": 38,
+          "startingLine": 372
+        }
+      },
+      {
+        "comment": "",
+        "key": "专业款式",
+        "location": {
+          "startingColumn": 38,
+          "startingLine": 395
+        }
+      },
+      {
+        "comment": "",
+        "key": "团队信息",
+        "location": {
+          "startingColumn": 38,
+          "startingLine": 419
+        }
+      },
+      {
+        "comment": "",
+        "key": "团队名称",
+        "location": {
+          "startingColumn": 31,
+          "startingLine": 367
+        }
+      },
+      {
+        "comment": "",
+        "key": "团队负责人",
+        "location": {
+          "startingColumn": 31,
+          "startingLine": 368
+        }
+      },
+      {
+        "comment": "",
+        "key": "团队状态",
+        "location": {
+          "startingColumn": 28,
+          "startingLine": 369
+        }
+      },
+      {
+        "comment": "",
+        "key": "添加成员",
+        "location": {
+          "startingColumn": 35,
+          "startingLine": 374
+        }
+      },
+      {
+        "comment": "",
+        "key": "添加",
+        "location": {
+          "startingColumn": 32,
+          "startingLine": 375
+        }
+      },
+      {
+        "comment": "",
+        "key": "暂无可选款式",
+        "location": {
+          "startingColumn": 30,
+          "startingLine": 397
+        }
+      },
+      {
+        "comment": "",
+        "key": "创建时间",
+        "location": {
+          "startingColumn": 30,
+          "startingLine": 421
+        }
+      },
+      {
+        "comment": "",
+        "key": "更新时间",
+        "location": {
+          "startingColumn": 30,
+          "startingLine": 428
+        }
+      },
+      {
+        "comment": "",
+        "key": "取消",
+        "location": {
+          "startingColumn": 28,
+          "startingLine": 439
+        }
+      },
+      {
+        "comment": "",
+        "key": "保存",
+        "location": {
+          "startingColumn": 28,
+          "startingLine": 445
+        }
+      },
+      {
+        "comment": "",
+        "key": "确定",
+        "location": {
+          "startingColumn": 20,
+          "startingLine": 453
+        }
+      }
+    ]
+  },
+  "version": 1
+}

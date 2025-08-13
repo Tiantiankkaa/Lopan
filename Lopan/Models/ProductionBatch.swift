@@ -57,17 +57,6 @@ enum BatchStatus: String, CaseIterable, Codable {
         }
     }
     
-    var color: Color {
-        switch self {
-        case .unsubmitted: return .gray
-        case .pending: return .orange
-        case .approved: return .green
-        case .pendingExecution: return .cyan
-        case .rejected: return .red
-        case .active: return .blue
-        case .completed: return .gray
-        }
-    }
 }
 
 // MARK: - SwiftData Models
@@ -92,6 +81,12 @@ final class ProductionBatch: Identifiable {
     var createdAt: Date
     var updatedAt: Date
     
+    // Shift scheduling fields (新增班次调度字段)
+    var targetDate: Date? // Production target date (生产目标日期)
+    var shift: Shift? // Target shift (目标班次)
+    var allowsColorModificationOnly: Bool = true // Color-only editing constraint (仅允许颜色修改限制)
+    var shiftSelectionLockTime: Date? // When shift selection was locked (班次选择锁定时间)
+    
     // Configuration snapshot
     var beforeConfigSnapshot: String? // JSON of previous configuration
     var afterConfigSnapshot: String?  // JSON of new configuration
@@ -99,7 +94,7 @@ final class ProductionBatch: Identifiable {
     // Relationships
     @Relationship(deleteRule: .cascade) var products: [ProductConfig] = []
     
-    init(machineId: String, mode: ProductionMode, submittedBy: String, submittedByName: String, approvalTargetDate: Date = Date(), batchNumber: String) {
+    init(machineId: String, mode: ProductionMode, submittedBy: String, submittedByName: String, approvalTargetDate: Date = Date(), batchNumber: String, targetDate: Date? = nil, shift: Shift? = nil) {
         self.id = UUID().uuidString
         self.batchNumber = batchNumber
         self.machineId = machineId
@@ -109,6 +104,10 @@ final class ProductionBatch: Identifiable {
         self.submittedBy = submittedBy
         self.submittedByName = submittedByName
         self.approvalTargetDate = approvalTargetDate
+        self.targetDate = targetDate
+        self.shift = shift
+        self.allowsColorModificationOnly = true
+        self.shiftSelectionLockTime = shift != nil ? Date() : nil
         self.createdAt = Date()
         self.updatedAt = Date()
     }
@@ -176,6 +175,59 @@ final class ProductionBatch: Identifiable {
         guard allStations.count == uniqueStations.count else { return false }
         
         return true
+    }
+    
+    // MARK: - Shift-aware Properties (班次相关属性)
+    
+    var isShiftBatch: Bool {
+        return targetDate != nil && shift != nil
+    }
+    
+    var shiftDate: ShiftDate? {
+        guard let targetDate = targetDate, let shift = shift else { return nil }
+        return ShiftDate(date: targetDate, shift: shift)
+    }
+    
+    var displaySchedule: String {
+        if let shiftDate = shiftDate {
+            return shiftDate.displayText
+        } else {
+            // Legacy batch display
+            let formatter = DateFormatter()
+            formatter.dateFormat = "yyyy-MM-dd"
+            return "\(formatter.string(from: approvalTargetDate)) (传统批次)"
+        }
+    }
+    
+    var canModifyColors: Bool {
+        // For shift-aware batches, only allow color modifications
+        return isShiftBatch ? allowsColorModificationOnly : true
+    }
+    
+    var canModifyStructure: Bool {
+        // For shift-aware batches, structure modifications not allowed
+        return !isShiftBatch || !allowsColorModificationOnly
+    }
+    
+    var isLegacyBatch: Bool {
+        return !isShiftBatch
+    }
+    
+    func lockShiftSelection() {
+        shiftSelectionLockTime = Date()
+    }
+    
+    var isShiftSelectionLocked: Bool {
+        return shiftSelectionLockTime != nil
+    }
+    
+    // Migration helper for legacy batches
+    func migrateToShiftBatch(targetDate: Date, shift: Shift) {
+        self.targetDate = targetDate
+        self.shift = shift
+        self.allowsColorModificationOnly = true
+        self.shiftSelectionLockTime = Date()
+        self.updatedAt = Date()
     }
 }
 
@@ -246,6 +298,43 @@ final class ProductConfig {
             return "工位 \(sorted[0])"
         } else {
             return "工位 \(sorted.map(String.init).joined(separator: ", "))"
+        }
+    }
+}
+
+// MARK: - Batch Color Modification Model (批次颜色修改模型)
+struct BatchColorModification: Codable, Identifiable {
+    let id: String
+    let machineId: String
+    let workstationId: String
+    let currentColorId: String
+    let proposedColorId: String
+    let shift: Shift
+    let modifiedAt: Date
+    let modifiedBy: String
+    let modifiedByName: String
+    
+    init(machineId: String, workstationId: String, currentColorId: String, proposedColorId: String, shift: Shift, modifiedBy: String, modifiedByName: String) {
+        self.id = UUID().uuidString
+        self.machineId = machineId
+        self.workstationId = workstationId
+        self.currentColorId = currentColorId
+        self.proposedColorId = proposedColorId
+        self.shift = shift
+        self.modifiedAt = Date()
+        self.modifiedBy = modifiedBy
+        self.modifiedByName = modifiedByName
+    }
+    
+    var hasChanges: Bool {
+        return currentColorId != proposedColorId
+    }
+    
+    var displayText: String {
+        if hasChanges {
+            return "工位 \(workstationId): 当前颜色 → 建议颜色"
+        } else {
+            return "工位 \(workstationId): 无变更"
         }
     }
 }

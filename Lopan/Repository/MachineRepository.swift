@@ -11,6 +11,7 @@ protocol MachineRepository {
     // MARK: - Machine CRUD
     func fetchAllMachines() async throws -> [WorkshopMachine]
     func fetchMachine(byId id: String) async throws -> WorkshopMachine?
+    func fetchMachineById(_ id: String) async throws -> WorkshopMachine?
     func fetchMachine(byNumber number: Int) async throws -> WorkshopMachine?
     func fetchActiveMachines() async throws -> [WorkshopMachine]
     func fetchMachinesWithStatus(_ status: MachineStatus) async throws -> [WorkshopMachine]
@@ -25,4 +26,7 @@ protocol MachineRepository {
     // MARK: - Gun Operations
     func fetchGuns(for machineId: String) async throws -> [WorkshopGun]
     func updateGun(_ gun: WorkshopGun) async throws
+    
+    // MARK: - Batch-aware Machine Queries
+    func fetchMachinesWithoutPendingApprovalBatches() async throws -> [WorkshopMachine]
 }

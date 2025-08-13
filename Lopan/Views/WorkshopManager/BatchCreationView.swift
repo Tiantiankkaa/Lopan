@@ -774,8 +774,27 @@ struct BatchCreationView: View {
             return "没有可用设备"
         }
         
-        // Provide more specific error message based on what we found
-        return "机器 \(currentMachine.machineNumber) 当前没有运行中的产品批次可供颜色修改。请确认该设备是否有执行中的生产批次。"
+        // Get the previous shift info to provide context
+        let previousShiftInfo = getPreviousShiftInfo(for: selectedDate, shift: selectedShift)
+        let dateFormatter = DateFormatter()
+        dateFormatter.dateFormat = "MM-dd"
+        
+        // Provide more specific error message with shift context
+        return "机器 \(currentMachine.machineNumber) 在 \(dateFormatter.string(from: previousShiftInfo.date)) \(previousShiftInfo.shift.displayName)班次 没有运行中的产品批次可供颜色修改。请确认该设备在前一班次是否有执行中的生产批次。"
+    }
+    
+    // MARK: - Shift Logic Helpers (班次逻辑辅助方法)
+    
+    private func getPreviousShiftInfo(for date: Date, shift: Shift) -> (date: Date, shift: Shift) {
+        if shift == .evening {
+            // Evening shift copies from same day morning shift
+            return (date: date, shift: .morning)
+        } else {
+            // Morning shift copies from previous day evening shift
+            let calendar = Calendar.current
+            let previousDay = calendar.date(byAdding: .day, value: -1, to: date) ?? date
+            return (date: previousDay, shift: .evening)
+        }
     }
     
     // MARK: - Data Loading and Actions (数据加载和操作)
@@ -820,28 +839,45 @@ struct BatchCreationView: View {
                 return 
             }
             
-            print("DEBUG: Loading products for machine \(currentMachine.id) (Machine Number: \(currentMachine.machineNumber))")
+            // Get the previous shift info based on business logic
+            let previousShiftInfo = getPreviousShiftInfo(for: selectedDate, shift: selectedShift)
+            let dateFormatter = DateFormatter()
+            dateFormatter.dateFormat = "yyyy-MM-dd"
             
-            // Get all batches for current selected machine
-            let allBatches = try await repositoryFactory.productionBatchRepository.fetchBatchesByMachine(currentMachine.id)
-            print("DEBUG: Found \(allBatches.count) total batches for machine \(currentMachine.id)")
+            print("DEBUG: =================================================")
+            print("DEBUG: Creating batch for \(dateFormatter.string(from: selectedDate)) \(selectedShift.displayName)")
+            print("DEBUG: Looking for products from previous shift: \(dateFormatter.string(from: previousShiftInfo.date)) \(previousShiftInfo.shift.displayName)")
+            print("DEBUG: Machine: \(currentMachine.id) (Number: \(currentMachine.machineNumber))")
             
-            // Filter for running batches - include both active and pending execution
-            let runningBatches = allBatches.filter { 
-                $0.status == .active || $0.status == .pendingExecution 
+            // Fetch batches from the previous shift
+            let previousShiftBatches = try await repositoryFactory.productionBatchRepository.fetchBatches(
+                forDate: previousShiftInfo.date,
+                shift: previousShiftInfo.shift
+            )
+            print("DEBUG: Found \(previousShiftBatches.count) total batches in previous shift")
+            
+            // Filter for this specific machine and running status
+            let machineBatches = previousShiftBatches.filter { batch in
+                batch.machineId == currentMachine.id
+            }
+            print("DEBUG: Found \(machineBatches.count) batches for machine \(currentMachine.machineNumber)")
+            
+            // Further filter for running batches (active or pending execution)
+            let runningBatches = machineBatches.filter { batch in
+                batch.status == .active || batch.status == .pendingExecution
             }
             print("DEBUG: Found \(runningBatches.count) running batches (active or pending execution)")
             
             // Log batch details for debugging
-            for batch in allBatches {
-                print("DEBUG: Batch \(batch.batchNumber) - Status: \(batch.status.rawValue) (\(batch.status.displayName)) - Products: \(batch.products.count)")
+            for batch in machineBatches {
+                print("DEBUG: Batch \(batch.batchNumber) - Status: \(batch.status.rawValue) (\(batch.status.displayName)) - Machine: \(batch.machineId) - Products: \(batch.products.count)")
             }
             
             // Extract products from running batches and load them as color-changeable configs
             var currentProducts: [ProductConfig] = []
             
             for batch in runningBatches {
-                print("DEBUG: Processing running batch \(batch.batchNumber) with \(batch.products.count) products")
+                print("DEBUG: Processing batch \(batch.batchNumber) with \(batch.products.count) products")
                 for product in batch.products {
                     // Create a copy for color modification only
                     let colorChangeableProduct = ProductConfig(
@@ -854,11 +890,12 @@ struct BatchCreationView: View {
                         productId: product.productId
                     )
                     currentProducts.append(colorChangeableProduct)
-                    print("DEBUG: Added product \(product.productName) for color modification")
+                    print("DEBUG: Added product '\(product.productName)' for color modification")
                 }
             }
             
             print("DEBUG: Final product configs count: \(currentProducts.count)")
+            print("DEBUG: =================================================")
             
             await MainActor.run {
                 self.productConfigs = currentProducts

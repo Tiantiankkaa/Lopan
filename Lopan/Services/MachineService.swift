@@ -15,11 +15,17 @@ class MachineService: ObservableObject, ServiceCleanupProtocol {
     @Published var selectedMachine: WorkshopMachine?
     @Published var isLoading = false
     @Published var errorMessage: String?
+    @Published var isAnyMachineRunning: Bool = false
+    @Published var runningMachineCount: Int = 0
     
     // MARK: - Dependencies
     private let machineRepository: MachineRepository
     private let auditService: NewAuditingService
     private let authService: AuthenticationService
+    
+    // MARK: - Machine Status Cache (机器状态缓存)
+    private var machineStatusCache: MachineStatusCache?
+    private let statusCacheTimeout: TimeInterval = 30 // 30 seconds cache
     
     // MARK: - Task Management
     private var isCleanedUp = false
@@ -39,6 +45,11 @@ class MachineService: ObservableObject, ServiceCleanupProtocol {
         selectedMachine = nil
         isLoading = false
         errorMessage = nil
+        isAnyMachineRunning = false
+        runningMachineCount = 0
+        
+        // Clear cache
+        machineStatusCache = nil
     }
     
     // MARK: - Safety Checks
@@ -68,6 +79,7 @@ class MachineService: ObservableObject, ServiceCleanupProtocol {
                 guard !Task.isCancelled && isUserLoggedIn else { return }
                 
                 machines = fetchedMachines
+                updateRunningMachineStatus()
             } catch is CancellationError {
                 // Task was cancelled - this is expected during logout
                 return
@@ -730,5 +742,175 @@ class MachineService: ObservableObject, ServiceCleanupProtocol {
     // MARK: - Utility Methods
     func clearError() {
         errorMessage = nil
+    }
+    
+    // MARK: - Machine Running Status (机器运行状态)
+    
+    /// Check if any machine is currently running (cached for 30 seconds)
+    /// 检查是否有任何机器正在运行（缓存30秒）
+    func isAnyMachineRunning() async -> Bool {
+        // Check cache first
+        if let cache = machineStatusCache, !cache.isExpired {
+            return cache.hasRunningMachines
+        }
+        
+        // Refresh cache
+        await refreshMachineStatusCache()
+        return machineStatusCache?.hasRunningMachines ?? false
+    }
+    
+    /// Get count of running machines (cached)
+    /// 获取运行中的机器数量（缓存）
+    func getRunningMachineCount() async -> Int {
+        // Check cache first
+        if let cache = machineStatusCache, !cache.isExpired {
+            return cache.runningCount
+        }
+        
+        // Refresh cache
+        await refreshMachineStatusCache()
+        return machineStatusCache?.runningCount ?? 0
+    }
+    
+    /// Check if specific machines can accept color modifications
+    /// 检查特定机器是否可以接受颜色修改
+    func canModifyColors(machineId: String) async -> Bool {
+        guard isUserLoggedIn else { return false }
+        
+        do {
+            let machines = try await machineRepository.fetchAllMachines()
+            if let machine = machines.first(where: { $0.id == machineId }) {
+                return machine.status == .running && machine.isActive
+            }
+            return false
+        } catch {
+            return false
+        }
+    }
+    
+    /// Get detailed machine status information
+    /// 获取详细的机器状态信息
+    func getMachineStatusSummary() async -> MachineStatusSummary {
+        guard isUserLoggedIn else {
+            return MachineStatusSummary(total: 0, running: 0, stopped: 0, maintenance: 0, error: 0)
+        }
+        
+        do {
+            let machines = try await machineRepository.fetchAllMachines()
+            let activeMachines = machines.filter { $0.isActive }
+            
+            let running = activeMachines.filter { $0.status == .running }.count
+            let stopped = activeMachines.filter { $0.status == .stopped }.count
+            let maintenance = activeMachines.filter { $0.status == .maintenance }.count
+            let error = activeMachines.filter { $0.status == .error }.count
+            
+            return MachineStatusSummary(
+                total: activeMachines.count,
+                running: running,
+                stopped: stopped,
+                maintenance: maintenance,
+                error: error
+            )
+        } catch {
+            return MachineStatusSummary(total: 0, running: 0, stopped: 0, maintenance: 0, error: 0)
+        }
+    }
+    
+    // MARK: - Private Cache Methods (私有缓存方法)
+    
+    private func refreshMachineStatusCache() async {
+        guard isUserLoggedIn else { return }
+        
+        do {
+            let machines = try await machineRepository.fetchAllMachines()
+            let activeMachines = machines.filter { $0.isActive }
+            let runningMachines = activeMachines.filter { $0.status == .running }
+            
+            machineStatusCache = MachineStatusCache(
+                timestamp: Date(),
+                hasRunningMachines: !runningMachines.isEmpty,
+                runningCount: runningMachines.count,
+                totalActiveCount: activeMachines.count
+            )
+            
+            // Update published properties for UI binding
+            await MainActor.run {
+                isAnyMachineRunning = !runningMachines.isEmpty
+                runningMachineCount = runningMachines.count
+            }
+            
+        } catch {
+            machineStatusCache = MachineStatusCache(
+                timestamp: Date(),
+                hasRunningMachines: false,
+                runningCount: 0,
+                totalActiveCount: 0
+            )
+            
+            await MainActor.run {
+                isAnyMachineRunning = false
+                runningMachineCount = 0
+            }
+        }
+    }
+    
+    private func updateRunningMachineStatus() {
+        let activeMachines = machines.filter { $0.isActive }
+        let runningMachines = activeMachines.filter { $0.status == .running }
+        
+        isAnyMachineRunning = !runningMachines.isEmpty
+        runningMachineCount = runningMachines.count
+        
+        // Update cache with current data
+        machineStatusCache = MachineStatusCache(
+            timestamp: Date(),
+            hasRunningMachines: !runningMachines.isEmpty,
+            runningCount: runningMachines.count,
+            totalActiveCount: activeMachines.count
+        )
+    }
+    
+    /// Force refresh machine status (bypass cache)
+    /// 强制刷新机器状态（绕过缓存）
+    func forceRefreshMachineStatus() async {
+        await refreshMachineStatusCache()
+    }
+}
+
+// MARK: - Machine Status Cache (机器状态缓存)
+private struct MachineStatusCache {
+    let timestamp: Date
+    let hasRunningMachines: Bool
+    let runningCount: Int
+    let totalActiveCount: Int
+    
+    private let cacheTimeout: TimeInterval = 30 // 30 seconds
+    
+    var isExpired: Bool {
+        Date().timeIntervalSince(timestamp) > cacheTimeout
+    }
+}
+
+// MARK: - Machine Status Summary (机器状态摘要)
+struct MachineStatusSummary {
+    let total: Int
+    let running: Int
+    let stopped: Int
+    let maintenance: Int
+    let error: Int
+    
+    var hasRunningMachines: Bool {
+        return running > 0
+    }
+    
+    var statusText: String {
+        if total == 0 {
+            return "无活动机器"
+        }
+        return "总计: \(total), 运行: \(running), 停止: \(stopped), 维护: \(maintenance), 故障: \(error)"
+    }
+    
+    var canCreateBatch: Bool {
+        return hasRunningMachines
     }
 }

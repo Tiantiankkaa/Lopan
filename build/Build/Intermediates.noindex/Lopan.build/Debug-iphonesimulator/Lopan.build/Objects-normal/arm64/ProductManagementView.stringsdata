@@ -1,0 +1,328 @@
+{
+  "source": "/Users/bobo/Desktop/Lopan/Lopan/Views/Salesperson/ProductManagementView.swift",
+  "tables": {
+    "Localizable": [
+      {
+        "comment": "",
+        "key": "产品管理",
+        "location": {
+          "startingColumn": 26,
+          "startingLine": 51
+        }
+      },
+      {
+        "comment": "",
+        "key": "确认删除",
+        "location": {
+          "startingColumn": 16,
+          "startingLine": 62
+        }
+      },
+      {
+        "comment": "",
+        "key": "取消",
+        "location": {
+          "startingColumn": 20,
+          "startingLine": 63
+        }
+      },
+      {
+        "comment": "",
+        "key": "删除",
+        "location": {
+          "startingColumn": 20,
+          "startingLine": 64
+        }
+      },
+      {
+        "comment": "",
+        "key": "确定要删除选中的 %lld 个产品吗？此操作不可撤销。",
+        "location": {
+          "startingColumn": 18,
+          "startingLine": 68
+        }
+      },
+      {
+        "comment": "",
+        "key": "搜索产品名称、颜色或尺寸",
+        "location": {
+          "startingColumn": 27,
+          "startingLine": 78
+        }
+      },
+      {
+        "comment": "",
+        "key": "删除",
+        "location": {
+          "startingColumn": 31,
+          "startingLine": 90
+        }
+      },
+      {
+        "comment": "",
+        "key": "添加",
+        "location": {
+          "startingColumn": 31,
+          "startingLine": 97
+        }
+      },
+      {
+        "comment": "",
+        "key": "导入",
+        "location": {
+          "startingColumn": 27,
+          "startingLine": 105
+        }
+      },
+      {
+        "comment": "",
+        "key": "导出",
+        "location": {
+          "startingColumn": 27,
+          "startingLine": 110
+        }
+      },
+      {
+        "comment": "",
+        "key": "完成",
+        "location": {
+          "startingColumn": 41,
+          "startingLine": 115
+        }
+      },
+      {
+        "comment": "",
+        "key": "批量",
+        "location": {
+          "startingColumn": 52,
+          "startingLine": 115
+        }
+      },
+      {
+        "comment": "",
+        "key": "暂无颜色",
+        "location": {
+          "startingColumn": 26,
+          "startingLine": 242
+        }
+      },
+      {
+        "comment": "",
+        "key": "暂无尺寸",
+        "location": {
+          "startingColumn": 26,
+          "startingLine": 263
+        }
+      },
+      {
+        "comment": "",
+        "key": "产品详情",
+        "location": {
+          "startingColumn": 26,
+          "startingLine": 321
+        }
+      },
+      {
+        "comment": "",
+        "key": "编辑",
+        "location": {
+          "startingColumn": 24,
+          "startingLine": 325
+        }
+      },
+      {
+        "comment": "",
+        "key": "产品信息",
+        "location": {
+          "startingColumn": 18,
+          "startingLine": 337
+        }
+      },
+      {
+        "comment": "",
+        "key": "暂无颜色",
+        "location": {
+          "startingColumn": 30,
+          "startingLine": 379
+        }
+      },
+      {
+        "comment": "",
+        "key": "创建时间: %@",
+        "location": {
+          "startingColumn": 26,
+          "startingLine": 384
+        }
+      },
+      {
+        "comment": "",
+        "key": "可用尺寸",
+        "location": {
+          "startingColumn": 18,
+          "startingLine": 399
+        }
+      },
+      {
+        "comment": "",
+        "key": "暂无尺寸信息",
+        "location": {
+          "startingColumn": 22,
+          "startingLine": 419
+        }
+      },
+      {
+        "comment": "",
+        "key": "缺货记录",
+        "location": {
+          "startingColumn": 18,
+          "startingLine": 431
+        }
+      },
+      {
+        "comment": "",
+        "key": "暂无缺货记录",
+        "location": {
+          "startingColumn": 22,
+          "startingLine": 435
+        }
+      },
+      {
+        "comment": "",
+        "key": "数量: %lld",
+        "location": {
+          "startingColumn": 42,
+          "startingLine": 448
+        }
+      },
+      {
+        "comment": "",
+        "key": "编辑产品",
+        "location": {
+          "startingColumn": 30,
+          "startingLine": 620
+        }
+      },
+      {
+        "comment": "",
+        "key": "产品信息",
+        "location": {
+          "startingColumn": 25,
+          "startingLine": 519
+        }
+      },
+      {
+        "comment": "",
+        "key": "产品图片",
+        "location": {
+          "startingColumn": 25,
+          "startingLine": 561
+        }
+      },
+      {
+        "comment": "",
+        "key": "产品尺寸",
+        "location": {
+          "startingColumn": 25,
+          "startingLine": 596
+        }
+      },
+      {
+        "comment": "",
+        "key": "产品名称",
+        "location": {
+          "startingColumn": 31,
+          "startingLine": 520
+        }
+      },
+      {
+        "comment": "",
+        "key": "产品颜色",
+        "location": {
+          "startingColumn": 30,
+          "startingLine": 523
+        }
+      },
+      {
+        "comment": "",
+        "key": "添加颜色",
+        "location": {
+          "startingColumn": 39,
+          "startingLine": 528
+        }
+      },
+      {
+        "comment": "",
+        "key": "添加",
+        "location": {
+          "startingColumn": 36,
+          "startingLine": 529
+        }
+      },
+      {
+        "comment": "",
+        "key": "×",
+        "location": {
+          "startingColumn": 52,
+          "startingLine": 548
+        }
+      },
+      {
+        "comment": "",
+        "key": "删除图片",
+        "location": {
+          "startingColumn": 40,
+          "startingLine": 586
+        }
+      },
+      {
+        "comment": "",
+        "key": "选择图片",
+        "location": {
+          "startingColumn": 39,
+          "startingLine": 582
+        }
+      },
+      {
+        "comment": "",
+        "key": "新尺寸",
+        "location": {
+          "startingColumn": 35,
+          "startingLine": 598
+        }
+      },
+      {
+        "comment": "",
+        "key": "添加",
+        "location": {
+          "startingColumn": 32,
+          "startingLine": 599
+        }
+      },
+      {
+        "comment": "",
+        "key": "删除",
+        "location": {
+          "startingColumn": 36,
+          "startingLine": 612
+        }
+      },
+      {
+        "comment": "",
+        "key": "取消",
+        "location": {
+          "startingColumn": 28,
+          "startingLine": 624
+        }
+      },
+      {
+        "comment": "",
+        "key": "保存",
+        "location": {
+          "startingColumn": 28,
+          "startingLine": 630
+        }
+      }
+    ]
+  },
+  "version": 1
+}

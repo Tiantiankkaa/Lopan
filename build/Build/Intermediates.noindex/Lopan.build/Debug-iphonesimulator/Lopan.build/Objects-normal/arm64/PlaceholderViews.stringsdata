@@ -1,0 +1,352 @@
+{
+  "source": "/Users/bobo/Desktop/Lopan/Lopan/Views/PlaceholderViews.swift",
+  "tables": {
+    "Localizable": [
+      {
+        "comment": "",
+        "key": "销售分析",
+        "location": {
+          "startingColumn": 30,
+          "startingLine": 33
+        }
+      },
+      {
+        "comment": "",
+        "key": "销售分析",
+        "location": {
+          "startingColumn": 22,
+          "startingLine": 20
+        }
+      },
+      {
+        "comment": "",
+        "key": "销售数据统计和分析功能正在开发中...",
+        "location": {
+          "startingColumn": 22,
+          "startingLine": 24
+        }
+      },
+      {
+        "comment": "",
+        "key": "生产款式管理",
+        "location": {
+          "startingColumn": 30,
+          "startingLine": 139
+        }
+      },
+      {
+        "comment": "",
+        "key": "搜索产品名称、颜色或尺寸",
+        "location": {
+          "startingColumn": 35,
+          "startingLine": 69
+        }
+      },
+      {
+        "comment": "",
+        "key": "产品数据由销售部门管理，仓库管理员仅可查看",
+        "location": {
+          "startingColumn": 30,
+          "startingLine": 120
+        }
+      },
+      {
+        "comment": "",
+        "key": "暂无产品数据",
+        "location": {
+          "startingColumn": 51,
+          "startingLine": 117
+        }
+      },
+      {
+        "comment": "",
+        "key": "未找到匹配的产品",
+        "location": {
+          "startingColumn": 74,
+          "startingLine": 117
+        }
+      },
+      {
+        "comment": "",
+        "key": "%lld",
+        "location": {
+          "startingColumn": 22,
+          "startingLine": 156
+        }
+      },
+      {
+        "comment": "",
+        "key": "颜色: %@",
+        "location": {
+          "startingColumn": 30,
+          "startingLine": 214
+        }
+      },
+      {
+        "comment": "",
+        "key": "尺寸: %@",
+        "location": {
+          "startingColumn": 30,
+          "startingLine": 225
+        }
+      },
+      {
+        "comment": "",
+        "key": "创建于: %@",
+        "location": {
+          "startingColumn": 26,
+          "startingLine": 235
+        }
+      },
+      {
+        "comment": "",
+        "key": "只读",
+        "location": {
+          "startingColumn": 22,
+          "startingLine": 248
+        }
+      },
+      {
+        "comment": "",
+        "key": "入库状态",
+        "location": {
+          "startingColumn": 26,
+          "startingLine": 281
+        }
+      },
+      {
+        "comment": "",
+        "key": "入库状态",
+        "location": {
+          "startingColumn": 18,
+          "startingLine": 268
+        }
+      },
+      {
+        "comment": "",
+        "key": "入库状态管理功能正在开发中...",
+        "location": {
+          "startingColumn": 18,
+          "startingLine": 272
+        }
+      },
+      {
+        "comment": "",
+        "key": "生产管理",
+        "location": {
+          "startingColumn": 30,
+          "startingLine": 308
+        }
+      },
+      {
+        "comment": "",
+        "key": "生产管理",
+        "location": {
+          "startingColumn": 22,
+          "startingLine": 295
+        }
+      },
+      {
+        "comment": "",
+        "key": "车间生产状态管理功能正在开发中...",
+        "location": {
+          "startingColumn": 22,
+          "startingLine": 299
+        }
+      },
+      {
+        "comment": "",
+        "key": "设备状态",
+        "location": {
+          "startingColumn": 30,
+          "startingLine": 335
+        }
+      },
+      {
+        "comment": "",
+        "key": "设备状态",
+        "location": {
+          "startingColumn": 22,
+          "startingLine": 322
+        }
+      },
+      {
+        "comment": "",
+        "key": "设备运行状态查看功能正在开发中...",
+        "location": {
+          "startingColumn": 22,
+          "startingLine": 326
+        }
+      },
+      {
+        "comment": "",
+        "key": "造粒记录",
+        "location": {
+          "startingColumn": 30,
+          "startingLine": 363
+        }
+      },
+      {
+        "comment": "",
+        "key": "造粒记录",
+        "location": {
+          "startingColumn": 22,
+          "startingLine": 350
+        }
+      },
+      {
+        "comment": "",
+        "key": "每日造粒数据记录功能正在开发中...",
+        "location": {
+          "startingColumn": 22,
+          "startingLine": 354
+        }
+      },
+      {
+        "comment": "",
+        "key": "原材料管理",
+        "location": {
+          "startingColumn": 30,
+          "startingLine": 390
+        }
+      },
+      {
+        "comment": "",
+        "key": "原材料管理",
+        "location": {
+          "startingColumn": 22,
+          "startingLine": 377
+        }
+      },
+      {
+        "comment": "",
+        "key": "原材料消耗管理功能正在开发中...",
+        "location": {
+          "startingColumn": 22,
+          "startingLine": 381
+        }
+      },
+      {
+        "comment": "",
+        "key": "问题报告",
+        "location": {
+          "startingColumn": 30,
+          "startingLine": 418
+        }
+      },
+      {
+        "comment": "",
+        "key": "问题报告",
+        "location": {
+          "startingColumn": 22,
+          "startingLine": 405
+        }
+      },
+      {
+        "comment": "",
+        "key": "生产问题报告功能正在开发中...",
+        "location": {
+          "startingColumn": 22,
+          "startingLine": 409
+        }
+      },
+      {
+        "comment": "",
+        "key": "设备维护",
+        "location": {
+          "startingColumn": 30,
+          "startingLine": 445
+        }
+      },
+      {
+        "comment": "",
+        "key": "设备维护",
+        "location": {
+          "startingColumn": 22,
+          "startingLine": 432
+        }
+      },
+      {
+        "comment": "",
+        "key": "设备维护记录管理功能正在开发中...",
+        "location": {
+          "startingColumn": 22,
+          "startingLine": 436
+        }
+      },
+      {
+        "comment": "",
+        "key": "数据分析",
+        "location": {
+          "startingColumn": 30,
+          "startingLine": 473
+        }
+      },
+      {
+        "comment": "",
+        "key": "数据分析",
+        "location": {
+          "startingColumn": 22,
+          "startingLine": 460
+        }
+      },
+      {
+        "comment": "",
+        "key": "管理员数据分析功能正在开发中...",
+        "location": {
+          "startingColumn": 22,
+          "startingLine": 464
+        }
+      },
+      {
+        "comment": "",
+        "key": "系统概览",
+        "location": {
+          "startingColumn": 30,
+          "startingLine": 500
+        }
+      },
+      {
+        "comment": "",
+        "key": "系统概览",
+        "location": {
+          "startingColumn": 22,
+          "startingLine": 487
+        }
+      },
+      {
+        "comment": "",
+        "key": "系统整体状态查看功能正在开发中...",
+        "location": {
+          "startingColumn": 22,
+          "startingLine": 491
+        }
+      },
+      {
+        "comment": "",
+        "key": "生产概览",
+        "location": {
+          "startingColumn": 30,
+          "startingLine": 527
+        }
+      },
+      {
+        "comment": "",
+        "key": "生产概览",
+        "location": {
+          "startingColumn": 22,
+          "startingLine": 514
+        }
+      },
+      {
+        "comment": "",
+        "key": "生产状态概览功能正在开发中...",
+        "location": {
+          "startingColumn": 22,
+          "startingLine": 518
+        }
+      }
+    ]
+  },
+  "version": 1
+}

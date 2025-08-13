@@ -24,6 +24,11 @@ class ProductionBatchService: ObservableObject {
     private let auditService: NewAuditingService
     private let authService: AuthenticationService
     
+    // MARK: - Shift-aware Dependencies (班次相关依赖)
+    private let dateShiftPolicy: DateShiftPolicy
+    private let timeProvider: TimeProvider
+    private let machineService: MachineService?
+    
     // MARK: - Timer for cleanup
     private var cleanupTimer: Timer?
     
@@ -32,13 +37,19 @@ class ProductionBatchService: ObservableObject {
         machineRepository: MachineRepository,
         colorRepository: ColorRepository,
         auditService: NewAuditingService,
-        authService: AuthenticationService
+        authService: AuthenticationService,
+        dateShiftPolicy: DateShiftPolicy = StandardDateShiftPolicy(),
+        timeProvider: TimeProvider = SystemTimeProvider(),
+        machineService: MachineService? = nil
     ) {
         self.productionBatchRepository = productionBatchRepository
         self.machineRepository = machineRepository
         self.colorRepository = colorRepository
         self.auditService = auditService
         self.authService = authService
+        self.dateShiftPolicy = dateShiftPolicy
+        self.timeProvider = timeProvider
+        self.machineService = machineService
     }
     
     deinit {
@@ -143,7 +154,142 @@ class ProductionBatchService: ObservableObject {
         }
     }
     
+    // MARK: - Shift-aware Batch Creation (班次感知批次创建)
+    
+    /// Create a shift-aware batch with date and shift validation
+    /// 创建支持班次的批次，包含日期和班次验证
+    func createShiftBatch(
+        machineId: String, 
+        mode: ProductionMode, 
+        targetDate: Date, 
+        shift: Shift, 
+        approvalTargetDate: Date = Date()
+    ) async -> ProductionBatch? {
+        guard let currentUser = authService.currentUser,
+              currentUser.hasRole(.workshopManager) || currentUser.hasRole(.administrator) else {
+            errorMessage = "Insufficient permissions to create production batches"
+            return nil
+        }
+        
+        // Validate shift selection according to policy
+        do {
+            try dateShiftPolicy.validateShiftSelection(shift, for: targetDate, currentTime: timeProvider.now)
+        } catch {
+            if let shiftError = error as? ShiftSelectionError {
+                errorMessage = shiftError.localizedDescription
+            } else {
+                errorMessage = "Invalid shift selection: \(error.localizedDescription)"
+            }
+            return nil
+        }
+        
+        // Check if any machines are running (PRD requirement)
+        let hasRunningMachines: Bool
+        if let machineService = machineService {
+            hasRunningMachines = await machineService.isAnyMachineRunning()
+        } else {
+            // Fallback: check directly via repository
+            do {
+                let machines = try await machineRepository.fetchAllMachines()
+                hasRunningMachines = machines.contains { $0.status == .running && $0.isActive }
+            } catch {
+                errorMessage = "Failed to check machine status: \(error.localizedDescription)"
+                return nil
+            }
+        }
+        
+        guard hasRunningMachines else {
+            errorMessage = "无法创建批次 - 当前无生产活动，请先启动机台"
+            return nil
+        }
+        
+        // Validate machine exists and is available
+        do {
+            let machines = try await machineRepository.fetchAllMachines()
+            guard let machine = machines.first(where: { $0.id == machineId }) else {
+                errorMessage = "Machine not found"
+                return nil
+            }
+            
+            guard machine.canReceiveNewTasks else {
+                errorMessage = "Machine is not available for new production tasks"
+                return nil
+            }
+            
+            // Generate sequential batch number
+            let batchNumber = await ProductionBatch.generateBatchNumber(using: productionBatchRepository)
+            
+            let batch = ProductionBatch(
+                machineId: machineId,
+                mode: mode,
+                submittedBy: currentUser.id,
+                submittedByName: currentUser.name,
+                approvalTargetDate: approvalTargetDate,
+                batchNumber: batchNumber,
+                targetDate: targetDate,
+                shift: shift
+            )
+            
+            // Save the batch to database immediately after creation
+            try await productionBatchRepository.addBatch(batch)
+            
+            // Enhanced audit log for shift-aware batch
+            try await auditService.logOperation(
+                operationType: .batchSubmission,
+                entityType: .productionBatch,
+                entityId: batch.id,
+                entityDescription: "Shift Batch \(batch.batchNumber)",
+                operatorUserId: currentUser.id,
+                operatorUserName: currentUser.name,
+                operationDetails: [
+                    "action": "create_shift_batch",
+                    "machine_id": machineId,
+                    "mode": mode.rawValue,
+                    "batch_number": batchNumber,
+                    "target_date": timeProvider.formatDate(targetDate),
+                    "shift": shift.rawValue,
+                    "shift_display": shift.displayName,
+                    "cutoff_info": dateShiftPolicy.getCutoffInfo(for: targetDate, currentTime: timeProvider.now).isAfterCutoff ? "after_cutoff" : "before_cutoff"
+                ]
+            )
+            
+            currentBatch = batch
+            return batch
+            
+        } catch {
+            errorMessage = "Failed to create shift batch: \(error.localizedDescription)"
+            return nil
+        }
+    }
+    
+    /// Get available shifts for a target date
+    /// 获取目标日期的可用班次
+    func getAvailableShifts(for targetDate: Date) -> Set<Shift> {
+        return dateShiftPolicy.allowedShifts(for: targetDate, currentTime: timeProvider.now)
+    }
+    
+    /// Get default shift for a target date
+    /// 获取目标日期的默认班次
+    func getDefaultShift(for targetDate: Date) -> Shift {
+        return dateShiftPolicy.defaultShift(for: targetDate, currentTime: timeProvider.now)
+    }
+    
+    /// Get shift cutoff information
+    /// 获取班次截止信息
+    func getShiftCutoffInfo(for targetDate: Date) -> ShiftCutoffInfo {
+        return dateShiftPolicy.getCutoffInfo(for: targetDate, currentTime: timeProvider.now)
+    }
+    
     func addProductToBatch(_ batch: ProductionBatch, productName: String, primaryColorId: String, secondaryColorId: String?, stations: [Int], productId: String? = nil, stationCount: Int? = nil, gunAssignment: String? = nil, approvalTargetDate: Date? = nil, startTime: Date? = nil) async -> Bool {
+        
+        // MARK: - Shift-aware Color-only Validation (班次感知颜色编辑限制验证)
+        if batch.isShiftBatch && !batch.canModifyStructure {
+            // For shift-aware batches, only color modifications are allowed
+            // 对于班次批次，仅允许颜色修改
+            errorMessage = "产品修改需前往\"生产配置\"进行。"
+            return false
+        }
+        
         // Validation rules
         guard !productName.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty else {
             errorMessage = "Product name cannot be empty"
@@ -434,7 +580,11 @@ class ProductionBatchService: ObservableObject {
                     "mode": batch.mode.rawValue,
                     "productCount": batch.products.count,
                     "totalStations": batch.totalStationsUsed,
-                    "submittedBy": currentUser.name
+                    "submittedBy": currentUser.name,
+                    "isShiftBatch": batch.isShiftBatch,
+                    "targetDate": batch.targetDate?.ISO8601Format() ?? "",
+                    "shift": batch.shift?.rawValue ?? "",
+                    "allowsColorModificationOnly": batch.allowsColorModificationOnly
                 ]
             )
             
@@ -485,7 +635,11 @@ class ProductionBatchService: ObservableObject {
                     "batchNumber": batch.batchNumber,
                     "action": "approved",
                     "reviewNotes": notes ?? "",
-                    "reviewedBy": currentUser.name
+                    "reviewedBy": currentUser.name,
+                    "isShiftBatch": batch.isShiftBatch,
+                    "targetDate": batch.targetDate?.ISO8601Format() ?? "",
+                    "shift": batch.shift?.rawValue ?? "",
+                    "allowsColorModificationOnly": batch.allowsColorModificationOnly
                 ]
             )
             
@@ -538,7 +692,11 @@ class ProductionBatchService: ObservableObject {
                     "batchNumber": batch.batchNumber,
                     "action": "rejected",
                     "reviewNotes": notes,
-                    "reviewedBy": currentUser.name
+                    "reviewedBy": currentUser.name,
+                    "isShiftBatch": batch.isShiftBatch,
+                    "targetDate": batch.targetDate?.ISO8601Format() ?? "",
+                    "shift": batch.shift?.rawValue ?? "",
+                    "allowsColorModificationOnly": batch.allowsColorModificationOnly
                 ]
             )
             
@@ -806,6 +964,115 @@ class ProductionBatchService: ObservableObject {
                 }
             }
         }
+    }
+    
+    // MARK: - Color-only Modification Methods (仅颜色修改方法)
+    
+    /// Apply color modifications to a shift-aware batch
+    /// 对班次批次应用颜色修改
+    func applyColorModifications(_ modifications: [BatchColorModification], to batch: ProductionBatch) async -> Bool {
+        guard let currentUser = authService.currentUser,
+              currentUser.hasRole(.workshopManager) || currentUser.hasRole(.administrator) else {
+            errorMessage = "Insufficient permissions to modify batch colors"
+            return false
+        }
+        
+        // Ensure this is a shift-aware batch
+        guard batch.isShiftBatch else {
+            errorMessage = "Color-only modifications only apply to shift-aware batches"
+            return false
+        }
+        
+        // Validate color modifications
+        for modification in modifications {
+            guard modification.hasChanges else { continue }
+            
+            // Validate colors exist
+            do {
+                let colors = try await colorRepository.fetchActiveColors()
+                guard colors.contains(where: { $0.id == modification.currentColorId }) else {
+                    errorMessage = "Current color not found: \(modification.currentColorId)"
+                    return false
+                }
+                guard colors.contains(where: { $0.id == modification.proposedColorId }) else {
+                    errorMessage = "Proposed color not found: \(modification.proposedColorId)"
+                    return false
+                }
+            } catch {
+                errorMessage = "Failed to validate colors: \(error.localizedDescription)"
+                return false
+            }
+        }
+        
+        // Apply modifications (this would typically update machine configurations)
+        do {
+            // Save color modifications to batch metadata or separate tracking
+            let modificationsData = try JSONEncoder().encode(modifications)
+            batch.afterConfigSnapshot = modificationsData.base64EncodedString()
+            batch.updatedAt = Date()
+            
+            try await productionBatchRepository.updateBatch(batch)
+            
+            // Audit log for color modifications
+            try await auditService.logOperation(
+                operationType: .batchUpdate,
+                entityType: .productionBatch,
+                entityId: batch.id,
+                entityDescription: "Color modifications for \(batch.batchNumber)",
+                operatorUserId: currentUser.id,
+                operatorUserName: currentUser.name,
+                operationDetails: [
+                    "action": "apply_color_modifications",
+                    "batch_number": batch.batchNumber,
+                    "modification_count": modifications.filter { $0.hasChanges }.count,
+                    "shift": batch.shift?.rawValue ?? "none",
+                    "target_date": batch.targetDate?.description ?? "none"
+                ]
+            )
+            
+            return true
+            
+        } catch {
+            errorMessage = "Failed to apply color modifications: \(error.localizedDescription)"
+            return false
+        }
+    }
+    
+    /// Validate that only color fields are being modified
+    /// 验证仅修改颜色字段
+    func validateColorOnlyModification(
+        originalProduct: ProductConfig,
+        modifiedProduct: ProductConfig
+    ) -> Bool {
+        // Check that only color fields are different
+        return originalProduct.productName == modifiedProduct.productName &&
+               originalProduct.occupiedStations == modifiedProduct.occupiedStations &&
+               originalProduct.stationCount == modifiedProduct.stationCount &&
+               originalProduct.gunAssignment == modifiedProduct.gunAssignment &&
+               originalProduct.expectedOutput == modifiedProduct.expectedOutput &&
+               originalProduct.priority == modifiedProduct.priority
+    }
+    
+    /// Create color modification from existing product configuration
+    /// 从现有产品配置创建颜色修改
+    func createColorModification(
+        from product: ProductConfig,
+        newPrimaryColorId: String,
+        newSecondaryColorId: String? = nil,
+        shift: Shift
+    ) -> BatchColorModification? {
+        guard let currentUser = authService.currentUser else { return nil }
+        
+        // Use primary color as the main modification
+        return BatchColorModification(
+            machineId: product.batchId, // Using batchId as machine reference
+            workstationId: product.stationRange,
+            currentColorId: product.primaryColorId,
+            proposedColorId: newPrimaryColorId,
+            shift: shift,
+            modifiedBy: currentUser.id,
+            modifiedByName: currentUser.name
+        )
     }
     
     private func combineDateTime(date: Date, time: Date) -> Date {

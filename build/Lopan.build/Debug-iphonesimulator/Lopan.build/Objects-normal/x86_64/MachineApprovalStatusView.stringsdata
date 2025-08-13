@@ -1,0 +1,96 @@
+{
+  "source": "/Users/bobo/Desktop/Lopan/Lopan/Views/Components/MachineApprovalStatusView.swift",
+  "tables": {
+    "Localizable": [
+      {
+        "comment": "",
+        "key": "加载审批状态...",
+        "location": {
+          "startingColumn": 26,
+          "startingLine": 27
+        }
+      },
+      {
+        "comment": "",
+        "key": "暂无待审批批次",
+        "location": {
+          "startingColumn": 30,
+          "startingLine": 49
+        }
+      },
+      {
+        "comment": "",
+        "key": "此设备当前没有需要审批的生产配置",
+        "location": {
+          "startingColumn": 30,
+          "startingLine": 52
+        }
+      },
+      {
+        "comment": "",
+        "key": "查看全部 %lld 个批次",
+        "location": {
+          "startingColumn": 32,
+          "startingLine": 72
+        }
+      },
+      {
+        "comment": "",
+        "key": "执行批次",
+        "location": {
+          "startingColumn": 13,
+          "startingLine": 234
+        }
+      },
+      {
+        "comment": "",
+        "key": "执行",
+        "location": {
+          "startingColumn": 28,
+          "startingLine": 191
+        }
+      },
+      {
+        "comment": "",
+        "key": "执行中",
+        "location": {
+          "startingColumn": 28,
+          "startingLine": 204
+        }
+      },
+      {
+        "comment": "",
+        "key": "%lld产品",
+        "location": {
+          "startingColumn": 34,
+          "startingLine": 182
+        }
+      },
+      {
+        "comment": "",
+        "key": "确认执行",
+        "location": {
+          "startingColumn": 20,
+          "startingLine": 238
+        }
+      },
+      {
+        "comment": "",
+        "key": "取消",
+        "location": {
+          "startingColumn": 20,
+          "startingLine": 241
+        }
+      },
+      {
+        "comment": "",
+        "key": "确定要执行批次 %@ 吗？",
+        "location": {
+          "startingColumn": 18,
+          "startingLine": 243
+        }
+      }
+    ]
+  },
+  "version": 1
+}

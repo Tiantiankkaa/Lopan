@@ -246,6 +246,6 @@ struct ReturnItemInputRow: View {
     let product = Product(name: "测试产品", colors: ["红色"])
     let item = CustomerOutOfStock(customer: customer, product: product, quantity: 50, createdBy: "demo")
     
-    return BatchReturnProcessingSheet(items: [item]) { _ in }
+    BatchReturnProcessingSheet(items: [item]) { _ in }
         .modelContainer(container)
 }

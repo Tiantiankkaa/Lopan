@@ -1,0 +1,240 @@
+{
+  "source": "/Users/bobo/Desktop/Lopan/Lopan/Views/Salesperson/CustomerManagementView.swift",
+  "tables": {
+    "Localizable": [
+      {
+        "comment": "",
+        "key": "客户管理",
+        "location": {
+          "startingColumn": 26,
+          "startingLine": 44
+        }
+      },
+      {
+        "comment": "",
+        "key": "确认删除",
+        "location": {
+          "startingColumn": 16,
+          "startingLine": 55
+        }
+      },
+      {
+        "comment": "",
+        "key": "取消",
+        "location": {
+          "startingColumn": 20,
+          "startingLine": 56
+        }
+      },
+      {
+        "comment": "",
+        "key": "删除",
+        "location": {
+          "startingColumn": 20,
+          "startingLine": 57
+        }
+      },
+      {
+        "comment": "",
+        "key": "确定要删除选中的 %lld 个客户吗？此操作不可撤销。",
+        "location": {
+          "startingColumn": 18,
+          "startingLine": 61
+        }
+      },
+      {
+        "comment": "",
+        "key": "搜索客户姓名、地址、电话",
+        "location": {
+          "startingColumn": 27,
+          "startingLine": 71
+        }
+      },
+      {
+        "comment": "",
+        "key": "删除",
+        "location": {
+          "startingColumn": 31,
+          "startingLine": 83
+        }
+      },
+      {
+        "comment": "",
+        "key": "添加",
+        "location": {
+          "startingColumn": 31,
+          "startingLine": 90
+        }
+      },
+      {
+        "comment": "",
+        "key": "导入",
+        "location": {
+          "startingColumn": 27,
+          "startingLine": 98
+        }
+      },
+      {
+        "comment": "",
+        "key": "导出",
+        "location": {
+          "startingColumn": 27,
+          "startingLine": 103
+        }
+      },
+      {
+        "comment": "",
+        "key": "完成",
+        "location": {
+          "startingColumn": 41,
+          "startingLine": 108
+        }
+      },
+      {
+        "comment": "",
+        "key": "批量",
+        "location": {
+          "startingColumn": 52,
+          "startingLine": 108
+        }
+      },
+      {
+        "comment": "",
+        "key": "客户详情",
+        "location": {
+          "startingColumn": 26,
+          "startingLine": 250
+        }
+      },
+      {
+        "comment": "",
+        "key": "编辑",
+        "location": {
+          "startingColumn": 24,
+          "startingLine": 254
+        }
+      },
+      {
+        "comment": "",
+        "key": "客户信息",
+        "location": {
+          "startingColumn": 18,
+          "startingLine": 266
+        }
+      },
+      {
+        "comment": "",
+        "key": "客户姓名:",
+        "location": {
+          "startingColumn": 26,
+          "startingLine": 271
+        }
+      },
+      {
+        "comment": "",
+        "key": "客户地址:",
+        "location": {
+          "startingColumn": 26,
+          "startingLine": 275
+        }
+      },
+      {
+        "comment": "",
+        "key": "联系电话:",
+        "location": {
+          "startingColumn": 26,
+          "startingLine": 279
+        }
+      },
+      {
+        "comment": "",
+        "key": "创建时间:",
+        "location": {
+          "startingColumn": 26,
+          "startingLine": 283
+        }
+      },
+      {
+        "comment": "",
+        "key": "缺货记录",
+        "location": {
+          "startingColumn": 18,
+          "startingLine": 295
+        }
+      },
+      {
+        "comment": "",
+        "key": "暂无缺货记录",
+        "location": {
+          "startingColumn": 22,
+          "startingLine": 299
+        }
+      },
+      {
+        "comment": "",
+        "key": "数量: %lld",
+        "location": {
+          "startingColumn": 42,
+          "startingLine": 312
+        }
+      },
+      {
+        "comment": "",
+        "key": "编辑客户",
+        "location": {
+          "startingColumn": 30,
+          "startingLine": 385
+        }
+      },
+      {
+        "comment": "",
+        "key": "客户信息",
+        "location": {
+          "startingColumn": 25,
+          "startingLine": 378
+        }
+      },
+      {
+        "comment": "",
+        "key": "客户姓名",
+        "location": {
+          "startingColumn": 31,
+          "startingLine": 379
+        }
+      },
+      {
+        "comment": "",
+        "key": "客户地址",
+        "location": {
+          "startingColumn": 31,
+          "startingLine": 380
+        }
+      },
+      {
+        "comment": "",
+        "key": "联系电话",
+        "location": {
+          "startingColumn": 31,
+          "startingLine": 381
+        }
+      },
+      {
+        "comment": "",
+        "key": "取消",
+        "location": {
+          "startingColumn": 28,
+          "startingLine": 389
+        }
+      },
+      {
+        "comment": "",
+        "key": "保存",
+        "location": {
+          "startingColumn": 28,
+          "startingLine": 395
+        }
+      }
+    ]
+  },
+  "version": 1
+}

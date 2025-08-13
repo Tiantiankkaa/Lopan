@@ -90,8 +90,8 @@ struct WorkshopManagerDashboard: View {
                 }
                 .tag(3)
                 
-                // Batch Processing & Approval (simplified to prevent crashes)
-                BatchProcessingPlaceholderView(
+                // Batch Processing & Approval
+                BatchProcessingView(
                     repositoryFactory: repositoryFactory,
                     authService: authService,
                     auditService: auditService
@@ -145,36 +145,6 @@ struct WorkshopManagerDashboard: View {
     }
 }
 
-// MARK: - Temporary Placeholder View
-struct BatchProcessingPlaceholderView: View {
-    let repositoryFactory: RepositoryFactory
-    @ObservedObject var authService: AuthenticationService
-    let auditService: NewAuditingService
-    
-    var body: some View {
-        VStack(spacing: 20) {
-            Image(systemName: "square.stack.3d.down.right")
-                .font(.system(size: 60))
-                .foregroundColor(.blue)
-            
-            Text("批次处理中心")
-                .font(.title2)
-                .fontWeight(.bold)
-            
-            Text("批次处理功能正在优化中，即将重新上线")
-                .font(.body)
-                .multilineTextAlignment(.center)
-                .foregroundColor(.secondary)
-                .padding(.horizontal, 40)
-            
-            Text("2025年8月12日")
-                .font(.caption)
-                .foregroundColor(.secondary)
-        }
-        .frame(maxWidth: .infinity, maxHeight: .infinity)
-        .background(Color(.systemBackground))
-    }
-}
 
 // MARK: - Preview
 struct WorkshopManagerDashboard_Previews: PreviewProvider {

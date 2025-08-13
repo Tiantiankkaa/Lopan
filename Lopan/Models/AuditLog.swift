@@ -210,7 +210,7 @@ final class AuditLog {
     var ipAddress: String?
     var deviceInfo: String?
     var batchId: String? // For grouping batch operations
-    var relatedEntityIds: [String] // For operations affecting multiple entities
+    private var relatedEntityIdsString: String // For operations affecting multiple entities - stored as comma-separated string
     
     init(
         operationType: OperationType,
@@ -238,7 +238,20 @@ final class AuditLog {
         self.ipAddress = ipAddress
         self.deviceInfo = deviceInfo
         self.batchId = batchId
-        self.relatedEntityIds = relatedEntityIds
+        self.relatedEntityIdsString = relatedEntityIds.joined(separator: ",")
+    }
+    
+    // MARK: - Computed Properties for Array Compatibility
+    var relatedEntityIds: [String] {
+        get {
+            guard !relatedEntityIdsString.isEmpty else { return [] }
+            return relatedEntityIdsString.components(separatedBy: ",")
+                .map { $0.trimmingCharacters(in: .whitespaces) }
+                .filter { !$0.isEmpty }
+        }
+        set {
+            relatedEntityIdsString = newValue.joined(separator: ",")
+        }
     }
     
     // Helper methods

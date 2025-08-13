@@ -1,0 +1,272 @@
+{
+  "source": "/Users/bobo/Desktop/Lopan/Lopan/Views/WorkshopManager/GunColorSettingsView.swift",
+  "tables": {
+    "Localizable": [
+      {
+        "comment": "",
+        "key": "Error",
+        "location": {
+          "startingColumn": 20,
+          "startingLine": 49
+        }
+      },
+      {
+        "comment": "",
+        "key": "加载数据...",
+        "location": {
+          "startingColumn": 30,
+          "startingLine": 40
+        }
+      },
+      {
+        "comment": "",
+        "key": "确定",
+        "location": {
+          "startingColumn": 24,
+          "startingLine": 50
+        }
+      },
+      {
+        "comment": "",
+        "key": "选择设备",
+        "location": {
+          "startingColumn": 18,
+          "startingLine": 97
+        }
+      },
+      {
+        "comment": "",
+        "key": "生产效能",
+        "location": {
+          "startingColumn": 22,
+          "startingLine": 121
+        }
+      },
+      {
+        "comment": "",
+        "key": "编辑",
+        "location": {
+          "startingColumn": 32,
+          "startingLine": 143
+        }
+      },
+      {
+        "comment": "",
+        "key": "保存",
+        "location": {
+          "startingColumn": 36,
+          "startingLine": 130
+        }
+      },
+      {
+        "comment": "",
+        "key": "取消",
+        "location": {
+          "startingColumn": 36,
+          "startingLine": 136
+        }
+      },
+      {
+        "comment": "",
+        "key": "%lld 秒",
+        "location": {
+          "startingColumn": 30,
+          "startingLine": 179
+        }
+      },
+      {
+        "comment": "",
+        "key": "硫化时间",
+        "location": {
+          "startingColumn": 30,
+          "startingLine": 156
+        }
+      },
+      {
+        "comment": "",
+        "key": "设置产品硫化所需时间",
+        "location": {
+          "startingColumn": 30,
+          "startingLine": 160
+        }
+      },
+      {
+        "comment": "",
+        "key": "秒",
+        "location": {
+          "startingColumn": 34,
+          "startingLine": 174
+        }
+      },
+      {
+        "comment": "",
+        "key": "时间",
+        "location": {
+          "startingColumn": 39,
+          "startingLine": 169
+        }
+      },
+      {
+        "comment": "",
+        "key": "%lld 次",
+        "location": {
+          "startingColumn": 30,
+          "startingLine": 215
+        }
+      },
+      {
+        "comment": "",
+        "key": "开模次数",
+        "location": {
+          "startingColumn": 30,
+          "startingLine": 192
+        }
+      },
+      {
+        "comment": "",
+        "key": "设置每个周期的开模次数",
+        "location": {
+          "startingColumn": 30,
+          "startingLine": 196
+        }
+      },
+      {
+        "comment": "",
+        "key": "次",
+        "location": {
+          "startingColumn": 34,
+          "startingLine": 210
+        }
+      },
+      {
+        "comment": "",
+        "key": "次数",
+        "location": {
+          "startingColumn": 39,
+          "startingLine": 205
+        }
+      },
+      {
+        "comment": "",
+        "key": "料枪颜色配置",
+        "location": {
+          "startingColumn": 18,
+          "startingLine": 231
+        }
+      },
+      {
+        "comment": "",
+        "key": "请选择设备来配置基础设置",
+        "location": {
+          "startingColumn": 18,
+          "startingLine": 256
+        }
+      },
+      {
+        "comment": "",
+        "key": "Machine #%lld",
+        "location": {
+          "startingColumn": 18,
+          "startingLine": 328
+        }
+      },
+      {
+        "comment": "",
+        "key": "配置",
+        "location": {
+          "startingColumn": 24,
+          "startingLine": 399
+        }
+      },
+      {
+        "comment": "",
+        "key": "工位 %lld-%lld",
+        "location": {
+          "startingColumn": 22,
+          "startingLine": 364
+        }
+      },
+      {
+        "comment": "",
+        "key": "选择颜色",
+        "location": {
+          "startingColumn": 30,
+          "startingLine": 543
+        }
+      },
+      {
+        "comment": "",
+        "key": "清除颜色",
+        "location": {
+          "startingColumn": 28,
+          "startingLine": 470
+        }
+      },
+      {
+        "comment": "",
+        "key": "为 %@ 选择颜色",
+        "location": {
+          "startingColumn": 26,
+          "startingLine": 426
+        }
+      },
+      {
+        "comment": "",
+        "key": "工位 %lld-%lld",
+        "location": {
+          "startingColumn": 26,
+          "startingLine": 430
+        }
+      },
+      {
+        "comment": "",
+        "key": "当前颜色",
+        "location": {
+          "startingColumn": 30,
+          "startingLine": 439
+        }
+      },
+      {
+        "comment": "",
+        "key": "加载颜色中...",
+        "location": {
+          "startingColumn": 30,
+          "startingLine": 490
+        }
+      },
+      {
+        "comment": "",
+        "key": "暂无可用颜色",
+        "location": {
+          "startingColumn": 30,
+          "startingLine": 501
+        }
+      },
+      {
+        "comment": "",
+        "key": "刷新",
+        "location": {
+          "startingColumn": 32,
+          "startingLine": 505
+        }
+      },
+      {
+        "comment": "",
+        "key": "选择新颜色",
+        "location": {
+          "startingColumn": 30,
+          "startingLine": 515
+        }
+      },
+      {
+        "comment": "",
+        "key": "取消",
+        "location": {
+          "startingColumn": 28,
+          "startingLine": 547
+        }
+      }
+    ]
+  },
+  "version": 1
+}
