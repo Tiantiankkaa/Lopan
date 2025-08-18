@@ -86,65 +86,75 @@ struct CustomerManagementView: View {
     }
     
     var body: some View {
+        mainContentView
+            .navigationTitle("客户管理")
+            .navigationBarTitleDisplayMode(.inline)
+            .background(Color(.systemGroupedBackground))
+            .onAppear {
+                loadCustomers()
+            }
+            .onChange(of: filteredCustomers.count) { oldCount, newCount in
+                handleFilterCountChange(oldCount: oldCount, newCount: newCount)
+            }
+            .sheet(isPresented: $showingAddCustomer) {
+                AddCustomerView()
+            }
+            .sheet(isPresented: $showingExcelImport) {
+                ExcelImportView(dataType: .customers)
+            }
+            .sheet(isPresented: $showingExcelExport) {
+                ExcelExportView(dataType: .customers)
+            }
+            .confirmationDialog(
+                "批量操作",
+                isPresented: $showingDeleteAlert,
+                titleVisibility: .visible
+            ) {
+                confirmationDialogButtons
+            } message: {
+                Text("选择要执行的批量操作。删除操作不可撤销。")
+            }
+    }
+    
+    // MARK: - Main Content Views
+    private var mainContentView: some View {
         VStack(spacing: 0) {
-            // Search and toolbar - fixed at top
             searchAndToolbarView
             
-            // Advanced filters (collapsible)
             if showingFilters {
                 filtersView
                     .transition(.move(edge: .top).combined(with: .opacity))
             }
             
-            // Selection summary bar (when in batch mode)
             if isBatchMode && !selectedCustomers.isEmpty {
                 selectionSummaryBar
             }
             
-            // Customer list - flexible space
             customerListView
         }
-        .navigationTitle("客户管理")
-        .navigationBarTitleDisplayMode(.inline)
-        .sheet(isPresented: $showingAddCustomer) {
-            AddCustomerView()
+    }
+    
+    @ViewBuilder
+    private var confirmationDialogButtons: some View {
+        Button("删除选中的客户 (\(customersToDelete.count))", role: .destructive) {
+            deleteSelectedCustomers()
         }
-        .background(Color(.systemGroupedBackground))
-        .onAppear {
-            loadCustomers()
-        }
-        .onChange(of: filteredCustomers.count) { oldCount, newCount in
-            if oldCount != newCount && oldCount != 0 {
-                announceFilterChange(newCount)
+        .disabled(customersToDelete.isEmpty)
+        
+        if !customersToDelete.isEmpty {
+            Button("导出选中的客户") {
+                exportSelectedCustomers()
             }
         }
-        .sheet(isPresented: $showingExcelImport) {
-            ExcelImportView(dataType: .customers)
+        
+        Button("取消", role: .cancel) {
+            // Cancel action
         }
-        .sheet(isPresented: $showingExcelExport) {
-            ExcelExportView(dataType: .customers)
-        }
-        .confirmationDialog(
-            "批量操作",
-            isPresented: $showingDeleteAlert,
-            titleVisibility: .visible
-        ) {
-            Button("删除选中的客户 (\(customersToDelete.count))", role: .destructive) {
-                deleteSelectedCustomers()
-            }
-            .disabled(customersToDelete.isEmpty)
-            
-            if !customersToDelete.isEmpty {
-                Button("导出选中的客户") {
-                    exportSelectedCustomers()
-                }
-            }
-            
-            Button("取消", role: .cancel) {
-                // Cancel action
-            }
-        } message: {
-            Text("选择要执行的批量操作。删除操作不可撤销。")
+    }
+    
+    private func handleFilterCountChange(oldCount: Int, newCount: Int) {
+        if oldCount != newCount && oldCount != 0 {
+            announceFilterChange(newCount)
         }
     }
     
@@ -173,73 +183,90 @@ struct CustomerManagementView: View {
     
     private var enhancedSearchView: some View {
         VStack(spacing: 8) {
-            // Main search field
-            DebouncedSearchField(
-                placeholder: "搜索客户姓名、地址或电话...",
-                searchText: $searchText,
-                debounceTime: 0.5
-            )
-            .padding(.horizontal)
-            .accessibilityLabel("客户搜索")
-            .accessibilityHint("输入客户信息进行搜索")
-            .onChange(of: searchText) { oldValue, newValue in
-                updateSearchSuggestions(for: newValue)
-                resetPagination()
-            }
-            
-            // Search suggestions (when search is active)
-            if !searchText.isEmpty && searchSuggestions.count > 0 {
-                ScrollView(.horizontal, showsIndicators: false) {
-                    HStack(spacing: 8) {
-                        ForEach(searchSuggestions.prefix(5), id: \.self) { suggestion in
-                            Button(suggestion) {
-                                searchText = suggestion
-                                addToRecentSearches(suggestion)
-                            }
-                            .font(.caption)
-                            .padding(.horizontal, 12)
-                            .padding(.vertical, 6)
-                            .background(Color(.systemGray5))
-                            .clipShape(Capsule())
-                            .accessibilityLabel("搜索建议: \(suggestion)")
-                        }
-                    }
-                    .padding(.horizontal)
-                }
-                .transition(.opacity.combined(with: .move(edge: .top)))
-            }
-            
-            // Recent searches (when search field is focused and empty)
-            if searchText.isEmpty && !recentSearches.isEmpty {
-                ScrollView(.horizontal, showsIndicators: false) {
-                    HStack(spacing: 8) {
-                        Text("最近搜索:")
-                            .font(.caption)
-                            .foregroundColor(.secondary)
-                        
-                        ForEach(recentSearches.prefix(3), id: \.self) { recent in
-                            Button(recent) {
-                                searchText = recent
-                            }
-                            .font(.caption)
-                            .padding(.horizontal, 10)
-                            .padding(.vertical, 4)
-                            .background(Color(.systemGray6))
-                            .clipShape(Capsule())
-                            .foregroundColor(.secondary)
-                        }
-                        
-                        Button("清除历史") {
-                            recentSearches.removeAll()
-                        }
-                        .font(.caption)
-                        .foregroundColor(.red)
-                    }
-                    .padding(.horizontal)
-                }
-                .transition(.opacity)
-            }
+            searchFieldView
+            searchSuggestionsView
+            recentSearchesView
         }
+    }
+    
+    private var searchFieldView: some View {
+        DebouncedSearchField(
+            placeholder: "搜索客户姓名、地址或电话...",
+            searchText: $searchText,
+            debounceTime: 0.5
+        )
+        .padding(.horizontal)
+        .accessibilityLabel("客户搜索")
+        .accessibilityHint("输入客户信息进行搜索")
+        .onChange(of: searchText) { oldValue, newValue in
+            updateSearchSuggestions(for: newValue)
+            resetPagination()
+        }
+    }
+    
+    @ViewBuilder
+    private var searchSuggestionsView: some View {
+        if !searchText.isEmpty && searchSuggestions.count > 0 {
+            ScrollView(.horizontal, showsIndicators: false) {
+                HStack(spacing: 8) {
+                    ForEach(searchSuggestions.prefix(5), id: \.self) { suggestion in
+                        suggestionButton(for: suggestion)
+                    }
+                }
+                .padding(.horizontal)
+            }
+            .transition(.opacity.combined(with: .move(edge: .top)))
+        }
+    }
+    
+    @ViewBuilder
+    private var recentSearchesView: some View {
+        if searchText.isEmpty && !recentSearches.isEmpty {
+            ScrollView(.horizontal, showsIndicators: false) {
+                HStack(spacing: 8) {
+                    Text("最近搜索:")
+                        .font(.caption)
+                        .foregroundColor(.secondary)
+                    
+                    ForEach(recentSearches.prefix(3), id: \.self) { recent in
+                        recentSearchButton(for: recent)
+                    }
+                    
+                    Button("清除历史") {
+                        recentSearches.removeAll()
+                    }
+                    .font(.caption)
+                    .foregroundColor(.red)
+                }
+                .padding(.horizontal)
+            }
+            .transition(.opacity)
+        }
+    }
+    
+    private func suggestionButton(for suggestion: String) -> some View {
+        Button(suggestion) {
+            searchText = suggestion
+            addToRecentSearches(suggestion)
+        }
+        .font(.caption)
+        .padding(.horizontal, 12)
+        .padding(.vertical, 6)
+        .background(Color(.systemGray5))
+        .clipShape(Capsule())
+        .accessibilityLabel("搜索建议: \(suggestion)")
+    }
+    
+    private func recentSearchButton(for recent: String) -> some View {
+        Button(recent) {
+            searchText = recent
+        }
+        .font(.caption)
+        .padding(.horizontal, 10)
+        .padding(.vertical, 4)
+        .background(Color(.systemGray6))
+        .clipShape(Capsule())
+        .foregroundColor(.secondary)
     }
     
     private var filterIndicatorBar: some View {
@@ -582,52 +609,18 @@ struct CustomerManagementView: View {
     // MARK: - Simplified Filters View
     private var filtersView: some View {
         VStack(spacing: 0) {
-            // Horizontal filter bar
             ScrollView(.horizontal, showsIndicators: false) {
                 HStack(spacing: 12) {
-                    // City filter chips
-                    ForEach(["全部"] + uniqueCities, id: \.self) { city in
-                        FilterChipView(
-                            title: city == "全部" ? "全部城市" : city,
-                            isActive: city == "全部" ? selectedCity.isEmpty : selectedCity == city,
-                            onTap: {
-                                withAnimation(.easeInOut(duration: 0.2)) {
-                                    selectedCity = city == "全部" ? "" : city
-                                }
-                            }
-                        )
-                    }
+                    cityFilterChips
                     
                     Divider()
                         .frame(height: 24)
                         .accessibilityHidden(true)
                     
-                    // Sort filter chips
-                    ForEach(CustomerSortOption.allCases, id: \.self) { option in
-                        FilterChipView(
-                            title: option.rawValue,
-                            isActive: sortOption == option,
-                            onTap: {
-                                withAnimation(.easeInOut(duration: 0.2)) {
-                                    sortOption = option
-                                }
-                            }
-                        )
-                    }
+                    sortFilterChips
                     
-                    // Clear all button
-                    if !selectedCity.isEmpty || sortOption != .name {
-                        Button("清除全部") {
-                            withAnimation(.easeInOut(duration: 0.2)) {
-                                clearFilters()
-                            }
-                        }
-                        .font(.caption)
-                        .foregroundColor(.red)
-                        .padding(.horizontal, 12)
-                        .padding(.vertical, 6)
-                        .background(Color.red.opacity(0.1))
-                        .cornerRadius(12)
+                    if hasActiveFilters {
+                        clearAllFiltersButton
                     }
                 }
                 .padding(.horizontal, 16)
@@ -635,6 +628,50 @@ struct CustomerManagementView: View {
             .padding(.vertical, 8)
             .background(Color(.systemGray6))
         }
+    }
+    
+    @ViewBuilder
+    private var cityFilterChips: some View {
+        ForEach(["全部"] + uniqueCities, id: \.self) { city in
+            FilterChipView(
+                title: city == "全部" ? "全部城市" : city,
+                isActive: city == "全部" ? selectedCity.isEmpty : selectedCity == city,
+                onTap: {
+                    withAnimation(.easeInOut(duration: 0.2)) {
+                        selectedCity = city == "全部" ? "" : city
+                    }
+                }
+            )
+        }
+    }
+    
+    @ViewBuilder
+    private var sortFilterChips: some View {
+        ForEach(CustomerSortOption.allCases, id: \.self) { option in
+            FilterChipView(
+                title: option.rawValue,
+                isActive: sortOption == option,
+                onTap: {
+                    withAnimation(.easeInOut(duration: 0.2)) {
+                        sortOption = option
+                    }
+                }
+            )
+        }
+    }
+    
+    private var clearAllFiltersButton: some View {
+        Button("清除全部") {
+            withAnimation(.easeInOut(duration: 0.2)) {
+                clearFilters()
+            }
+        }
+        .font(.caption)
+        .foregroundColor(.red)
+        .padding(.horizontal, 12)
+        .padding(.vertical, 6)
+        .background(Color.red.opacity(0.1))
+        .cornerRadius(12)
     }
     
     private var uniqueCities: [String] {
