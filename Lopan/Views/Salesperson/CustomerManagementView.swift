@@ -34,7 +34,6 @@ struct CustomerManagementView: View {
     private let pageSize = 50
     
     // 过滤器状态
-    @State private var showingFilters = false
     @State private var selectedCity = ""
     @State private var phoneFilter = ""
     @State private var sortOption: CustomerSortOption = .name
@@ -82,7 +81,7 @@ struct CustomerManagementView: View {
     }
     
     var hasActiveFilters: Bool {
-        !selectedCity.isEmpty || sortOption != .name || !phoneFilter.isEmpty
+        !selectedCity.isEmpty || !phoneFilter.isEmpty
     }
     
     var body: some View {
@@ -90,6 +89,11 @@ struct CustomerManagementView: View {
             .navigationTitle("客户管理")
             .navigationBarTitleDisplayMode(.inline)
             .background(Color(.systemGroupedBackground))
+            .toolbar {
+                ToolbarItem(placement: .navigationBarTrailing) {
+                    navigationToolbarMenu
+                }
+            }
             .onAppear {
                 loadCustomers()
             }
@@ -116,21 +120,256 @@ struct CustomerManagementView: View {
             }
     }
     
+    // MARK: - Navigation Toolbar
+    private var navigationToolbarMenu: some View {
+        Menu {
+            if !isBatchMode {
+                Button(action: { showingExcelImport = true }) {
+                    Label("导入数据", systemImage: "square.and.arrow.down")
+                }
+                
+                Button(action: { showingExcelExport = true }) {
+                    Label("导出数据", systemImage: "square.and.arrow.up")
+                }
+            } else {
+                Button("退出批量模式", action: { toggleBatchMode() })
+            }
+        } label: {
+            Image(systemName: "ellipsis.circle")
+                .overlay(alignment: .topTrailing) {
+                    if hasActiveFilters {
+                        Circle()
+                            .fill(Color.orange)
+                            .frame(width: 6, height: 6)
+                            .offset(x: 4, y: -4)
+                    }
+                }
+        }
+        .accessibilityLabel("更多选项")
+    }
+    
+    // MARK: - Floating Action Button
+    private var floatingActionButton: some View {
+        Button(action: { showingAddCustomer = true }) {
+            Image(systemName: "plus")
+                .font(.title2)
+                .fontWeight(.semibold)
+                .foregroundColor(.white)
+                .frame(width: 56, height: 56)
+                .background(Color.blue)
+                .clipShape(Circle())
+                .shadow(color: .blue.opacity(0.3), radius: 8, x: 0, y: 4)
+        }
+        .buttonStyle(PlainButtonStyle())
+        .accessibilityLabel("添加客户")
+        .accessibilityHint("双击添加新客户")
+    }
+    
+    // MARK: - Search Section
+    private var searchSection: some View {
+        VStack(spacing: 12) {
+            // Simple search field
+            DebouncedSearchField(
+                placeholder: "搜索客户姓名、地址或电话...",
+                searchText: $searchText,
+                debounceTime: 0.5
+            )
+            .padding(.horizontal)
+            .accessibilityLabel("客户搜索")
+            .accessibilityHint("输入客户信息进行搜索")
+            .onChange(of: searchText) { oldValue, newValue in
+                resetPagination()
+            }
+            
+            // Action buttons bar
+            actionButtonsBar
+        }
+        .padding(.vertical, 8)
+        .background(Color(.systemBackground))
+        .overlay(
+            Rectangle()
+                .frame(height: 0.5)
+                .foregroundColor(Color(.separator)),
+            alignment: .bottom
+        )
+    }
+    
+    // MARK: - Action Buttons Bar
+    private var actionButtonsBar: some View {
+        HStack {
+            Spacer()
+            
+            // Batch Operations button (right side)
+            if !isBatchMode {
+                batchOperationsButton
+            }
+        }
+        .padding(.horizontal)
+    }
+    
+    
+    private var batchOperationsButton: some View {
+        Button(action: { toggleBatchMode() }) {
+            HStack(spacing: 6) {
+                Image(systemName: "checkmark.circle")
+                    .font(.system(size: 16, weight: .medium))
+                
+                Text("批量操作")
+                    .font(.subheadline)
+                    .fontWeight(.medium)
+            }
+            .foregroundColor(.blue)
+            .padding(.horizontal, 12)
+            .padding(.vertical, 8)
+            .background(Color(.systemGray6))
+            .clipShape(Capsule())
+        }
+        .disabled(filteredCustomers.isEmpty)
+        .accessibilityLabel("批量操作")
+        .accessibilityHint("轻点启用批量选择模式")
+    }
+    
+    // MARK: - Batch Operation Header
+    private var batchOperationHeader: some View {
+        VStack(spacing: 0) {
+            HStack {
+                // Selection info
+                VStack(alignment: .leading, spacing: 4) {
+                    Text("已选择 \(selectedCustomers.count) 个客户")
+                        .font(.headline)
+                        .foregroundColor(.primary)
+                    
+                    if selectedCustomers.count == filteredCustomers.count {
+                        Text("已全选")
+                            .font(.caption)
+                            .foregroundColor(.blue)
+                    } else {
+                        Text("共 \(filteredCustomers.count) 个客户")
+                            .font(.caption)
+                            .foregroundColor(.secondary)
+                    }
+                }
+                
+                Spacer()
+                
+                // Action buttons with responsive layout
+                HStack(spacing: 8) {
+                    // Select all/none toggle
+                    Button(action: {
+                        withAnimation(.easeInOut(duration: 0.2)) {
+                            if selectedCustomers.count == filteredCustomers.count {
+                                selectedCustomers.removeAll()
+                            } else {
+                                selectedCustomers = Set(filteredCustomers.map { $0.id })
+                            }
+                        }
+                        
+                        let feedbackGenerator = UISelectionFeedbackGenerator()
+                        feedbackGenerator.selectionChanged()
+                    }) {
+                        HStack(spacing: 6) {
+                            Image(systemName: selectedCustomers.count == filteredCustomers.count ? "checkmark.circle.fill" : "circle")
+                                .font(.system(size: 16, weight: .medium))
+                            
+                            Text(selectedCustomers.count == filteredCustomers.count ? "取消" : "全选")
+                                .font(.system(size: 13, weight: .medium))
+                                .fixedSize(horizontal: true, vertical: false)
+                        }
+                        .padding(.horizontal, 10)
+                        .padding(.vertical, 8)
+                        .background(Color.blue.opacity(0.1))
+                        .foregroundColor(.blue)
+                        .clipShape(Capsule())
+                    }
+                    .accessibilityLabel(selectedCustomers.count == filteredCustomers.count ? "取消全选" : "全选")
+                    
+                    // Delete button
+                    Button(action: {
+                        customersToDelete = customers.filter { selectedCustomers.contains($0.id) }
+                        showingDeleteAlert = true
+                    }) {
+                        HStack(spacing: 6) {
+                            Image(systemName: "trash.fill")
+                                .font(.system(size: 16, weight: .medium))
+                            
+                            Text("删除")
+                                .font(.system(size: 13, weight: .medium))
+                                .fixedSize(horizontal: true, vertical: false)
+                        }
+                        .padding(.horizontal, 10)
+                        .padding(.vertical, 8)
+                        .background(Color.red.opacity(0.1))
+                        .foregroundColor(.red)
+                        .clipShape(Capsule())
+                    }
+                    .disabled(selectedCustomers.isEmpty)
+                    .accessibilityLabel("删除选中的客户")
+                    
+                    // Cancel batch mode
+                    Button(action: {
+                        toggleBatchMode()
+                    }) {
+                        HStack(spacing: 6) {
+                            Image(systemName: "xmark.circle.fill")
+                                .font(.system(size: 16, weight: .medium))
+                            
+                            Text("取消")
+                                .font(.system(size: 13, weight: .medium))
+                                .fixedSize(horizontal: true, vertical: false)
+                        }
+                        .padding(.horizontal, 10)
+                        .padding(.vertical, 8)
+                        .background(Color.gray.opacity(0.1))
+                        .foregroundColor(.primary)
+                        .clipShape(Capsule())
+                    }
+                    .accessibilityLabel("取消批量操作")
+                }
+            }
+            .padding()
+            .background(Color(.systemGray6))
+            .overlay(
+                Rectangle()
+                    .frame(height: 0.5)
+                    .foregroundColor(Color(.separator)),
+                alignment: .bottom
+            )
+        }
+    }
+    
     // MARK: - Main Content Views
     private var mainContentView: some View {
-        VStack(spacing: 0) {
-            searchAndToolbarView
-            
-            if showingFilters {
-                filtersView
-                    .transition(.move(edge: .top).combined(with: .opacity))
+        ZStack {
+            // Main content
+            VStack(spacing: 0) {
+                // Search section (simplified)
+                searchSection
+                
+                // Batch operation header
+                if isBatchMode {
+                    batchOperationHeader
+                        .transition(.asymmetric(
+                            insertion: .move(edge: .top).combined(with: .opacity),
+                            removal: .move(edge: .top).combined(with: .opacity)
+                        ))
+                }
+                
+                
+                // Customer list
+                customerListView
             }
             
-            if isBatchMode && !selectedCustomers.isEmpty {
-                selectionSummaryBar
+            // Floating action button
+            VStack {
+                Spacer()
+                HStack {
+                    Spacer()
+                    if !isBatchMode {
+                        floatingActionButton
+                    }
+                }
             }
-            
-            customerListView
+            .padding()
         }
     }
     
@@ -158,338 +397,17 @@ struct CustomerManagementView: View {
         }
     }
     
-    private var searchAndToolbarView: some View {
-        VStack(spacing: 12) {
-            // Enhanced search with suggestions
-            enhancedSearchView
-            
-            // Active filter indicator
-            if hasActiveFilters && !showingFilters {
-                filterIndicatorBar
-            }
-            
-            // Enhanced toolbar with proper hierarchy
-            enhancedToolbarView
-        }
-        .padding(.vertical, 8)
-        .background(Color(.systemBackground))
-        .overlay(
-            Rectangle()
-                .frame(height: 0.5)
-                .foregroundColor(Color(.separator)),
-            alignment: .bottom
-        )
-    }
     
-    private var enhancedSearchView: some View {
-        VStack(spacing: 8) {
-            searchFieldView
-            searchSuggestionsView
-            recentSearchesView
-        }
-    }
     
-    private var searchFieldView: some View {
-        DebouncedSearchField(
-            placeholder: "搜索客户姓名、地址或电话...",
-            searchText: $searchText,
-            debounceTime: 0.5
-        )
-        .padding(.horizontal)
-        .accessibilityLabel("客户搜索")
-        .accessibilityHint("输入客户信息进行搜索")
-        .onChange(of: searchText) { oldValue, newValue in
-            updateSearchSuggestions(for: newValue)
-            resetPagination()
-        }
-    }
     
-    @ViewBuilder
-    private var searchSuggestionsView: some View {
-        if !searchText.isEmpty && searchSuggestions.count > 0 {
-            ScrollView(.horizontal, showsIndicators: false) {
-                HStack(spacing: 8) {
-                    ForEach(searchSuggestions.prefix(5), id: \.self) { suggestion in
-                        suggestionButton(for: suggestion)
-                    }
-                }
-                .padding(.horizontal)
-            }
-            .transition(.opacity.combined(with: .move(edge: .top)))
-        }
-    }
     
-    @ViewBuilder
-    private var recentSearchesView: some View {
-        if searchText.isEmpty && !recentSearches.isEmpty {
-            ScrollView(.horizontal, showsIndicators: false) {
-                HStack(spacing: 8) {
-                    Text("最近搜索:")
-                        .font(.caption)
-                        .foregroundColor(.secondary)
-                    
-                    ForEach(recentSearches.prefix(3), id: \.self) { recent in
-                        recentSearchButton(for: recent)
-                    }
-                    
-                    Button("清除历史") {
-                        recentSearches.removeAll()
-                    }
-                    .font(.caption)
-                    .foregroundColor(.red)
-                }
-                .padding(.horizontal)
-            }
-            .transition(.opacity)
-        }
-    }
     
-    private func suggestionButton(for suggestion: String) -> some View {
-        Button(suggestion) {
-            searchText = suggestion
-            addToRecentSearches(suggestion)
-        }
-        .font(.caption)
-        .padding(.horizontal, 12)
-        .padding(.vertical, 6)
-        .background(Color(.systemGray5))
-        .clipShape(Capsule())
-        .accessibilityLabel("搜索建议: \(suggestion)")
-    }
     
-    private func recentSearchButton(for recent: String) -> some View {
-        Button(recent) {
-            searchText = recent
-        }
-        .font(.caption)
-        .padding(.horizontal, 10)
-        .padding(.vertical, 4)
-        .background(Color(.systemGray6))
-        .clipShape(Capsule())
-        .foregroundColor(.secondary)
-    }
     
-    private var filterIndicatorBar: some View {
-        HStack {
-            Image(systemName: "line.3.horizontal.decrease")
-                .foregroundColor(.blue)
-                .font(.caption)
-            
-            Text("已应用筛选条件")
-                .font(.caption)
-                .foregroundColor(.secondary)
-            
-            Spacer()
-            
-            Button("清除") {
-                withAnimation(.easeInOut) {
-                    clearFilters()
-                }
-            }
-            .font(.caption)
-            .foregroundColor(.red)
-        }
-        .padding(.horizontal, 16)
-        .padding(.vertical, 6)
-        .background(Color.blue.opacity(0.1))
-        .clipShape(RoundedRectangle(cornerRadius: 8))
-        .padding(.horizontal)
-        .transition(.opacity.combined(with: .move(edge: .top)))
-    }
     
-    private var enhancedToolbarView: some View {
-        GeometryReader { geometry in
-            if geometry.size.width < 400 {
-                compactToolbarView
-            } else {
-                fullToolbarView
-            }
-        }
-        .frame(height: 44)
-    }
     
-    private var compactToolbarView: some View {
-        HStack(spacing: 12) {
-            // Primary action
-            if isBatchMode {
-                Button(action: { 
-                    customersToDelete = customers.filter { selectedCustomers.contains($0.id) }
-                    showingDeleteAlert = true
-                }) {
-                    Image(systemName: "trash")
-                }
-                .buttonStyle(.bordered)
-                .foregroundColor(.red)
-                .disabled(selectedCustomers.isEmpty)
-            } else {
-                Button(action: { showingAddCustomer = true }) {
-                    Image(systemName: "plus")
-                }
-                .buttonStyle(.borderedProminent)
-                .accessibilityLabel("添加新客户")
-            }
-            
-            Spacer()
-            
-            // Batch selection indicator
-            if isBatchMode && !selectedCustomers.isEmpty {
-                Text("\(selectedCustomers.count)")
-                    .font(.caption)
-                    .fontWeight(.semibold)
-                    .foregroundColor(.blue)
-                    .padding(.horizontal, 8)
-                    .padding(.vertical, 4)
-                    .background(Color.blue.opacity(0.1))
-                    .clipShape(Capsule())
-            }
-            
-            // More menu
-            Menu {
-                if !isBatchMode {
-                    Button(action: { showingExcelImport = true }) {
-                        Label("导入数据", systemImage: "square.and.arrow.down")
-                    }
-                    
-                    Button(action: { showingExcelExport = true }) {
-                        Label("导出数据", systemImage: "square.and.arrow.up")
-                    }
-                    
-                    Divider()
-                }
-                
-                Button(action: { toggleBatchMode() }) {
-                    Label(isBatchMode ? "退出批量模式" : "进入批量模式", systemImage: isBatchMode ? "checkmark" : "list.bullet")
-                }
-                
-                Button(action: { 
-                    withAnimation(.easeInOut(duration: 0.3)) {
-                        showingFilters.toggle() 
-                    }
-                }) {
-                    Label(showingFilters ? "隐藏筛选" : "显示筛选", systemImage: "line.3.horizontal.decrease")
-                }
-            } label: {
-                Image(systemName: "ellipsis.circle")
-                    .overlay(alignment: .topTrailing) {
-                        if hasActiveFilters {
-                            Circle()
-                                .fill(Color.orange)
-                                .frame(width: 6, height: 6)
-                                .offset(x: 4, y: -4)
-                        }
-                    }
-            }
-            .buttonStyle(.bordered)
-        }
-        .padding(.horizontal)
-    }
     
-    private var fullToolbarView: some View {
-        HStack(spacing: 12) {
-            // Primary action - more prominent
-            if isBatchMode {
-                batchModeActions
-            } else {
-                Button(action: { showingAddCustomer = true }) {
-                    HStack(spacing: 6) {
-                        Image(systemName: "plus")
-                        Text("添加客户")
-                    }
-                }
-                .buttonStyle(.borderedProminent)
-                .controlSize(.regular)
-                .accessibilityLabel("添加新客户")
-                .accessibilityHint("双击创建新客户")
-            }
-            
-            Spacer()
-            
-            // Secondary actions - grouped and less prominent
-            HStack(spacing: 8) {
-                // Data management menu
-                Menu {
-                    Button(action: { showingExcelImport = true }) {
-                        Label("导入数据", systemImage: "square.and.arrow.down")
-                    }
-                    
-                    Button(action: { showingExcelExport = true }) {
-                        Label("导出数据", systemImage: "square.and.arrow.up")
-                    }
-                } label: {
-                    Image(systemName: "folder.badge.gearshape")
-                }
-                .buttonStyle(.bordered)
-                .controlSize(.regular)
-                .accessibilityLabel("数据管理")
-                .accessibilityHint("导入或导出客户数据")
-                
-                // Batch mode toggle
-                Button(action: { toggleBatchMode() }) {
-                    Image(systemName: isBatchMode ? "checkmark.circle.fill" : "list.bullet.circle")
-                }
-                .buttonStyle(.bordered)
-                .controlSize(.regular)
-                .foregroundColor(isBatchMode ? .green : .primary)
-                .accessibilityLabel(isBatchMode ? "退出批量模式" : "进入批量模式")
-                
-                // Filter toggle with indicator
-                Button(action: { 
-                    withAnimation(.easeInOut(duration: 0.3)) {
-                        showingFilters.toggle() 
-                    }
-                }) {
-                    ZStack {
-                        Image(systemName: showingFilters ? "line.3.horizontal.decrease.circle.fill" : "line.3.horizontal.decrease.circle")
-                        
-                        if hasActiveFilters && !showingFilters {
-                            Circle()
-                                .fill(Color.orange)
-                                .frame(width: 8, height: 8)
-                                .offset(x: 8, y: -8)
-                        }
-                    }
-                }
-                .buttonStyle(.bordered)
-                .controlSize(.regular)
-                .foregroundColor(showingFilters ? .blue : .primary)
-                .accessibilityLabel(showingFilters ? "隐藏筛选器" : "显示筛选器")
-                .accessibilityValue(hasActiveFilters ? "有活跃筛选" : "无活跃筛选")
-            }
-        }
-        .padding(.horizontal)
-    }
     
-    private var batchModeActions: some View {
-        HStack(spacing: 12) {
-            Button(action: { 
-                customersToDelete = customers.filter { selectedCustomers.contains($0.id) }
-                showingDeleteAlert = true
-            }) {
-                HStack(spacing: 6) {
-                    Image(systemName: "trash")
-                    Text("删除 (\(selectedCustomers.count))")
-                }
-            }
-            .buttonStyle(.bordered)
-            .foregroundColor(.red)
-            .disabled(selectedCustomers.isEmpty)
-            .accessibilityLabel("删除选中的 \(selectedCustomers.count) 个客户")
-            
-            if !selectedCustomers.isEmpty {
-                Button("全选") {
-                    withAnimation(.easeInOut(duration: 0.2)) {
-                        if selectedCustomers.count == filteredCustomers.count {
-                            selectedCustomers.removeAll()
-                        } else {
-                            selectedCustomers = Set(filteredCustomers.map { $0.id })
-                        }
-                    }
-                }
-                .buttonStyle(.bordered)
-                .font(.caption)
-            }
-        }
-    }
     
     private var customerListView: some View {
         List {
@@ -607,72 +525,10 @@ struct CustomerManagementView: View {
     }
     
     // MARK: - Simplified Filters View
-    private var filtersView: some View {
-        VStack(spacing: 0) {
-            ScrollView(.horizontal, showsIndicators: false) {
-                HStack(spacing: 12) {
-                    cityFilterChips
-                    
-                    Divider()
-                        .frame(height: 24)
-                        .accessibilityHidden(true)
-                    
-                    sortFilterChips
-                    
-                    if hasActiveFilters {
-                        clearAllFiltersButton
-                    }
-                }
-                .padding(.horizontal, 16)
-            }
-            .padding(.vertical, 8)
-            .background(Color(.systemGray6))
-        }
-    }
     
-    @ViewBuilder
-    private var cityFilterChips: some View {
-        ForEach(["全部"] + uniqueCities, id: \.self) { city in
-            FilterChipView(
-                title: city == "全部" ? "全部城市" : city,
-                isActive: city == "全部" ? selectedCity.isEmpty : selectedCity == city,
-                onTap: {
-                    withAnimation(.easeInOut(duration: 0.2)) {
-                        selectedCity = city == "全部" ? "" : city
-                    }
-                }
-            )
-        }
-    }
     
-    @ViewBuilder
-    private var sortFilterChips: some View {
-        ForEach(CustomerSortOption.allCases, id: \.self) { option in
-            FilterChipView(
-                title: option.rawValue,
-                isActive: sortOption == option,
-                onTap: {
-                    withAnimation(.easeInOut(duration: 0.2)) {
-                        sortOption = option
-                    }
-                }
-            )
-        }
-    }
     
-    private var clearAllFiltersButton: some View {
-        Button("清除全部") {
-            withAnimation(.easeInOut(duration: 0.2)) {
-                clearFilters()
-            }
-        }
-        .font(.caption)
-        .foregroundColor(.red)
-        .padding(.horizontal, 12)
-        .padding(.vertical, 6)
-        .background(Color.red.opacity(0.1))
-        .cornerRadius(12)
-    }
+    
     
     private var uniqueCities: [String] {
         let cities = customers.map { customer in
