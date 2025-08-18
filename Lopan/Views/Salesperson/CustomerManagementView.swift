@@ -1072,92 +1072,124 @@ struct CustomerRowView: View {
     let onSelect: () -> Void
     
     var body: some View {
+        customerRowContent
+            .padding(.vertical, 12)
+            .padding(.horizontal, 16)
+            .background {
+                customerRowBackground
+            }
+            .overlay(alignment: .trailing) {
+                chevronIndicator
+            }
+            .accessibilityElement(children: .contain)
+            .accessibilityAddTraits(isBatchMode ? [.isButton] : [.isButton, .startsMediaSession])
+            .accessibilityHint(isBatchMode ? "双击选择或取消选择" : "双击查看详情，左滑拨打电话，右滑编辑或删除")
+    }
+    
+    private var customerRowContent: some View {
         HStack(spacing: 16) {
-            // Selection checkbox with animation
-            if isBatchMode {
-                Button(action: onSelect) {
-                    Image(systemName: isSelected ? "checkmark.circle.fill" : "circle")
-                        .foregroundColor(isSelected ? .blue : .gray)
-                        .font(.title2)
-                        .scaleEffect(isSelected ? 1.1 : 1.0)
-                        .animation(.easeInOut(duration: 0.2), value: isSelected)
-                }
-                .buttonStyle(PlainButtonStyle())
-                .accessibilityLabel(isSelected ? "取消选择客户" : "选择客户")
-                .accessibilityValue(customer.name)
-            }
-            
-            // Customer avatar placeholder
-            Circle()
-                .fill(Color.blue.gradient)
-                .frame(width: 40, height: 40)
-                .overlay {
-                    Text(String(customer.name.prefix(1)).uppercased())
-                        .font(.headline)
-                        .fontWeight(.semibold)
-                        .foregroundColor(.white)
-                }
-                .accessibilityHidden(true)
-            
-            // Enhanced customer info
-            VStack(alignment: .leading, spacing: 6) {
-                HStack {
-                    Text(customer.name)
-                        .font(.headline)
-                        .fontWeight(.medium)
-                    
-                    Spacer()
-                    
-                    Text(customer.createdAt, style: .date)
-                        .font(.caption2)
-                        .foregroundColor(.secondary)
-                }
-                
-                HStack(spacing: 4) {
-                    Image(systemName: "location")
-                        .foregroundColor(.secondary)
-                        .font(.caption)
-                    
-                    Text(customer.address)
-                        .font(.subheadline)
-                        .foregroundColor(.secondary)
-                        .lineLimit(1)
-                }
-                
-                if !customer.phone.isEmpty {
-                    HStack(spacing: 4) {
-                        Image(systemName: "phone")
-                            .foregroundColor(.secondary)
-                            .font(.caption)
-                        
-                        Text(customer.phone)
-                            .font(.caption)
-                            .foregroundColor(.secondary)
-                    }
-                }
-            }
-            .accessibilityElement(children: .combine)
-            .accessibilityLabel("客户信息")
-            .accessibilityValue("姓名：\(customer.name)，地址：\(customer.address)，电话：\(customer.phone)")
+            selectionCheckbox
+            customerAvatar
+            customerInformation
         }
-        .padding(.vertical, 12)
-        .padding(.horizontal, 16)
-        .background {
-            RoundedRectangle(cornerRadius: 12)
-                .fill(isSelected ? Color.blue.opacity(0.1) : Color(.systemBackground))
-                .stroke(isSelected ? Color.blue.opacity(0.3) : Color.clear, lineWidth: 1)
+    }
+    
+    @ViewBuilder
+    private var selectionCheckbox: some View {
+        if isBatchMode {
+            Button(action: onSelect) {
+                Image(systemName: isSelected ? "checkmark.circle.fill" : "circle")
+                    .foregroundColor(isSelected ? .blue : .gray)
+                    .font(.title2)
+                    .scaleEffect(isSelected ? 1.1 : 1.0)
+                    .animation(.easeInOut(duration: 0.2), value: isSelected)
+            }
+            .buttonStyle(PlainButtonStyle())
+            .accessibilityLabel(isSelected ? "取消选择客户" : "选择客户")
+            .accessibilityValue(customer.name)
         }
-        .overlay(alignment: .trailing) {
-            if !isBatchMode {
-                Image(systemName: "chevron.right")
+    }
+    
+    private var customerAvatar: some View {
+        Circle()
+            .fill(Color.blue.gradient)
+            .frame(width: 40, height: 40)
+            .overlay {
+                Text(String(customer.name.prefix(1)).uppercased())
+                    .font(.headline)
+                    .fontWeight(.semibold)
+                    .foregroundColor(.white)
+            }
+            .accessibilityHidden(true)
+    }
+    
+    private var customerInformation: some View {
+        VStack(alignment: .leading, spacing: 6) {
+            customerNameAndDate
+            customerAddressRow
+            customerPhoneRow
+        }
+        .accessibilityElement(children: .combine)
+        .accessibilityLabel("客户信息")
+        .accessibilityValue("姓名：\(customer.name)，地址：\(customer.address)，电话：\(customer.phone)")
+    }
+    
+    private var customerNameAndDate: some View {
+        HStack {
+            Text(customer.name)
+                .font(.headline)
+                .fontWeight(.medium)
+            
+            Spacer()
+            
+            Text(customer.createdAt, style: .date)
+                .font(.caption2)
+                .foregroundColor(.secondary)
+        }
+    }
+    
+    private var customerAddressRow: some View {
+        HStack(spacing: 4) {
+            Image(systemName: "location")
+                .foregroundColor(.secondary)
+                .font(.caption)
+            
+            Text(customer.address)
+                .font(.subheadline)
+                .foregroundColor(.secondary)
+                .lineLimit(1)
+        }
+    }
+    
+    @ViewBuilder
+    private var customerPhoneRow: some View {
+        if !customer.phone.isEmpty {
+            HStack(spacing: 4) {
+                Image(systemName: "phone")
+                    .foregroundColor(.secondary)
                     .font(.caption)
-                    .foregroundColor(.tertiary)
-                    .padding(.trailing, 8)
+                
+                Text(customer.phone)
+                    .font(.caption)
+                    .foregroundColor(.secondary)
             }
         }
-        .accessibilityElement(children: .contain)
-        .accessibilityAddTraits(isBatchMode ? [.isButton] : [.isButton, .startsMediaSession])
-        .accessibilityHint(isBatchMode ? "双击选择或取消选择" : "双击查看详情，左滑拨打电话，右滑编辑或删除")
+    }
+    
+    private var customerRowBackground: some View {
+        RoundedRectangle(cornerRadius: 12)
+            .fill(isSelected ? Color.blue.opacity(0.1) : Color(.systemBackground))
+            .stroke(isSelected ? Color.blue.opacity(0.3) : Color.clear, lineWidth: 1)
+    }
+    
+    @ViewBuilder
+    private var chevronIndicator: some View {
+        if !isBatchMode {
+            Image(systemName: "chevron.right")
+                .font(.caption)
+                .foregroundColor(.tertiary)
+                .padding(.trailing, 8)
+        }
     }
 }
 
