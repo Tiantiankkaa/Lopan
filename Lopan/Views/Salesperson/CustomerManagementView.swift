@@ -1187,7 +1187,7 @@ struct CustomerRowView: View {
         if !isBatchMode {
             Image(systemName: "chevron.right")
                 .font(.caption)
-                .foregroundColor(.tertiary)
+                .foregroundColor(.secondary)
                 .padding(.trailing, 8)
         }
     }
