@@ -33,7 +33,7 @@ struct DashboardView: View {
                     WorkshopTechnicianDashboardView(authService: authService, navigationService: navigationService)
                         .onAppear { navigationService.setCurrentWorkbenchContext(.workshopTechnician) }
                 case .administrator:
-                    AdministratorDashboardView(authService: authService, navigationService: navigationService)
+                    SimplifiedAdministratorDashboardView(authService: authService, navigationService: navigationService)
                         .onAppear { navigationService.setCurrentWorkbenchContext(.administrator) }
                 }
             } else {
@@ -114,9 +114,12 @@ struct UnauthorizedView: View {
 struct SalespersonDashboardView: View {
     @ObservedObject var authService: AuthenticationService
     @ObservedObject var navigationService: WorkbenchNavigationService
-    @Environment(\.modelContext) private var modelContext
-    @Query private var customers: [Customer]
-    @Query private var products: [Product]
+    @EnvironmentObject private var serviceFactory: ServiceFactory
+    @State private var customers: [Customer] = []
+    @State private var products: [Product] = []
+    @State private var isLoading: Bool = false
+    @State private var lastRefreshTime: Date? = nil
+    @State private var errorMessage: String? = nil
     
     var body: some View {
         NavigationView {
@@ -124,41 +127,16 @@ struct SalespersonDashboardView: View {
                 Text("salesperson_dashboard".localized)
                     .font(.title)
                     .fontWeight(.bold)
+                    .dynamicTypeSize(.small...DynamicTypeSize.accessibility1)
                 
-                // Database Status
-                HStack(spacing: 20) {
-                    VStack {
-                        Text("\(customers.count)")
-                            .font(.title2)
-                            .fontWeight(.bold)
-                            .foregroundColor(.blue)
-                        Text("customers".localized)
-                            .font(.caption)
-                            .foregroundColor(.secondary)
-                    }
-                    
-                    VStack {
-                        Text("\(products.count)")
-                            .font(.title2)
-                            .fontWeight(.bold)
-                            .foregroundColor(.purple)
-                        Text("products".localized)
-                            .font(.caption)
-                            .foregroundColor(.secondary)
-                    }
-                }
-                .onTapGesture {
-                    // Database status check - debug info removed for security
-                }
-                .padding()
-                .background(Color.gray.opacity(0.1))
-                .cornerRadius(12)
+                // Enhanced Data Statistics
+                dataStatisticsView
                 
                 LazyVGrid(columns: [
                     GridItem(.flexible()),
                     GridItem(.flexible())
                 ], spacing: 20) {
-                    NavigationLink(destination: CustomerOutOfStockListView()) {
+                    NavigationLink(destination: CustomerOutOfStockListViewV2()) {
                         DashboardCard(
                             title: "customer_out_of_stock_management".localized,
                             subtitle: "customer_out_of_stock_management_subtitle".localized,
@@ -167,7 +145,7 @@ struct SalespersonDashboardView: View {
                         )
                     }
                     
-                    NavigationLink(destination: ReturnGoodsManagementView()) {
+                    NavigationLink(destination: GiveBackManagementView()) {
                         DashboardCard(
                             title: "return_goods_management".localized,
                             subtitle: "return_goods_management_subtitle".localized,
@@ -219,6 +197,13 @@ struct SalespersonDashboardView: View {
             .padding()
             .navigationTitle("salesperson_dashboard".localized)
             .navigationBarTitleDisplayMode(.inline)
+            .adaptiveBackground()
+            .accessibilityElement(children: .contain)
+            .accessibilityLabel("销售员工作台")
+            .accessibilityHint("包含数据统计和各类功能入口")
+            .onAppear {
+                loadDashboardData()
+            }
             .toolbar {
                 ToolbarItem(placement: .navigationBarTrailing) {
                     Button(action: {
@@ -230,9 +215,128 @@ struct SalespersonDashboardView: View {
                         }
                         .font(.caption)
                     }
+                    .accessibilityLabel("工作台操作")
+                    .accessibilityHint("打开工作台选择器，切换到其他角色的工作台")
                 }
             }
         }
+    }
+    
+    private func loadDashboardData() {
+        Task {
+            await MainActor.run {
+                isLoading = true
+                errorMessage = nil
+            }
+            
+            do {
+                let loadedCustomers = try await serviceFactory.repositoryFactory.customerRepository.fetchCustomers()
+                let loadedProducts = try await serviceFactory.repositoryFactory.productRepository.fetchProducts()
+                
+                await MainActor.run {
+                    self.customers = loadedCustomers
+                    self.products = loadedProducts
+                    self.lastRefreshTime = Date()
+                    self.isLoading = false
+                }
+            } catch {
+                await MainActor.run {
+                    self.errorMessage = "加载数据失败: \(error.localizedDescription)"
+                    self.isLoading = false
+                }
+                print("Error loading dashboard data: \(error)")
+            }
+        }
+    }
+    
+    // MARK: - Enhanced Data Statistics View
+    private var dataStatisticsView: some View {
+        VStack(spacing: 16) {
+            // Status indicator
+            HStack {
+                if isLoading {
+                    ProgressView()
+                        .scaleEffect(0.8)
+                    Text("正在加载数据...")
+                        .font(.caption)
+                        .foregroundColor(.secondary)
+                } else if let errorMessage = errorMessage {
+                    Image(systemName: "exclamationmark.triangle.fill")
+                        .foregroundColor(.orange)
+                    Text(errorMessage)
+                        .font(.caption)
+                        .foregroundColor(.red)
+                        .multilineTextAlignment(.center)
+                } else if let lastRefreshTime = lastRefreshTime {
+                    Image(systemName: "checkmark.circle.fill")
+                        .foregroundColor(.green)
+                    Text("最后更新: \(lastRefreshTime, style: .time)")
+                        .font(.caption)
+                        .foregroundColor(.secondary)
+                }
+                
+                Spacer()
+                
+                Button(action: loadDashboardData) {
+                    Image(systemName: "arrow.clockwise")
+                        .font(.caption)
+                }
+                .disabled(isLoading)
+                .accessibilityLabel("刷新数据")
+            }
+            
+            // Data cards
+            if isLoading {
+                HStack(spacing: 20) {
+                    loadingCard("客户")
+                    loadingCard("产品")
+                }
+            } else {
+                HStack(spacing: 20) {
+                    StatCard(
+                        title: "客户",
+                        count: customers.count,
+                        color: .blue
+                    )
+                    .accessibilityElement(children: .combine)
+                    .accessibilityLabel("客户数量: \(customers.count)")
+                    
+                    StatCard(
+                        title: "产品",
+                        count: products.count,
+                        color: .purple
+                    )
+                    .accessibilityElement(children: .combine)
+                    .accessibilityLabel("产品数量: \(products.count)")
+                }
+            }
+        }
+        .padding()
+        .background(Color(.systemBackground))
+        .cornerRadius(16)
+        .shadow(color: .black.opacity(0.05), radius: 8, x: 0, y: 2)
+        .overlay(
+            RoundedRectangle(cornerRadius: 16)
+                .stroke(Color(.systemGray5), lineWidth: 1)
+        )
+    }
+    
+    // MARK: - Loading Card Helper
+    private func loadingCard(_ title: String) -> some View {
+        VStack(spacing: 8) {
+            ProgressView()
+                .scaleEffect(0.8)
+                .frame(height: 32)
+            
+            Text(title)
+                .font(.caption)
+                .foregroundColor(.secondary)
+                .dynamicTypeSize(.small...DynamicTypeSize.accessibility1)
+        }
+        .frame(maxWidth: .infinity)
+        .padding(.vertical, 12)
+        .background(Color.gray.opacity(0.05))
+        .cornerRadius(12)
     }
     
     // Test functions removed for production build optimization
@@ -468,7 +572,7 @@ struct WorkshopTechnicianDashboardView: View {
     }
 }
 
-struct AdministratorDashboardView: View {
+struct SimplifiedAdministratorDashboardView: View {
     @ObservedObject var authService: AuthenticationService
     @ObservedObject var navigationService: WorkbenchNavigationService
     @EnvironmentObject var serviceFactory: ServiceFactory
@@ -602,17 +706,22 @@ struct DashboardCard: View {
             Text(title)
                 .font(.headline)
                 .multilineTextAlignment(.center)
+                .dynamicTypeSize(.small...DynamicTypeSize.accessibility1)
             
             Text(subtitle)
                 .font(.caption)
                 .foregroundColor(.secondary)
                 .multilineTextAlignment(.center)
+                .dynamicTypeSize(.small...DynamicTypeSize.accessibility1)
         }
         .frame(maxWidth: .infinity)
         .padding()
         .background(Color.gray.opacity(0.1))
         .cornerRadius(12)
         .buttonStyle(PlainButtonStyle())
+        .accessibilityElement(children: .combine)
+        .accessibilityLabel(title)
+        .accessibilityHint(subtitle)
     }
 }
 
