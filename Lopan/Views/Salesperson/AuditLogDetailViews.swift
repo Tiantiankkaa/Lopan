@@ -317,9 +317,6 @@ struct OperationDetailView: View {
             if let quantity = values.quantity {
                 AuditInfoRow(label: "数量", value: "\(quantity)", compact: true)
             }
-            if let priority = values.priority {
-                AuditInfoRow(label: "优先级", value: priority, compact: true)
-            }
             if let status = values.status {
                 AuditInfoRow(label: "状态", value: status, compact: true)
             }
@@ -327,10 +324,10 @@ struct OperationDetailView: View {
                 AuditInfoRow(label: "备注", value: notes, compact: true)
             }
             if let returnQuantity = values.returnQuantity, returnQuantity > 0 {
-                AuditInfoRow(label: "退货数量", value: "\(returnQuantity)", compact: true)
+                AuditInfoRow(label: "还货数量", value: "\(returnQuantity)", compact: true)
             }
             if let returnNotes = values.returnNotes, !returnNotes.isEmpty {
-                AuditInfoRow(label: "退货备注", value: returnNotes, compact: true)
+                AuditInfoRow(label: "还货备注", value: returnNotes, compact: true)
             }
         }
     }
@@ -356,11 +353,11 @@ struct OperationDetailView: View {
     private func returnProcessView(_ details: [String: Any]) -> some View {
         VStack(alignment: .leading, spacing: 8) {
             if let returnQuantity = details["returnQuantity"] as? Int {
-                AuditInfoRow(label: "本次退货数量", value: "\(returnQuantity)", compact: true)
+                AuditInfoRow(label: "本次还货数量", value: "\(returnQuantity)", compact: true)
             }
             
             if let totalReturn = details["newTotalReturnQuantity"] as? Int {
-                AuditInfoRow(label: "累计退货数量", value: "\(totalReturn)", compact: true)
+                AuditInfoRow(label: "累计还货数量", value: "\(totalReturn)", compact: true)
             }
             
             if let remaining = details["remainingQuantity"] as? Int {
@@ -368,7 +365,7 @@ struct OperationDetailView: View {
             }
             
             if let notes = details["returnNotes"] as? String, !notes.isEmpty {
-                AuditInfoRow(label: "退货备注", value: notes, compact: true)
+                AuditInfoRow(label: "还货备注", value: notes, compact: true)
             }
         }
     }

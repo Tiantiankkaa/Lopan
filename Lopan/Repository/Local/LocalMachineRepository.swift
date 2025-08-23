@@ -8,6 +8,7 @@
 import Foundation
 import SwiftData
 
+@MainActor
 class LocalMachineRepository: MachineRepository {
     private let context: ModelContext
     

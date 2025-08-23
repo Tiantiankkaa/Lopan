@@ -37,7 +37,7 @@ struct StationConflictInfo {
             description += "Gun B 工位 \(gunBStations)"
         }
         
-        return description + " 处于待审核状态"
+        return description + " 已被占用"
     }
 }
 
@@ -132,8 +132,9 @@ class ProductionConfigurationViewModel: ObservableObject {
         // Load all batches and find the current one for this machine
         await batchService.loadBatches()
         
-        // Find the most recent unsubmitted batch for this machine that matches current mode
-        // Active, completed, and other states should not be shown in production configuration section
+        // Find the most recent batch that can be configured for this machine
+        // Only include unsubmitted batches in the production configuration area
+        // Other statuses (pending, approved, pendingExecution) are shown in approval status area only
         currentBatch = batchService.batches
             .filter { $0.machineId == machine.id }
             .filter { $0.status == .unsubmitted }
@@ -184,19 +185,10 @@ class ProductionConfigurationViewModel: ObservableObject {
     func createNewBatch() {
         guard let machine = selectedMachine else { return }
         
-        // Validate machine status before attempting batch creation
-        guard machine.canReceiveNewTasks else {
-            let statusMessage: String
-            switch machine.status {
-            case .maintenance:
-                statusMessage = "设备 A-\(String(format: "%03d", machine.machineNumber)) 正在维护中，无法创建新的生产批次。请等待维护完成后重试。"
-            case .error:
-                statusMessage = "设备 A-\(String(format: "%03d", machine.machineNumber)) 出现故障，无法创建新的生产批次。请联系技术人员处理。"
-            case .stopped:
-                statusMessage = "设备 A-\(String(format: "%03d", machine.machineNumber)) 已停机，无法创建新的生产批次。请先启动设备。"
-            default:
-                statusMessage = "设备 A-\(String(format: "%03d", machine.machineNumber)) 当前状态不允许创建新的生产批次。"
-            }
+        // Enhanced validation using new equipment availability logic
+        let (canAccept, reason) = canMachineAcceptNewBatch(machine)
+        guard canAccept else {
+            let statusMessage = "设备 A-\(String(format: "%03d", machine.machineNumber)) 无法创建新的生产批次：\(reason ?? "未知原因")"
             setError(statusMessage)
             return
         }
@@ -307,7 +299,7 @@ class ProductionConfigurationViewModel: ObservableObject {
                 try? await Task.sleep(nanoseconds: 30_000_000_000) // 30 seconds
                 
                 if !Task.isCancelled {
-                    await refreshMachineStatuses()
+                    await refreshMachineStatusesAndBatches()
                 }
             }
         }
@@ -318,37 +310,201 @@ class ProductionConfigurationViewModel: ObservableObject {
         pollingTask = nil
     }
     
-    private func refreshMachineStatuses() async {
+    /// Enhanced status refresh with batch synchronization and validation
+    /// 增强的状态刷新，包含批次同步和验证
+    private func refreshMachineStatusesAndBatches() async {
+        // Store current batch to preserve user's view
+        let previousBatch = currentBatch
+        
+        // Refresh machine statuses
         await machineService.loadMachines()
         availableMachines = machineService.machines
-    }
-    
-    // MARK: - Station Management
-    func getOccupiedStations(for machine: WorkshopMachine) -> Set<Int> {
-        // Get all batches for this machine that occupy stations
-        // Only include pending batches for station conflict calculation
-        let pendingBatches = batchService.batches.filter { batch in
-            guard batch.machineId == machine.id else { return false }
+        
+        // Update selected machine reference
+        if let selectedMachine = selectedMachine,
+           let updatedMachine = machineService.machines.first(where: { $0.id == selectedMachine.id }) {
+            self.selectedMachine = updatedMachine
             
-            // Only include pending batches - they are the ones that reserve stations
-            // Active batches are executing but don't prevent new configurations
-            switch batch.status {
-            case .pending:
-                return true
-            case .unsubmitted, .approved, .pendingExecution, .rejected, .active, .completed:
-                return false
+            // Only reload current batch if previous batch is no longer valid (e.g., status changed from unsubmitted)
+            // This prevents unwanted interface switching during periodic refresh
+            if let prevBatch = previousBatch {
+                await batchService.loadBatches()
+                let updatedBatch = batchService.batches.first { $0.id == prevBatch.id }
+                
+                // Keep showing the batch only if it's still unsubmitted (editable)
+                if let batch = updatedBatch, shouldKeepBatchVisible(batch) {
+                    currentBatch = batch
+                } else {
+                    // Previous batch is no longer editable (submitted/approved/etc), find a new editable one
+                    await loadCurrentBatch(for: updatedMachine)
+                }
+            } else {
+                await loadCurrentBatch(for: updatedMachine)
             }
         }
         
-        // Collect all occupied stations from pending batches
+        // Synchronize machine statuses with active batches
+        let syncCount = await batchService.synchronizeMachineStatuses()
+        if syncCount > 0 {
+            print("Synchronized \(syncCount) machine(s) with batch statuses")
+            // Reload machines after synchronization
+            await machineService.loadMachines()
+            availableMachines = machineService.machines
+        }
+        
+        // Validate system consistency and auto-fix issues
+        await validateAndFixSystemConsistency()
+        
+        // Update machine utilization rates
+        await updateMachineUtilizationRates()
+    }
+    
+    /// Legacy method for backward compatibility
+    private func refreshMachineStatuses() async {
+        await refreshMachineStatusesAndBatches()
+    }
+    
+    /// Check if a batch should remain visible in configuration view
+    /// 检查批次是否应该继续在配置视图中显示
+    private func shouldKeepBatchVisible(_ batch: ProductionBatch) -> Bool {
+        // Keep batch visible only if it's still configurable
+        // Only unsubmitted batches can be edited in production configuration area
+        // Other statuses are handled in approval status area only
+        return batch.status == .unsubmitted
+    }
+    
+    /// Validate system consistency and auto-fix minor issues
+    /// 验证系统一致性并自动修复小问题
+    private func validateAndFixSystemConsistency() async {
+        let issues = await batchService.validateSystemConsistency()
+        
+        if !issues.isEmpty {
+            print("Found \(issues.count) consistency issue(s)")
+            
+            // Attempt to auto-fix issues
+            let fixedCount = await batchService.fixMachineValidationIssues(issues)
+            
+            if fixedCount > 0 {
+                print("Auto-fixed \(fixedCount) consistency issue(s)")
+                
+                // Reload data after fixes
+                await machineService.loadMachines()
+                availableMachines = machineService.machines
+                
+                if let selectedMachine = selectedMachine,
+                   let updatedMachine = machineService.machines.first(where: { $0.id == selectedMachine.id }) {
+                    self.selectedMachine = updatedMachine
+                    await loadCurrentBatch(for: updatedMachine)
+                }
+            }
+            
+            // Report any remaining issues
+            let remainingIssues = issues.count - fixedCount
+            if remainingIssues > 0 {
+                print("Warning: \(remainingIssues) consistency issue(s) require manual attention")
+                
+                // Set error message for critical issues
+                let criticalIssues = issues.filter { issue in
+                    issue.type == .batchOrphanedMachine || issue.type == .validationError 
+                }
+                if !criticalIssues.isEmpty {
+                    setError("System consistency issues detected. Please check machine and batch status.")
+                }
+            }
+        }
+    }
+    
+    /// Update machine utilization rates for all machines
+    /// 更新所有机器的利用率
+    private func updateMachineUtilizationRates() async {
+        for machine in availableMachines {
+            _ = await machineService.updateMachineUtilizationRate(machine)
+        }
+    }
+    
+    /// Force refresh all status and synchronization data
+    /// 强制刷新所有状态和同步数据
+    func forceRefreshStatus() async {
+        isLoading = true
+        await refreshMachineStatusesAndBatches()
+        isLoading = false
+    }
+    
+    // MARK: - Enhanced Station Management with Active Batch Support
+    func getOccupiedStations(for machine: WorkshopMachine) -> Set<Int> {
         var occupiedStations = Set<Int>()
-        for batch in pendingBatches {
+        
+        // Only check stations occupied by pending (待审核) batches for conflict validation
+        // According to business logic: only pending batches should block new submissions
+        // - pending (待审核): should block conflicting submissions
+        // - pendingExecution (待执行): should block conflicting submissions  
+        // - active (执行中): does not block new submissions (shown in approval status)
+        // - completed (已完成): does not block new submissions (shown in approval status)
+        let conflictingBatches = batchService.batches.filter { batch in
+            guard batch.machineId == machine.id else { return false }
+            // Only consider pending and pendingExecution batches for station conflicts
+            return batch.status == .pending || batch.status == .pendingExecution
+        }
+        
+        // Collect all occupied stations from conflicting batches
+        for batch in conflictingBatches {
             for product in batch.products {
                 occupiedStations.formUnion(product.occupiedStations)
             }
         }
         
         return occupiedStations
+    }
+    
+    /// Get stations that would be available if the current active batch is completed
+    /// 获取当前活跃批次完成后可用的工位
+    func getProjectedAvailableStations(for machine: WorkshopMachine) -> Set<Int> {
+        let allStations = Set(1...12)
+        
+        // Only consider pending batches, exclude current active batch
+        let pendingOccupied = batchService.batches
+            .filter { $0.machineId == machine.id }
+            .filter { $0.status == .pending }
+            .flatMap { batch in batch.products.flatMap { $0.occupiedStations } }
+        
+        return allStations.subtracting(Set(pendingOccupied))
+    }
+    
+    /// Check if machine can accept a new batch based on current execution state
+    /// 基于当前执行状态检查机器是否可以接受新批次
+    func canMachineAcceptNewBatch(_ machine: WorkshopMachine) -> (canAccept: Bool, reason: String?) {
+        // Basic operational checks
+        guard machine.isActive else {
+            return (false, "Machine is disabled")
+        }
+        
+        guard machine.isOperational else {
+            return (false, "Machine is not operational (\(machine.status.displayName))")
+        }
+        
+        // Check if machine already has an active batch and can't accept new ones
+        if machine.hasActiveProductionBatch {
+            // In production configuration context, we allow creating new batches
+            // even when machine has active batch (they will be pending)
+            let availableStations = getProjectedAvailableStations(for: machine)
+            let minStationsNeeded = selectedMode.minStationsPerProduct
+            
+            if availableStations.count < minStationsNeeded {
+                return (false, "Insufficient stations available for new batch (need \(minStationsNeeded), available \(availableStations.count))")
+            }
+            
+            return (true, "Note: Machine has active batch. New batch will be queued.")
+        }
+        
+        // Check station availability for machines without active batches
+        let availableStations = getAvailableStations(for: machine)
+        let minStationsNeeded = selectedMode.minStationsPerProduct
+        
+        if availableStations.count < minStationsNeeded {
+            return (false, "Insufficient stations available (need \(minStationsNeeded), available \(availableStations.count))")
+        }
+        
+        return (true, nil)
     }
     
     func getAvailableStations(for machine: WorkshopMachine) -> Set<Int> {
@@ -462,7 +618,7 @@ class ProductionConfigurationViewModel: ObservableObject {
     }
     
     var submitButtonText: String {
-        guard let batch = currentBatch else { return "创建批次后可提交" }
+        guard let batch = currentBatch else { return "提交批次" }
         
         switch batch.status {
         case .unsubmitted:
@@ -485,7 +641,7 @@ class ProductionConfigurationViewModel: ObservableObject {
     
     var submitButtonDisabledReason: String {
         guard let batch = currentBatch else {
-            return "需要先选择设备和生产模式并创建批次"
+            return "选择设备和模式"
         }
         
         if batch.products.isEmpty {
@@ -529,15 +685,30 @@ class ProductionConfigurationViewModel: ObservableObject {
     var stationUsageInfo: String {
         guard let machine = selectedMachine else { return "选择设备后查看工位信息" }
         
-        let pendingOccupiedCount = getPendingOccupiedStationCount(for: machine)
+        let occupiedCount = getOccupiedStations(for: machine).count
         let availableCount = getAvailableStationCount(for: machine)
         
-        if let batch = currentBatch {
-            let currentBatchStations = batch.totalStationsUsed
-            return "设备工位: \(pendingOccupiedCount)/12 已占用, \(availableCount) 个可用 | 当前批次: \(currentBatchStations) 个工位"
+        var info = "设备工位: \(occupiedCount)/12 已占用, \(availableCount) 个可用"
+        
+        // Add active batch info if machine has one
+        if machine.hasActiveProductionBatch {
+            let runningStations = machine.stations.filter { $0.status == .running }.count
+            info += " | 执行中: \(runningStations) 个工位"
+            
+            // Show projected availability
+            let projectedAvailable = getProjectedAvailableStations(for: machine).count
+            if projectedAvailable != availableCount {
+                info += " (完成后可用: \(projectedAvailable))"
+            }
         }
         
-        return "设备工位: \(pendingOccupiedCount)/12 已占用, \(availableCount) 个可用"
+        // Add current batch info
+        if let batch = currentBatch {
+            let currentBatchStations = batch.totalStationsUsed
+            info += " | 当前批次: \(currentBatchStations) 个工位"
+        }
+        
+        return info
     }
     
     // MARK: - Service Access

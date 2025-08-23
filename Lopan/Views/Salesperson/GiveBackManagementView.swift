@@ -1,5 +1,5 @@
 //
-//  ReturnGoodsManagementView.swift
+//  GiveBackManagementView.swift
 //  Lopan
 //
 //  Created by Bobo on 2025/7/28.
@@ -8,11 +8,13 @@
 import SwiftUI
 import SwiftData
 
-struct ReturnGoodsManagementView: View {
+struct GiveBackManagementView: View {
     @Environment(\.modelContext) private var modelContext
     @Query(sort: \CustomerOutOfStock.requestDate, order: .reverse) private var outOfStockItems: [CustomerOutOfStock]
     
     @State private var searchText = ""
+    @State private var debouncedSearchText = ""
+    @State private var searchTask: Task<Void, Never>?
     @State private var selectedReturnStatus: ReturnStatus? = nil
     @State private var selectedCustomer: Customer? = nil
     @State private var selectedAddress: String? = nil
@@ -33,14 +35,73 @@ struct ReturnGoodsManagementView: View {
     @State private var returnNotes: String = ""
     
     var body: some View {
-        VStack {
-            mainContentView
+        GeometryReader { geometry in
+            let isCompact = geometry.size.width < 400
+            
+            VStack(spacing: 0) {
+                if isEditing {
+                    BatchOperationHeader(
+                        selectedCount: selectedItems.count,
+                        totalCount: filteredItemsNeedingReturn.count,
+                        onCancel: { cancelBatchEdit() },
+                        onProcess: { },
+                        onSelectAll: { toggleSelectAll() },
+                        onSecondaryAction: { showingBatchReturnSheet = true },
+                        processButtonText: "",
+                        secondaryActionText: "还货",
+                        processHint: "处理选中的还货申请"
+                    )
+                    .transition(.asymmetric(
+                        insertion: .move(edge: .top).combined(with: .opacity),
+                        removal: .move(edge: .top).combined(with: .opacity)
+                    ))
+                }
+                
+                ScrollView {
+                    LazyVStack(spacing: isCompact ? 12 : 16) {
+                        filterCard
+                        statisticsCard
+                        returnItemsSection
+                    }
+                    .padding(.horizontal, isCompact ? 12 : 16)
+                    .padding(.vertical, 16)
+                }
+                .refreshable {
+                    // Refresh logic here
+                }
+            }
         }
         .navigationTitle("return_goods_management".localized)
         .navigationBarTitleDisplayMode(.inline)
+        .background(Color(.systemGroupedBackground))
+        .accessibilityElement(children: .contain)
+        .accessibilityLabel("还货管理界面")
+        .accessibilityHint("包含过滤器、统计信息和还货记录列表")
+        .animation(.spring(response: 0.6, dampingFraction: 0.8), value: isEditing)
+        .toolbar {
+            ToolbarItem(placement: .navigationBarTrailing) {
+                Menu {
+                    Button(action: { showingExportSheet = true }) {
+                        Label("导出", systemImage: "square.and.arrow.up")
+                    }
+                    .disabled(filteredItemsNeedingReturn.isEmpty)
+                    
+                    Button(action: { startBatchEdit() }) {
+                        Label("批量操作", systemImage: "checkmark.circle")
+                    }
+                    .disabled(filteredItemsNeedingReturn.isEmpty)
+                } label: {
+                    Image(systemName: "ellipsis.circle")
+                        .accessibilityLabel("更多选项")
+                }
+            }
+        }
+        .onChange(of: searchText) { _, newValue in
+            updateSearch()
+        }
         .onAppear {
             // Debug: Check if we have data
-            print("🔍 ReturnGoodsManagementView - Total outOfStockItems: \(outOfStockItems.count)")
+            print("🔍 GiveBackManagementView - Total outOfStockItems: \(outOfStockItems.count)")
             
             // Initialize sample data if empty
             if outOfStockItems.isEmpty {
@@ -50,7 +111,7 @@ struct ReturnGoodsManagementView: View {
             
             // Debug: Print items status
             for item in outOfStockItems {
-                print("   - Customer: \(item.customer?.name ?? "Unknown"), Product: \(item.product?.name ?? "Unknown"), Status: \(item.status.displayName), NeedsReturn: \(item.needsReturn)")
+                print("   - Customer: \(item.customerDisplayName), Product: \(item.product?.name ?? "Unknown"), Status: \(item.status.displayName), NeedsReturn: \(item.needsReturn)")
             }
         }
         .sheet(isPresented: $showingBatchReturnSheet) {
@@ -70,148 +131,222 @@ struct ReturnGoodsManagementView: View {
                 confirmReturnProcessing()
             }
         } message: {
-            Text("确定要处理选中的 \(itemsToReturn.count) 个退货记录吗？".localized(with: itemsToReturn.count))
+            Text("确定要处理选中的 \(itemsToReturn.count) 个还货记录吗？")
         }
     }
     
-    private var mainContentView: some View {
+    // MARK: - Card-based Layout Components
+    
+    private var filterCard: some View {
         VStack(spacing: 0) {
-            if isEditing {
-                batchOperationToolbar
-            }
-            filterSection
-            statisticsSection
-            itemsListSection
-        }
-    }
-    
-    private var filterSection: some View {
-        VStack(spacing: 12) {
-            if !isEditing {
-                filterToggleButton
-                if showingAdvancedFilters {
-                    filtersView
+            filterToggleHeader
+            
+            if showingAdvancedFilters {
+                VStack(spacing: 12) {
+                    filtersGrid
+                    dateFilterSection
                 }
+                .padding(.top, 12)
+                .transition(.asymmetric(
+                    insertion: .push(from: .top).combined(with: .opacity),
+                    removal: .push(from: .bottom).combined(with: .opacity)
+                ))
             }
-            batchSelectionStatus
+            
+            ActiveFiltersIndicator(
+                selectedReturnStatus: selectedReturnStatus,
+                selectedCustomer: selectedCustomer,
+                selectedAddress: selectedAddress,
+                isFilteringByDate: isFilteringByDate,
+                selectedDate: selectedDate,
+                onRemoveReturnStatus: { selectedReturnStatus = nil },
+                onRemoveCustomer: { selectedCustomer = nil },
+                onRemoveAddress: { selectedAddress = nil },
+                onRemoveDateFilter: { isFilteringByDate = false },
+                onClearAllFilters: { clearAllFilters() }
+            )
         }
-        .padding()
+        .padding(16)
+        .background(
+            RoundedRectangle(cornerRadius: 16)
+                .fill(Color(.systemBackground))
+                .shadow(color: .black.opacity(0.05), radius: 6, x: 0, y: 2)
+        )
     }
     
-    private var filterToggleButton: some View {
+    private var statisticsCard: some View {
+        StatisticsOverviewCard(
+            needsReturnCount: outOfStockItems.filter { $0.needsReturn }.count,
+            partialReturnCount: outOfStockItems.filter { $0.hasPartialReturn }.count,
+            completedReturnCount: outOfStockItems.filter { $0.isFullyReturned }.count,
+            lastUpdated: Date()
+        )
+        .onTapGesture {
+            // Debug: Print detailed statistics
+            print("📊 Statistics Debug:")
+            print("   - Total items: \(outOfStockItems.count)")
+            print("   - Needs return: \(outOfStockItems.filter { $0.needsReturn }.count)")
+            print("   - Partial returns: \(outOfStockItems.filter { $0.hasPartialReturn }.count)")
+            print("   - Fully returned: \(outOfStockItems.filter { $0.isFullyReturned }.count)")
+            print("   - Filtered items: \(filteredItemsNeedingReturn.count)")
+            print("   - Is editing mode: \(isEditing)")
+        }
+    }
+    
+    private var filterToggleHeader: some View {
         HStack {
             Button(action: {
-                withAnimation {
+                withAnimation(.easeInOut(duration: 0.3)) {
                     showingAdvancedFilters.toggle()
                 }
             }) {
-                HStack {
-                    Image(systemName: showingAdvancedFilters ? "chevron.up" : "chevron.down")
-                    Text("filter_by_return_status".localized)
+                HStack(spacing: 8) {
+                    Image(systemName: showingAdvancedFilters ? "chevron.up.circle.fill" : "chevron.down.circle")
+                        .font(.title3)
+                        .foregroundColor(.blue)
+                    
+                    Text("筛选选项")
+                        .font(.subheadline)
+                        .fontWeight(.medium)
+                        .foregroundColor(.primary)
+                    
+                    if activeFiltersCount > 0 {
+                        Text("\(activeFiltersCount) 个筛选")
+                            .font(.caption)
+                            .padding(.horizontal, 8)
+                            .padding(.vertical, 4)
+                            .background(Color.blue.opacity(0.2))
+                            .foregroundColor(.blue)
+                            .cornerRadius(12)
+                    }
                 }
-                .foregroundColor(.blue)
+                .contentShape(Rectangle())
             }
+            .buttonStyle(.plain)
+            .accessibilityLabel(showingAdvancedFilters ? "隐藏过滤器" : "显示过滤器")
+            .accessibilityHint("点击可切换过滤器的显示状态")
             
             Spacer()
             
-            HStack(spacing: 16) {
-                Button(action: { showingExportSheet = true }) {
-                    HStack {
-                        Image(systemName: "square.and.arrow.up")
-                        Text("export_return_orders".localized)
-                    }
-                    .foregroundColor(.green)
-                }
-                
-                Button(action: { startBatchEdit() }) {
-                    Text("batch_return".localized)
-                        .foregroundColor(.blue)
-                }
-            }
         }
     }
     
-    private var filtersView: some View {
-        VStack(spacing: 8) {
-            returnStatusFilterButton
-            customerFilterButton
-            addressFilterButton
-            dateFilterSection
+    
+    private var filtersGrid: some View {
+        LazyVGrid(columns: [
+            GridItem(.flexible()),
+            GridItem(.flexible())
+        ], spacing: 12) {
+            enhancedReturnStatusFilterMenu
+            enhancedCustomerFilterMenu
+            enhancedAddressFilterMenu
         }
     }
     
-    private var returnStatusFilterButton: some View {
+    private var enhancedReturnStatusFilterMenu: some View {
         Menu {
-            Button("all_return_status".localized) {
-                selectedReturnStatus = nil
+            Button(action: { selectReturnStatus(nil) }) {
+                Label("全部状态", systemImage: selectedReturnStatus == nil ? "checkmark" : "")
             }
-            Button("pending_return".localized) {
-                selectedReturnStatus = .needsReturn
-            }
-            Button("partial_return".localized) {
-                selectedReturnStatus = .partialReturn
-            }
-            Button("completed_return".localized) {
-                selectedReturnStatus = .completed
+            
+            Divider()
+            
+            ForEach(ReturnStatus.allCases, id: \.self) { status in
+                Button(action: { selectReturnStatus(status) }) {
+                    Label(
+                        status.displayName, 
+                        systemImage: selectedReturnStatus == status ? "checkmark" : status.systemImage
+                    )
+                }
             }
         } label: {
             HStack {
-                Text(selectedReturnStatus?.displayName ?? "all_return_status".localized)
+                Text(selectedReturnStatus?.displayName ?? "全部状态")
+                    .foregroundColor(.primary)
+                    .font(.subheadline)
                 Spacer()
-                Image(systemName: "chevron.down")
+                Image(systemName: "chevron.up.chevron.down")
+                    .font(.caption2)
+                    .foregroundColor(.secondary)
             }
-            .padding()
+            .padding(12)
             .background(Color(.systemGray6))
-            .cornerRadius(8)
+            .cornerRadius(10)
         }
-        .foregroundColor(.primary)
+        .accessibilityLabel("选择还货状态")
+        .accessibilityValue(selectedReturnStatus?.displayName ?? "全部状态")
     }
     
-    private var customerFilterButton: some View {
+    private var enhancedCustomerFilterMenu: some View {
         Menu {
             Button("全部客户") {
                 selectedCustomer = nil
             }
-            ForEach(uniqueCustomers, id: \.id) { customer in
-                Button(customer.name) {
-                    selectedCustomer = customer
+            
+            if !uniqueCustomers.isEmpty {
+                Divider()
+                ForEach(uniqueCustomers, id: \.id) { customer in
+                    Button(action: { selectedCustomer = customer }) {
+                        Label(
+                            customer.name,
+                            systemImage: selectedCustomer?.id == customer.id ? "checkmark" : "person"
+                        )
+                    }
                 }
             }
         } label: {
             HStack {
                 Text(selectedCustomer?.name ?? "全部客户")
+                    .foregroundColor(.primary)
+                    .font(.subheadline)
+                    .lineLimit(1)
                 Spacer()
-                Image(systemName: "chevron.down")
+                Image(systemName: "chevron.up.chevron.down")
+                    .font(.caption2)
+                    .foregroundColor(.secondary)
             }
-            .padding()
+            .padding(12)
             .background(Color(.systemGray6))
-            .cornerRadius(8)
+            .cornerRadius(10)
         }
-        .foregroundColor(.primary)
+        .accessibilityLabel("选择客户")
+        .accessibilityValue(selectedCustomer?.name ?? "全部客户")
     }
     
-    private var addressFilterButton: some View {
+    private var enhancedAddressFilterMenu: some View {
         Menu {
             Button("全部地址") {
                 selectedAddress = nil
             }
-            ForEach(uniqueAddresses, id: \.self) { address in
-                Button(address) {
-                    selectedAddress = address
+            
+            if !uniqueAddresses.isEmpty {
+                Divider()
+                ForEach(uniqueAddresses, id: \.self) { address in
+                    Button(action: { selectedAddress = address }) {
+                        Label(
+                            address,
+                            systemImage: selectedAddress == address ? "checkmark" : "location"
+                        )
+                    }
                 }
             }
         } label: {
             HStack {
                 Text(selectedAddress ?? "全部地址")
+                    .foregroundColor(.primary)
+                    .font(.subheadline)
                     .lineLimit(1)
                 Spacer()
-                Image(systemName: "chevron.down")
+                Image(systemName: "chevron.up.chevron.down")
+                    .font(.caption2)
+                    .foregroundColor(.secondary)
             }
-            .padding()
+            .padding(12)
             .background(Color(.systemGray6))
-            .cornerRadius(8)
+            .cornerRadius(10)
         }
-        .foregroundColor(.primary)
+        .accessibilityLabel("选择地址")
+        .accessibilityValue(selectedAddress ?? "全部地址")
     }
     
     private var dateFilterSection: some View {
@@ -241,166 +376,54 @@ struct ReturnGoodsManagementView: View {
         }
     }
     
-    private var batchOperationToolbar: some View {
-        HStack(spacing: 0) {
-            Button(action: { showingBatchReturnSheet = true }) {
-                Text("process_selected_returns".localized)
-                    .font(.system(size: 16, weight: .medium))
-                    .foregroundColor(.blue)
-                    .frame(maxWidth: .infinity)
-                    .padding(.vertical, 12)
-            }
-            .disabled(selectedItems.isEmpty)
-            
-            Divider()
-                .frame(height: 20)
-            
-            Button(action: { toggleSelectAll() }) {
-                Text(selectedItems.count == filteredItemsNeedingReturn.count ? "取消全选" : "全选")
-                    .font(.system(size: 16, weight: .medium))
-                    .foregroundColor(.green)
-                    .frame(maxWidth: .infinity)
-                    .padding(.vertical, 12)
-            }
-            
-            Divider()
-                .frame(height: 20)
-            
-            Button(action: { cancelBatchEdit() }) {
-                Text("cancel".localized)
-                    .font(.system(size: 16, weight: .medium))
-                    .foregroundColor(.red)
-                    .frame(maxWidth: .infinity)
-                    .padding(.vertical, 12)
+    
+    
+    
+    private var returnItemsSection: some View {
+        VStack(spacing: 0) {
+            if filteredItemsNeedingReturn.isEmpty {
+                EmptyReturnStateView(
+                    isEditing: isEditing,
+                    totalItemsCount: outOfStockItems.count,
+                    onInitializeSampleData: outOfStockItems.isEmpty ? {
+                        // Sample data initialization moved to app level
+                    } : nil
+                )
+            } else {
+                ReturnItemsList(
+                    items: filteredItemsNeedingReturn,
+                    isEditing: isEditing,
+                    selectedItems: selectedItems,
+                    onItemSelection: { item in
+                        withHapticFeedback(.light) {
+                            toggleItemSelection(item)
+                        }
+                    },
+                    onItemTap: { item in
+                        // Navigate to detail view
+                        // This would need to be implemented with NavigationPath or similar
+                    }
+                )
             }
         }
-        .background(Color.gray.opacity(0.1))
-        .overlay(
-            Rectangle()
-                .frame(height: 0.5)
-                .foregroundColor(Color.gray.opacity(0.3)),
-            alignment: .bottom
+        .background(
+            RoundedRectangle(cornerRadius: 16)
+                .fill(Color(.systemBackground))
+                .shadow(color: .black.opacity(0.05), radius: 6, x: 0, y: 2)
         )
     }
     
-    private var batchSelectionStatus: some View {
-        Group {
-            if isEditing {
-                HStack {
-                    Text("已选择 \(selectedItems.count) 个记录".localized(with: selectedItems.count))
-                        .font(.caption)
-                        .foregroundColor(.secondary)
-                    Spacer()
-                }
-                .padding(.horizontal)
-                .padding(.vertical, 8)
-                .background(Color.blue.opacity(0.1))
-                .cornerRadius(8)
-                .padding(.horizontal)
-            }
-        }
-    }
-    
-    private var statisticsSection: some View {
-        HStack(spacing: 20) {
-            StatCard(
-                title: "customers_needing_returns".localized,
-                count: outOfStockItems.filter { $0.needsReturn }.count,
-                color: .orange
-            )
-            
-            StatCard(
-                title: "partially_returned".localized,
-                count: outOfStockItems.filter { $0.hasPartialReturn }.count,
-                color: .blue
-            )
-            
-            StatCard(
-                title: "fully_returned".localized,
-                count: outOfStockItems.filter { $0.isFullyReturned }.count,
-                color: .green
-            )
-        }
-        .padding(.horizontal)
-        .onTapGesture {
-            // Debug: Print detailed statistics
-            print("📊 Statistics Debug:")
-            print("   - Total items: \(outOfStockItems.count)")
-            print("   - Needs return: \(outOfStockItems.filter { $0.needsReturn }.count)")
-            print("   - Partial returns: \(outOfStockItems.filter { $0.hasPartialReturn }.count)")
-            print("   - Fully returned: \(outOfStockItems.filter { $0.isFullyReturned }.count)")
-            print("   - Filtered items: \(filteredItemsNeedingReturn.count)")
-            print("   - Is editing mode: \(isEditing)")
-            if isEditing {
-                print("   - Items hidden in batch mode: \(outOfStockItems.filter { $0.isFullyReturned }.count)")
-            }
-        }
-    }
-    
-    private var itemsListSection: some View {
-        Group {
-            if filteredItemsNeedingReturn.isEmpty {
-                emptyStateView
-            } else {
-                List {
-                    ForEach(filteredItemsNeedingReturn) { item in
-                        if isEditing {
-                            ReturnGoodsRowView(
-                                item: item,
-                                isSelected: selectedItems.contains(item.id),
-                                isEditing: isEditing,
-                                onSelect: { toggleItemSelection(item) }
-                            )
-                        } else {
-                            NavigationLink(destination: ReturnGoodsDetailView(item: item)) {
-                                ReturnGoodsRowView(
-                                    item: item,
-                                    isSelected: false,
-                                    isEditing: false,
-                                    onSelect: {}
-                                )
-                            }
-                            .buttonStyle(PlainButtonStyle())
-                        }
-                    }
-                }
-                .listStyle(PlainListStyle())
-            }
-        }
-    }
-    
-    private var emptyStateView: some View {
-        VStack(spacing: 16) {
-            Image(systemName: "arrow.uturn.left.circle")
-                .font(.system(size: 60))
-                .foregroundColor(.secondary)
-            
-            Text(isEditing ? "暂无可批量处理的还货记录" : "暂无还货记录")
-                .font(.headline)
-                .foregroundColor(.secondary)
-            
-            Text("总记录数: \(outOfStockItems.count)")
-                .font(.subheadline)
-                .foregroundColor(.secondary)
-            
-            if outOfStockItems.isEmpty {
-                Button("初始化示例数据") {
-                    // Sample data initialization moved to app level
-                }
-                .padding()
-                .background(Color.blue)
-                .foregroundColor(.white)
-                .cornerRadius(8)
-            }
-        }
-        .frame(maxWidth: .infinity, maxHeight: .infinity)
-        .background(Color(.systemGroupedBackground))
-    }
     
     // MARK: - Computed Properties
     
     var filteredItemsNeedingReturn: [CustomerOutOfStock] {
         var filtered = outOfStockItems
+        
+        // 首先过滤掉已退货的记录（客户已取消，不需要还货）
+        filtered = filtered.filter { $0.status != .cancelled }
+        
+        // 过滤掉已完成的记录（已经全部还货完成）
+        filtered = filtered.filter { $0.status != .completed }
         
         // Filter by return status
         switch selectedReturnStatus {
@@ -450,6 +473,40 @@ struct ReturnGoodsManagementView: View {
     }
     
     // MARK: - Helper Functions
+    
+    private var activeFiltersCount: Int {
+        var count = 0
+        if selectedReturnStatus != nil { count += 1 }
+        if selectedCustomer != nil { count += 1 }
+        if selectedAddress != nil { count += 1 }
+        if isFilteringByDate { count += 1 }
+        return count
+    }
+    
+    private func selectReturnStatus(_ status: ReturnStatus?) {
+        withHapticFeedback(.light) {
+            selectedReturnStatus = status
+        }
+    }
+    
+    private func clearAllFilters() {
+        withHapticFeedback(.medium) {
+            selectedReturnStatus = nil
+            selectedCustomer = nil
+            selectedAddress = nil
+            isFilteringByDate = false
+        }
+    }
+    
+    private func updateSearch() {
+        searchTask?.cancel()
+        searchTask = Task {
+            try? await Task.sleep(nanoseconds: 300_000_000) // 300ms debounce
+            await MainActor.run {
+                debouncedSearchText = searchText
+            }
+        }
+    }
     
     private func toggleItemSelection(_ item: CustomerOutOfStock) {
         if isEditing {
@@ -533,6 +590,17 @@ enum ReturnStatus: CaseIterable {
             return "completed_return".localized
         }
     }
+    
+    var systemImage: String {
+        switch self {
+        case .needsReturn:
+            return "exclamationmark.triangle.fill"
+        case .partialReturn:
+            return "clock.fill"
+        case .completed:
+            return "checkmark.circle.fill"
+        }
+    }
 }
 
 
@@ -555,8 +623,9 @@ struct ReturnGoodsRowView: View {
             
             VStack(alignment: .leading, spacing: 8) {
                 HStack {
-                    Text(item.customer?.name ?? "未知客户")
+                    Text(item.customerDisplayName)
                         .font(.headline)
+                        .dynamicTypeSize(.small...DynamicTypeSize.accessibility1)
                     
                     Spacer()
                     
@@ -567,6 +636,7 @@ struct ReturnGoodsRowView: View {
                         .background(returnStatusColor.opacity(0.2))
                         .foregroundColor(returnStatusColor)
                         .cornerRadius(4)
+                        .accessibilityLabel("还货状态：\(returnStatusText)")
                 }
                 
                 Text(item.productDisplayName)
@@ -577,7 +647,7 @@ struct ReturnGoodsRowView: View {
                     VStack(alignment: .leading, spacing: 2) {
                         Text("原始数量: \(item.quantity)")
                             .font(.caption)
-                        Text("已退数量: \(item.returnQuantity)")
+                        Text("已还数量: \(item.returnQuantity)")
                             .font(.caption)
                             .foregroundColor(.blue)
                         Text("剩余数量: \(item.remainingQuantity)")
@@ -589,7 +659,7 @@ struct ReturnGoodsRowView: View {
                     
                     if let returnDate = item.returnDate {
                         VStack(alignment: .trailing, spacing: 2) {
-                            Text("退货日期:")
+                            Text("还货日期:")
                                 .font(.caption)
                                 .foregroundColor(.secondary)
                             Text(returnDate, style: .date)
@@ -681,6 +751,6 @@ enum DateRange: CaseIterable {
 }
 
 #Preview {
-    ReturnGoodsManagementView()
+    GiveBackManagementView()
         .modelContainer(for: CustomerOutOfStock.self, inMemory: true)
 }

@@ -8,6 +8,7 @@
 import Foundation
 import SwiftData
 
+@MainActor
 class LocalColorRepository: ColorRepository {
     private let modelContext: ModelContext
     

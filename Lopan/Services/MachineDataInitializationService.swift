@@ -245,7 +245,7 @@ class MachineDataInitializationService {
                 try await repositoryFactory.productionBatchRepository.addBatch(batch)
             }
             
-            print("Successfully initialized \(batches.count) sample production batches")
+            print("Successfully initialized \(batches.count) sample production batches (1 pending execution, 1 pending review, 1 rejected, 1 manually completed)")
             
         } catch {
             print("Failed to initialize sample batches: \(error)")
@@ -278,7 +278,7 @@ class MachineDataInitializationService {
             mode: .singleColor,
             submittedBy: "manager1",
             submittedByName: "张经理",
-            batchNumber: "BATCH-\(todayString)-0001",
+            batchNumber: "PC-\(todayString)-0001",
             targetDate: today,
             shift: .morning
         )
@@ -292,16 +292,14 @@ class MachineDataInitializationService {
             batchId: batch1.id,
             productName: "运动鞋 A款",
             primaryColorId: colors[0].id, // Red
-            occupiedStations: [1, 2, 3],
-            expectedOutput: 800
+            occupiedStations: [1, 2, 3]
         )
         
         let product2 = ProductConfig(
             batchId: batch1.id,
             productName: "运动鞋 B款",
             primaryColorId: colors[1].id, // Blue
-            occupiedStations: [7, 8, 9],
-            expectedOutput: 600
+            occupiedStations: [7, 8, 9]
         )
         
         batch1.products = [product1, product2]
@@ -313,18 +311,17 @@ class MachineDataInitializationService {
             mode: .dualColor,
             submittedBy: "manager2",
             submittedByName: "王经理",
-            batchNumber: "BATCH-\(todayString)-0002",
+            batchNumber: "PC-\(todayString)-0002",
             targetDate: today,
-            shift: .evening
+            shift: .morning
         )
-        batch2.status = BatchStatus.pending
+        batch2.status = BatchStatus.completed
         
         let product3 = ProductConfig(
             batchId: batch2.id,
             productName: "篮球鞋限量版",
             primaryColorId: colors[0].id, // Red
             occupiedStations: [1, 2, 3, 7, 8, 9],
-            expectedOutput: 500,
             secondaryColorId: colors[3].id // Yellow
         )
         
@@ -337,7 +334,7 @@ class MachineDataInitializationService {
             mode: .singleColor,
             submittedBy: "manager1",
             submittedByName: "张经理",
-            batchNumber: "BATCH-\(yesterdayString)-0001",
+            batchNumber: "PC-\(yesterdayString)-0001",
             targetDate: yesterday,
             shift: .morning
         )
@@ -351,12 +348,82 @@ class MachineDataInitializationService {
             batchId: batch3.id,
             productName: "跑步鞋",
             primaryColorId: colors[2].id, // Green
-            occupiedStations: [1, 2, 3], // Too few stations - reason for rejection
-            expectedOutput: 400
+            occupiedStations: [1, 2, 3] // Too few stations - reason for rejection
         )
         
         batch3.products = [product4]
         batches.append(batch3)
+        
+        // Batch 4 - Yesterday's evening shift, Manually completed
+        let batch4 = ProductionBatch(
+            machineId: machine1.id,
+            mode: .singleColor,
+            submittedBy: "manager2",
+            submittedByName: "王经理",
+            batchNumber: "PC-\(yesterdayString)-0002",
+            targetDate: yesterday,
+            shift: .evening
+        )
+        batch4.status = BatchStatus.completed
+        batch4.reviewedAt = Calendar.current.date(byAdding: .day, value: -1, to: Date())
+        batch4.reviewedBy = "admin1"
+        batch4.reviewedByName = "李管理员"
+        batch4.appliedAt = Calendar.current.date(byAdding: .day, value: -1, to: Date())
+        
+        // Set manual execution times (user manually started and completed)
+        var components = calendar.dateComponents([.year, .month, .day], from: yesterday)
+        components.hour = 19
+        components.minute = 0
+        components.second = 0
+        let yesterdayEvening = calendar.date(from: components) ?? yesterday
+        
+        // Evening shift ends at 07:00 next day
+        let nextDay = calendar.date(byAdding: .day, value: 1, to: yesterday) ?? yesterday
+        var nextDayComponents = calendar.dateComponents([.year, .month, .day], from: nextDay)
+        nextDayComponents.hour = 7
+        nextDayComponents.minute = 0
+        nextDayComponents.second = 0
+        let completionTime = calendar.date(from: nextDayComponents) ?? nextDay
+        batch4.executionTime = yesterdayEvening
+        batch4.completedAt = completionTime
+        batch4.isSystemAutoCompleted = false // Mark as manually completed
+        
+        let product5 = ProductConfig(
+            batchId: batch4.id,
+            productName: "限量版跑鞋",
+            primaryColorId: colors[0].id, // Red
+            occupiedStations: [4, 5, 6, 10, 11, 12]
+        )
+        
+        batch4.products = [product5]
+        batches.append(batch4)
+        
+        // Create an active batch for current testing (to ensure machine has running configuration)
+        let activeBatch = ProductionBatch(
+            machineId: machines[0].id,
+            mode: .singleColor,
+            submittedBy: "manager1",
+            submittedByName: "张经理",
+            batchNumber: "PC-\(todayString)-0003",
+            targetDate: today,
+            shift: getCurrentShift()
+        )
+        activeBatch.status = .active
+        activeBatch.reviewedAt = Date()
+        activeBatch.reviewedBy = "admin1"
+        activeBatch.reviewedByName = "李管理员"
+        activeBatch.appliedAt = Date()
+        activeBatch.executionTime = Date()
+        
+        let activeProduct = ProductConfig(
+            batchId: activeBatch.id,
+            productName: "夹克",
+            primaryColorId: colors[0].id,
+            occupiedStations: [1, 2, 3, 4, 5, 6]
+        )
+        
+        activeBatch.products = [activeProduct]
+        batches.append(activeBatch)
         
         return batches
     }
@@ -432,5 +499,12 @@ class MachineDataInitializationService {
         } catch {
             print("Failed to reset machine data: \(error)")
         }
+    }
+    
+    // MARK: - Helper Methods
+    
+    private func getCurrentShift() -> Shift {
+        let hour = Calendar.current.component(.hour, from: Date())
+        return hour < 12 ? .morning : .evening
     }
 }

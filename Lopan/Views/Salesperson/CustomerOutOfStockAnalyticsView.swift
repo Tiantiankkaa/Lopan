@@ -57,10 +57,6 @@ struct CustomerOutOfStockAnalyticsView: View {
             .mapValues { $0.count }
     }
     
-    var priorityCounts: [OutOfStockPriority: Int] {
-        Dictionary(grouping: filteredItems, by: { $0.priority })
-            .mapValues { $0.count }
-    }
     
     var totalItems: Int {
         filteredItems.count
@@ -81,15 +77,22 @@ struct CustomerOutOfStockAnalyticsView: View {
                     timeRangeSelector
                     summaryCardsView
                     statusDistributionView
-                    priorityDistributionView
                     recentItemsView
                 }
                 .padding(.vertical)
             }
             .navigationTitle("缺货分析")
             .navigationBarTitleDisplayMode(.inline)
+            .adaptiveBackground()
+            .accessibilityElement(children: .contain)
+            .accessibilityLabel("缺货分析界面")
+            .accessibilityHint("包含时间范围选择、汇总数据、状态分布的分析界面")
             .toolbar {
-                
+                ToolbarItem(placement: .navigationBarTrailing) {
+                    ExportButton(data: filteredItems, buttonText: "导出", systemImage: "square.and.arrow.up")
+                        .buttonStyle(.bordered)
+                        .accessibilityLabel("导出分析数据")
+                }
             }
         }
     }
@@ -102,6 +105,8 @@ struct CustomerOutOfStockAnalyticsView: View {
         }
         .pickerStyle(.segmented)
         .padding(.horizontal)
+        .accessibilityLabel("选择时间范围")
+        .accessibilityHint("选择要分析的时间范围：本周、本月、本季度或本年")
     }
     
     private var summaryCardsView: some View {
@@ -171,41 +176,7 @@ struct CustomerOutOfStockAnalyticsView: View {
                     }
                 }
             }
-        }
-    }
-    
-    private var priorityDistributionView: some View {
-        VStack(alignment: .leading, spacing: 12) {
-            Text("优先级分布")
-                .font(.headline)
-                .padding(.horizontal)
-            
-            VStack(spacing: 8) {
-                ForEach(OutOfStockPriority.allCases, id: \.self) { priority in
-                    let count = priorityCounts[priority] ?? 0
-                    if count > 0 {
-                        HStack {
-                            Text(priority.displayName)
-                                .font(.subheadline)
-                                .foregroundColor(priorityColor(priority))
-                            
-                            Spacer()
-                            
-                            Text("\(count)")
-                                .font(.subheadline)
-                                .fontWeight(.semibold)
-                            
-                            Text("(\(totalItems > 0 ? Int((Double(count) / Double(totalItems)) * 100) : 0)%)")
-                                .font(.caption)
-                                .foregroundColor(.secondary)
-                        }
-                        .padding(.horizontal)
-                        .padding(.vertical, 8)
-                        .background(priorityColor(priority).opacity(0.1))
-                        .cornerRadius(8)
-                    }
-                }
-            }
+            .padding(.horizontal)
         }
     }
     
@@ -219,7 +190,7 @@ struct CustomerOutOfStockAnalyticsView: View {
                 ForEach(Array(filteredItems.prefix(5)), id: \.id) { item in
                     HStack {
                         VStack(alignment: .leading) {
-                            Text(item.customer?.name ?? "")
+                            Text(item.customerDisplayName)
                                 .font(.subheadline)
                                 .fontWeight(.medium)
                             Text(item.product?.name ?? "")
@@ -255,10 +226,6 @@ struct CustomerOutOfStockAnalyticsView: View {
         switch status {
         case .pending:
             return .orange
-        case .confirmed:
-            return .blue
-        case .inProduction:
-            return .purple
         case .completed:
             return .green
         case .cancelled:
@@ -266,13 +233,6 @@ struct CustomerOutOfStockAnalyticsView: View {
         }
     }
     
-    private func priorityColor(_ priority: OutOfStockPriority) -> Color {
-        switch priority {
-        case .high: return .red
-        case .medium: return .orange
-        case .low: return .gray
-        }
-    }
 }
 
 struct AnalyticsCard: View {
@@ -290,16 +250,20 @@ struct AnalyticsCard: View {
             Text(value)
                 .font(.title2)
                 .fontWeight(.bold)
+                .dynamicTypeSize(.small...DynamicTypeSize.accessibility1)
             
             Text(title)
                 .font(.caption)
                 .foregroundColor(.secondary)
                 .multilineTextAlignment(.center)
+                .dynamicTypeSize(.small...DynamicTypeSize.accessibility1)
         }
         .frame(maxWidth: .infinity)
         .padding()
         .background(Color.gray.opacity(0.1))
         .cornerRadius(12)
+        .accessibilityElement(children: .combine)
+        .accessibilityLabel("\(title): \(value)")
     }
 }
 

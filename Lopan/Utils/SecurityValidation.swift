@@ -7,7 +7,7 @@ struct SecurityValidation {
     // MARK: - Input Validation
     
     /// Validates and sanitizes user names to prevent injection attacks
-    static func validateUserName(_ name: String) -> ValidationResult {
+    static func validateUserName(_ name: String) -> SecurityValidationResult {
         let sanitized = name.trimmingCharacters(in: .whitespacesAndNewlines)
         
         guard !sanitized.isEmpty else {
@@ -42,7 +42,7 @@ struct SecurityValidation {
     }
     
     /// Validates phone numbers with proper format checking
-    static func validatePhoneNumber(_ phone: String) -> ValidationResult {
+    static func validatePhoneNumber(_ phone: String) -> SecurityValidationResult {
         let sanitized = phone.trimmingCharacters(in: .whitespacesAndNewlines)
         
         guard !sanitized.isEmpty else {
@@ -61,7 +61,7 @@ struct SecurityValidation {
     }
     
     /// Validates WeChat ID with security considerations
-    static func validateWeChatId(_ wechatId: String) -> ValidationResult {
+    static func validateWeChatId(_ wechatId: String) -> SecurityValidationResult {
         let sanitized = wechatId.trimmingCharacters(in: .whitespacesAndNewlines)
         
         guard !sanitized.isEmpty else {
@@ -84,7 +84,7 @@ struct SecurityValidation {
     }
     
     /// Validates SMS verification codes with rate limiting considerations
-    static func validateSMSCode(_ code: String, phoneNumber: String) -> ValidationResult {
+    static func validateSMSCode(_ code: String, phoneNumber: String) -> SecurityValidationResult {
         let sanitized = code.trimmingCharacters(in: .whitespacesAndNewlines)
         
         guard !sanitized.isEmpty else {
@@ -110,7 +110,7 @@ struct SecurityValidation {
     }
     
     /// Validates product input with XSS prevention
-    static func validateProductInput(_ input: String, maxLength: Int = 100) -> ValidationResult {
+    static func validateProductInput(_ input: String, maxLength: Int = 100) -> SecurityValidationResult {
         let sanitized = input.trimmingCharacters(in: .whitespacesAndNewlines)
         
         guard !sanitized.isEmpty else {
@@ -141,7 +141,7 @@ struct SecurityValidation {
     }
     
     /// Validates review notes with content sanitization
-    static func validateReviewNotes(_ notes: String) -> ValidationResult {
+    static func validateReviewNotes(_ notes: String) -> SecurityValidationResult {
         let sanitized = notes.trimmingCharacters(in: .whitespacesAndNewlines)
         
         // Allow empty notes
@@ -167,7 +167,7 @@ struct SecurityValidation {
     // MARK: - Configuration Data Validation
     
     /// Validates station numbers with range checking
-    static func validateStationNumber(_ number: Int, maxStations: Int = 20) -> ValidationResult {
+    static func validateStationNumber(_ number: Int, maxStations: Int = 20) -> SecurityValidationResult {
         guard number > 0 else {
             return .failure("工位号必须大于0")
         }
@@ -180,7 +180,7 @@ struct SecurityValidation {
     }
     
     /// Validates gun color selections
-    static func validateGunColor(_ colorId: String, availableColors: [String]) -> ValidationResult {
+    static func validateGunColor(_ colorId: String, availableColors: [String]) -> SecurityValidationResult {
         let sanitized = colorId.trimmingCharacters(in: .whitespacesAndNewlines)
         
         guard !sanitized.isEmpty else {
@@ -197,7 +197,7 @@ struct SecurityValidation {
 
 // MARK: - Supporting Types
 
-enum ValidationResult {
+enum SecurityValidationResult {
     case success(String)
     case successInt(Int)
     case failure(String)

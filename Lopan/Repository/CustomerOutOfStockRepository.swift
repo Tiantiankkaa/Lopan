@@ -7,11 +7,32 @@
 
 import Foundation
 
+// MARK: - Pagination Result
+struct OutOfStockPaginationResult {
+    let items: [CustomerOutOfStock]
+    let totalCount: Int
+    let hasMoreData: Bool
+    let page: Int
+    let pageSize: Int
+}
+
 protocol CustomerOutOfStockRepository {
+    // Legacy methods (maintained for backward compatibility)
     func fetchOutOfStockRecords() async throws -> [CustomerOutOfStock]
     func fetchOutOfStockRecord(by id: String) async throws -> CustomerOutOfStock?
     func fetchOutOfStockRecords(for customer: Customer) async throws -> [CustomerOutOfStock]
     func fetchOutOfStockRecords(for product: Product) async throws -> [CustomerOutOfStock]
+    
+    // New paginated methods
+    func fetchOutOfStockRecords(
+        criteria: OutOfStockFilterCriteria,
+        page: Int,
+        pageSize: Int
+    ) async throws -> OutOfStockPaginationResult
+    
+    func countOutOfStockRecords(criteria: OutOfStockFilterCriteria) async throws -> Int
+    
+    // CRUD operations
     func addOutOfStockRecord(_ record: CustomerOutOfStock) async throws
     func updateOutOfStockRecord(_ record: CustomerOutOfStock) async throws
     func deleteOutOfStockRecord(_ record: CustomerOutOfStock) async throws

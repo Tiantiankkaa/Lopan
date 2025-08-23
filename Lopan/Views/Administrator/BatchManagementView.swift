@@ -443,7 +443,7 @@ struct ProductPreviewCard: View {
                 .fontWeight(.medium)
                 .lineLimit(1)
             
-            Text(product.stationRange)
+            Text("工位: \(product.occupiedStations.map(String.init).joined(separator: ","))")
                 .font(.caption2)
                 .foregroundColor(.secondary)
             
@@ -933,19 +933,21 @@ struct BatchProductDetailRow: View {
                 
                 Spacer()
                 
-                Text("优先级 \(product.priority)")
+                Text("工位: \(product.occupiedStations.map(String.init).joined(separator: ", "))")
                     .font(.caption)
                     .foregroundColor(.secondary)
             }
             
             VStack(alignment: .leading, spacing: 4) {
-                Text("工位: \(product.stationRange)")
+                Text("颜色: \(product.primaryColorId)")
                     .font(.caption)
                     .foregroundColor(.secondary)
                 
-                Text("预期产量: \(product.expectedOutput)")
-                    .font(.caption)
-                    .foregroundColor(.secondary)
+                if let stationCount = product.stationCount {
+                    Text("工位数: \(stationCount)")
+                        .font(.caption)
+                        .foregroundColor(.secondary)
+                }
                 
                 if product.isDualColor {
                     Text("双色生产")

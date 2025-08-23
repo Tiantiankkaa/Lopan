@@ -33,13 +33,13 @@ class ExcelService {
     
     // MARK: - Import Functions
     
-    func importCustomers(from url: URL, modelContext: ModelContext) -> ImportResult {
+    func importCustomers(from url: URL, modelContext: ModelContext) -> ExcelImportResult {
         do {
             let csvContent = try String(contentsOf: url, encoding: .utf8)
             let lines = csvContent.components(separatedBy: .newlines)
             
             guard lines.count > 1 else {
-                return ImportResult(success: false, message: "文件为空或格式不正确")
+                return ExcelImportResult(success: false, message: "文件为空或格式不正确")
             }
             
             var importedCount = 0
@@ -73,22 +73,22 @@ class ExcelService {
             
             let message = "成功导入 \(importedCount) 个客户"
             if !errors.isEmpty {
-                return ImportResult(success: true, message: message, errors: errors)
+                return ExcelImportResult(success: true, message: message, errors: errors)
             }
-            return ImportResult(success: true, message: message)
+            return ExcelImportResult(success: true, message: message)
             
         } catch {
-            return ImportResult(success: false, message: "导入失败: \(error.localizedDescription)")
+            return ExcelImportResult(success: false, message: "导入失败: \(error.localizedDescription)")
         }
     }
     
-    func importProducts(from url: URL, modelContext: ModelContext) -> ImportResult {
+    func importProducts(from url: URL, modelContext: ModelContext) -> ExcelImportResult {
         do {
             let csvContent = try String(contentsOf: url, encoding: .utf8)
             let lines = csvContent.components(separatedBy: .newlines)
             
             guard lines.count > 1 else {
-                return ImportResult(success: false, message: "文件为空或格式不正确")
+                return ExcelImportResult(success: false, message: "文件为空或格式不正确")
             }
             
             var importedCount = 0
@@ -136,12 +136,12 @@ class ExcelService {
             
             let message = "成功导入 \(importedCount) 个产品"
             if !errors.isEmpty {
-                return ImportResult(success: true, message: message, errors: errors)
+                return ExcelImportResult(success: true, message: message, errors: errors)
             }
-            return ImportResult(success: true, message: message)
+            return ExcelImportResult(success: true, message: message)
             
         } catch {
-            return ImportResult(success: false, message: "导入失败: \(error.localizedDescription)")
+            return ExcelImportResult(success: false, message: "导入失败: \(error.localizedDescription)")
         }
     }
     
@@ -242,7 +242,7 @@ class ExcelService {
 
 // MARK: - Supporting Types
 
-struct ImportResult {
+struct ExcelImportResult {
     let success: Bool
     let message: String
     let errors: [String]?

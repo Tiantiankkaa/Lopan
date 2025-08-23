@@ -99,7 +99,7 @@ struct ExecutionTimeSheet: View {
                         .font(.caption)
                         .foregroundColor(.secondary)
                     
-                    Text(batch.batchNumber)
+                    Text(batch.batchNumber + " (" + batch.batchType.displayName + ")")
                         .font(.system(.body, design: .monospaced))
                         .fontWeight(.medium)
                         .foregroundColor(.primary)
@@ -148,7 +148,7 @@ struct ExecutionTimeSheet: View {
                 .foregroundColor(.primary)
             
             VStack(spacing: 12) {
-                // Date Picker
+                // Fixed Date Display (no picker - locked to batch target date)
                 HStack {
                     Label("日期", systemImage: "calendar")
                         .font(.body)
@@ -156,13 +156,27 @@ struct ExecutionTimeSheet: View {
                     
                     Spacer()
                     
-                    DatePicker(
-                        "",
-                        selection: $selectedDate,
-                        in: ...Date(), // Cannot select future dates
-                        displayedComponents: .date
-                    )
-                    .labelsHidden()
+                    Text(selectedDate.formatted(.dateTime.year().month().day()))
+                        .font(.body)
+                        .fontWeight(.medium)
+                        .foregroundColor(.primary)
+                        .padding(.horizontal, 12)
+                        .padding(.vertical, 6)
+                        .background(Color.secondary.opacity(0.1))
+                        .cornerRadius(8)
+                }
+                
+                // Date restriction explanation
+                HStack(spacing: 4) {
+                    Image(systemName: "info.circle")
+                        .font(.caption)
+                        .foregroundColor(.orange)
+                    
+                    Text("执行日期已锁定为批次提交日期，仅可修改执行时间")
+                        .font(.caption)
+                        .foregroundColor(.secondary)
+                    
+                    Spacer()
                 }
                 
                 Divider()
@@ -347,7 +361,7 @@ struct ExecutionTimeSheet_Previews: PreviewProvider {
             mode: .singleColor,
             submittedBy: "user1",
             submittedByName: "张三",
-            batchNumber: "BATCH-20250813-0001",
+            batchNumber: "PC-20250814-0001",
             targetDate: Date(),
             shift: .morning
         )

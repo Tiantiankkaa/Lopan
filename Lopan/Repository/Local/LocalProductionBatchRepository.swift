@@ -8,6 +8,7 @@
 import Foundation
 import SwiftData
 
+@MainActor
 class LocalProductionBatchRepository: ProductionBatchRepository {
     private let modelContext: ModelContext
     
@@ -113,17 +114,18 @@ class LocalProductionBatchRepository: ProductionBatchRepository {
     func fetchProductConfigs(forBatch batchId: String) async throws -> [ProductConfig] {
         let descriptor = FetchDescriptor<ProductConfig>(
             predicate: #Predicate { $0.batchId == batchId },
-            sortBy: [SortDescriptor(\.priority), SortDescriptor(\.createdAt)]
+            sortBy: [SortDescriptor(\.createdAt)]
         )
         return try modelContext.fetch(descriptor)
     }
     
     // MARK: - Batch Number Generation Support
-    func fetchLatestBatchNumber(forDate dateString: String) async throws -> String? {
-        let batchPrefix = "BATCH-\(dateString)-"
+    
+    func fetchLatestBatchNumber(forDate dateString: String, batchType: BatchType) async throws -> String? {
+        let batchPrefix = "\(batchType.prefix)-\(dateString)-"
         let allBatches = try await fetchAllBatches()
         
-        // Filter batches that match the date prefix
+        // Filter batches that match the date and type prefix
         let matchingBatches = allBatches.filter { batch in
             batch.batchNumber.hasPrefix(batchPrefix)
         }
@@ -183,13 +185,6 @@ class LocalProductionBatchRepository: ProductionBatchRepository {
         }
     }
     
-    func fetchLegacyBatches() async throws -> [ProductionBatch] {
-        // Use a simpler approach due to Predicate complexity issues
-        let allBatches = try await fetchAllBatches()
-        return allBatches.filter { batch in
-            return batch.targetDate == nil || batch.shift == nil
-        }
-    }
     
     func fetchBatches(from startDate: Date, to endDate: Date, shift: Shift?) async throws -> [ProductionBatch] {
         // Use a simpler approach due to Predicate complexity issues
@@ -248,5 +243,48 @@ class LocalProductionBatchRepository: ProductionBatchRepository {
             return (batch.targetDate == nil || batch.shift == nil) && 
                    batch.status == .unsubmitted
         }
+    }
+    
+    // MARK: - Optimized Query Methods Implementation (优化查询方法实现)
+    
+    func fetchActiveBatchForMachine(_ machineId: String) async throws -> ProductionBatch? {
+        let activeBatches = try await fetchActiveBatches()
+        return activeBatches.first { $0.machineId == machineId }
+    }
+    
+    func fetchLatestBatchForMachineAndShift(machineId: String, date: Date, shift: Shift) async throws -> ProductionBatch? {
+        let batches = try await fetchBatches(forDate: date, shift: shift)
+        let machineBatches = batches.filter { $0.machineId == machineId }
+        return machineBatches.first // Already sorted by submittedAt desc in fetchBatches
+    }
+    
+    func fetchActiveBatchesWithStatus(_ statuses: [BatchStatus]) async throws -> [ProductionBatch] {
+        let allBatches = try await fetchAllBatches()
+        return allBatches.filter { batch in
+            statuses.contains(batch.status)
+        }.sorted { $0.submittedAt > $1.submittedAt }
+    }
+    
+    func fetchBatchesForMachine(_ machineId: String, statuses: [BatchStatus], from startDate: Date? = nil, to endDate: Date? = nil) async throws -> [ProductionBatch] {
+        let allBatches = try await fetchAllBatches()
+        
+        return allBatches.filter { batch in
+            // Filter by machine
+            guard batch.machineId == machineId else { return false }
+            
+            // Filter by status
+            guard statuses.contains(batch.status) else { return false }
+            
+            // Filter by date range if provided
+            if let startDate = startDate, let endDate = endDate, let targetDate = batch.targetDate {
+                let calendar = Calendar.current
+                let startOfStartDate = calendar.startOfDay(for: startDate)
+                let endOfEndDate = calendar.date(byAdding: .day, value: 1, to: calendar.startOfDay(for: endDate)) ?? endDate
+                
+                return targetDate >= startOfStartDate && targetDate < endOfEndDate
+            }
+            
+            return true
+        }.sorted { $0.submittedAt > $1.submittedAt }
     }
 }

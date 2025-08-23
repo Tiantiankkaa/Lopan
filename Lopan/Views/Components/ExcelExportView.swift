@@ -18,7 +18,7 @@ struct ExcelExportView: View {
     
     @State private var isExporting = false
     @State private var showingShareSheet = false
-    @State private var exportResult: ExportResult?
+    @State private var exportResult: ExcelExportResult?
     @State private var exportedFileURL: URL?
     
     var body: some View {
@@ -165,9 +165,9 @@ struct ExcelExportView: View {
                 if let url = fileURL {
                     self.exportedFileURL = url
                     self.showingShareSheet = true
-                    self.exportResult = ExportResult(success: true, message: "文件已准备就绪，请选择保存位置")
+                    self.exportResult = ExcelExportResult(success: true, message: "文件已准备就绪，请选择保存位置")
                 } else {
-                    self.exportResult = ExportResult(success: false, message: "导出失败")
+                    self.exportResult = ExcelExportResult(success: false, message: "导出失败")
                 }
             }
         }
@@ -176,7 +176,7 @@ struct ExcelExportView: View {
 
 // MARK: - Supporting Types
 
-struct ExportResult {
+struct ExcelExportResult {
     let success: Bool
     let message: String
     let fileURL: URL?

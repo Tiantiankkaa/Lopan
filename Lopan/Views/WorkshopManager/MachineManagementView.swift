@@ -213,6 +213,26 @@ struct MachineRow: View {
                     Text(machine.statusSummary)
                         .font(.caption)
                         .foregroundColor(.secondary)
+                    
+                    // Current batch information
+                    HStack(spacing: 4) {
+                        if machine.hasActiveProductionBatch {
+                            Image(systemName: "gear.badge.checkmark")
+                                .font(.caption2)
+                                .foregroundColor(.green)
+                            Text(machine.currentBatchDisplayName)
+                                .font(.caption2)
+                                .foregroundColor(.green)
+                                .fontWeight(.medium)
+                        } else {
+                            Image(systemName: "gear")
+                                .font(.caption2)
+                                .foregroundColor(.secondary)
+                            Text("无活跃批次")
+                                .font(.caption2)
+                                .foregroundColor(.secondary)
+                        }
+                    }
                 }
                 
                 Spacer()
@@ -228,7 +248,7 @@ struct MachineRow: View {
                             .fontWeight(.medium)
                     }
                     
-                    Text("\(String(format: "%.1f", machine.utilizationRate * 100))%")
+                    Text("\(String(format: "%.1f", machine.utilizationRate))%")
                         .font(.caption)
                         .foregroundColor(.secondary)
                 }

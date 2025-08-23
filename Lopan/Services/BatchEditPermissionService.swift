@@ -173,8 +173,6 @@ class StandardBatchEditPermissionService: ObservableObject, BatchEditPermission 
                original.occupiedStations == modified.occupiedStations &&
                original.stationCount == modified.stationCount &&
                original.gunAssignment == modified.gunAssignment &&
-               original.expectedOutput == modified.expectedOutput &&
-               original.priority == modified.priority &&
                original.productId == modified.productId
     }
     

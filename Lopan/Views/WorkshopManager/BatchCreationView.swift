@@ -25,6 +25,11 @@ struct BatchCreationView: View {
     @StateObject private var machineService: MachineService
     @StateObject private var batchEditPermissionService: StandardBatchEditPermissionService
     @StateObject private var colorService: ColorService
+    @StateObject private var batchMachineCoordinator: StandardBatchMachineCoordinator
+    @StateObject private var cacheWarmingService: CacheWarmingService
+    @StateObject private var synchronizationService: MachineStateSynchronizationService
+    @StateObject private var systemMonitoringService: SystemConsistencyMonitoringService
+    @StateObject private var enhancedSecurityService: EnhancedSecurityAuditService
     
     @State private var availableMachines: [WorkshopMachine] = []
     @State private var currentMachineIndex: Int = 0
@@ -36,6 +41,8 @@ struct BatchCreationView: View {
     @State private var availableProducts: [Product] = []
     @State private var showingConflictWarning = false
     @State private var conflictingBatch: ProductionBatch?
+    @State private var showingCacheDebug = false
+    @State private var showingSystemHealthDashboard = false
     
     @StateObject private var dateShiftPolicy = StandardDateShiftPolicy()
     private let timeProvider = SystemTimeProvider()
@@ -82,6 +89,50 @@ struct BatchCreationView: View {
             authService: authService
         )
         self._colorService = StateObject(wrappedValue: colorServiceInstance)
+        
+        let batchMachineCoordinatorInstance = StandardBatchMachineCoordinator(
+            machineRepository: repositoryFactory.machineRepository,
+            productionBatchRepository: repositoryFactory.productionBatchRepository,
+            auditService: auditService,
+            authService: authService
+        )
+        self._batchMachineCoordinator = StateObject(wrappedValue: batchMachineCoordinatorInstance)
+        
+        let cacheWarmingServiceInstance = CacheWarmingServiceFactory.createService(
+            batchMachineCoordinator: batchMachineCoordinatorInstance,
+            machineRepository: repositoryFactory.machineRepository,
+            productionBatchRepository: repositoryFactory.productionBatchRepository,
+            auditService: auditService,
+            authService: authService,
+            strategy: .combined
+        )
+        self._cacheWarmingService = StateObject(wrappedValue: cacheWarmingServiceInstance)
+        
+        let synchronizationServiceInstance = MachineStateSynchronizationService(
+            machineRepository: repositoryFactory.machineRepository,
+            productionBatchRepository: repositoryFactory.productionBatchRepository,
+            batchMachineCoordinator: batchMachineCoordinatorInstance,
+            auditService: auditService,
+            authService: authService
+        )
+        self._synchronizationService = StateObject(wrappedValue: synchronizationServiceInstance)
+        
+        let systemMonitoringServiceInstance = SystemConsistencyMonitoringService(
+            machineRepository: repositoryFactory.machineRepository,
+            productionBatchRepository: repositoryFactory.productionBatchRepository,
+            batchMachineCoordinator: batchMachineCoordinatorInstance,
+            synchronizationService: synchronizationServiceInstance,
+            cacheWarmingService: cacheWarmingServiceInstance,
+            auditService: auditService,
+            authService: authService
+        )
+        self._systemMonitoringService = StateObject(wrappedValue: systemMonitoringServiceInstance)
+        
+        let enhancedSecurityServiceInstance = EnhancedSecurityAuditService(
+            baseAuditService: auditService,
+            authService: authService
+        )
+        self._enhancedSecurityService = StateObject(wrappedValue: enhancedSecurityServiceInstance)
     }
     
     var body: some View {
@@ -117,6 +168,48 @@ struct BatchCreationView: View {
             }
             .task {
                 await loadInitialData()
+                // Start cache warming for better performance
+                cacheWarmingService.startAutomaticWarming()
+                // Start state synchronization monitoring
+                synchronizationService.startAutomaticScanning()
+                // Start comprehensive system monitoring
+                systemMonitoringService.startMonitoring()
+                // Log session start
+                try? await enhancedSecurityService.logSecurityEvent(
+                    category: .systemOperation,
+                    severity: .info,
+                    eventName: "batch_creation_session_started",
+                    description: "用户开始批次创建会话",
+                    details: [
+                        "selected_date": DateTimeUtilities.formatDate(selectedDate),
+                        "selected_shift": selectedShift.displayName,
+                        "machine_count": "\(selectedMachineIds.count)"
+                    ],
+                    sensitivityLevel: .internal
+                )
+            }
+            .onDisappear {
+                // Stop services when view disappears
+                cacheWarmingService.stopAutomaticWarming()
+                synchronizationService.stopAutomaticScanning()
+                systemMonitoringService.stopMonitoring()
+                // Log session end
+                Task {
+                    try? await enhancedSecurityService.logSecurityEvent(
+                        category: .systemOperation,
+                        severity: .info,
+                        eventName: "batch_creation_session_ended",
+                        description: "用户结束批次创建会话"
+                    )
+                }
+            }
+            .overlay(alignment: .topTrailing) {
+                if showingCacheDebug {
+                    cacheDebugOverlay
+                }
+            }
+            .onLongPressGesture(minimumDuration: 2.0) {
+                showingCacheDebug.toggle()
             }
             .alert("错误", isPresented: $showingError, presenting: errorMessage) { _ in
                 Button("确定", role: .cancel) { }
@@ -176,7 +269,7 @@ struct BatchCreationView: View {
                         .fontWeight(.medium)
                         .foregroundColor(.secondary)
                     
-                    Text(formatDate(selectedDate))
+                    Text(DateTimeUtilities.formatDate(selectedDate))
                         .font(.body)
                         .fontWeight(.medium)
                         .foregroundColor(.primary)
@@ -519,7 +612,7 @@ struct BatchCreationView: View {
                     }
                 } label: {
                     HStack(spacing: 4) {
-                        Text(config.primaryColorId)
+                        Text(getColorName(for: config.primaryColorId))
                             .font(.caption)
                             .foregroundColor(.primary)
                         
@@ -583,6 +676,14 @@ struct BatchCreationView: View {
                 title: "冲突检查",
                 isValid: conflictingBatch == nil,
                 message: conflictingBatch == nil ? "无批次冲突" : "存在时段冲突"
+            )
+            
+            // State consistency validation
+            let highSeverityIssues = synchronizationService.detectedInconsistencies.filter { $0.severity == .high }
+            validationRow(
+                title: "状态一致性",
+                isValid: highSeverityIssues.isEmpty,
+                message: highSeverityIssues.isEmpty ? "状态一致" : "检测到 \(highSeverityIssues.count) 个高优先级状态问题"
             )
         }
         .padding()
@@ -720,11 +821,7 @@ struct BatchCreationView: View {
         }
     }
     
-    private func formatDate(_ date: Date) -> String {
-        let formatter = DateFormatter()
-        formatter.dateFormat = "yyyy-MM-dd"
-        return formatter.string(from: date)
-    }
+    // Date formatting function replaced with DateTimeUtilities
     
     private func addProductConfig(from product: Product) {
         let config = ProductConfig(
@@ -732,8 +829,6 @@ struct BatchCreationView: View {
             productName: product.name,
             primaryColorId: "default",
             occupiedStations: [],
-            expectedOutput: 100,
-            priority: productConfigs.count + 1,
             productId: product.id
         )
         productConfigs.append(config)
@@ -781,13 +876,32 @@ struct BatchCreationView: View {
             return "没有可用设备"
         }
         
+        // Check if machine is currently running
+        let isMachineCurrentlyRunning = currentMachine.status == .running && currentMachine.isActive
+        
+        if !isMachineCurrentlyRunning {
+            return "机器 \(currentMachine.machineNumber) 当前未运行。只有正在运行的机器才能创建批次进行颜色修改。"
+        }
+        
+        // Check if this is a next day evening shift
+        let calendar = Calendar.current
+        let today = calendar.startOfDay(for: Date())
+        let targetDate = calendar.startOfDay(for: selectedDate)
+        
+        if selectedShift == .evening && targetDate > today {
+            // This is a next day evening shift
+            let dateFormatter = DateFormatter()
+            dateFormatter.dateFormat = "MM-dd"
+            return "无法创建 \(dateFormatter.string(from: selectedDate)) 晚班批次。次日晚班只能基于次日早班的生产内容进行颜色修改，但次日早班还未开始生产。请先等待次日早班批次创建并执行后，再创建晚班批次。"
+        }
+        
         // Get the previous shift info to provide context
         let previousShiftInfo = getPreviousShiftInfo(for: selectedDate, shift: selectedShift)
         let dateFormatter = DateFormatter()
         dateFormatter.dateFormat = "MM-dd"
         
         // Provide more specific error message with shift context
-        return "机器 \(currentMachine.machineNumber) 在 \(dateFormatter.string(from: previousShiftInfo.date)) \(previousShiftInfo.shift.displayName)班次 没有运行中的产品批次可供颜色修改。请确认该设备在前一班次是否有执行中的生产批次。"
+        return "机器 \(currentMachine.machineNumber) 正在运行，但在 \(dateFormatter.string(from: previousShiftInfo.date)) \(previousShiftInfo.shift.displayName)班次 没有找到可供颜色修改的产品批次。请检查该设备的当前生产状态或前一班次的批次配置。"
     }
     
     // MARK: - Shift Logic Helpers (班次逻辑辅助方法)
@@ -807,13 +921,14 @@ struct BatchCreationView: View {
     // MARK: - Data Loading and Actions (数据加载和操作)
     
     private func loadInitialData() async {
+        // 首先加载机器（必须先完成）
+        await loadAvailableMachines()
+        
+        // 然后加载依赖于机器的产品配置
+        await loadAvailableProducts()
+        
+        // 其他可以并发执行的任务
         await withTaskGroup(of: Void.self) { group in
-            group.addTask {
-                await self.loadAvailableMachines()
-            }
-            group.addTask {
-                await self.loadAvailableProducts()
-            }
             group.addTask {
                 await self.checkForConflictingBatches()
             }
@@ -842,75 +957,22 @@ struct BatchCreationView: View {
     private func loadAvailableProducts() async {
         do {
             guard let currentMachine = availableMachines[safe: currentMachineIndex] else { 
-                print("DEBUG: No current machine available at index \(currentMachineIndex)")
                 return 
             }
             
-            // Get the previous shift info based on business logic
-            let previousShiftInfo = getPreviousShiftInfo(for: selectedDate, shift: selectedShift)
-            let dateFormatter = DateFormatter()
-            dateFormatter.dateFormat = "yyyy-MM-dd"
-            
-            print("DEBUG: =================================================")
-            print("DEBUG: Creating batch for \(dateFormatter.string(from: selectedDate)) \(selectedShift.displayName)")
-            print("DEBUG: Looking for products from previous shift: \(dateFormatter.string(from: previousShiftInfo.date)) \(previousShiftInfo.shift.displayName)")
-            print("DEBUG: Machine: \(currentMachine.id) (Number: \(currentMachine.machineNumber))")
-            
-            // Fetch batches from the previous shift
-            let previousShiftBatches = try await repositoryFactory.productionBatchRepository.fetchBatches(
-                forDate: previousShiftInfo.date,
-                shift: previousShiftInfo.shift
+            // Use the unified BatchMachineCoordinator for optimized and consistent logic
+            let inheritableProducts = try await batchMachineCoordinator.getInheritableProducts(
+                machineId: currentMachine.id,
+                date: selectedDate,
+                shift: selectedShift
             )
-            print("DEBUG: Found \(previousShiftBatches.count) total batches in previous shift")
-            
-            // Filter for this specific machine and running status
-            let machineBatches = previousShiftBatches.filter { batch in
-                batch.machineId == currentMachine.id
-            }
-            print("DEBUG: Found \(machineBatches.count) batches for machine \(currentMachine.machineNumber)")
-            
-            // Further filter for running batches (active or pending execution)
-            let runningBatches = machineBatches.filter { batch in
-                batch.status == .active || batch.status == .pendingExecution
-            }
-            print("DEBUG: Found \(runningBatches.count) running batches (active or pending execution)")
-            
-            // Log batch details for debugging
-            for batch in machineBatches {
-                print("DEBUG: Batch \(batch.batchNumber) - Status: \(batch.status.rawValue) (\(batch.status.displayName)) - Machine: \(batch.machineId) - Products: \(batch.products.count)")
-            }
-            
-            // Extract products from running batches and load them as color-changeable configs
-            var currentProducts: [ProductConfig] = []
-            
-            for batch in runningBatches {
-                print("DEBUG: Processing batch \(batch.batchNumber) with \(batch.products.count) products")
-                for product in batch.products {
-                    // Create a copy for color modification only
-                    let colorChangeableProduct = ProductConfig(
-                        batchId: "", // Will be set when new batch is created
-                        productName: product.productName,
-                        primaryColorId: product.primaryColorId,
-                        occupiedStations: product.occupiedStations,
-                        expectedOutput: product.expectedOutput,
-                        priority: product.priority,
-                        productId: product.productId
-                    )
-                    currentProducts.append(colorChangeableProduct)
-                    print("DEBUG: Added product '\(product.productName)' for color modification")
-                }
-            }
-            
-            print("DEBUG: Final product configs count: \(currentProducts.count)")
-            print("DEBUG: =================================================")
             
             await MainActor.run {
-                self.productConfigs = currentProducts
+                self.productConfigs = inheritableProducts
                 // No need to set availableProducts since we're not allowing new product additions
                 self.availableProducts = []
             }
         } catch {
-            print("DEBUG: Error loading products: \(error.localizedDescription)")
             await showError("加载当前运行产品失败: \(error.localizedDescription)")
         }
     }
@@ -1021,6 +1083,189 @@ struct BatchCreationView: View {
             self.showingError = true
         }
     }
+    
+    // MARK: - Cache Debug Overlay (缓存调试覆层)
+    
+    private var cacheDebugOverlay: some View {
+        VStack(alignment: .leading, spacing: 8) {
+            HStack {
+                Text("Cache Debug")
+                    .font(.caption)
+                    .fontWeight(.bold)
+                    .foregroundColor(.white)
+                
+                Spacer()
+                
+                Button("×") {
+                    showingCacheDebug = false
+                }
+                .foregroundColor(.white)
+                .font(.caption)
+            }
+            
+            let metrics = batchMachineCoordinator.getCacheMetrics()
+            
+            VStack(alignment: .leading, spacing: 4) {
+                Text("Hit Rate: \(String(format: "%.1f", metrics.hitRate * 100))%")
+                    .font(.caption2)
+                    .foregroundColor(.white)
+                
+                Text("Entries: \(metrics.entries)")
+                    .font(.caption2)
+                    .foregroundColor(.white)
+                
+                Text("Hits: \(metrics.hits) | Misses: \(metrics.misses)")
+                    .font(.caption2)
+                    .foregroundColor(.white)
+                
+                Text("Evictions: \(metrics.evictions)")
+                    .font(.caption2)
+                    .foregroundColor(.white)
+                
+                if let warmingResults = cacheWarmingService.warmingResults {
+                    Text("Last Warming: \(String(format: "%.1f", warmingResults.duration))s")
+                        .font(.caption2)
+                        .foregroundColor(.white)
+                    
+                    Text("Warmed: \(warmingResults.machinesWarmed) (\(warmingResults.successCount)/\(warmingResults.machinesWarmed))")
+                        .font(.caption2)
+                        .foregroundColor(.white)
+                }
+                
+                Divider()
+                    .background(Color.white)
+                
+                Text("State Sync")
+                    .font(.caption)
+                    .fontWeight(.bold)
+                    .foregroundColor(.white)
+                
+                let inconsistencies = synchronizationService.detectedInconsistencies
+                let highCount = inconsistencies.filter { $0.severity == .high }.count
+                let mediumCount = inconsistencies.filter { $0.severity == .medium }.count
+                let lowCount = inconsistencies.filter { $0.severity == .low }.count
+                
+                Text("Issues: H:\(highCount) M:\(mediumCount) L:\(lowCount)")
+                    .font(.caption2)
+                    .foregroundColor(.white)
+                
+                if let lastScan = synchronizationService.lastScanTime {
+                    let timeAgo = Date().timeIntervalSince(lastScan)
+                    Text("Last Scan: \(String(format: "%.0f", timeAgo))s ago")
+                        .font(.caption2)
+                        .foregroundColor(.white)
+                }
+                
+                Divider()
+                    .background(Color.white)
+                
+                Text("System Health")
+                    .font(.caption)
+                    .fontWeight(.bold)
+                    .foregroundColor(.white)
+                
+                if let healthReport = systemMonitoringService.currentHealthReport {
+                    Text("Status: \(healthReport.overallStatus.displayName)")
+                        .font(.caption2)
+                        .foregroundColor(.white)
+                    
+                    Text("Score: \(String(format: "%.0f", healthReport.overallScore * 100))%")
+                        .font(.caption2)
+                        .foregroundColor(.white)
+                    
+                    Text("Critical: \(healthReport.criticalIssues.count)")
+                        .font(.caption2)
+                        .foregroundColor(.white)
+                }
+                
+                let securityAnalytics = enhancedSecurityService.getSecurityAnalytics()
+                Text("Security: \(securityAnalytics.riskLevel.displayName)")
+                    .font(.caption2)
+                    .foregroundColor(.white)
+                
+                Text("Alerts: \(securityAnalytics.activeAlerts)")
+                    .font(.caption2)
+                    .foregroundColor(.white)
+                
+                HStack(spacing: 8) {
+                    Button("Warm Cache") {
+                        Task {
+                            await cacheWarmingService.warmCacheManually()
+                        }
+                    }
+                    .font(.caption2)
+                    .padding(.horizontal, 6)
+                    .padding(.vertical, 2)
+                    .background(Color.blue)
+                    .foregroundColor(.white)
+                    .cornerRadius(4)
+                    
+                    Button("Clear Cache") {
+                        batchMachineCoordinator.invalidateCache(reason: "debug_manual_clear")
+                    }
+                    .font(.caption2)
+                    .padding(.horizontal, 6)
+                    .padding(.vertical, 2)
+                    .background(Color.red)
+                    .foregroundColor(.white)
+                    .cornerRadius(4)
+                    
+                    Button("Sync Scan") {
+                        Task {
+                            await synchronizationService.triggerManualScan()
+                        }
+                    }
+                    .font(.caption2)
+                    .padding(.horizontal, 6)
+                    .padding(.vertical, 2)
+                    .background(Color.orange)
+                    .foregroundColor(.white)
+                    .cornerRadius(4)
+                }
+                
+                HStack(spacing: 8) {
+                    Button("Health Check") {
+                        Task {
+                            await systemMonitoringService.triggerManualHealthCheck()
+                        }
+                    }
+                    .font(.caption2)
+                    .padding(.horizontal, 6)
+                    .padding(.vertical, 2)
+                    .background(Color.purple)
+                    .foregroundColor(.white)
+                    .cornerRadius(4)
+                    
+                    Button("Dashboard") {
+                        showingSystemHealthDashboard = true
+                    }
+                    .font(.caption2)
+                    .padding(.horizontal, 6)
+                    .padding(.vertical, 2)
+                    .background(Color.green)
+                    .foregroundColor(.white)
+                    .cornerRadius(4)
+                }
+            }
+        }
+        .padding(8)
+        .background(
+            RoundedRectangle(cornerRadius: 8)
+                .fill(Color.black.opacity(0.8))
+        )
+        .frame(maxWidth: 200)
+        .padding(.trailing, 16)
+        .padding(.top, 100)
+        .sheet(isPresented: $showingSystemHealthDashboard) {
+            SystemHealthDashboard(monitoringService: systemMonitoringService)
+        }
+    }
+    
+    // MARK: - Helper Methods
+    
+    private func getColorName(for colorId: String) -> String {
+        return colorService.colors.first { $0.id == colorId }?.name ?? colorId
+    }
 }
 
 // MARK: - Supporting Types (支持类型)
@@ -1054,5 +1299,6 @@ struct BatchCreationView_Previews: PreviewProvider {
             selectedShift: .morning,
             selectedMachineIds: ["machine1"]
         )
+        .environmentObject(authService)
     }
 }

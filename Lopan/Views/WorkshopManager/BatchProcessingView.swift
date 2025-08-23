@@ -96,26 +96,44 @@ struct BatchProcessingView: View {
     
     var body: some View {
         NavigationView {
-            VStack(spacing: 0) {
-                headerSection
-                
-                ScrollView {
-                    GeometryReader { geometry in
-                        Color.clear.preference(key: ScrollOffsetPreferenceKey.self, value: geometry.frame(in: .named("scroll")).minY)
+            mainContent
+                .navigationTitle("批次处理")
+                .navigationBarTitleDisplayMode(.large)
+                .toolbar {
+                    ToolbarItem(placement: .primaryAction) {
+                        refreshButton
                     }
-                    .frame(height: 0)
-                    
-                    LazyVStack(spacing: 20) {
-                        shiftDateSelectorSection
-                        machineStatusSection
-                        machineSelectionSection
-                        batchListSection
-                        createBatchSection
-                    }
-                    .padding()
                 }
+                .task {
+                    await loadInitialData()
+                }
+                .alert("错误", isPresented: $showingError, presenting: errorMessage) { _ in
+                    Button("确定", role: .cancel) { }
+                } message: { message in
+                    Text(message)
+                }
+                .sheet(item: $activeSheet) { sheetType in
+                    sheetContent(for: sheetType)
+                }
+                .onChange(of: activeSheet) {
+                if activeSheet == nil {
+                    // Refresh data when any sheet is dismissed
+                    Task {
+                        await loadBatchesForSelectedDateTime()
+                    }
+                }
+            }
+        }
+    }
+    
+    // MARK: - Main Content
+    private var mainContent: some View {
+        VStack(spacing: 0) {
+            headerSection
+            
+            scrollableContent
                 .coordinateSpace(name: "scroll")
-                .onPreferenceChange(ScrollOffsetPreferenceKey.self) { value in
+                .onPreferenceChange(BatchScrollOffsetPreferenceKey.self) { value in
                     scrollOffset = value
                     withAnimation(.easeInOut(duration: 0.25)) {
                         isHeaderCollapsed = value < -20
@@ -124,33 +142,24 @@ struct BatchProcessingView: View {
                 .refreshable {
                     await refreshData()
                 }
+        }
+    }
+    
+    private var scrollableContent: some View {
+        ScrollView {
+            GeometryReader { geometry in
+                Color.clear.preference(key: BatchScrollOffsetPreferenceKey.self, value: geometry.frame(in: .named("scroll")).minY)
             }
-            .navigationTitle("批次处理")
-            .navigationBarTitleDisplayMode(.large)
-            .toolbar {
-                ToolbarItem(placement: .primaryAction) {
-                    refreshButton
-                }
+            .frame(height: 0)
+            
+            LazyVStack(spacing: 20) {
+                shiftDateSelectorSection
+                machineStatusSection
+                machineSelectionSection
+                batchListSection
+                createBatchSection
             }
-            .task {
-                await loadInitialData()
-            }
-            .alert("错误", isPresented: $showingError, presenting: errorMessage) { _ in
-                Button("确定", role: .cancel) { }
-            } message: { message in
-                Text(message)
-            }
-            .sheet(item: $activeSheet) { sheetType in
-                sheetContent(for: sheetType)
-            }
-            .onChange(of: activeSheet) {
-                if activeSheet == nil {
-                    // Refresh data when any sheet is dismissed
-                    Task {
-                        await loadBatchesForSelectedDateTime()
-                    }
-                }
-            }
+            .padding()
         }
     }
     
@@ -467,17 +476,13 @@ struct BatchProcessingView: View {
     
     private func batchPreviewCard(batch: ProductionBatch) -> some View {
         Button(action: {
-            // Choose action based on batch status and user permissions
-            if batch.status == .pending && (authService.currentUser?.hasRole(.administrator) == true) {
-                activeSheet = .batchApproval(batch)
-            } else {
-                activeSheet = .batchEdit(batch)
-            }
+            // Workshop Manager can only edit batches, not approve them
+            activeSheet = .batchEdit(batch)
         }) {
             HStack(spacing: 12) {
                 VStack(alignment: .leading, spacing: 4) {
                     HStack {
-                        Text(batch.batchNumber)
+                        Text(batch.batchNumber + " (" + batch.batchType.displayName + ")")
                             .font(.system(.body, design: .monospaced))
                             .fontWeight(.medium)
                             .foregroundColor(.primary)
@@ -493,7 +498,7 @@ struct BatchProcessingView: View {
                                 .font(.caption)
                                 .foregroundColor(.secondary)
                             
-                            Text("\(formatDate(targetDate)) - \(shift.displayName)")
+                            Text("\(DateTimeUtilities.formatDate(targetDate, format: "MM-dd")) - \(shift.displayName)")
                                 .font(.caption)
                                 .foregroundColor(.secondary)
                         }
@@ -533,21 +538,9 @@ struct BatchProcessingView: View {
                 Spacer()
                 
                 HStack(spacing: 8) {
-                    // Show approval indicator for pending batches
-                    if batch.status == .pending && (authService.currentUser?.hasRole(.administrator) == true) {
-                        Image(systemName: "doc.text.magnifyingglass")
-                            .font(.caption)
-                            .foregroundColor(.blue)
-                            .padding(4)
-                            .background(
-                                Circle()
-                                    .fill(Color.blue.opacity(0.2))
-                            )
-                    }
-                    
-                    Image(systemName: batch.status == .pending ? "doc.text.magnifyingglass" : "chevron.right")
+                    Image(systemName: "chevron.right")
                         .font(.caption)
-                        .foregroundColor(batch.status == .pending ? .blue : .secondary)
+                        .foregroundColor(.secondary)
                 }
             }
             .padding(12)
@@ -564,16 +557,23 @@ struct BatchProcessingView: View {
     }
     
     private func batchStatusBadge(status: BatchStatus) -> some View {
-        Text(status.displayName)
-            .font(.caption2)
-            .fontWeight(.medium)
-            .padding(.horizontal, 8)
-            .padding(.vertical, 2)
-            .background(
-                RoundedRectangle(cornerRadius: 4)
-                    .fill(status.color.opacity(0.2))
-            )
-            .foregroundColor(status.color)
+        HStack(spacing: 3) {
+            Image(systemName: status.iconName)
+                .font(.caption2)
+                .foregroundColor(.white)
+            
+            Text(status.displayName)
+                .font(.caption2)
+                .fontWeight(.medium)
+                .foregroundColor(.white)
+        }
+        .padding(.horizontal, 8)
+        .padding(.vertical, 3)
+        .background(
+            RoundedRectangle(cornerRadius: 6)
+                .fill(status.color)
+        )
+        .accessibilityLabel(status.accessibilityLabel)
     }
     
     // MARK: - Create Batch Section (创建批次区域)
@@ -606,7 +606,7 @@ struct BatchProcessingView: View {
                     .foregroundColor(hasSelectedMachines ? .white : .blue)
                 
                 VStack(alignment: .leading, spacing: 2) {
-                    Text("创建生产批次")
+                    Text("创建批次处理")
                         .font(.system(.body, design: .rounded))
                         .fontWeight(.medium)
                         .foregroundColor(hasSelectedMachines ? .white : .blue)
@@ -616,7 +616,7 @@ struct BatchProcessingView: View {
                             .font(.caption)
                             .foregroundColor(.secondary)
                     } else {
-                        Text("为\(selectedCount)个设备创建批次")
+                        Text("为\(selectedCount)个设备创建批次处理 (BP)")
                             .font(.caption)
                             .foregroundColor(hasSelectedMachines ? .white.opacity(0.8) : .secondary)
                     }
@@ -732,7 +732,7 @@ struct BatchProcessingView: View {
     
     private func batchEditSheet(batch: ProductionBatch) -> some View {
         BatchEditView(
-            batch: batch,
+            batchId: batch.id,
             repositoryFactory: repositoryFactory,
             authService: authService,
             auditService: auditService
@@ -762,11 +762,7 @@ struct BatchProcessingView: View {
         }
     }
     
-    private func formatDate(_ date: Date) -> String {
-        let formatter = DateFormatter()
-        formatter.dateFormat = "MM-dd"
-        return formatter.string(from: date)
-    }
+    // Date formatting function replaced with DateTimeUtilities
     
     // MARK: - Data Loading Methods (数据加载方法)
     
@@ -807,8 +803,10 @@ struct BatchProcessingView: View {
                 forDate: selectedDate,
                 shift: selectedShift
             )
+            // Filter to only show Batch Processing (BP) type batches in Workshop Manager
+            let bpBatches = batches.filter { $0.batchType == .batchProcessing }
             await MainActor.run {
-                self.currentBatches = batches
+                self.currentBatches = bpBatches
                 self.isLoadingBatches = false
             }
         } catch {
@@ -827,8 +825,8 @@ struct BatchProcessingView: View {
     }
 }
 
-// MARK: - ScrollOffsetPreferenceKey (滚动偏移量首选项键)
-struct ScrollOffsetPreferenceKey: PreferenceKey {
+// MARK: - BatchScrollOffsetPreferenceKey (滚动偏移量首选项键)
+struct BatchScrollOffsetPreferenceKey: PreferenceKey {
     static var defaultValue: CGFloat = 0
     
     static func reduce(value: inout CGFloat, nextValue: () -> CGFloat) {

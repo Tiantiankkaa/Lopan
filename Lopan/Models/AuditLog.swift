@@ -13,6 +13,7 @@ enum OperationType: String, CaseIterable, Codable {
     case create = "create"
     case update = "update"
     case delete = "delete"
+    case read = "read"
     case statusChange = "status_change"
     case priorityChange = "priority_change"
     case returnProcess = "return_process"
@@ -36,12 +37,14 @@ enum OperationType: String, CaseIterable, Codable {
             return "更新"
         case .delete:
             return "删除"
+        case .read:
+            return "查询"
         case .statusChange:
             return "状态变更"
         case .priorityChange:
             return "优先级变更"
         case .returnProcess:
-            return "退货处理"
+            return "还货处理"
         case .batchUpdate:
             return "批量更新"
         case .batchDelete:
@@ -75,6 +78,8 @@ enum OperationType: String, CaseIterable, Codable {
             return "pencil.circle.fill"
         case .delete:
             return "trash.circle.fill"
+        case .read:
+            return "magnifyingglass.circle.fill"
         case .statusChange:
             return "arrow.triangle.2.circlepath"
         case .priorityChange:
@@ -114,6 +119,8 @@ enum OperationType: String, CaseIterable, Codable {
             return "blue"
         case .delete:
             return "red"
+        case .read:
+            return "gray"
         case .statusChange:
             return "orange"
         case .priorityChange:
@@ -173,7 +180,7 @@ enum EntityType: String, CaseIterable, Codable {
         case .user:
             return "用户"
         case .returnGoods:
-            return "退货"
+            return "还货"
         case .machine:
             return "生产设备"
         case .station:
@@ -296,7 +303,6 @@ struct CustomerOutOfStockOperation: Codable {
         let customerName: String?
         let productName: String?
         let quantity: Int?
-        let priority: String?
         let status: String?
         let notes: String?
         let returnQuantity: Int?

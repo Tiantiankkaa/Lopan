@@ -123,10 +123,14 @@ final class WorkshopMachine: Codable, Identifiable {
     }
     
     var activeStationsCount: Int {
+        // Safely access stations relationship
+        guard !stations.isEmpty else { return 0 }
         return stations.filter { $0.status == .running }.count
     }
     
     var idleStationsCount: Int {
+        // Safely access stations relationship
+        guard !stations.isEmpty else { return 0 }
         return stations.filter { $0.status == .idle }.count
     }
     
@@ -135,7 +139,7 @@ final class WorkshopMachine: Codable, Identifiable {
     }
     
     var hasActiveProductionBatch: Bool {
-        return currentBatchId != nil
+        return currentBatchId != nil && currentBatchId != ""
     }
     
     var isOperational: Bool {
@@ -146,7 +150,40 @@ final class WorkshopMachine: Codable, Identifiable {
         return "机器 \(machineNumber)"
     }
     
+    var currentBatchDisplayName: String {
+        if let batchId = currentBatchId, !batchId.isEmpty {
+            return "批次: \(batchId.prefix(8))..." // Show first 8 characters
+        }
+        return "无活跃批次"
+    }
+    
+    var productionModeStatus: String {
+        if let mode = currentProductionMode {
+            return mode.displayName
+        }
+        return "未配置"
+    }
+    
+    var isRunningWithBatch: Bool {
+        return status == .running && hasActiveProductionBatch
+    }
+    
+    var canAcceptNewBatch: Bool {
+        return isActive && status != .maintenance && status != .error && !hasActiveProductionBatch
+    }
+    
+    var batchStatusSummary: String {
+        if hasActiveProductionBatch {
+            return "执行中 - \(productionModeDisplayName)"
+        } else if status == .running {
+            return "运行中 - 无批次"
+        } else {
+            return status.displayName
+        }
+    }
+    
     var totalGuns: Int {
+        // Safely access guns relationship
         return guns.count
     }
     
@@ -155,10 +192,14 @@ final class WorkshopMachine: Codable, Identifiable {
     }
     
     var gunsWithColors: [WorkshopGun] {
+        // Safely access guns relationship
+        guard !guns.isEmpty else { return [] }
         return guns.filter { $0.hasColorAssigned }
     }
     
     var availableStations: [WorkshopStation] {
+        // Safely access stations relationship
+        guard !stations.isEmpty else { return [] }
         return stations.filter { $0.isAvailable }
     }
     

@@ -125,11 +125,20 @@ struct HistoricalBacktrackingView: View {
             }
             .navigationTitle("历史回溯")
             .navigationBarTitleDisplayMode(.inline)
+            .adaptiveBackground()
+            .accessibilityElement(children: .contain)
+            .accessibilityLabel("历史操作记录回溯界面")
+            .accessibilityHint("包含搜索过滤、统计信息和操作记录列表")
             .toolbar {
                 ToolbarItem(placement: .navigationBarTrailing) {
-                    Button(action: { activeSheet = .filters }) {
-                        Image(systemName: activeSheet?.id == "filters" ? "line.3.horizontal.decrease.circle.fill" : "line.3.horizontal.decrease.circle")
-                            .foregroundColor(.blue)
+                    Menu {
+                        Button(action: { activeSheet = .filters }) {
+                            Label("过滤器", systemImage: "line.3.horizontal.decrease.circle")
+                        }
+                        ExportButton(data: filteredAuditLogs, buttonText: "导出", systemImage: "square.and.arrow.up")
+                    } label: {
+                        Image(systemName: "ellipsis.circle")
+                            .accessibilityLabel("更多选项")
                     }
                 }
             }
@@ -160,6 +169,8 @@ struct HistoricalBacktrackingView: View {
                     Image(systemName: "magnifyingglass")
                         .foregroundColor(.secondary)
                     TextField("搜索操作记录、用户或详情", text: $searchText)
+                        .accessibilityLabel("搜索框")
+                        .accessibilityHint("输入关键词搜索操作记录、用户名或操作详情")
                 }
                 .padding(.horizontal)
                 .padding(.vertical, 8)
@@ -250,12 +261,14 @@ struct HistoricalBacktrackingView: View {
                 .font(.title2)
                 .fontWeight(.semibold)
                 .foregroundColor(.secondary)
+                .dynamicTypeSize(.small...DynamicTypeSize.accessibility1)
             
             Text("在选定的时间范围内没有找到匹配的操作记录")
                 .font(.body)
                 .foregroundColor(.secondary)
                 .multilineTextAlignment(.center)
                 .padding(.horizontal, 40)
+                .dynamicTypeSize(.small...DynamicTypeSize.accessibility1)
             
             Button("重置筛选条件") {
                 resetFilters()
@@ -265,6 +278,8 @@ struct HistoricalBacktrackingView: View {
             .background(Color.blue)
             .foregroundColor(.white)
             .cornerRadius(10)
+            .accessibilityLabel("重置筛选条件")
+            .accessibilityHint("清除所有过滤条件，显示所有操作记录")
             
             Spacer()
         }
@@ -396,15 +411,19 @@ struct HistoryStatCard: View {
                 .font(.title2)
                 .fontWeight(.bold)
                 .foregroundColor(color)
+                .dynamicTypeSize(.small...DynamicTypeSize.accessibility1)
             
             Text(title)
                 .font(.caption)
                 .foregroundColor(.secondary)
+                .dynamicTypeSize(.small...DynamicTypeSize.accessibility1)
         }
         .padding()
         .frame(width: 120)
         .background(Color(.systemGray6).opacity(0.5))
         .cornerRadius(12)
+        .accessibilityElement(children: .combine)
+        .accessibilityLabel("\(title): \(value)")
     }
 }
 

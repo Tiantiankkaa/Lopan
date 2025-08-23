@@ -14,6 +14,9 @@ protocol DateShiftPolicy {
     func defaultShift(for targetDate: Date, currentTime: Date) -> Shift
     func validateShiftSelection(_ shift: Shift, for targetDate: Date, currentTime: Date) throws
     func getCutoffInfo(for targetDate: Date, currentTime: Date) -> ShiftCutoffInfo
+    func isShiftOverdue(_ shift: Shift, for targetDate: Date, currentTime: Date) -> Bool
+    func getShiftAutoExecutionTime(_ shift: Shift, for targetDate: Date) -> Date?
+    func getShiftEndTime(_ shift: Shift, for targetDate: Date) -> Date?
 }
 
 // MARK: - Shift Cutoff Information (班次截止信息)
@@ -208,8 +211,8 @@ class StandardDateShiftPolicy: ObservableObject, DateShiftPolicy {
     }
     
     func canModifyShift(for batch: ProductionBatch, currentTime: Date = Date()) -> Bool {
-        // Cannot modify shift for legacy batches
-        guard batch.isShiftBatch else { return false }
+        // Cannot modify shift if batch doesn't have shift information
+        guard batch.targetDate != nil && batch.shift != nil else { return false }
         
         // Cannot modify if shift selection is locked
         guard !batch.isShiftSelectionLocked else { return false }
@@ -279,6 +282,65 @@ extension DateShiftPolicy {
                 reason: isAvailable ? nil : cutoffInfo.restrictionMessage
             )
         }
+    }
+}
+
+// MARK: - Auto Execution Extensions (自动执行扩展)
+extension DateShiftPolicy {
+    
+    func isShiftOverdue(_ shift: Shift, for targetDate: Date, currentTime: Date = Date()) -> Bool {
+        let calendar = Calendar.current
+        
+        // Only check for batches that are for today or past dates  
+        guard calendar.isDate(targetDate, inSameDayAs: currentTime) || targetDate < currentTime else { 
+            print("🔍 DateShiftPolicy: Shift \(shift.displayName) for \(targetDate) is not overdue - future date")
+            return false 
+        }
+        
+        // Get the end time of the shift for the target date
+        guard let shiftEndTime = getShiftEndTime(shift, for: targetDate) else { 
+            print("❌ DateShiftPolicy: Could not get end time for shift \(shift.displayName)")
+            return false 
+        }
+        
+        // Check if current time is past the shift end time
+        let isOverdue = currentTime > shiftEndTime
+        print("⏰ DateShiftPolicy: Shift \(shift.displayName) for \(targetDate) - End: \(shiftEndTime), Current: \(currentTime), Overdue: \(isOverdue)")
+        return isOverdue
+    }
+    
+    func getShiftAutoExecutionTime(_ shift: Shift, for targetDate: Date) -> Date? {
+        let calendar = Calendar.current
+        
+        // Get shift start time
+        let startTime = shift.standardStartTime
+        
+        var dateComponents = calendar.dateComponents([.year, .month, .day], from: targetDate)
+        dateComponents.hour = startTime.hour
+        dateComponents.minute = startTime.minute
+        dateComponents.second = 0
+        
+        return calendar.date(from: dateComponents)
+    }
+    
+    func getShiftEndTime(_ shift: Shift, for targetDate: Date) -> Date? {
+        let calendar = Calendar.current
+        let endTime = shift.standardEndTime
+        
+        var dateComponents = calendar.dateComponents([.year, .month, .day], from: targetDate)
+        dateComponents.hour = endTime.hour
+        dateComponents.minute = endTime.minute
+        dateComponents.second = 0
+        
+        // For evening shift that ends next day
+        if shift == .evening {
+            dateComponents = calendar.dateComponents([.year, .month, .day], from: calendar.date(byAdding: .day, value: 1, to: targetDate) ?? targetDate)
+            dateComponents.hour = endTime.hour
+            dateComponents.minute = endTime.minute
+            dateComponents.second = 0
+        }
+        
+        return calendar.date(from: dateComponents)
     }
 }
 

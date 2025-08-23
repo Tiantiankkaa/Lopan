@@ -17,7 +17,6 @@ class AuditLoggingExample {
         customer: Customer?,
         product: Product?,
         quantity: Int,
-        priority: OutOfStockPriority,
         notes: String?,
         modelContext: ModelContext
     ) {
@@ -26,7 +25,6 @@ class AuditLoggingExample {
             customer: customer,
             product: product,
             quantity: quantity,
-            priority: priority,
             notes: notes,
             createdBy: "demo_user" // TODO: Get from current user
         )
@@ -54,7 +52,6 @@ class AuditLoggingExample {
     func updateCustomerOutOfStock(
         item: CustomerOutOfStock,
         newQuantity: Int?,
-        newPriority: OutOfStockPriority?,
         newNotes: String?,
         modelContext: ModelContext
     ) {
@@ -63,7 +60,6 @@ class AuditLoggingExample {
             customerName: item.customer?.name,
             productName: item.product?.name,
             quantity: item.quantity,
-            priority: item.priority.displayName,
             status: item.status.displayName,
             notes: item.notes,
             returnQuantity: item.returnQuantity,
@@ -79,10 +75,6 @@ class AuditLoggingExample {
             changedFields.append("quantity")
         }
         
-        if let newPriority = newPriority, newPriority != item.priority {
-            item.priority = newPriority
-            changedFields.append("priority")
-        }
         
         if let newNotes = newNotes, newNotes != item.notes {
             item.notes = newNotes.isEmpty ? nil : newNotes

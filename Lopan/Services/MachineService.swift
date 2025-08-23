@@ -22,6 +22,8 @@ class MachineService: ObservableObject, ServiceCleanupProtocol {
     private let machineRepository: MachineRepository
     private let auditService: NewAuditingService
     private let authService: AuthenticationService
+    private weak var notificationEngine: NotificationEngine?
+    private weak var permissionService: AdvancedPermissionService?
     
     // MARK: - Machine Status Cache (机器状态缓存)
     private var machineStatusCache: MachineStatusCache?
@@ -30,10 +32,12 @@ class MachineService: ObservableObject, ServiceCleanupProtocol {
     // MARK: - Task Management
     private var isCleanedUp = false
     
-    init(machineRepository: MachineRepository, auditService: NewAuditingService, authService: AuthenticationService) {
+    init(machineRepository: MachineRepository, auditService: NewAuditingService, authService: AuthenticationService, notificationEngine: NotificationEngine? = nil, permissionService: AdvancedPermissionService? = nil) {
         self.machineRepository = machineRepository
         self.auditService = auditService
         self.authService = authService
+        self.notificationEngine = notificationEngine
+        self.permissionService = permissionService
     }
     
     // MARK: - Cleanup
@@ -133,7 +137,7 @@ class MachineService: ObservableObject, ServiceCleanupProtocol {
                     operatorUserId: currentUser.id,
                     operatorUserName: currentUser.name,
                     operationDetails: [
-                        "machineNumber": newMachine.machineNumber,
+                        "machineNumber": "\(newMachine.machineNumber)",
                         "createdBy": currentUser.name
                     ]
                 )
@@ -200,7 +204,7 @@ class MachineService: ObservableObject, ServiceCleanupProtocol {
                     operatorUserId: currentUser.id,
                     operatorUserName: currentUser.name,
                     operationDetails: [
-                        "machineNumber": machine.machineNumber,
+                        "machineNumber": "\(machine.machineNumber)",
                         "deletedBy": currentUser.name
                     ]
                 )
@@ -623,7 +627,7 @@ class MachineService: ObservableObject, ServiceCleanupProtocol {
                     operatorUserId: currentUser.id,
                     operatorUserName: currentUser.name,
                     operationDetails: [
-                        "machineNumber": machine.machineNumber,
+                        "machineNumber": "\(machine.machineNumber)",
                         "originalMachineStatus": originalMachineStatus.rawValue,
                         "resetStationsCount": machine.stations.count,
                         "resetBy": currentUser.name
@@ -708,7 +712,7 @@ class MachineService: ObservableObject, ServiceCleanupProtocol {
                     operatorUserId: currentUser.id,
                     operatorUserName: currentUser.name,
                     operationDetails: [
-                        "machineNumber": machine.machineNumber,
+                        "machineNumber": "\(machine.machineNumber)",
                         "oldCuringTime": oldCuringTime,
                         "newCuringTime": curingTime,
                         "oldMoldOpeningTimes": oldMoldOpeningTimes,
@@ -874,6 +878,291 @@ class MachineService: ObservableObject, ServiceCleanupProtocol {
     /// 强制刷新机器状态（绕过缓存）
     func forceRefreshMachineStatus() async {
         await refreshMachineStatusCache()
+    }
+    
+    // MARK: - Batch-Machine Synchronization Methods (批次-机器同步方法)
+    
+    /// Get the current active batch for a machine
+    /// 获取机器当前的活跃批次
+    func getCurrentBatch(for machineId: String) async -> ProductionBatch? {
+        guard isUserLoggedIn else { return nil }
+        
+        do {
+            let machines = try await machineRepository.fetchAllMachines()
+            guard let machine = machines.first(where: { $0.id == machineId }),
+                  let batchId = machine.currentBatchId else {
+                return nil
+            }
+            
+            // We need a batch repository to fetch the batch details
+            // For now, return nil - this would need ProductionBatchRepository injection
+            return nil
+            
+        } catch {
+            return nil
+        }
+    }
+    
+    /// Update machine with batch information
+    /// 使用批次信息更新机器
+    func updateMachineWithBatch(_ machine: WorkshopMachine, batch: ProductionBatch) async -> Bool {
+        guard isUserLoggedIn else { return false }
+        
+        guard let currentUser = authService.currentUser,
+              currentUser.hasRole(.workshopManager) || currentUser.hasRole(.administrator) else {
+            errorMessage = "Insufficient permissions to update machine batch configuration"
+            return false
+        }
+        
+        let task = Task { @MainActor in
+            do {
+                try Task.checkCancellation()
+                guard isUserLoggedIn else { return false }
+                
+                // Update machine configuration
+                machine.currentBatchId = batch.id
+                machine.currentProductionMode = batch.mode
+                machine.lastConfigurationUpdate = Date()
+                machine.status = .running
+                machine.updatedAt = Date()
+                
+                // Update station statuses based on batch products
+                for station in machine.stations {
+                    let isOccupied = batch.products.contains { product in
+                        product.occupiedStations.contains(station.stationNumber)
+                    }
+                    
+                    if isOccupied {
+                        station.status = .running
+                        let occupyingProduct = batch.products.first { product in
+                            product.occupiedStations.contains(station.stationNumber)
+                        }
+                        station.currentProductId = occupyingProduct?.productId
+                    } else {
+                        station.status = .idle
+                        station.currentProductId = nil
+                    }
+                    station.updatedAt = Date()
+                }
+                
+                // Save changes
+                try await machineRepository.updateMachine(machine)
+                for station in machine.stations {
+                    try await machineRepository.updateStation(station)
+                }
+                
+                // Audit log
+                try await auditService.logOperation(
+                    operationType: .productionConfigChange,
+                    entityType: .machine,
+                    entityId: machine.id,
+                    entityDescription: "Machine #\(machine.machineNumber) batch update",
+                    operatorUserId: currentUser.id,
+                    operatorUserName: currentUser.name,
+                    operationDetails: [
+                        "action": "update_machine_with_batch",
+                        "machineNumber": "\(machine.machineNumber)",
+                        "batchId": batch.id,
+                        "batchNumber": batch.batchNumber,
+                        "mode": batch.mode.rawValue,
+                        "stationsOccupied": batch.totalStationsUsed,
+                        "updatedBy": currentUser.name
+                    ]
+                )
+                
+                return true
+                
+            } catch is CancellationError {
+                return false
+            } catch {
+                guard isUserLoggedIn else { return false }
+                errorMessage = "Failed to update machine with batch: \(error.localizedDescription)"
+                return false
+            }
+        }
+        
+        let result = await task.value
+        return result
+    }
+    
+    /// Clear batch from machine
+    /// 从机器清除批次
+    func clearBatchFromMachine(_ machine: WorkshopMachine) async -> Bool {
+        guard isUserLoggedIn else { return false }
+        
+        guard let currentUser = authService.currentUser,
+              currentUser.hasRole(.workshopManager) || currentUser.hasRole(.administrator) else {
+            errorMessage = "Insufficient permissions to clear machine batch"
+            return false
+        }
+        
+        let originalBatchId = machine.currentBatchId
+        let originalMode = machine.currentProductionMode
+        
+        let task = Task { @MainActor in
+            do {
+                try Task.checkCancellation()
+                guard isUserLoggedIn else { return false }
+                
+                // Clear machine batch configuration
+                machine.currentBatchId = nil
+                machine.currentProductionMode = nil
+                machine.lastConfigurationUpdate = Date()
+                machine.status = .stopped
+                machine.updatedAt = Date()
+                
+                // Reset all stations to idle
+                for station in machine.stations {
+                    station.status = .idle
+                    station.currentProductId = nil
+                    station.updatedAt = Date()
+                }
+                
+                // Save changes
+                try await machineRepository.updateMachine(machine)
+                for station in machine.stations {
+                    try await machineRepository.updateStation(station)
+                }
+                
+                // Audit log
+                try await auditService.logOperation(
+                    operationType: .productionConfigChange,
+                    entityType: .machine,
+                    entityId: machine.id,
+                    entityDescription: "Machine #\(machine.machineNumber) batch cleared",
+                    operatorUserId: currentUser.id,
+                    operatorUserName: currentUser.name,
+                    operationDetails: [
+                        "action": "clear_machine_batch",
+                        "machineNumber": "\(machine.machineNumber)",
+                        "previousBatchId": originalBatchId ?? "none",
+                        "previousMode": originalMode?.rawValue ?? "none",
+                        "clearedBy": currentUser.name
+                    ]
+                )
+                
+                return true
+                
+            } catch is CancellationError {
+                return false
+            } catch {
+                guard isUserLoggedIn else { return false }
+                errorMessage = "Failed to clear machine batch: \(error.localizedDescription)"
+                return false
+            }
+        }
+        
+        let result = await task.value
+        return result
+    }
+    
+    /// Get machines with active batches
+    /// 获取有活跃批次的机器
+    func getMachinesWithActiveBatches() async -> [WorkshopMachine] {
+        guard isUserLoggedIn else { return [] }
+        
+        do {
+            let machines = try await machineRepository.fetchAllMachines()
+            return machines.filter { $0.hasActiveProductionBatch }
+        } catch {
+            return []
+        }
+    }
+    
+    /// Validate machine-batch consistency
+    /// 验证机器-批次一致性
+    func validateMachineBatchConsistency() async -> [String] {
+        guard isUserLoggedIn else { return [] }
+        
+        var inconsistencies: [String] = []
+        
+        do {
+            let machines = try await machineRepository.fetchAllMachines()
+            
+            for machine in machines {
+                // Check if machine has currentBatchId but status is not running
+                if machine.currentBatchId != nil && machine.status != .running {
+                    inconsistencies.append("Machine #\(machine.machineNumber) has active batch but status is '\(machine.status.displayName)'")
+                }
+                
+                // Check if machine status is running but has no currentBatchId
+                if machine.status == .running && machine.currentBatchId == nil {
+                    inconsistencies.append("Machine #\(machine.machineNumber) is running but has no active batch")
+                }
+                
+                // Check station consistency
+                let runningStations = machine.stations.filter { $0.status == .running }
+                let hasRunningStations = !runningStations.isEmpty
+                
+                if machine.currentBatchId != nil && !hasRunningStations {
+                    inconsistencies.append("Machine #\(machine.machineNumber) has active batch but no running stations")
+                }
+                
+                if machine.currentBatchId == nil && hasRunningStations {
+                    inconsistencies.append("Machine #\(machine.machineNumber) has no active batch but has running stations")
+                }
+            }
+            
+        } catch {
+            inconsistencies.append("Failed to validate machine-batch consistency: \(error.localizedDescription)")
+        }
+        
+        return inconsistencies
+    }
+    
+    /// Get machine utilization rate based on active stations
+    /// 基于活跃工位获取机器利用率
+    func getMachineUtilizationRate(_ machine: WorkshopMachine) -> Double {
+        let totalStations = machine.stations.count
+        guard totalStations > 0 else { return 0.0 }
+        
+        let runningStations = machine.stations.filter { $0.status == .running }.count
+        return Double(runningStations) / Double(totalStations) * 100.0
+    }
+    
+    /// Update machine utilization rate
+    /// 更新机器利用率
+    func updateMachineUtilizationRate(_ machine: WorkshopMachine) async -> Bool {
+        guard isUserLoggedIn else { return false }
+        
+        let newUtilizationRate = getMachineUtilizationRate(machine)
+        
+        if abs(machine.utilizationRate - newUtilizationRate) > 0.01 { // Only update if significant change
+            machine.utilizationRate = newUtilizationRate
+            machine.updatedAt = Date()
+            
+            do {
+                try await machineRepository.updateMachine(machine)
+                return true
+            } catch {
+                errorMessage = "Failed to update machine utilization rate: \(error.localizedDescription)"
+                return false
+            }
+        }
+        
+        return true
+    }
+    
+    // MARK: - Notification Integration (通知集成)
+    
+    /// Send machine error notification
+    /// 发送机台错误通知
+    func sendMachineErrorNotification(machine: WorkshopMachine, errorMessage: String) async {
+        guard let notificationEngine = notificationEngine else { return }
+        
+        do {
+            try await notificationEngine.sendNotification(
+                templateId: "machine_error",
+                parameters: [
+                    "machineNumber": "\(machine.machineNumber)",
+                    "errorMessage": errorMessage
+                ],
+                relatedEntityId: machine.id,
+                relatedEntityType: "WorkshopMachine"
+            )
+        } catch {
+            print("Failed to send machine error notification: \(error.localizedDescription)")
+        }
     }
 }
 

@@ -353,7 +353,6 @@ enum BatchQueryType: String {
     case byDateShift = "date_shift"
     case byDate = "date"
     case shiftAware = "shift_aware"
-    case legacy = "legacy"
     case conflicting = "conflicting"
 }
 

@@ -39,7 +39,7 @@ struct BatchReturnProcessingSheet: View {
                     processBatchReturn()
                 }
             } message: {
-                Text("确定要处理这 \(items.count) 个退货记录吗？".localized(with: items.count))
+                Text("确定要处理这 \(items.count) 个还货记录吗？".localized(with: items.count))
             }
         }
         .onAppear {
@@ -52,7 +52,7 @@ struct BatchReturnProcessingSheet: View {
             Text("return_processing".localized)
                 .font(.headline)
             
-            Text("已选择 \(items.count) 个需要退货的记录".localized(with: items.count))
+            Text("已选择 \(items.count) 个需要还货的记录".localized(with: items.count))
                 .font(.subheadline)
                 .foregroundColor(.secondary)
             
@@ -83,7 +83,7 @@ struct BatchReturnProcessingSheet: View {
     private var actionButtons: some View {
         VStack(spacing: 12) {
             Button(action: { fillMaxQuantities() }) {
-                Text("填充最大退货数量")
+                Text("填充最大还货数量")
                     .frame(maxWidth: .infinity)
                     .padding()
                     .background(Color.blue.opacity(0.1))
@@ -174,7 +174,7 @@ struct ReturnItemInputRow: View {
     private var customerAndProductInfo: some View {
         VStack(alignment: .leading, spacing: 4) {
             HStack {
-                Text(item.customer?.name ?? "未知客户")
+                Text(item.customerDisplayName)
                     .font(.headline)
                 Spacer()
                 Text(item.status.displayName)
@@ -195,7 +195,7 @@ struct ReturnItemInputRow: View {
                     .foregroundColor(.orange)
                 
                 if item.hasPartialReturn {
-                    Text("已退: \(item.returnQuantity)")
+                    Text("已还: \(item.returnQuantity)")
                         .font(.caption)
                         .foregroundColor(.blue)
                 }
@@ -223,7 +223,7 @@ struct ReturnItemInputRow: View {
             Text("return_notes".localized + ":")
                 .font(.subheadline)
             
-            TextField("可选择填写退货原因或备注", text: $returnNotes)
+            TextField("可选择填写还货原因或备注", text: $returnNotes)
                 .textFieldStyle(RoundedBorderTextFieldStyle())
         }
     }
@@ -238,14 +238,3 @@ struct ReturnItemInputRow: View {
     }
 }
 
-#Preview {
-    let container = try! ModelContainer(for: CustomerOutOfStock.self, configurations: ModelConfiguration(isStoredInMemoryOnly: true))
-    
-    // Create sample data
-    let customer = Customer(name: "测试客户", address: "测试地址", phone: "13800000000")
-    let product = Product(name: "测试产品", colors: ["红色"])
-    let item = CustomerOutOfStock(customer: customer, product: product, quantity: 50, createdBy: "demo")
-    
-    BatchReturnProcessingSheet(items: [item]) { _ in }
-        .modelContainer(container)
-}

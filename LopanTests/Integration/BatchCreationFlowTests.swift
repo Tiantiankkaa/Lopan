@@ -143,14 +143,14 @@ final class BatchCreationFlowTests: XCTestCase {
             )
         ]
         
-        // When: Creating legacy batch
-        let batch = await batchService.createLegacyBatch(
+        // When: Creating production config batch
+        let batch = await batchService.createProductionConfigBatch(
             machineId: machineId,
             mode: .singleColor,
             products: productConfigs
         )
         
-        // Then: Verify legacy batch properties
+        // Then: Verify production config batch properties
         XCTAssertEqual(batch.machineId, machineId)
         XCTAssertNil(batch.targetDate)
         XCTAssertNil(batch.shift)

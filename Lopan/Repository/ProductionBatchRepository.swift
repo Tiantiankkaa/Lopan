@@ -7,6 +7,7 @@
 
 import Foundation
 
+@MainActor
 protocol ProductionBatchRepository {
     func fetchAllBatches() async throws -> [ProductionBatch]
     func fetchBatchesByStatus(_ status: BatchStatus) async throws -> [ProductionBatch]
@@ -27,7 +28,7 @@ protocol ProductionBatchRepository {
     func fetchProductConfigs(forBatch batchId: String) async throws -> [ProductConfig]
     
     // Batch number generation support
-    func fetchLatestBatchNumber(forDate dateString: String) async throws -> String?
+    func fetchLatestBatchNumber(forDate dateString: String, batchType: BatchType) async throws -> String?
     
     // MARK: - Shift-aware Batch Operations (班次感知批次操作)
     
@@ -43,9 +44,6 @@ protocol ProductionBatchRepository {
     /// 仅获取班次感知批次
     func fetchShiftAwareBatches() async throws -> [ProductionBatch]
     
-    /// Fetch legacy batches only
-    /// 仅获取传统批次
-    func fetchLegacyBatches() async throws -> [ProductionBatch]
     
     /// Fetch batches in date range with optional shift filter
     /// 获取日期范围内的批次，可选班次过滤
@@ -58,4 +56,22 @@ protocol ProductionBatchRepository {
     /// Fetch batches requiring migration to shift-aware format
     /// 获取需要迁移为班次感知格式的批次
     func fetchBatchesRequiringMigration() async throws -> [ProductionBatch]
+    
+    // MARK: - Optimized Query Methods for Batch-Machine Coordination (优化的批次-机台协调查询方法)
+    
+    /// Fetch the currently active batch for a specific machine
+    /// 获取特定机台的当前活跃批次
+    func fetchActiveBatchForMachine(_ machineId: String) async throws -> ProductionBatch?
+    
+    /// Fetch the latest batch for a specific machine, date, and shift
+    /// 获取特定机台、日期和班次的最新批次
+    func fetchLatestBatchForMachineAndShift(machineId: String, date: Date, shift: Shift) async throws -> ProductionBatch?
+    
+    /// Fetch all active batches with specific status filters
+    /// 获取所有符合特定状态过滤条件的活跃批次
+    func fetchActiveBatchesWithStatus(_ statuses: [BatchStatus]) async throws -> [ProductionBatch]
+    
+    /// Fetch batches by machine with status and date range filtering
+    /// 按机台查询批次，支持状态和日期范围过滤
+    func fetchBatchesForMachine(_ machineId: String, statuses: [BatchStatus], from startDate: Date?, to endDate: Date?) async throws -> [ProductionBatch]
 }

@@ -261,4 +261,35 @@ class NewAuditingService {
         }
         """
     }
+    
+    // MARK: - Filter Operation Logging
+    
+    /// Log filter operations for security auditing
+    func logFilterOperation(
+        userId: String,
+        userName: String,
+        filterType: String,
+        filterValue: String,
+        entityType: EntityType = .customerOutOfStock,
+        resultCount: Int,
+        additionalContext: [String: Any] = [:]
+    ) async {
+        let details: [String: Any] = [
+            "filter_type": filterType,
+            "filter_value": filterValue,
+            "result_count": resultCount,
+            "timestamp": Date().timeIntervalSince1970,
+            "additional_context": additionalContext
+        ]
+        
+        await logOperation(
+            operationType: .read,
+            entityType: entityType,
+            entityId: "filter_\(UUID().uuidString.prefix(8))",
+            entityDescription: "Filter applied: \(filterType) = \(filterValue) (returned \(resultCount) items)",
+            operatorUserId: userId,
+            operatorUserName: userName,
+            operationDetails: details
+        )
+    }
 }

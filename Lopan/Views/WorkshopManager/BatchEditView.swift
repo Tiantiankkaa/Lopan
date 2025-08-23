@@ -10,7 +10,10 @@ import SwiftData
 
 // MARK: - Batch Edit View (批次编辑视图)
 struct BatchEditView: View {
-    let batch: ProductionBatch
+    // Legacy support (向后兼容支持)
+    private let batch: ProductionBatch?
+    private let batchId: String?
+    
     let repositoryFactory: RepositoryFactory
     @ObservedObject var authService: AuthenticationService
     let auditService: NewAuditingService
@@ -19,6 +22,7 @@ struct BatchEditView: View {
     
     @StateObject private var batchEditPermissionService: StandardBatchEditPermissionService
     @StateObject private var productionBatchService: ProductionBatchService
+    @StateObject private var batchEditService: BatchEditService
     
     @State private var productConfigs: [ProductConfig] = []
     @State private var originalProductConfigs: [ProductConfig] = []
@@ -34,13 +38,18 @@ struct BatchEditView: View {
     @State private var isDeleting = false
     @State private var isSubmitting = false
     
+    // MARK: - Initializers (初始化方法)
+    
+    /// Initialize with batch ID (recommended approach)
+    /// 使用批次ID初始化（推荐方式）
     init(
-        batch: ProductionBatch,
+        batchId: String,
         repositoryFactory: RepositoryFactory,
         authService: AuthenticationService,
         auditService: NewAuditingService
     ) {
-        self.batch = batch
+        self.batch = nil
+        self.batchId = batchId
         self.repositoryFactory = repositoryFactory
         self.authService = authService
         self.auditService = auditService
@@ -57,96 +66,244 @@ struct BatchEditView: View {
             authService: authService
         )
         self._productionBatchService = StateObject(wrappedValue: productionService)
+        
+        // Initialize batch edit service for ID-based approach
+        let batchService = BatchEditService(
+            batchId: batchId,
+            repository: repositoryFactory.productionBatchRepository
+        )
+        self._batchEditService = StateObject(wrappedValue: batchService)
+    }
+    
+    /// Initialize with batch object (legacy support)
+    /// 使用批次对象初始化（向后兼容）
+    init(
+        batch: ProductionBatch,
+        repositoryFactory: RepositoryFactory,
+        authService: AuthenticationService,
+        auditService: NewAuditingService
+    ) {
+        self.batch = batch
+        self.batchId = nil
+        self.repositoryFactory = repositoryFactory
+        self.authService = authService
+        self.auditService = auditService
+        
+        // Initialize services
+        let permissionService = StandardBatchEditPermissionService(authService: authService)
+        self._batchEditPermissionService = StateObject(wrappedValue: permissionService)
+        
+        let productionService = ProductionBatchService(
+            productionBatchRepository: repositoryFactory.productionBatchRepository,
+            machineRepository: repositoryFactory.machineRepository,
+            colorRepository: repositoryFactory.colorRepository,
+            auditService: auditService,
+            authService: authService
+        )
+        self._productionBatchService = StateObject(wrappedValue: productionService)
+        
+        // Create dummy batch edit service for legacy mode (not used)
+        let dummyBatchService = BatchEditService(
+            batchId: batch.id,
+            repository: repositoryFactory.productionBatchRepository
+        )
+        self._batchEditService = StateObject(wrappedValue: dummyBatchService)
+    }
+    
+    // MARK: - Computed Properties (计算属性)
+    
+    /// Get current batch information
+    /// 获取当前批次信息
+    private var currentBatchInfo: BatchDetailInfo? {
+        if batchId != nil {
+            // New ID-based approach
+            return batchEditService.batchInfo
+        } else if let batch = batch {
+            // Legacy batch object approach
+            return BatchDetailInfo(from: batch)
+        }
+        return nil
+    }
+    
+    /// Check if currently loading batch data
+    /// 检查是否正在加载批次数据
+    private var isBatchLoading: Bool {
+        // Only show loading for ID-based approach
+        return batchId != nil ? batchEditService.isLoading : false
+    }
+    
+    /// Get batch loading error message
+    /// 获取批次加载错误信息
+    private var batchErrorMessage: String? {
+        // Only show errors for ID-based approach
+        return batchId != nil ? batchEditService.errorMessage : nil
     }
     
     var body: some View {
         NavigationView {
             Group {
-                if isLoading {
-                    loadingView
+                if isBatchLoading {
+                    batchLoadingView
+                } else if let errorMessage = batchErrorMessage {
+                    batchErrorView(errorMessage)
+                } else if let batchInfo = currentBatchInfo {
+                    batchContentView(batchInfo)
                 } else {
-                    simplifiedContentView
+                    batchNotFoundView
                 }
             }
-            .navigationTitle("编辑批次")
-            .navigationBarTitleDisplayMode(.inline)
-            .toolbar {
-                ToolbarItem(placement: .cancellationAction) {
-                    Button("取消") {
-                        dismiss()
+        }
+        .task {
+            await loadInitialData()
+        }
+    }
+    
+    // MARK: - Loading and Error Views (加载和错误视图)
+    
+    private var batchLoadingView: some View {
+        VStack(spacing: 16) {
+            ProgressView()
+                .scaleEffect(1.2)
+            Text("加载批次信息...")
+                .font(.headline)
+                .foregroundColor(.secondary)
+        }
+        .frame(maxWidth: .infinity, maxHeight: .infinity)
+    }
+    
+    private func batchErrorView(_ errorMessage: String) -> some View {
+        VStack(spacing: 16) {
+            Image(systemName: "exclamationmark.triangle")
+                .font(.system(size: 48))
+                .foregroundColor(.red)
+            
+            Text("加载失败")
+                .font(.headline)
+            
+            Text(errorMessage)
+                .font(.body)
+                .foregroundColor(.secondary)
+                .multilineTextAlignment(.center)
+            
+            Button("重试") {
+                Task {
+                    if batchId != nil {
+                        await batchEditService.refreshBatch()
                     }
+                }
+            }
+            .buttonStyle(.borderedProminent)
+        }
+        .padding()
+        .frame(maxWidth: .infinity, maxHeight: .infinity)
+    }
+    
+    private var batchNotFoundView: some View {
+        VStack(spacing: 16) {
+            Image(systemName: "doc.questionmark")
+                .font(.system(size: 48))
+                .foregroundColor(.gray)
+            
+            Text("批次不存在")
+                .font(.headline)
+            
+            Text("请检查批次是否已被删除或权限不足")
+                .font(.body)
+                .foregroundColor(.secondary)
+                .multilineTextAlignment(.center)
+        }
+        .padding()
+        .frame(maxWidth: .infinity, maxHeight: .infinity)
+    }
+    
+    // MARK: - Main Content View (主内容视图)
+    
+    private func batchContentView(_ batchInfo: BatchDetailInfo) -> some View {
+        Group {
+            if isLoading {
+                legacyLoadingView
+            } else {
+                batchDetailContentView(batchInfo)
+            }
+        }
+        .navigationTitle("编辑批次")
+        .navigationBarTitleDisplayMode(.inline)
+        .toolbar {
+            ToolbarItem(placement: .cancellationAction) {
+                Button("取消") {
+                    dismiss()
+                }
+            }
+            
+            // Delete button - only for unsubmitted batches
+            if batchInfo.status == .unsubmitted {
+                ToolbarItem(placement: .destructiveAction) {
+                    Menu {
+                        Button("删除批次", role: .destructive) {
+                            showingDeleteConfirmation = true
+                        }
+                    } label: {
+                        Image(systemName: "ellipsis.circle")
+                    }
+                    .disabled(isDeleting || isSubmitting)
+                }
+            }
+            
+            // Submit button - only for unsubmitted batches
+            if batchInfo.status == .unsubmitted {
+                ToolbarItem(placement: .primaryAction) {
+                    Button("提交") {
+                        Task {
+                            await submitBatch()
+                        }
+                    }
+                    .disabled(isSubmitting || isDeleting)
                 }
                 
-                // Delete button - only for unsubmitted batches
-                if batch.status == .unsubmitted {
-                    ToolbarItem(placement: .destructiveAction) {
-                        Menu {
-                            Button("删除批次", role: .destructive) {
-                                showingDeleteConfirmation = true
-                            }
-                        } label: {
-                            Image(systemName: "ellipsis.circle")
+                ToolbarItem(placement: .secondaryAction) {
+                    Button("保存") {
+                        Task {
+                            await saveBatch()
                         }
-                        .disabled(isDeleting || isSubmitting)
                     }
-                }
-                
-                // Submit button - only for unsubmitted batches
-                if batch.status == .unsubmitted {
-                    ToolbarItem(placement: .primaryAction) {
-                        Button("提交") {
-                            Task {
-                                await submitBatch()
-                            }
-                        }
-                        .disabled(isSubmitting || isDeleting)
-                    }
-                    
-                    ToolbarItem(placement: .secondaryAction) {
-                        Button("保存") {
-                            Task {
-                                await saveBatch()
-                            }
-                        }
-                        .disabled(!hasChanges || isSaving || isDeleting || isSubmitting)
-                    }
+                    .disabled(!hasChanges || isSaving || isDeleting || isSubmitting)
                 }
             }
-            .task {
-                await loadBatchData()
+        }
+        .task {
+            await loadBatchData()
+        }
+        .alert("错误", isPresented: $showingError, presenting: errorMessage) { _ in
+            Button("确定", role: .cancel) { }
+        } message: { message in
+            Text(message)
+        }
+        .alert("颜色限制编辑", isPresented: $showingColorOnlyWarning) {
+            Button("继续", role: .cancel) { }
+            Button("前往生产配置") {
+                showingProductionConfigRedirect = true
             }
-            .alert("错误", isPresented: $showingError, presenting: errorMessage) { _ in
-                Button("确定", role: .cancel) { }
-            } message: { message in
-                Text(message)
-            }
-            .alert("颜色限制编辑", isPresented: $showingColorOnlyWarning) {
-                Button("继续", role: .cancel) { }
-                Button("前往生产配置") {
-                    showingProductionConfigRedirect = true
+        } message: {
+            Text("当前批次仅支持颜色修改。如需修改产品结构，请前往生产配置功能。")
+        }
+        .sheet(isPresented: $showingProductionConfigRedirect) {
+            productionConfigRedirectSheet
+        }
+        .alert("删除确认", isPresented: $showingDeleteConfirmation) {
+            Button("删除", role: .destructive) {
+                Task {
+                    await deleteBatch()
                 }
-            } message: {
-                Text("当前批次仅支持颜色修改。如需修改产品结构，请前往生产配置功能。")
             }
-            .sheet(isPresented: $showingProductionConfigRedirect) {
-                productionConfigRedirectSheet
-            }
-            .alert("删除确认", isPresented: $showingDeleteConfirmation) {
-                Button("删除", role: .destructive) {
-                    Task {
-                        await deleteBatch()
-                    }
-                }
-                Button("取消", role: .cancel) { }
-            } message: {
-                Text("确定要删除这个未提交的批次吗？删除后无法恢复。")
-            }
+            Button("取消", role: .cancel) { }
+        } message: {
+            Text("确定要删除这个未提交的批次吗？删除后无法恢复。")
         }
     }
     
     // MARK: - Loading View (加载视图)
     
-    private var loadingView: some View {
+    private var legacyLoadingView: some View {
         VStack(spacing: 20) {
             ProgressView()
                 .scaleEffect(1.5)
@@ -158,12 +315,56 @@ struct BatchEditView: View {
         .frame(maxWidth: .infinity, maxHeight: .infinity)
     }
     
-    // MARK: - Simplified Content View (简化内容视图)
+    // MARK: - Implementation Methods (实现方法)
     
-    private var simplifiedContentView: some View {
+    /// Load initial data for the view
+    /// 加载视图的初始数据
+    private func loadInitialData() async {
+        // Load batch information if using ID-based approach
+        if batchId != nil {
+            await batchEditService.loadBatch()
+        }
+        
+        // Load additional data (product configs, colors) for both approaches
+        if let batchInfo = currentBatchInfo {
+            await loadAdditionalData(for: batchInfo)
+        }
+    }
+    
+    /// Load additional data needed for editing
+    /// 加载编辑所需的额外数据
+    private func loadAdditionalData(for batchInfo: BatchDetailInfo) async {
+        await MainActor.run {
+            isLoading = true
+        }
+        
+        do {
+            async let productConfigsTask = repositoryFactory.productionBatchRepository.fetchProductConfigs(forBatch: batchInfo.id)
+            async let colorsTask = repositoryFactory.colorRepository.fetchAllColors()
+            
+            let (configs, colors) = try await (productConfigsTask, colorsTask)
+            
+            await MainActor.run {
+                self.productConfigs = configs
+                self.originalProductConfigs = configs
+                self.editedConfigs = configs
+                self.availableColors = colors
+                self.isLoading = false
+            }
+        } catch {
+            await showError("加载批次数据失败: \(error.localizedDescription)")
+            await MainActor.run {
+                self.isLoading = false
+            }
+        }
+    }
+    
+    /// Main content view using BatchDetailInfo
+    /// 使用BatchDetailInfo的主要内容视图
+    private func batchDetailContentView(_ batchInfo: BatchDetailInfo) -> some View {
         ScrollView {
             LazyVStack(spacing: 20) {
-                batchInfoSection
+                batchInfoSection(batchInfo: batchInfo)
                 productConfigSection
             }
             .padding()
@@ -173,15 +374,20 @@ struct BatchEditView: View {
     
     // MARK: - Batch Info Section (批次信息区域)
     
-    private var batchInfoSection: some View {
+    private func batchInfoSection(batchInfo: BatchDetailInfo) -> some View {
         VStack(alignment: .leading, spacing: 12) {
             sectionHeader(title: "批次信息", icon: "square.stack.3d.down.right")
             
-            batchInfoCard
+            batchInfoCard(batchInfo: batchInfo)
+            
+            // Show execution info for completed batches
+            if batchInfo.status == .completed, let executionInfo = batchInfo.executionTypeInfo {
+                executionInfoCard(batchInfo: batchInfo, executionInfo: executionInfo)
+            }
         }
     }
     
-    private var batchInfoCard: some View {
+    private func batchInfoCard(batchInfo: BatchDetailInfo) -> some View {
         VStack(spacing: 16) {
             HStack {
                 VStack(alignment: .leading, spacing: 4) {
@@ -190,7 +396,7 @@ struct BatchEditView: View {
                         .fontWeight(.medium)
                         .foregroundColor(.secondary)
                     
-                    Text(batch.batchNumber)
+                    Text(batchInfo.batchNumber + " (" + batchInfo.batchType.displayName + ")")
                         .font(.system(.body, design: .monospaced))
                         .fontWeight(.medium)
                         .foregroundColor(.primary)
@@ -198,10 +404,10 @@ struct BatchEditView: View {
                 
                 Spacer()
                 
-                batchStatusBadge
+                batchStatusBadge(status: batchInfo.status)
             }
             
-            if batch.isShiftBatch, let targetDate = batch.targetDate, let shift = batch.shift {
+            if batchInfo.isShiftBatch, let targetDate = batchInfo.targetDate, let shift = batchInfo.shift {
                 HStack(spacing: 16) {
                     VStack(alignment: .leading, spacing: 4) {
                         Text("日期")
@@ -209,7 +415,7 @@ struct BatchEditView: View {
                             .fontWeight(.medium)
                             .foregroundColor(.secondary)
                         
-                        Text(formatDate(targetDate))
+                        Text(DateTimeUtilities.formatDate(targetDate))
                             .font(.body)
                             .fontWeight(.medium)
                             .foregroundColor(.primary)
@@ -244,7 +450,7 @@ struct BatchEditView: View {
                         .fontWeight(.medium)
                         .foregroundColor(.secondary)
                     
-                    Text(batch.machineId)
+                    Text(batchInfo.machineId)
                         .font(.body)
                         .fontWeight(.medium)
                         .foregroundColor(.primary)
@@ -252,7 +458,7 @@ struct BatchEditView: View {
                 
                 Spacer()
                 
-                if batch.allowsColorModificationOnly {
+                if batchInfo.allowsColorModificationOnly {
                     colorOnlyBadge
                 }
             }
@@ -264,17 +470,17 @@ struct BatchEditView: View {
         )
     }
     
-    private var batchStatusBadge: some View {
-        Text(batch.status.displayName)
+    private func batchStatusBadge(status: BatchStatus) -> some View {
+        Text(status.displayName)
             .font(.caption)
             .fontWeight(.medium)
             .padding(.horizontal, 8)
             .padding(.vertical, 4)
             .background(
                 RoundedRectangle(cornerRadius: 6)
-                    .fill(batch.status.color.opacity(0.2))
+                    .fill(status.color.opacity(0.2))
             )
-            .foregroundColor(batch.status.color)
+            .foregroundColor(status.color)
     }
     
     private var colorOnlyBadge: some View {
@@ -293,6 +499,168 @@ struct BatchEditView: View {
                 .fill(Color.orange.opacity(0.2))
         )
         .foregroundColor(.orange)
+    }
+    
+    // MARK: - Execution Info Card (执行信息卡片)
+    
+    private func executionInfoCard(batchInfo: BatchDetailInfo, executionInfo: (type: String, details: String)) -> some View {
+        VStack(spacing: 16) {
+            HStack {
+                VStack(alignment: .leading, spacing: 4) {
+                    HStack(spacing: 6) {
+                        Image(systemName: batchInfo.isAutoCompleted ? "clock.arrow.circlepath" : "person.fill")
+                            .font(.system(size: 16, weight: .medium))
+                            .foregroundColor(batchInfo.isAutoCompleted ? .blue : .green)
+                        
+                        Text(executionInfo.type)
+                            .font(.headline)
+                            .fontWeight(.medium)
+                            .foregroundColor(.primary)
+                    }
+                    
+                    Text(executionInfo.details)
+                        .font(.caption)
+                        .foregroundColor(.secondary)
+                }
+                
+                Spacer()
+                
+                if batchInfo.isAutoCompleted {
+                    Image(systemName: "checkmark.seal.fill")
+                        .font(.system(size: 20))
+                        .foregroundColor(.blue)
+                }
+            }
+            
+            // Execution details section
+            VStack(spacing: 12) {
+                if batchInfo.isAutoCompleted {
+                    // Auto-completed batch details
+                    autoCompletedDetailsView(batchInfo: batchInfo)
+                } else {
+                    // Manual execution details
+                    manualExecutionDetailsView(batchInfo: batchInfo)
+                }
+                
+                // Runtime duration (common for both types)
+                if let runtimeDuration = batchInfo.formattedRuntimeDuration {
+                    runtimeDurationView(duration: runtimeDuration)
+                }
+            }
+        }
+        .padding()
+        .background(
+            RoundedRectangle(cornerRadius: 12)
+                .fill(Color(.secondarySystemBackground))
+        )
+        .overlay(
+            RoundedRectangle(cornerRadius: 12)
+                .stroke(batchInfo.isAutoCompleted ? Color.blue.opacity(0.3) : Color.green.opacity(0.3), lineWidth: 1)
+        )
+    }
+    
+    private func autoCompletedDetailsView(batchInfo: BatchDetailInfo) -> some View {
+        VStack(spacing: 8) {
+            HStack {
+                Text("班次时间")
+                    .font(.caption)
+                    .fontWeight(.medium)
+                    .foregroundColor(.secondary)
+                
+                Spacer()
+                
+                HStack(spacing: 6) {
+                    Image(systemName: batchInfo.shift == .morning ? "sun.min" : "moon")
+                        .font(.caption)
+                        .foregroundColor(batchInfo.shift == .morning ? .orange : .indigo)
+                    
+                    Text(batchInfo.shift?.timeRangeDisplay ?? "未知班次")
+                        .font(.caption)
+                        .fontWeight(.medium)
+                        .foregroundColor(.primary)
+                }
+            }
+            
+            HStack {
+                Text("执行日期")
+                    .font(.caption)
+                    .fontWeight(.medium)
+                    .foregroundColor(.secondary)
+                
+                Spacer()
+                
+                if let targetDate = batchInfo.targetDate {
+                    Text(DateTimeUtilities.formatDate(targetDate))
+                        .font(.caption)
+                        .fontWeight(.medium)
+                        .foregroundColor(.primary)
+                }
+            }
+        }
+    }
+    
+    private func manualExecutionDetailsView(batchInfo: BatchDetailInfo) -> some View {
+        VStack(spacing: 8) {
+            if let executionTime = batchInfo.executionTime {
+                HStack {
+                    Text("执行时间")
+                        .font(.caption)
+                        .fontWeight(.medium)
+                        .foregroundColor(.secondary)
+                    
+                    Spacer()
+                    
+                    Text(DateTimeUtilities.formatDateTime(executionTime))
+                        .font(.caption)
+                        .fontWeight(.medium)
+                        .foregroundColor(.primary)
+                }
+            }
+            
+            if let completedAt = batchInfo.completedAt {
+                HStack {
+                    Text("完成时间")
+                        .font(.caption)
+                        .fontWeight(.medium)
+                        .foregroundColor(.secondary)
+                    
+                    Spacer()
+                    
+                    Text(DateTimeUtilities.formatDateTime(completedAt))
+                        .font(.caption)
+                        .fontWeight(.medium)
+                        .foregroundColor(.primary)
+                }
+            }
+        }
+    }
+    
+    private func runtimeDurationView(duration: String) -> some View {
+        HStack {
+            HStack(spacing: 4) {
+                Image(systemName: "timer")
+                    .font(.caption)
+                    .foregroundColor(.blue)
+                
+                Text("运行时长")
+                    .font(.caption)
+                    .fontWeight(.medium)
+                    .foregroundColor(.secondary)
+            }
+            
+            Spacer()
+            
+            Text(duration)
+                .font(.caption)
+                .fontWeight(.bold)
+                .foregroundColor(.blue)
+                .padding(.horizontal, 8)
+                .padding(.vertical, 2)
+                .background(
+                    RoundedRectangle(cornerRadius: 4)
+                        .fill(Color.blue.opacity(0.1))
+                )
+        }
     }
     
     // MARK: - Product Config Section (产品配置区域)
@@ -384,7 +752,7 @@ struct BatchEditView: View {
                 
                 Spacer()
                 
-                if batch.status == .unsubmitted {
+                if let batchInfo = currentBatchInfo, batchInfo.status == .unsubmitted {
                     Text("可编辑")
                         .font(.caption)
                         .padding(.horizontal, 8)
@@ -397,7 +765,7 @@ struct BatchEditView: View {
                 }
             }
             
-            if batch.status == .unsubmitted {
+            if let batchInfo = currentBatchInfo, batchInfo.status == .unsubmitted {
                 colorSelectionRow(config: config)
             } else {
                 // Display-only color for submitted batches
@@ -427,29 +795,7 @@ struct BatchEditView: View {
             }
             
             // Show other product details
-            HStack(spacing: 16) {
-                VStack(alignment: .leading, spacing: 4) {
-                    Text("优先级")
-                        .font(.caption)
-                        .foregroundColor(.secondary)
-                    
-                    Text("\(config.wrappedValue.priority)")
-                        .font(.body)
-                        .foregroundColor(.primary)
-                }
-                
-                VStack(alignment: .leading, spacing: 4) {
-                    Text("预期产量")
-                        .font(.caption)
-                        .foregroundColor(.secondary)
-                    
-                    Text("\(config.wrappedValue.expectedOutput)")
-                        .font(.body)
-                        .foregroundColor(.primary)
-                }
-                
-                Spacer()
-            }
+            Spacer()
         }
     }
     
@@ -559,11 +905,7 @@ struct BatchEditView: View {
         }
     }
     
-    private func formatDate(_ date: Date) -> String {
-        let formatter = DateFormatter()
-        formatter.dateFormat = "yyyy-MM-dd"
-        return formatter.string(from: date)
-    }
+    // Date formatting functions replaced with DateTimeUtilities
     
     private func binding(for index: Int) -> Binding<ProductConfig> {
         Binding(
@@ -579,7 +921,7 @@ struct BatchEditView: View {
         let edited = editedConfigs[index]
         
         // For unsubmitted batches, allow color changes only
-        if batch.status == .unsubmitted {
+        if let batchInfo = currentBatchInfo, batchInfo.status == .unsubmitted {
             return original.primaryColorId != edited.primaryColorId
         }
         
@@ -604,6 +946,10 @@ struct BatchEditView: View {
     // MARK: - Data Loading and Actions (数据加载和操作)
     
     private func loadBatchData() async {
+        // This method is kept for backward compatibility with legacy views
+        // New ID-based views should use loadAdditionalData instead
+        guard let batch = batch else { return }
+        
         await MainActor.run {
             isLoading = true
         }
@@ -631,6 +977,7 @@ struct BatchEditView: View {
     
     private func saveBatch() async {
         guard hasChanges else { return }
+        guard let batchInfo = currentBatchInfo else { return }
         
         await MainActor.run {
             isSaving = true
@@ -638,7 +985,7 @@ struct BatchEditView: View {
         
         do {
             // Only allow saving for unsubmitted batches
-            guard batch.status == .unsubmitted else {
+            guard batchInfo.status == .unsubmitted else {
                 await showError("只能编辑未提交的批次")
                 await MainActor.run {
                     isSaving = false
@@ -651,8 +998,16 @@ struct BatchEditView: View {
                 try await repositoryFactory.productionBatchRepository.updateProductConfig(editedConfig)
             }
             
-            // Update batch timestamp
-            try await repositoryFactory.productionBatchRepository.updateBatch(batch)
+            // Update batch using ID or legacy object
+            if let batchId = batchId {
+                // ID-based approach: fetch batch and update
+                if let batch = try await repositoryFactory.productionBatchRepository.fetchBatchById(batchId) {
+                    try await repositoryFactory.productionBatchRepository.updateBatch(batch)
+                }
+            } else if let batch = batch {
+                // Legacy approach: direct update
+                try await repositoryFactory.productionBatchRepository.updateBatch(batch)
+            }
             
             // Reset original configs to reflect the saved state
             await MainActor.run {
@@ -669,8 +1024,10 @@ struct BatchEditView: View {
     }
     
     private func deleteBatch() async {
+        guard let batchInfo = currentBatchInfo else { return }
+        
         // Double-check status before deletion
-        guard batch.status == .unsubmitted else {
+        guard batchInfo.status == .unsubmitted else {
             await showError("只能删除未提交的批次")
             return
         }
@@ -680,22 +1037,26 @@ struct BatchEditView: View {
         }
         
         do {
-            // Delete the batch
-            try await repositoryFactory.productionBatchRepository.deleteBatch(batch)
+            // Delete the batch using ID or legacy object
+            if let batchId = batchId {
+                try await repositoryFactory.productionBatchRepository.deleteBatch(id: batchId)
+            } else if let batch = batch {
+                try await repositoryFactory.productionBatchRepository.deleteBatch(batch)
+            }
             
             // Create audit log for deletion
             await auditService.logOperation(
                 operationType: .delete,
                 entityType: .productionBatch,
-                entityId: batch.id,
-                entityDescription: "Batch \(batch.batchNumber)",
+                entityId: batchInfo.id,
+                entityDescription: "Batch \(batchInfo.batchNumber)",
                 operatorUserId: authService.currentUser?.id ?? "unknown",
                 operatorUserName: authService.currentUser?.name ?? "Unknown User",
                 operationDetails: [
                     "action": "delete_batch",
-                    "batch_number": batch.batchNumber,
-                    "machine_id": batch.machineId,
-                    "status": batch.status.rawValue
+                    "batch_number": batchInfo.batchNumber,
+                    "machine_id": batchInfo.machineId,
+                    "status": batchInfo.status.rawValue
                 ]
             )
             
@@ -713,8 +1074,10 @@ struct BatchEditView: View {
     }
     
     private func submitBatch() async {
+        guard let batchInfo = currentBatchInfo else { return }
+        
         // Only allow submission of unsubmitted batches
-        guard batch.status == .unsubmitted else {
+        guard batchInfo.status == .unsubmitted else {
             await showError("只能提交未提交的批次")
             return
         }
@@ -731,8 +1094,23 @@ struct BatchEditView: View {
                 }
             }
             
-            // Submit the batch using the service
-            let success = await productionBatchService.submitBatch(batch)
+            // Submit the batch using the service - need to get actual batch object
+            let batchToSubmit: ProductionBatch?
+            if let batchId = batchId {
+                batchToSubmit = try await repositoryFactory.productionBatchRepository.fetchBatchById(batchId)
+            } else {
+                batchToSubmit = batch
+            }
+            
+            guard let actualBatch = batchToSubmit else {
+                await showError("无法找到批次信息")
+                await MainActor.run {
+                    isSubmitting = false
+                }
+                return
+            }
+            
+            let success = await productionBatchService.submitBatch(actualBatch)
             
             if success {
                 await MainActor.run {
@@ -779,7 +1157,7 @@ struct BatchEditView_Previews: PreviewProvider {
             mode: .singleColor,
             submittedBy: "preview-user",
             submittedByName: "Preview User",
-            batchNumber: "BATCH-20250813-0001",
+            batchNumber: "PC-20250814-0001",
             targetDate: Date(),
             shift: .morning
         )

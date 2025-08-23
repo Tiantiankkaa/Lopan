@@ -262,14 +262,10 @@ extension LopanBadge {
         switch status {
         case .pending:
             return ("待处理", .warning, "clock")
-        case .confirmed:
-            return ("已确认", .info, "checkmark")
-        case .inProduction:
-            return ("生产中", .primary, "gearshape")
         case .completed:
             return ("已完成", .success, "checkmark.circle")
         case .cancelled:
-            return ("已取消", .error, "xmark")
+            return ("已退货", .error, "xmark.circle")
         }
     }
     
@@ -356,7 +352,6 @@ enum Priority: CaseIterable {
                 
                 HStack(spacing: LopanSpacing.sm) {
                     LopanBadge.status(.pending)
-                    LopanBadge.status(.inProduction)
                     LopanBadge.status(.completed)
                 }
             }

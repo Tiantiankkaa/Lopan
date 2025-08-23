@@ -9,6 +9,8 @@ import Foundation
 
 extension Notification.Name {
     static let productAdded = Notification.Name("productAdded")
+    static let productUpdated = Notification.Name("productUpdated")
+    static let productDeleted = Notification.Name("productDeleted")
     static let customerAdded = Notification.Name("customerAdded")
     static let outOfStockAdded = Notification.Name("outOfStockAdded")
     static let outOfStockUpdated = Notification.Name("outOfStockUpdated")

@@ -16,6 +16,7 @@ struct MachineApprovalStatusView: View {
     @State private var approvalBatches: [ProductionBatch] = []
     @State private var isLoading = false
     @State private var errorMessage: String?
+    @State private var showingAllBatches = false
     
     var body: some View {
         VStack(alignment: .leading, spacing: 12) {
@@ -68,7 +69,7 @@ struct MachineApprovalStatusView: View {
                     
                     if approvalBatches.count > 3 {
                         Button("查看全部 \(approvalBatches.count) 个批次") {
-                            // This could expand the view or navigate to a detailed view
+                            showingAllBatches = true
                         }
                         .font(.caption)
                         .foregroundColor(.blue)
@@ -92,6 +93,13 @@ struct MachineApprovalStatusView: View {
             Task {
                 await loadApprovalBatches()
             }
+        }
+        .sheet(isPresented: $showingAllBatches) {
+            MachineApprovalDetailView(
+                machineId: machineId,
+                batches: approvalBatches,
+                onBatchTapped: onBatchTapped
+            )
         }
     }
     
@@ -163,7 +171,7 @@ struct ApprovalBatchCompactRow: View {
                 // Batch info
                 VStack(alignment: .leading, spacing: 2) {
                     HStack {
-                        Text(batch.batchNumber)
+                        Text(batch.batchNumber + " (" + batch.batchType.displayName + ")")
                             .font(.caption)
                             .fontWeight(.medium)
                         
@@ -175,13 +183,21 @@ struct ApprovalBatchCompactRow: View {
                     }
                     
                     HStack(spacing: 6) {
-                        Text(batch.status.displayName)
-                            .font(.caption2)
-                            .foregroundColor(batch.status.color)
-                            .padding(.horizontal, 6)
-                            .padding(.vertical, 1)
-                            .background(batch.status.color.opacity(0.1))
-                            .cornerRadius(3)
+                        HStack(spacing: 3) {
+                            Image(systemName: batch.status.iconName)
+                                .font(.caption2)
+                                .foregroundColor(.white)
+                            
+                            Text(batch.status.displayName)
+                                .font(.caption2)
+                                .fontWeight(.medium)
+                                .foregroundColor(.white)
+                        }
+                        .padding(.horizontal, 8)
+                        .padding(.vertical, 3)
+                        .background(batch.status.color)
+                        .cornerRadius(6)
+                        .accessibilityLabel(batch.status.accessibilityLabel)
                         
                         Text(batch.mode.displayName)
                             .font(.caption2)
@@ -227,30 +243,12 @@ struct ApprovalBatchCompactRow: View {
                     }
                 }
                 
-                // Action button for active and completed batches
-                if batch.status == .active {
-                    Button("执行中") {
-                        // No action - just status display
-                    }
+                Spacer()
+                
+                // Action indicator
+                Image(systemName: "chevron.right")
                     .font(.caption2)
-                    .padding(.horizontal, 8)
-                    .padding(.vertical, 3)
-                    .background(Color.green)
-                    .foregroundColor(.white)
-                    .cornerRadius(4)
-                    .disabled(true)
-                } else if batch.status == .completed {
-                    Button("已完成") {
-                        // No action - just status display
-                    }
-                    .font(.caption2)
-                    .padding(.horizontal, 8)
-                    .padding(.vertical, 3)
-                    .background(Color.gray)
-                    .foregroundColor(.white)
-                    .cornerRadius(4)
-                    .disabled(true)
-                }
+                    .foregroundColor(.secondary)
             }
         }
         .buttonStyle(PlainButtonStyle())

@@ -607,23 +607,25 @@ struct ShiftAwareApprovalView: View {
                             .foregroundColor(.secondary)
                     }
                     
-                    HStack(spacing: 4) {
-                        Image(systemName: "number")
-                            .font(.caption)
-                            .foregroundColor(.secondary)
-                        
-                        Text("优先级: \(config.priority)")
-                            .font(.caption)
-                            .foregroundColor(.secondary)
+                    if let stationCount = config.stationCount {
+                        HStack(spacing: 4) {
+                            Image(systemName: "target")
+                                .font(.caption)
+                                .foregroundColor(.secondary)
+                            
+                            Text("工位数: \(stationCount)")
+                                .font(.caption)
+                                .foregroundColor(.secondary)
+                        }
                     }
                 }
                 
                 HStack(spacing: 4) {
-                    Image(systemName: "target")
+                    Image(systemName: "gearshape.2")
                         .font(.caption)
                         .foregroundColor(.secondary)
                     
-                    Text("预期产量: \(config.expectedOutput)")
+                    Text("工位: \(config.occupiedStations.map(String.init).joined(separator: ", "))")
                         .font(.caption)
                         .foregroundColor(.secondary)
                 }

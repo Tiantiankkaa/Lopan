@@ -11,6 +11,7 @@ import SwiftData
 @Model
 final class Customer {
     var id: String
+    var customerNumber: String
     var name: String
     var address: String
     var phone: String
@@ -19,6 +20,7 @@ final class Customer {
     
     init(name: String, address: String, phone: String) {
         self.id = UUID().uuidString
+        self.customerNumber = CustomerIDService.shared.generateNextCustomerID()
         self.name = name
         self.address = address
         self.phone = phone

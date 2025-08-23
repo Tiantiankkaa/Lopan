@@ -383,12 +383,12 @@ struct MachineDetailView: View {
             }
             
             VStack(spacing: 8) {
-                InfoRow(label: "生产模式", value: machine.productionModeDisplayName)
+                MachineDetailInfoRow(label: "生产模式", value: machine.productionModeDisplayName)
                 if let batchId = machine.currentBatchId {
-                    InfoRow(label: "批次号", value: batchId)
+                    MachineDetailInfoRow(label: "批次号", value: batchId)
                 }
                 if let lastUpdate = machine.lastConfigurationUpdate {
-                    InfoRow(label: "配置更新", value: DateFormatter.localizedString(from: lastUpdate, dateStyle: .short, timeStyle: .short))
+                    MachineDetailInfoRow(label: "配置更新", value: DateFormatter.localizedString(from: lastUpdate, dateStyle: .short, timeStyle: .short))
                 }
             }
         }

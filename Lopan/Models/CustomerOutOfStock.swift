@@ -10,8 +10,6 @@ import SwiftData
 
 enum OutOfStockStatus: String, CaseIterable, Codable {
     case pending = "pending"
-    case confirmed = "confirmed"
-    case inProduction = "in_production"
     case completed = "completed"
     case cancelled = "cancelled"
     
@@ -19,31 +17,10 @@ enum OutOfStockStatus: String, CaseIterable, Codable {
         switch self {
         case .pending:
             return "待处理"
-        case .confirmed:
-            return "已确认"
-        case .inProduction:
-            return "生产中"
         case .completed:
             return "已完成"
         case .cancelled:
-            return "已取消"
-        }
-    }
-}
-
-enum OutOfStockPriority: String, CaseIterable, Codable {
-    case high = "high"
-    case medium = "medium"
-    case low = "low"
-    
-    var displayName: String {
-        switch self {
-        case .high:
-            return "高"
-        case .medium:
-            return "中"
-        case .low:
-            return "低"
+            return "已退货"
         }
     }
 }
@@ -55,7 +32,6 @@ final class CustomerOutOfStock {
     var product: Product?
     var productSize: ProductSize? // Specific size for this out-of-stock item
     var quantity: Int
-    var priority: OutOfStockPriority
     var status: OutOfStockStatus
     var requestDate: Date
     var actualCompletionDate: Date?
@@ -69,13 +45,12 @@ final class CustomerOutOfStock {
     var returnDate: Date?
     var returnNotes: String?
     
-    init(customer: Customer?, product: Product?, productSize: ProductSize? = nil, quantity: Int, priority: OutOfStockPriority = .medium, notes: String? = nil, createdBy: String) {
+    init(customer: Customer?, product: Product?, productSize: ProductSize? = nil, quantity: Int, notes: String? = nil, createdBy: String) {
         self.id = UUID().uuidString
         self.customer = customer
         self.product = product
         self.productSize = productSize
         self.quantity = quantity
-        self.priority = priority
         self.status = .pending
         self.requestDate = Date()
         self.notes = notes
@@ -89,15 +64,123 @@ final class CustomerOutOfStock {
         self.returnNotes = nil
     }
     
+    // Helper method to get display name for the customer (safe for orphaned records)
+    var customerDisplayName: String {
+        if let customer = customer {
+            return customer.name
+        } else {
+            // Customer deleted, try to extract from DISPLAY_INFO or legacy notes pattern
+            return extractCustomerNameFromDisplayInfo() ?? extractCustomerNameFromNotes() ?? "客户已删除"
+        }
+    }
+    
+    // Helper method to get customer address (safe for orphaned records)
+    var customerAddress: String {
+        if let customer = customer {
+            return customer.address
+        } else {
+            return extractCustomerAddressFromDisplayInfo() ?? "地址已删除"
+        }
+    }
+    
+    // Helper method to get customer phone (safe for orphaned records)
+    var customerPhone: String {
+        if let customer = customer {
+            return customer.phone
+        } else {
+            return extractCustomerPhoneFromDisplayInfo() ?? "电话已删除"
+        }
+    }
+    
     // Helper method to get display name for the product with size
     var productDisplayName: String {
-        guard let product = product else { return "未知产品" }
-        let colorDisplay = product.colors.isEmpty ? "无颜色" : product.colors.joined(separator: ",")
-        if let size = productSize {
-            return "\(product.name)-\(size.size)-\(colorDisplay)"
+        if let product = product {
+            let colorDisplay = product.colors.isEmpty ? "无颜色" : product.colors.joined(separator: ",")
+            if let size = productSize {
+                return "\(product.name)-\(size.size)-\(colorDisplay)"
+            } else {
+                return "\(product.name)-\(colorDisplay)"
+            }
         } else {
-            return "\(product.name)-\(colorDisplay)"
+            return extractProductNameFromDisplayInfo() ?? "未知产品"
         }
+    }
+    
+    // Extract cached customer name from notes (format: "（原客户：Name - Number）")
+    func extractCustomerNameFromNotes() -> String? {
+        guard let notes = notes else { return nil }
+        
+        // Look for pattern "（原客户：Name - Number）"
+        let pattern = "（原客户：([^-]+)"
+        
+        if let regex = try? NSRegularExpression(pattern: pattern, options: []),
+           let match = regex.firstMatch(in: notes, options: [], range: NSRange(location: 0, length: notes.count)),
+           let range = Range(match.range(at: 1), in: notes) {
+            let extractedName = String(notes[range]).trimmingCharacters(in: .whitespaces)
+            return extractedName.isEmpty ? nil : extractedName
+        }
+        
+        return nil
+    }
+    
+    // MARK: - DISPLAY_INFO Extraction Methods
+    
+    /// Extract display info from notes field (format: "DISPLAY_INFO:{customerName|customerAddress|customerPhone|productName}")
+    private func extractDisplayInfo() -> (customerName: String?, customerAddress: String?, customerPhone: String?, productName: String?)? {
+        guard let notes = notes else { return nil }
+        
+        // Look for DISPLAY_INFO pattern
+        let pattern = "DISPLAY_INFO:\\{([^}]+)\\}"
+        
+        if let regex = try? NSRegularExpression(pattern: pattern, options: []),
+           let match = regex.firstMatch(in: notes, options: [], range: NSRange(location: 0, length: notes.count)),
+           let range = Range(match.range(at: 1), in: notes) {
+            let displayInfoString = String(notes[range])
+            let components = displayInfoString.components(separatedBy: "|")
+            
+            if components.count >= 4 {
+                return (
+                    customerName: components[0].isEmpty ? nil : components[0],
+                    customerAddress: components[1].isEmpty ? nil : components[1],
+                    customerPhone: components[2].isEmpty ? nil : components[2],
+                    productName: components[3].isEmpty ? nil : components[3]
+                )
+            }
+        }
+        
+        return nil
+    }
+    
+    /// Extract customer name from DISPLAY_INFO in notes
+    func extractCustomerNameFromDisplayInfo() -> String? {
+        return extractDisplayInfo()?.customerName
+    }
+    
+    /// Extract customer address from DISPLAY_INFO in notes
+    func extractCustomerAddressFromDisplayInfo() -> String? {
+        return extractDisplayInfo()?.customerAddress
+    }
+    
+    /// Extract customer phone from DISPLAY_INFO in notes
+    func extractCustomerPhoneFromDisplayInfo() -> String? {
+        return extractDisplayInfo()?.customerPhone
+    }
+    
+    /// Extract product name from DISPLAY_INFO in notes
+    func extractProductNameFromDisplayInfo() -> String? {
+        return extractDisplayInfo()?.productName
+    }
+    
+    /// Get user-visible notes (filtered to remove DISPLAY_INFO metadata)
+    var userVisibleNotes: String? {
+        guard let notes = notes else { return nil }
+        
+        // Remove DISPLAY_INFO pattern
+        let pattern = "DISPLAY_INFO:\\{[^}]*\\}\\s*"
+        let cleanedNotes = notes.replacingOccurrences(of: pattern, with: "", options: .regularExpression)
+            .trimmingCharacters(in: .whitespacesAndNewlines)
+        
+        return cleanedNotes.isEmpty ? nil : cleanedNotes
     }
     
     // Return goods computed properties
@@ -106,7 +189,7 @@ final class CustomerOutOfStock {
     }
     
     var needsReturn: Bool {
-        return remainingQuantity > 0 && (status == .pending || status == .confirmed || status == .inProduction)
+        return remainingQuantity > 0 && status == .pending
     }
     
     var isFullyReturned: Bool {
@@ -130,10 +213,67 @@ final class CustomerOutOfStock {
         if self.returnQuantity >= self.quantity {
             self.status = .completed
             self.actualCompletionDate = Date()
-        } else if self.returnQuantity > 0 {
-            self.status = .inProduction
         }
         
         return true
     }
-} 
+}
+
+extension CustomerOutOfStock: Equatable {
+    static func == (lhs: CustomerOutOfStock, rhs: CustomerOutOfStock) -> Bool {
+        return lhs.id == rhs.id
+    }
+}
+
+extension CustomerOutOfStock: Codable {
+    enum CodingKeys: String, CodingKey {
+        case id, quantity, status, requestDate, actualCompletionDate, notes, createdBy, createdAt, updatedAt
+        case returnQuantity, returnDate, returnNotes
+        case customerName, customerAddress, customerPhone
+        case productName, productSize
+    }
+    
+    convenience init(from decoder: Decoder) throws {
+        let container = try decoder.container(keyedBy: CodingKeys.self)
+        let id = try container.decode(String.self, forKey: .id)
+        let quantity = try container.decode(Int.self, forKey: .quantity)
+        let createdBy = try container.decode(String.self, forKey: .createdBy)
+        
+        self.init(customer: nil, product: nil, productSize: nil, quantity: quantity, notes: nil, createdBy: createdBy)
+        
+        self.id = id
+        self.status = try container.decode(OutOfStockStatus.self, forKey: .status)
+        self.requestDate = try container.decode(Date.self, forKey: .requestDate)
+        self.actualCompletionDate = try container.decodeIfPresent(Date.self, forKey: .actualCompletionDate)
+        self.notes = try container.decodeIfPresent(String.self, forKey: .notes)
+        self.createdAt = try container.decode(Date.self, forKey: .createdAt)
+        self.updatedAt = try container.decode(Date.self, forKey: .updatedAt)
+        
+        self.returnQuantity = try container.decode(Int.self, forKey: .returnQuantity)
+        self.returnDate = try container.decodeIfPresent(Date.self, forKey: .returnDate)
+        self.returnNotes = try container.decodeIfPresent(String.self, forKey: .returnNotes)
+    }
+    
+    func encode(to encoder: Encoder) throws {
+        var container = encoder.container(keyedBy: CodingKeys.self)
+        try container.encode(id, forKey: .id)
+        try container.encode(quantity, forKey: .quantity)
+        try container.encode(status, forKey: .status)
+        try container.encode(requestDate, forKey: .requestDate)
+        try container.encodeIfPresent(actualCompletionDate, forKey: .actualCompletionDate)
+        try container.encodeIfPresent(notes, forKey: .notes)
+        try container.encode(createdBy, forKey: .createdBy)
+        try container.encode(createdAt, forKey: .createdAt)
+        try container.encode(updatedAt, forKey: .updatedAt)
+        
+        try container.encode(returnQuantity, forKey: .returnQuantity)
+        try container.encodeIfPresent(returnDate, forKey: .returnDate)
+        try container.encodeIfPresent(returnNotes, forKey: .returnNotes)
+        
+        try container.encode(customerDisplayName, forKey: .customerName)
+        try container.encode(customerAddress, forKey: .customerAddress)
+        try container.encode(customerPhone, forKey: .customerPhone)
+        try container.encode(productDisplayName, forKey: .productName)
+        try container.encodeIfPresent(productSize?.size, forKey: .productSize)
+    }
+}

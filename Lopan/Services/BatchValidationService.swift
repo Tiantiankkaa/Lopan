@@ -424,19 +424,7 @@ class BatchValidationService: ObservableObject {
                 ))
             }
             
-            // Check for duplicate priorities
-            let priorities = productConfigs.map { $0.priority }
-            let duplicatePriorities = Set(priorities.filter { priority in
-                priorities.filter { $0 == priority }.count > 1
-            })
-            
-            if !duplicatePriorities.isEmpty {
-                warnings.append(BatchValidationWarning(
-                    type: .duplicatePriorities,
-                    message: "存在重复的产品优先级",
-                    recommendation: "建议调整产品优先级以避免冲突"
-                ))
-            }
+            // Validation for product configuration conflicts could be added here
             
             // Validate color assignments
             let availableColors = try await repositoryFactory.colorRepository.fetchAllColors()

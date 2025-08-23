@@ -136,7 +136,7 @@ struct SalespersonDashboardView: View {
                     GridItem(.flexible()),
                     GridItem(.flexible())
                 ], spacing: 20) {
-                    NavigationLink(destination: CustomerOutOfStockListViewV2()) {
+                    NavigationLink(destination: CustomerOutOfStockDashboard()) {
                         DashboardCard(
                             title: "customer_out_of_stock_management".localized,
                             subtitle: "customer_out_of_stock_management_subtitle".localized,

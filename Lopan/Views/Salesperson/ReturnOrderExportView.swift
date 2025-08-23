@@ -78,7 +78,7 @@ struct ReturnOrderExportView: View {
     
     private var headerSection: some View {
         VStack {
-            Text("选择要导出的退货记录")
+            Text("选择要导出的还货记录")
                 .font(.headline)
             
             Text("共 \(items.count) 条记录可供导出")
@@ -97,15 +97,15 @@ struct ReturnOrderExportView: View {
                 ExportTypeButton(
                     type: .pendingReturns,
                     selectedType: $exportType,
-                    title: "待退货记录",
-                    subtitle: "仅导出需要退货的记录"
+                    title: "待还货记录",
+                    subtitle: "仅导出需要还货的记录"
                 )
                 
                 ExportTypeButton(
                     type: .allReturns,
                     selectedType: $exportType,
-                    title: "所有退货记录",
-                    subtitle: "导出所有相关的退货记录"
+                    title: "所有还货记录",
+                    subtitle: "导出所有相关的还货记录"
                 )
                 
                 ExportTypeButton(
@@ -224,7 +224,7 @@ struct ReturnOrderExportView: View {
         
         if let url = ExcelService.shared.exportReturnOrders(exportItems) {
             exportedFileURL = url
-            exportResultMessage = "成功导出 \(exportItems.count) 条退货记录到文件"
+            exportResultMessage = "成功导出 \(exportItems.count) 条还货记录到文件"
         } else {
             exportResultMessage = "导出失败，请重试"
         }
@@ -293,7 +293,7 @@ struct ExportItemRow: View {
                     .foregroundColor(isSelected ? .blue : .gray)
                 
                 VStack(alignment: .leading, spacing: 4) {
-                    Text(item.customer?.name ?? "未知客户")
+                    Text(item.customerDisplayName)
                         .font(.subheadline)
                         .fontWeight(.medium)
                     
@@ -307,7 +307,7 @@ struct ExportItemRow: View {
                             .foregroundColor(.orange)
                         
                         if item.hasPartialReturn {
-                            Text("已退: \(item.returnQuantity)")
+                            Text("已还: \(item.returnQuantity)")
                                 .font(.caption)
                                 .foregroundColor(.blue)
                         }
@@ -358,15 +358,3 @@ struct ExportItemRow: View {
     }
 }
 
-#Preview {
-    let container = try! ModelContainer(for: CustomerOutOfStock.self, configurations: ModelConfiguration(isStoredInMemoryOnly: true))
-    
-    // Create sample data
-    let customer = Customer(name: "测试客户", address: "测试地址", phone: "13800000000")
-    let product = Product(name: "测试产品", colors: ["红色"])
-    let item = CustomerOutOfStock(customer: customer, product: product, quantity: 50, createdBy: "demo")
-    item.status = .confirmed
-    
-    return ReturnOrderExportView(items: [item])
-        .modelContainer(container)
-}

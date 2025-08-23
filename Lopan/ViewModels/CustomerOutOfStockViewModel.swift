@@ -20,6 +20,7 @@ class CustomerOutOfStockViewModel: ObservableObject {
     @Published var hasMoreData = true
     @Published var currentPage = 0
     @Published var totalCount = 0
+    @Published var statusCounts: [OutOfStockStatus: Int] = [:]
     
     // Filter states
     @Published var searchText = ""
@@ -210,6 +211,7 @@ class CustomerOutOfStockViewModel: ObservableObject {
             
             hasMoreData = service.hasMoreData
             totalCount = service.totalRecordsCount
+            updateStatusCounts()
             
         } catch {
             self.error = error
@@ -228,6 +230,7 @@ class CustomerOutOfStockViewModel: ObservableObject {
                 items = service.items
                 hasMoreData = service.hasMoreData
                 totalCount = service.totalRecordsCount
+                updateStatusCounts()
             }
             
             // Trigger stagger animation for list items
@@ -435,6 +438,18 @@ class CustomerOutOfStockViewModel: ObservableObject {
         withAnimation(.spring(response: 0.3, dampingFraction: 0.6, blendDuration: 0)) {
             filterChipAnimationScale = 1.0
         }
+    }
+    
+    // MARK: - Status Management
+    
+    private func updateStatusCounts() {
+        var counts: [OutOfStockStatus: Int] = [:]
+        
+        for item in items {
+            counts[item.status, default: 0] += 1
+        }
+        
+        statusCounts = counts
     }
     
     // MARK: - Utility Methods

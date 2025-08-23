@@ -105,7 +105,7 @@ enum BatchProcessingError: LocalizedError, Equatable {
         }
     }
     
-    var severity: ErrorSeverity {
+    var severity: SimpleErrorSeverity {
         switch self {
         case .invalidTimeSlot, .shiftNotAvailable, .colorOnlyRestriction:
             return .warning
@@ -117,7 +117,7 @@ enum BatchProcessingError: LocalizedError, Equatable {
     }
 }
 
-enum ErrorSeverity {
+enum SimpleErrorSeverity {
     case info
     case warning
     case error

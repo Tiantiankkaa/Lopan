@@ -9,16 +9,13 @@ import SwiftUI
 
 struct CustomerOutOfStockListViewV2: View {
     @StateObject private var viewModel: CustomerOutOfStockViewModel
+    @StateObject private var animationState = CommonAnimationState()
+    
     @Environment(\.dismiss) private var dismiss
-    @State private var showingDatePicker = false
-    @State private var scrollOffset: CGFloat = 0
-    @State private var listVisibleItems: Set<String> = []
-    
-    // Animation states
-    @State private var headerAnimationOffset: CGFloat = -50
-    @State private var searchBarAnimationScale: CGFloat = 0.9
-    
     @EnvironmentObject private var serviceFactory: ServiceFactory
+    
+    @State private var showingDatePicker = false
+    @State private var listVisibleItems: Set<String> = []
     
     init() {
         // Initialize with a placeholder, will be set from environment
@@ -41,7 +38,9 @@ struct CustomerOutOfStockListViewV2: View {
                 
                 VStack(spacing: 0) {
                     headerSection
+                    dateNavigationSection
                     searchSection
+                    statusTabSection
                     filterChipsSection
                     contentSection
                 }
@@ -53,8 +52,8 @@ struct CustomerOutOfStockListViewV2: View {
             .sheet(isPresented: $viewModel.showingFilterSheet) {
                 OutOfStockFilterSheet(viewModel: viewModel)
             }
-            .sheet(isPresented: $viewModel.showingAddSheet) {
-                AddCustomerOutOfStockViewV2()
+            .sheet(isPresented: $showingDatePicker) {
+                OutOfStockDatePickerSheet(selectedDate: $viewModel.selectedDate)
             }
             .alert("删除确认", isPresented: $viewModel.showingDeleteConfirmation) {
                 Button("取消", role: .cancel) { }
@@ -81,188 +80,103 @@ struct CustomerOutOfStockListViewV2: View {
                 }
             }
             .onAppear {
-                // Initialize the real service if it's still a placeholder
-                let realService = serviceFactory.customerOutOfStockService
-                viewModel.updateService(realService)
-                animateInitialAppearance()
-                setupMemoryWarningObserver()
-                viewModel.preloadAdjacentData()
+                initializeView()
             }
-            .onDisappear {
-                removeMemoryWarningObserver()
-            }
+            .memoryManaged()
         }
     }
     
     // MARK: - Header Section
     
     private var headerSection: some View {
-        VStack(spacing: 16) {
-            // Navigation header
+        VStack(spacing: 0) {
             HStack {
+                // Back button with text
                 Button(action: { dismiss() }) {
-                    Image(systemName: "chevron.left")
-                        .font(.title2)
-                        .fontWeight(.semibold)
-                        .foregroundColor(.primary)
-                }
-                
-                VStack(alignment: .leading, spacing: 2) {
-                    Text(viewModel.displayTitle)
-                        .font(.title2)
-                        .fontWeight(.bold)
-                        .foregroundColor(.primary)
-                    
-                    if viewModel.hasActiveFilters {
-                        Text("\(viewModel.activeFiltersCount) 个筛选条件已激活")
-                            .font(.caption)
-                            .foregroundColor(.secondary)
+                    HStack(spacing: 4) {
+                        Image(systemName: "chevron.left")
+                            .font(.system(size: 18, weight: .medium))
+                            .foregroundColor(.blue)
+                        
+                        Text("销售员工作台")
+                            .font(.system(size: 17))
+                            .foregroundColor(.blue)
                     }
                 }
                 
                 Spacer()
                 
-                // Action buttons
-                HStack(spacing: 12) {
-                    if viewModel.isInSelectionMode {
-                        selectionModeButtons
-                    } else {
-                        normalModeButtons
+                // Title
+                Text("客户缺货管理")
+                    .font(.system(size: 17, weight: .semibold))
+                    .foregroundColor(.primary)
+                
+                Spacer()
+                
+                // More menu button
+                OutOfStockMoreMenu(
+                    isPresented: .constant(false),
+                    onExport: {
+                        // TODO: Implement export functionality
+                        print("Export data")
+                    },
+                    onRefresh: {
+                        Task {
+                            await viewModel.refreshData()
+                        }
+                    },
+                    onSettings: {
+                        // TODO: Implement settings
+                        print("Open settings")
                     }
-                }
-            }
-            .padding(.horizontal, 20)
-            .padding(.top, 10)
-            
-            // Date navigation bar
-            dateNavigationBar
-        }
-        .background(
-            Color(.systemBackground)
-                .shadow(color: .black.opacity(0.05), radius: 1, x: 0, y: 1)
-        )
-        .offset(y: headerAnimationOffset)
-    }
-    
-    private var selectionModeButtons: some View {
-        HStack(spacing: 12) {
-            Button(action: viewModel.selectAll) {
-                Image(systemName: "checkmark.circle")
-                    .font(.title3)
-                    .foregroundColor(.blue)
-            }
-            
-            Button(action: { viewModel.showingDeleteConfirmation = true }) {
-                Image(systemName: "trash")
-                    .font(.title3)
-                    .foregroundColor(.red)
-            }
-            .disabled(viewModel.selectedItems.isEmpty)
-            
-            Button(action: viewModel.exitSelectionMode) {
-                Text("取消")
-                    .font(.system(size: 16, weight: .medium))
-                    .foregroundColor(.orange)
-            }
-        }
-    }
-    
-    private var normalModeButtons: some View {
-        HStack(spacing: 12) {
-            Button(action: { viewModel.showingFilterSheet = true }) {
-                ZStack {
-                    Circle()
-                        .fill(viewModel.hasActiveFilters ? Color.blue : Color(.systemGray5))
-                        .frame(width: 36, height: 36)
-                    
-                    Image(systemName: "line.3.horizontal.decrease.circle")
-                        .font(.system(size: 18, weight: .medium))
-                        .foregroundColor(viewModel.hasActiveFilters ? .white : .primary)
-                    
-                    if viewModel.hasActiveFilters {
-                        Circle()
-                            .fill(Color.red)
-                            .frame(width: 8, height: 8)
-                            .offset(x: 12, y: -12)
-                    }
-                }
-            }
-            
-            Button(action: { viewModel.showingAddSheet = true }) {
-                Circle()
-                    .fill(Color.blue)
-                    .frame(width: 36, height: 36)
-                    .overlay(
-                        Image(systemName: "plus")
-                            .font(.system(size: 18, weight: .bold))
-                            .foregroundColor(.white)
-                    )
-            }
-        }
-    }
-    
-    // MARK: - Date Navigation Bar
-    
-    private var dateNavigationBar: some View {
-        HStack {
-            Button(action: previousDay) {
-                Image(systemName: "chevron.left.circle.fill")
-                    .font(.title2)
-                    .foregroundColor(.blue)
-            }
-            
-            Spacer()
-            
-            Button(action: { showingDatePicker = true }) {
-                VStack(spacing: 2) {
-                    Text(viewModel.selectedDate, style: .date)
-                        .font(.system(size: 16, weight: .semibold))
-                        .foregroundColor(.primary)
-                    
-                    Text(dayOfWeek(viewModel.selectedDate))
-                        .font(.caption)
-                        .foregroundColor(.secondary)
-                }
-                .padding(.horizontal, 16)
-                .padding(.vertical, 8)
-                .background(
-                    RoundedRectangle(cornerRadius: 12)
-                        .fill(Color(.systemGray6))
                 )
             }
-            .sheet(isPresented: $showingDatePicker) {
-                DatePickerSheet(selectedDate: $viewModel.selectedDate)
-            }
-            
-            Spacer()
-            
-            Button(action: nextDay) {
-                Image(systemName: "chevron.right.circle.fill")
-                    .font(.title2)
-                    .foregroundColor(.blue)
-            }
+            .padding(.horizontal, 20)
+            .padding(.vertical, 12)
+            .background(Color(.systemBackground))
         }
-        .padding(.horizontal, 20)
-        .padding(.bottom, 10)
+        .offset(y: animationState.headerOffset)
+    }
+    
+    // MARK: - Date Navigation Section
+    
+    private var dateNavigationSection: some View {
+        CommonDateNavigationBar(
+            selectedDate: $viewModel.selectedDate,
+            showingDatePicker: $showingDatePicker,
+            loadedCount: viewModel.items.count,
+            totalCount: viewModel.totalCount,
+            onPreviousDay: previousDay,
+            onNextDay: nextDay
+        )
+    }
+    
+    // MARK: - Status Tab Section
+    
+    private var statusTabSection: some View {
+        OutOfStockStatusTabBar(
+            selectedStatus: $viewModel.statusFilter,
+            statusCounts: viewModel.statusCounts,
+            totalCount: viewModel.totalCount
+        )
     }
     
     // MARK: - Search Section
     
     private var searchSection: some View {
-        LopanSearchBar(
+        OutOfStockSearchBar(
             searchText: $viewModel.searchText,
-            placeholder: "搜索客户、产品、尺寸、颜色、备注...",
-            suggestions: [],
-            style: .standard,
-            showVoiceSearch: false,
-            onClear: { viewModel.searchText = "" },
+            placeholder: "搜索客户、产品、备注...",
             onSearch: { text in
                 viewModel.performImmediateSearch(text)
+            },
+            onFilterTap: {
+                viewModel.showingFilterSheet = true
             }
         )
         .padding(.horizontal, 20)
         .padding(.vertical, 12)
-        .scaleEffect(searchBarAnimationScale)
+        .scaleEffect(animationState.searchBarScale)
     }
     
     // MARK: - Filter Chips Section
@@ -328,7 +242,7 @@ struct CustomerOutOfStockListViewV2: View {
                     .padding(.horizontal, 20)
                 }
                 .padding(.bottom, 12)
-                .scaleEffect(viewModel.filterChipAnimationScale)
+                .scaleEffect(animationState.filterChipScale)
             }
         }
     }
@@ -343,7 +257,10 @@ struct CustomerOutOfStockListViewV2: View {
                 OutOfStockEmptyStateView(
                     hasActiveFilters: viewModel.hasActiveFilters,
                     onClearFilters: viewModel.clearAllFilters,
-                    onAddNew: { viewModel.showingAddSheet = true }
+                    onAddNew: { 
+                        // TODO: Implement proper add customer out of stock view
+                        print("Add new out of stock record from empty state")
+                    }
                 )
             } else {
                 listView
@@ -372,7 +289,7 @@ struct CustomerOutOfStockListViewV2: View {
         ScrollViewReader { proxy in
             List {
                 ForEach(Array(viewModel.items.enumerated()), id: \.element.id) { index, item in
-                    OutOfStockCardView(
+                    OutOfStockScreenshotCardView(
                         item: item,
                         isSelected: viewModel.selectedItems.contains(item.id),
                         isInSelectionMode: viewModel.isInSelectionMode,
@@ -406,7 +323,7 @@ struct CustomerOutOfStockListViewV2: View {
                     .onDisappear {
                         listVisibleItems.remove(item.id)
                     }
-                    .offset(y: viewModel.listItemAnimationOffset)
+                    .staggeredListAnimation(index: index, total: viewModel.items.count)
                 }
                 
                 // Load more indicator
@@ -429,24 +346,14 @@ struct CustomerOutOfStockListViewV2: View {
         }
     }
     
-    // MARK: - Animation Methods
+    // MARK: - Initialization
     
-    private func animateInitialAppearance() {
-        DispatchQueue.main.asyncAfter(deadline: .now() + 0.1) {
-            withAnimation(.easeOut(duration: 0.6)) {
-                headerAnimationOffset = 0
-            }
-        }
-        
-        DispatchQueue.main.asyncAfter(deadline: .now() + 0.2) {
-            withAnimation(.spring(response: 0.4, dampingFraction: 0.8)) {
-                searchBarAnimationScale = 1.0
-            }
-        }
-        
-        DispatchQueue.main.asyncAfter(deadline: .now() + 0.3) {
-            viewModel.animateFilterChips()
-        }
+    private func initializeView() {
+        // Initialize the real service if it's still a placeholder
+        let realService = serviceFactory.customerOutOfStockService
+        viewModel.updateService(realService)
+        animationState.animateInitialAppearance()
+        viewModel.preloadAdjacentData()
     }
     
     // MARK: - Date Navigation Methods
@@ -475,128 +382,6 @@ struct CustomerOutOfStockListViewV2: View {
         }
     }
     
-    private func dayOfWeek(_ date: Date) -> String {
-        let formatter = DateFormatter()
-        formatter.dateFormat = "EEEE"
-        formatter.locale = Locale(identifier: "zh_CN")
-        return formatter.string(from: date)
-    }
-    
-    // MARK: - Memory Management
-    
-    private func setupMemoryWarningObserver() {
-        NotificationCenter.default.addObserver(
-            forName: UIApplication.didReceiveMemoryWarningNotification,
-            object: nil,
-            queue: .main
-        ) { _ in
-            handleMemoryWarning()
-        }
-    }
-    
-    private func removeMemoryWarningObserver() {
-        NotificationCenter.default.removeObserver(
-            self,
-            name: UIApplication.didReceiveMemoryWarningNotification,
-            object: nil
-        )
-    }
-    
-    private func handleMemoryWarning() {
-        print("🚨 Memory warning received - optimizing memory usage")
-        
-        // Optimize ViewModel memory usage
-        viewModel.handleMemoryWarning()
-        
-        // Clear animation states
-        withAnimation(.none) {
-            headerAnimationOffset = 0
-            searchBarAnimationScale = 1.0
-        }
-        
-        // Clear visible items tracking
-        listVisibleItems.removeAll()
-        
-        // Force garbage collection hint
-        DispatchQueue.main.asyncAfter(deadline: .now() + 0.1) {
-            // This is just a hint, not a guarantee
-            if #available(iOS 15.0, *) {
-                // Modern memory pressure handling
-                viewModel.optimizeMemoryUsage()
-            }
-        }
-    }
-}
-
-// MARK: - Date Picker Sheet
-
-struct DatePickerSheet: View {
-    @Binding var selectedDate: Date
-    @Environment(\.dismiss) private var dismiss
-    
-    var body: some View {
-        NavigationView {
-            VStack {
-                DatePicker(
-                    "选择日期",
-                    selection: $selectedDate,
-                    displayedComponents: .date
-                )
-                .datePickerStyle(.wheel)
-                .labelsHidden()
-                
-                Spacer()
-            }
-            .padding()
-            .navigationTitle("选择日期")
-            .navigationBarTitleDisplayMode(.inline)
-            .toolbar {
-                ToolbarItem(placement: .navigationBarLeading) {
-                    Button("取消") {
-                        dismiss()
-                    }
-                }
-                
-                ToolbarItem(placement: .navigationBarTrailing) {
-                    Button("确定") {
-                        dismiss()
-                    }
-                    .fontWeight(.semibold)
-                }
-            }
-        }
-    }
-}
-
-// MARK: - Add Customer Out of Stock View V2
-
-struct AddCustomerOutOfStockViewV2: View {
-    @Environment(\.dismiss) private var dismiss
-    
-    var body: some View {
-        NavigationView {
-            VStack {
-                Text("新增缺货记录")
-                    .font(.title2)
-                    .fontWeight(.bold)
-                    .padding()
-                
-                Text("这是一个占位符界面，将在后续开发中完善")
-                    .font(.subheadline)
-                    .foregroundColor(.secondary)
-                
-                Spacer()
-            }
-            .navigationBarHidden(true)
-            .toolbar {
-                ToolbarItem(placement: .navigationBarLeading) {
-                    Button("取消") {
-                        dismiss()
-                    }
-                }
-            }
-        }
-    }
 }
 
 #Preview {

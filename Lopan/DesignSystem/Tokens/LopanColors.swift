@@ -45,6 +45,7 @@ struct LopanColors {
     
     // MARK: - Neutral Colors
     static let background = Color(UIColor.systemBackground)
+    static let backgroundPrimary = Color(UIColor.systemBackground)
     static let backgroundSecondary = Color(UIColor.secondarySystemBackground)
     static let backgroundTertiary = Color(UIColor.tertiarySystemBackground)
     
@@ -81,6 +82,11 @@ struct LopanColors {
     static let roleWorkshopManager = Color.green
     static let roleEVATechnician = Color.cyan
     static let roleWorkshopTechnician = Color.indigo
+    
+    // MARK: - Premium Colors
+    static let premium = Color.purple
+    static let premiumLight = Color.purple.opacity(0.3)
+    static let premiumDark = Color.purple.opacity(0.8)
 }
 
 // MARK: - Color Extensions

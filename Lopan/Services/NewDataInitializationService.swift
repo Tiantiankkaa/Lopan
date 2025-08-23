@@ -164,7 +164,6 @@ class NewDataInitializationService {
                     product: products[0],
                     productSize: products[0].sizes?.first,
                     quantity: 50,
-                    priority: .high,
                     notes: "客户急需，请优先处理",
                     createdBy: "demo_user"
                 ),
@@ -173,7 +172,6 @@ class NewDataInitializationService {
                     product: products[1],
                     productSize: products[1].sizes?.first,
                     quantity: 30,
-                    priority: .medium,
                     notes: "常规补货",
                     createdBy: "demo_user"
                 ),
@@ -182,7 +180,6 @@ class NewDataInitializationService {
                     product: products[2],
                     productSize: products[2].sizes?.first,
                     quantity: 20,
-                    priority: .low,
                     notes: "季节性需求",
                     createdBy: "demo_user"
                 )
@@ -506,43 +503,47 @@ class NewDataInitializationService {
             let primaryColor = colors.first!
             let secondaryColor = colors.count > 1 ? colors[1] : nil
             
-            // Create a pending batch for testing
-            let pendingBatch = ProductionBatch(
+            // Create a completed batch to demonstrate auto-completion features
+            let completedBatch = ProductionBatch(
                 machineId: machine.id,
                 mode: .singleColor,
                 submittedBy: submittingUser.id,
                 submittedByName: submittingUser.name,
-                batchNumber: "BATCH-20250804-0003"
+                batchNumber: "PC-20250814-0001"
             )
+            
+            // Set as system auto-completed
+            completedBatch.status = .completed
+            completedBatch.completedAt = Date()
+            completedBatch.isSystemAutoCompleted = true
+            completedBatch.reviewedAt = Calendar.current.date(byAdding: .hour, value: -2, to: Date()) ?? Date()
+            completedBatch.reviewedBy = submittingUser.id
+            completedBatch.reviewedByName = submittingUser.name
             
             // Add some product configurations
             let product1 = ProductConfig(
-                batchId: pendingBatch.id,
-                productName: "测试产品 A",
+                batchId: completedBatch.id,
+                productName: "运动鞋 A款",
                 primaryColorId: primaryColor.id,
-                occupiedStations: [1, 2, 3],
-                expectedOutput: 1000,
-                priority: 1
+                occupiedStations: [1, 2, 3]
             )
             
             let product2 = ProductConfig(
-                batchId: pendingBatch.id,
-                productName: "测试产品 B",
+                batchId: completedBatch.id,
+                productName: "运动鞋 B款",
                 primaryColorId: primaryColor.id,
-                occupiedStations: [4, 5, 6],
-                expectedOutput: 800,
-                priority: 2
+                occupiedStations: [7, 8, 9]
             )
             
-            pendingBatch.products = [product1, product2]
+            completedBatch.products = [product1, product2]
             
-            // Create an approved batch for testing
+            // Create an approved PC (Production Config) batch for testing
             let approvedBatch = ProductionBatch(
                 machineId: machine.id,
                 mode: .dualColor,
                 submittedBy: submittingUser.id,
                 submittedByName: submittingUser.name,
-                batchNumber: "BATCH-20250804-0004"
+                batchNumber: "PC-20250814-0002"
             )
             approvedBatch.status = BatchStatus.approved
             approvedBatch.reviewedAt = Date()
@@ -555,18 +556,16 @@ class NewDataInitializationService {
                     productName: "双色测试产品",
                     primaryColorId: primaryColor.id,
                     occupiedStations: [7, 8, 9, 10, 11, 12],
-                    expectedOutput: 500,
-                    priority: 1,
                     secondaryColorId: secondaryColor.id
                 )
                 approvedBatch.products = [dualColorProduct]
             }
             
             // Add batches to repository
-            try await repositoryFactory.productionBatchRepository.addBatch(pendingBatch)
+            try await repositoryFactory.productionBatchRepository.addBatch(completedBatch)
             try await repositoryFactory.productionBatchRepository.addBatch(approvedBatch)
             
-            print("✅ Initialized 2 sample production batches (1 pending, 1 approved)")
+            print("✅ Initialized 2 sample PC (Production Config) batches (1 completed, 1 approved)")
         } catch {
             print("❌ Error creating production batches: \(error)")
         }

@@ -7,6 +7,7 @@
 
 import Foundation
 
+@MainActor
 protocol MachineRepository {
     // MARK: - Machine CRUD
     func fetchAllMachines() async throws -> [WorkshopMachine]
