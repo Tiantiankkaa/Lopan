@@ -23,6 +23,7 @@ class CustomerOutOfStockDashboardState: ObservableObject {
     @Published var showingBatchCreation = false
     @Published var isSelectionMode = false
     @Published var selectedItems: Set<String> = []
+    @Published var selectedDetailItem: CustomerOutOfStock?
     
     // MARK: - Data State
     
@@ -92,6 +93,7 @@ struct CustomerOutOfStockDashboard: View {
     @StateObject private var animationState = CommonAnimationState()
     @EnvironmentObject private var serviceFactory: ServiceFactory
     @Environment(\.dismiss) private var dismiss
+    @FocusState private var isSearchFocused: Bool
     
     @State private var lastRefreshTime = Date()
     @State private var refreshTrigger = false
@@ -102,7 +104,7 @@ struct CustomerOutOfStockDashboard: View {
     
     var body: some View {
         ZStack {
-            // Background gradient
+            // Background gradient with keyboard dismissal
             LinearGradient(
                 colors: [
                     Color(.systemBackground),
@@ -121,6 +123,7 @@ struct CustomerOutOfStockDashboard: View {
                 mainContentSection
             }
         }
+        .ignoresSafeArea(.keyboard, edges: .bottom)
         .navigationBarHidden(true)
         .sheet(isPresented: $dashboardState.showingFilterPanel) {
             IntelligentFilterPanel(
@@ -154,70 +157,78 @@ struct CustomerOutOfStockDashboard: View {
         .refreshable {
             await refreshData()
         }
+        .background(
+            NavigationLink(
+                destination: dashboardState.selectedDetailItem.map { item in
+                    CustomerOutOfStockDetailView(item: item)
+                },
+                isActive: Binding(
+                    get: { dashboardState.selectedDetailItem != nil },
+                    set: { if !$0 { dashboardState.selectedDetailItem = nil } }
+                )
+            ) {
+                EmptyView()
+            }
+            .opacity(0)
+        )
     }
     
     // MARK: - Header Section
     
     private var headerSection: some View {
-        HStack {
-            // Back navigation
-            Button(action: { dismiss() }) {
-                HStack(spacing: 4) {
-                    Image(systemName: "chevron.left")
-                        .font(.system(size: 18, weight: .medium))
-                        .foregroundColor(.blue)
+        ZStack {
+            HStack {
+                // Back navigation
+                Button(action: { dismiss() }) {
+                    HStack(spacing: 4) {
+                        Image(systemName: "chevron.left")
+                            .font(.system(size: 18, weight: .medium))
+                            .foregroundColor(.blue)
+                        
+                        Text("工作台")
+                            .font(.system(size: 17))
+                            .foregroundColor(.blue)
+                    }
+                }
+                
+                Spacer()
+                
+                // Action menu
+                Menu {
+                    Button(action: { 
+                        isSearchFocused = false
+                        dashboardState.showingAnalytics = true 
+                    }) {
+                        Label("数据分析", systemImage: "chart.bar.fill")
+                    }
                     
-                    Text("工作台")
-                        .font(.system(size: 17))
+                    Button(action: exportData) {
+                        Label("导出数据", systemImage: "square.and.arrow.up")
+                    }
+                    
+                    Button(action: { Task { await refreshData() }}) {
+                        Label("刷新数据", systemImage: "arrow.clockwise")
+                    }
+                    
+                    Divider()
+                    
+                    Button(action: toggleSelectionMode) {
+                        Label(
+                            dashboardState.isSelectionMode ? "取消选择" : "批量操作", 
+                            systemImage: dashboardState.isSelectionMode ? "xmark.circle" : "checkmark.circle"
+                        )
+                    }
+                } label: {
+                    Image(systemName: "ellipsis.circle")
+                        .font(.system(size: 20))
                         .foregroundColor(.blue)
                 }
             }
             
-            Spacer()
-            
-            // Title with live count
-            VStack(spacing: 2) {
-                Text("客户缺货管理")
-                    .font(.system(size: 20, weight: .bold))
-                    .foregroundColor(.primary)
-                
-                if dashboardState.totalCount > 0 {
-                    Text("共 \(dashboardState.totalCount) 条记录")
-                        .font(.caption)
-                        .foregroundColor(.secondary)
-                        .transition(.opacity)
-                }
-            }
-            
-            Spacer()
-            
-            // Action menu
-            Menu {
-                Button(action: { dashboardState.showingAnalytics = true }) {
-                    Label("数据分析", systemImage: "chart.bar.fill")
-                }
-                
-                Button(action: exportData) {
-                    Label("导出数据", systemImage: "square.and.arrow.up")
-                }
-                
-                Button(action: { Task { await refreshData() }}) {
-                    Label("刷新数据", systemImage: "arrow.clockwise")
-                }
-                
-                Divider()
-                
-                Button(action: toggleSelectionMode) {
-                    Label(
-                        dashboardState.isSelectionMode ? "取消选择" : "批量操作", 
-                        systemImage: dashboardState.isSelectionMode ? "xmark.circle" : "checkmark.circle"
-                    )
-                }
-            } label: {
-                Image(systemName: "ellipsis.circle")
-                    .font(.system(size: 20))
-                    .foregroundColor(.blue)
-            }
+            // Centered title using overlay
+            Text("客户缺货管理")
+                .font(.system(size: 20, weight: .bold))
+                .foregroundColor(.primary)
         }
         .padding(.horizontal, 20)
         .padding(.vertical, 12)
@@ -230,57 +241,55 @@ struct CustomerOutOfStockDashboard: View {
     
     private var timelineNavigationSection: some View {
         VStack(spacing: 0) {
-            // Date selector with 3D timeline effect
+            // Date selector with compact design
             HStack {
                 Button(action: previousDay) {
-                    Image(systemName: "chevron.left.circle.fill")
-                        .font(.title2)
+                    Image(systemName: "chevron.left")
+                        .font(.system(size: 16, weight: .medium))
                         .foregroundColor(.blue)
-                        .shadow(color: .blue.opacity(0.3), radius: 4, x: 0, y: 2)
+                        .padding(.vertical, 8)
+                        .padding(.horizontal, 12)
                 }
+                .buttonStyle(.plain)
                 
                 Spacer()
                 
-                // 3D Date display
+                // Compact Date display
                 Button(action: { dashboardState.isTimelineExpanded.toggle() }) {
-                    VStack(spacing: 4) {
+                    HStack(spacing: 8) {
                         Text(dashboardState.selectedDate, style: .date)
-                            .font(.system(size: 18, weight: .bold))
+                            .font(.system(size: 16, weight: .semibold))
                             .foregroundColor(.primary)
                         
                         Text(dayOfWeekText(dashboardState.selectedDate))
                             .font(.system(size: 12, weight: .medium))
                             .foregroundColor(.secondary)
                     }
-                    .padding(.horizontal, 20)
-                    .padding(.vertical, 12)
+                    .padding(.horizontal, 12)
+                    .padding(.vertical, 6)
                     .background(
-                        RoundedRectangle(cornerRadius: 16)
-                            .fill(
-                                LinearGradient(
-                                    colors: [Color.blue.opacity(0.1), Color.blue.opacity(0.05)],
-                                    startPoint: .topLeading,
-                                    endPoint: .bottomTrailing
-                                )
-                            )
+                        RoundedRectangle(cornerRadius: 8)
+                            .fill(Color.blue.opacity(0.08))
                             .overlay(
-                                RoundedRectangle(cornerRadius: 16)
-                                    .stroke(Color.blue.opacity(0.2), lineWidth: 1)
+                                RoundedRectangle(cornerRadius: 8)
+                                    .stroke(Color.blue.opacity(0.15), lineWidth: 1)
                             )
-                            .shadow(color: .black.opacity(0.1), radius: 4, x: 0, y: 2)
                     )
-                    .scaleEffect(dashboardState.isTimelineExpanded ? 1.05 : 1.0)
+                    .scaleEffect(dashboardState.isTimelineExpanded ? 1.02 : 1.0)
                     .animation(.spring(response: 0.3, dampingFraction: 0.7), value: dashboardState.isTimelineExpanded)
                 }
                 
                 Spacer()
                 
                 Button(action: nextDay) {
-                    Image(systemName: "chevron.right.circle.fill")
-                        .font(.title2)
-                        .foregroundColor(.blue)
-                        .shadow(color: .blue.opacity(0.3), radius: 4, x: 0, y: 2)
+                    Image(systemName: "chevron.right")
+                        .font(.system(size: 16, weight: .medium))
+                        .foregroundColor(isSelectedDateToday ? .gray : .blue)
+                        .padding(.vertical, 8)
+                        .padding(.horizontal, 12)
                 }
+                .buttonStyle(.plain)
+                .disabled(isSelectedDateToday)
             }
             .padding(.horizontal, 20)
             
@@ -294,7 +303,7 @@ struct CustomerOutOfStockDashboard: View {
                 .animation(.spring(response: 0.4, dampingFraction: 0.8), value: dashboardState.isTimelineExpanded)
             }
         }
-        .padding(.vertical, 16)
+        .padding(.vertical, 8)
     }
     
     // MARK: - Quick Stats Section
@@ -355,9 +364,22 @@ struct CustomerOutOfStockDashboard: View {
                     
                     TextField("智能搜索客户、产品、备注...", text: $dashboardState.searchText)
                         .textFieldStyle(.plain)
-                        .onChange(of: dashboardState.searchText) { _ in
+                        .focused($isSearchFocused)
+                        .onChange(of: dashboardState.searchText) { oldValue, newValue in
                             performSearch()
                         }
+                        .onSubmit {
+                            isSearchFocused = false
+                        }
+                        /*.toolbar {
+                            ToolbarItemGroup(placement: .keyboard) {
+                                Spacer()
+                                Button("完成") {
+                                    isSearchFocused = false
+                                }
+                                .foregroundColor(.blue)
+                            }
+                        }*/
                     
                     if !dashboardState.searchText.isEmpty {
                         Button(action: { dashboardState.searchText = "" }) {
@@ -374,7 +396,10 @@ struct CustomerOutOfStockDashboard: View {
                 )
                 
                 // Filter button with indicator
-                Button(action: { dashboardState.showingFilterPanel = true }) {
+                Button(action: { 
+                    isSearchFocused = false
+                    dashboardState.showingFilterPanel = true 
+                }) {
                     ZStack {
                         Image(systemName: "line.3.horizontal.decrease.circle.fill")
                             .font(.system(size: 20))
@@ -410,29 +435,41 @@ struct CustomerOutOfStockDashboard: View {
     
     private var mainContentSection: some View {
         ZStack {
-            if dashboardState.isLoading && dashboardState.items.isEmpty {
-                LoadingStateView("正在加载缺货数据...")
-            } else if let error = dashboardState.error {
-                ErrorStateView(
-                    title: "加载失败",
-                    message: "无法加载缺货数据：\(error.localizedDescription)",
-                    retryAction: {
-                        dashboardState.error = nil
-                        loadInitialData()
+            // Content with keyboard dismissal on empty area taps
+            ZStack {
+                if dashboardState.isLoading && dashboardState.items.isEmpty {
+                    LoadingStateView("正在加载缺货数据...")
+                } else if let error = dashboardState.error {
+                    ErrorStateView(
+                        title: "加载失败",
+                        message: "无法加载缺货数据：\(error.localizedDescription)",
+                        retryAction: {
+                            dashboardState.error = nil
+                            loadInitialData()
+                        }
+                    )
+                } else if dashboardState.items.isEmpty {
+                    CustomEmptyStateView(
+                        title: dashboardState.hasActiveFilters ? "没有匹配的记录" : "暂无缺货记录",
+                        message: dashboardState.hasActiveFilters ? "尝试调整筛选条件" : "点击下方按钮添加测试数据或开始添加第一条缺货记录",
+                        systemImage: dashboardState.hasActiveFilters ? "line.3.horizontal.decrease.circle" : "tray",
+                        actionTitle: "添加记录",
+                        secondaryActionTitle: "生成测试数据",
+                        action: addNewItem,
+                        secondaryAction: generateTestData
+                    )
+                } else {
+                    virtualListSection
+                }
+            }
+            .contentShape(Rectangle()) // Ensure the entire area responds to gestures
+            .onTapGesture {
+                // Dismiss keyboard when tapping on content area
+                if isSearchFocused {
+                    withAnimation(.easeInOut(duration: 0.2)) {
+                        isSearchFocused = false
                     }
-                )
-            } else if dashboardState.items.isEmpty {
-                CustomEmptyStateView(
-                    title: dashboardState.hasActiveFilters ? "没有匹配的记录" : "暂无缺货记录",
-                    message: dashboardState.hasActiveFilters ? "尝试调整筛选条件" : "点击下方按钮添加测试数据或开始添加第一条缺货记录",
-                    systemImage: dashboardState.hasActiveFilters ? "line.3.horizontal.decrease.circle" : "tray",
-                    actionTitle: "添加记录",
-                    secondaryActionTitle: "生成测试数据",
-                    action: addNewItem,
-                    secondaryAction: generateTestData
-                )
-            } else {
-                virtualListSection
+                }
             }
         }
         .frame(maxWidth: .infinity, maxHeight: .infinity)
@@ -449,7 +486,10 @@ struct CustomerOutOfStockDashboard: View {
                 maxVisibleItems: 50,
                 prefetchRadius: 5,
                 recyclingEnabled: true
-            )
+            ),
+            onScrollToBottom: {
+                loadMoreData()
+            }
         ) { item in
             OutOfStockItemCard(
                 item: item,
@@ -461,9 +501,7 @@ struct CustomerOutOfStockDashboard: View {
             .padding(.horizontal, 20)
             .padding(.vertical, 6)
         }
-        .onScrollToBottom {
-            loadMoreData()
-        }
+        .scrollDismissesKeyboard(.immediately)
         .opacity(animationState.contentOpacity)
         .animation(.easeInOut(duration: 0.4), value: animationState.contentOpacity)
     }
@@ -635,6 +673,9 @@ struct CustomerOutOfStockDashboard: View {
     }
     
     private func handleItemTap(_ item: CustomerOutOfStock) {
+        // Dismiss keyboard before any action
+        isSearchFocused = false
+        
         if dashboardState.isSelectionMode {
             if dashboardState.selectedItems.contains(item.id) {
                 dashboardState.selectedItems.remove(item.id)
@@ -643,7 +684,8 @@ struct CustomerOutOfStockDashboard: View {
             }
         } else {
             // Navigate to detail view
-            print("📱 Tapped item: \(item.id)")
+            dashboardState.selectedDetailItem = item
+            print("📱 Navigating to detail view for item: \(item.id)")
         }
     }
     
@@ -657,17 +699,55 @@ struct CustomerOutOfStockDashboard: View {
     }
     
     private func previousDay() {
-        withAnimation(.easeInOut(duration: 0.3)) {
-            dashboardState.selectedDate = Calendar.current.date(byAdding: .day, value: -1, to: dashboardState.selectedDate) ?? dashboardState.selectedDate
+        print("📅 [日期切换] 点击上一天按钮")
+        
+        let currentDate = dashboardState.selectedDate
+        guard let newDate = Calendar.current.date(byAdding: .day, value: -1, to: currentDate) else {
+            print("❌ [日期切换] 无法计算上一天日期")
+            return
         }
-        Task { await refreshData() }
+        
+        print("📅 [日期切换] 从 \(currentDate) 切换到 \(newDate)")
+        
+        withAnimation(.easeInOut(duration: 0.3)) {
+            dashboardState.selectedDate = newDate
+        }
+        
+        Task {
+            print("🔄 [日期切换] 开始刷新数据...")
+            await refreshData()
+            print("✅ [日期切换] 数据刷新完成")
+        }
     }
     
     private func nextDay() {
-        withAnimation(.easeInOut(duration: 0.3)) {
-            dashboardState.selectedDate = Calendar.current.date(byAdding: .day, value: 1, to: dashboardState.selectedDate) ?? dashboardState.selectedDate
+        print("📅 [日期切换] 点击下一天按钮")
+        
+        let currentDate = dashboardState.selectedDate
+        guard let newDate = Calendar.current.date(byAdding: .day, value: 1, to: currentDate) else {
+            print("❌ [日期切换] 无法计算下一天日期")
+            return
         }
-        Task { await refreshData() }
+        
+        // 检查新日期是否超过今天
+        let today = Date()
+        let calendar = Calendar.current
+        if calendar.compare(newDate, to: today, toGranularity: .day) == .orderedDescending {
+            print("⚠️ [日期切换] 不能选择未来日期，当前选择日期已是最新")
+            return
+        }
+        
+        print("📅 [日期切换] 从 \(currentDate) 切换到 \(newDate)")
+        
+        withAnimation(.easeInOut(duration: 0.3)) {
+            dashboardState.selectedDate = newDate
+        }
+        
+        Task {
+            print("🔄 [日期切换] 开始刷新数据...")
+            await refreshData()
+            print("✅ [日期切换] 数据刷新完成")
+        }
     }
     
     private func exportData() {
@@ -676,6 +756,7 @@ struct CustomerOutOfStockDashboard: View {
     
     private func addNewItem() {
         print("➕ Adding new item")
+        isSearchFocused = false
         dashboardState.showingBatchCreation = true
     }
     
@@ -730,6 +811,12 @@ struct CustomerOutOfStockDashboard: View {
         formatter.dateFormat = "EEEE"
         formatter.locale = Locale(identifier: "zh_CN")
         return formatter.string(from: date)
+    }
+    
+    // 检查选中的日期是否为今天
+    private var isSelectedDateToday: Bool {
+        let calendar = Calendar.current
+        return calendar.isDate(dashboardState.selectedDate, inSameDayAs: Date())
     }
 }
 
@@ -797,16 +884,15 @@ private struct QuickStatCard: View {
     }
 }
 
-// Placeholder views - these would be implemented in separate files
+// Implementation placeholders removed - functionality integrated into main dashboard
 private struct TimelinePickerView: View {
     @Binding var selectedDate: Date
     @Binding var dateRange: OutOfStockFilters.DateRange?
     
     var body: some View {
-        Text("Timeline Picker - To be implemented")
+        EmptyView()
     }
 }
-
 
 private struct ActiveFiltersView: View {
     let filters: OutOfStockFilters
@@ -815,7 +901,7 @@ private struct ActiveFiltersView: View {
     let onClearAll: () -> Void
     
     var body: some View {
-        Text("Active Filters - To be implemented")
+        EmptyView()
     }
 }
 

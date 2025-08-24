@@ -46,4 +46,11 @@ extension DateFormatter {
         formatter.locale = Locale(identifier: "zh_CN")
         return formatter
     }()
+    
+    static let debugFormatter: DateFormatter = {
+        let formatter = DateFormatter()
+        formatter.dateFormat = "yyyy-MM-dd HH:mm:ss"
+        formatter.locale = Locale(identifier: "zh_CN")
+        return formatter
+    }()
 }

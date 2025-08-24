@@ -26,7 +26,7 @@ struct OutOfStockTestingView: View {
             .navigationTitle("缺货管理测试")
             .navigationBarTitleDisplayMode(.inline)
             .sheet(isPresented: $showingMainView) {
-                CustomerOutOfStockListViewV2()
+                CustomerOutOfStockDashboard()
             }
         }
     }
