@@ -25,6 +25,11 @@ class CustomerOutOfStockDashboardState: ObservableObject {
     @Published var selectedItems: Set<String> = []
     @Published var selectedDetailItem: CustomerOutOfStock?
     
+    // Status filtering state
+    @Published var selectedStatusTab: OutOfStockStatus? = nil
+    @Published var statusTabAnimationScale: CGFloat = 1.0
+    @Published var isProcessingStatusChange = false
+    
     // MARK: - Data State
     
     @Published var items: [CustomerOutOfStock] = []
@@ -320,32 +325,48 @@ struct CustomerOutOfStockDashboard: View {
                 value: "\(dashboardState.totalCount)",
                 icon: "list.bullet.rectangle.fill",
                 color: .blue,
-                trend: nil
+                trend: nil,
+                associatedStatus: nil,
+                isSelected: dashboardState.selectedStatusTab == nil,
+                onTap: { handleStatusTabTap(nil) }
             )
+            .disabled(dashboardState.isProcessingStatusChange)
             
             QuickStatCard(
                 title: "待处理",
                 value: "\(dashboardState.statusCounts[.pending] ?? 0)",
                 icon: "clock.fill",
                 color: .orange,
-                trend: .stable
+                trend: .stable,
+                associatedStatus: .pending,
+                isSelected: dashboardState.selectedStatusTab == .pending,
+                onTap: { handleStatusTabTap(.pending) }
             )
+            .disabled(dashboardState.isProcessingStatusChange)
             
             QuickStatCard(
                 title: "已完成",
                 value: "\(dashboardState.statusCounts[.completed] ?? 0)",
                 icon: "checkmark.circle.fill",
                 color: .green,
-                trend: .up
+                trend: .up,
+                associatedStatus: .completed,
+                isSelected: dashboardState.selectedStatusTab == .completed,
+                onTap: { handleStatusTabTap(.completed) }
             )
+            .disabled(dashboardState.isProcessingStatusChange)
             
             QuickStatCard(
                 title: "已退货",
                 value: "\(dashboardState.statusCounts[.cancelled] ?? 0)",
                 icon: "arrow.uturn.left",
                 color: .red,
-                trend: (dashboardState.statusCounts[.cancelled] ?? 0) > 0 ? .up : nil
+                trend: (dashboardState.statusCounts[.cancelled] ?? 0) > 0 ? .up : nil,
+                associatedStatus: .cancelled,
+                isSelected: dashboardState.selectedStatusTab == .cancelled,
+                onTap: { handleStatusTabTap(.cancelled) }
             )
+            .disabled(dashboardState.isProcessingStatusChange)
         }
         .padding(.horizontal, 20)
         .padding(.vertical, 16)
@@ -512,16 +533,29 @@ struct CustomerOutOfStockDashboard: View {
         dashboardState.isLoading = true
         
         print("🚀 Loading initial data for date: \(dashboardState.selectedDate)")
+        print("📊 Status filter: \(dashboardState.selectedStatusTab?.displayName ?? "All")")
         
         Task {
-            // Load customer out of stock data for the selected date
-            print("📅 Loading out of stock data...")
-            await customerOutOfStockService.loadDataForDate(dashboardState.selectedDate)
-            
-            // Load customers and products for creation view
+            // Load customers and products first
             print("👥 Loading customers and products...")
             await serviceFactory.customerService.loadCustomers()
             await serviceFactory.productService.loadProducts()
+            
+            // Create criteria with status filter
+            let criteria = OutOfStockFilterCriteria(
+                customer: dashboardState.activeFilters.customer,
+                product: dashboardState.activeFilters.product,
+                status: dashboardState.selectedStatusTab,
+                dateRange: CustomerOutOfStockService.createDateRange(for: dashboardState.selectedDate),
+                searchText: dashboardState.searchText,
+                page: 0,
+                pageSize: 50,
+                sortOrder: dashboardState.sortOrder
+            )
+            
+            // Load filtered data
+            print("📅 Loading out of stock data with filter...")
+            await customerOutOfStockService.loadFilteredItems(criteria: criteria)
             
             await MainActor.run {
                 dashboardState.items = customerOutOfStockService.items
@@ -560,8 +594,22 @@ struct CustomerOutOfStockDashboard: View {
         lastRefreshTime = Date()
         refreshTrigger.toggle()
         
-        // Reload customer out of stock data for the selected date
-        await customerOutOfStockService.loadDataForDate(dashboardState.selectedDate)
+        print("🔄 Refreshing data with status filter: \(dashboardState.selectedStatusTab?.displayName ?? "All")")
+        
+        // Create criteria with current filters including status filter
+        let criteria = OutOfStockFilterCriteria(
+            customer: dashboardState.activeFilters.customer,
+            product: dashboardState.activeFilters.product,
+            status: dashboardState.selectedStatusTab,
+            dateRange: CustomerOutOfStockService.createDateRange(for: dashboardState.selectedDate),
+            searchText: dashboardState.searchText,
+            page: 0,
+            pageSize: 50,
+            sortOrder: dashboardState.sortOrder
+        )
+        
+        // Load filtered data
+        await customerOutOfStockService.loadFilteredItems(criteria: criteria)
         
         await MainActor.run {
             dashboardState.items = customerOutOfStockService.items
@@ -573,6 +621,8 @@ struct CustomerOutOfStockDashboard: View {
                 statusCounts[item.status, default: 0] += 1
             }
             dashboardState.statusCounts = statusCounts
+            
+            print("✅ Refresh completed: \(dashboardState.items.count) items, status counts: \(statusCounts)")
         }
     }
     
@@ -585,13 +635,26 @@ struct CustomerOutOfStockDashboard: View {
         
         dashboardState.isLoadingMore = true
         print("📄 Loading more data... current items: \(dashboardState.items.count)")
+        print("📊 Load more with status filter: \(dashboardState.selectedStatusTab?.displayName ?? "All")")
         
         Task {
-            // 调用服务层加载下一页数据
-            await customerOutOfStockService.loadNextPage()
+            // Create criteria for next page with current filters
+            let criteria = OutOfStockFilterCriteria(
+                customer: dashboardState.activeFilters.customer,
+                product: dashboardState.activeFilters.product,
+                status: dashboardState.selectedStatusTab,
+                dateRange: CustomerOutOfStockService.createDateRange(for: dashboardState.selectedDate),
+                searchText: dashboardState.searchText,
+                page: (dashboardState.items.count / 50), // Calculate current page
+                pageSize: 50,
+                sortOrder: dashboardState.sortOrder
+            )
+            
+            // Load next page with filters
+            await customerOutOfStockService.loadFilteredItems(criteria: criteria, resetPagination: false)
             
             await MainActor.run {
-                // 更新 dashboard 状态，追加新数据
+                // Update dashboard state with new data
                 dashboardState.items = customerOutOfStockService.items
                 dashboardState.totalCount = customerOutOfStockService.totalRecordsCount
                 dashboardState.isLoadingMore = customerOutOfStockService.isLoadingMore
@@ -611,11 +674,11 @@ struct CustomerOutOfStockDashboard: View {
     private func executeSearch() async {
         print("🔍 Searching for: \(dashboardState.searchText)")
         
-        // Create search criteria
+        // Create search criteria including status filter
         let criteria = OutOfStockFilterCriteria(
             customer: dashboardState.activeFilters.customer,
             product: dashboardState.activeFilters.product,
-            status: dashboardState.activeFilters.status,
+            status: dashboardState.selectedStatusTab ?? dashboardState.activeFilters.status,
             dateRange: CustomerOutOfStockService.createDateRange(for: dashboardState.selectedDate),
             searchText: dashboardState.searchText,
             page: 0,
@@ -656,6 +719,7 @@ struct CustomerOutOfStockDashboard: View {
         withAnimation(.easeInOut(duration: 0.3)) {
             dashboardState.activeFilters = OutOfStockFilters()
             dashboardState.searchText = ""
+            dashboardState.selectedStatusTab = nil // Clear status filter
         }
         
         Task {
@@ -818,6 +882,50 @@ struct CustomerOutOfStockDashboard: View {
         let calendar = Calendar.current
         return calendar.isDate(dashboardState.selectedDate, inSameDayAs: Date())
     }
+    
+    // MARK: - Status Tab Filtering
+    
+    private func handleStatusTabTap(_ status: OutOfStockStatus?) {
+        print("📊 [Status Filter] Tapped status tab: \(status?.displayName ?? "总计")")
+        
+        // Prevent rapid taps while processing
+        guard !dashboardState.isProcessingStatusChange else {
+            print("⏸️ [Status Filter] Ignoring tap - already processing status change")
+            return
+        }
+        
+        // Set processing flag
+        dashboardState.isProcessingStatusChange = true
+        
+        // Animate status tab selection
+        withAnimation(.easeInOut(duration: 0.3)) {
+            // If tapping the same status, clear the filter
+            if dashboardState.selectedStatusTab == status {
+                dashboardState.selectedStatusTab = nil
+                print("📊 [Status Filter] Cleared status filter (show all)")
+            } else {
+                dashboardState.selectedStatusTab = status
+                print("📊 [Status Filter] Applied status filter: \(status?.displayName ?? "总计")")
+            }
+        }
+        
+        // Debounced data refresh with status filter
+        Task { @MainActor in
+            do {
+                print("🔄 [Status Filter] Refreshing data with status filter...")
+                await refreshData()
+                print("✅ [Status Filter] Data refresh completed")
+            } catch {
+                print("❌ [Status Filter] Data refresh failed: \(error)")
+                dashboardState.error = error
+            }
+            
+            // Reset processing flag after a short delay to prevent rapid taps
+            DispatchQueue.main.asyncAfter(deadline: .now() + 0.5) {
+                dashboardState.isProcessingStatusChange = false
+            }
+        }
+    }
 }
 
 // MARK: - Supporting Views (Placeholders)
@@ -828,6 +936,11 @@ private struct QuickStatCard: View {
     let icon: String
     let color: Color
     let trend: Trend?
+    let associatedStatus: OutOfStockStatus?
+    let isSelected: Bool
+    let onTap: () -> Void
+    
+    @State private var isPressed = false
     
     enum Trend {
         case up, down, stable
@@ -854,33 +967,63 @@ private struct QuickStatCard: View {
             HStack {
                 Image(systemName: icon)
                     .font(.system(size: 16))
-                    .foregroundColor(color)
+                    .foregroundColor(isSelected ? .white : color)
                 
                 Spacer()
                 
                 if let trend = trend {
                     Image(systemName: trend.icon)
                         .font(.system(size: 10))
-                        .foregroundColor(trend.color)
+                        .foregroundColor(isSelected ? .white.opacity(0.8) : trend.color)
                 }
             }
             
             VStack(spacing: 2) {
                 Text(value)
                     .font(.system(size: 18, weight: .bold))
-                    .foregroundColor(.primary)
+                    .foregroundColor(isSelected ? .white : .primary)
                 
                 Text(title)
                     .font(.system(size: 10))
-                    .foregroundColor(.secondary)
+                    .foregroundColor(isSelected ? .white.opacity(0.9) : .secondary)
             }
         }
         .padding(12)
         .background(
             RoundedRectangle(cornerRadius: 12)
-                .fill(Color(.systemBackground))
-                .shadow(color: .black.opacity(0.05), radius: 4, x: 0, y: 2)
+                .fill(isSelected ? color : Color(.systemBackground))
+                .shadow(
+                    color: isSelected ? color.opacity(0.3) : .black.opacity(0.05), 
+                    radius: isSelected ? 8 : 4, 
+                    x: 0, 
+                    y: isSelected ? 4 : 2
+                )
         )
+        .overlay(
+            RoundedRectangle(cornerRadius: 12)
+                .stroke(isSelected ? color : Color.clear, lineWidth: isSelected ? 2 : 0)
+        )
+        .scaleEffect(isPressed ? 0.95 : 1.0)
+        .animation(.spring(response: 0.3, dampingFraction: 0.7), value: isSelected)
+        .animation(.easeInOut(duration: 0.1), value: isPressed)
+        .onTapGesture {
+            // Add haptic feedback
+            let impactFeedback = UIImpactFeedbackGenerator(style: .medium)
+            impactFeedback.impactOccurred()
+            
+            // Trigger press animation
+            withAnimation(.easeInOut(duration: 0.1)) {
+                isPressed = true
+            }
+            
+            // Reset press animation and call action
+            DispatchQueue.main.asyncAfter(deadline: .now() + 0.1) {
+                withAnimation(.easeInOut(duration: 0.1)) {
+                    isPressed = false
+                }
+                onTap()
+            }
+        }
     }
 }
 

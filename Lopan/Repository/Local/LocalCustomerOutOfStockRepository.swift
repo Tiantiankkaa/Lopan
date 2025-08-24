@@ -68,23 +68,39 @@ class LocalCustomerOutOfStockRepository: CustomerOutOfStockRepository {
         pageSize: Int
     ) async throws -> OutOfStockPaginationResult {
         
-        // Input validation
-        guard page >= 0 else {
-            throw NSError(domain: "CustomerOutOfStockRepository", code: 1001, 
-                         userInfo: [NSLocalizedDescriptionKey: "Page number cannot be negative"])
-        }
+        print("📊 [Repository] fetchOutOfStockRecords called - Page: \(page), Status: \(criteria.status?.displayName ?? "All")")
         
-        guard pageSize > 0 && pageSize <= 1000 else {
-            throw NSError(domain: "CustomerOutOfStockRepository", code: 1002,
-                         userInfo: [NSLocalizedDescriptionKey: "Page size must be between 1 and 1000"])
-        }
-        
-        // Use two-phase search when text search is present
-        if !criteria.searchText.isEmpty {
-            return try await fetchWithTwoPhaseSearch(criteria: criteria, page: page, pageSize: pageSize)
-        } else {
-            // Use original database pagination for non-search operations
-            return try await fetchWithDatabasePagination(criteria: criteria, page: page, pageSize: pageSize)
+        do {
+            // Input validation
+            guard page >= 0 else {
+                throw NSError(domain: "CustomerOutOfStockRepository", code: 1001, 
+                             userInfo: [NSLocalizedDescriptionKey: "Page number cannot be negative"])
+            }
+            
+            guard pageSize > 0 && pageSize <= 1000 else {
+                throw NSError(domain: "CustomerOutOfStockRepository", code: 1002,
+                             userInfo: [NSLocalizedDescriptionKey: "Page size must be between 1 and 1000"])
+            }
+            
+            // Use two-phase search when text search is present
+            if !criteria.searchText.isEmpty {
+                print("📊 [Repository] Using two-phase search for text query")
+                return try await fetchWithTwoPhaseSearch(criteria: criteria, page: page, pageSize: pageSize)
+            } else {
+                print("📊 [Repository] Using database pagination for non-search query")
+                // Use original database pagination for non-search operations
+                return try await fetchWithDatabasePagination(criteria: criteria, page: page, pageSize: pageSize)
+            }
+        } catch {
+            print("❌ [Repository] fetchOutOfStockRecords failed: \(error)")
+            
+            // Re-throw with more context for debugging
+            throw NSError(domain: "LocalCustomerOutOfStockRepository", code: 1000,
+                         userInfo: [
+                            NSLocalizedDescriptionKey: "Failed to fetch out-of-stock records: \(error.localizedDescription)",
+                            NSLocalizedRecoverySuggestionErrorKey: "This could be due to invalid filter criteria or database access issues.",
+                            NSUnderlyingErrorKey: error
+                         ])
         }
     }
     
@@ -162,53 +178,97 @@ class LocalCustomerOutOfStockRepository: CustomerOutOfStockRepository {
         )
     }
     
+    @MainActor
     private func fetchWithDatabasePagination(
         criteria: OutOfStockFilterCriteria,
         page: Int,
         pageSize: Int
     ) async throws -> OutOfStockPaginationResult {
-        // Original implementation for non-search operations
-        let predicate = buildPredicate(from: criteria)
+        // Ensure we're on the main thread for ModelContext operations
+        print("📊 [Repository] Fetching with database pagination - Page: \(page), Status: \(criteria.status?.displayName ?? "All")")
         
-        // Create sort descriptor based on criteria
-        let sortDescriptor = SortDescriptor<CustomerOutOfStock>(
-            \.requestDate,
-            order: criteria.sortOrder.isDescending ? .reverse : .forward
-        )
-        
-        // Calculate pagination
-        let offset = page * pageSize
-        let fetchLimit = pageSize
-        
-        // Create paginated fetch descriptor
-        var paginatedDescriptor: FetchDescriptor<CustomerOutOfStock>
-        if let predicate = predicate {
-            paginatedDescriptor = FetchDescriptor<CustomerOutOfStock>(
-                predicate: predicate,
-                sortBy: [sortDescriptor]
+        do {
+            let predicate = buildPredicate(from: criteria)
+            
+            // Create sort descriptor based on criteria
+            let sortDescriptor = SortDescriptor<CustomerOutOfStock>(
+                \.requestDate,
+                order: criteria.sortOrder.isDescending ? .reverse : .forward
             )
-        } else {
-            paginatedDescriptor = FetchDescriptor<CustomerOutOfStock>(
-                sortBy: [sortDescriptor]
+            
+            // Calculate pagination
+            let offset = page * pageSize
+            let fetchLimit = pageSize
+            
+            // Create paginated fetch descriptor
+            var paginatedDescriptor: FetchDescriptor<CustomerOutOfStock>
+            if let predicate = predicate {
+                paginatedDescriptor = FetchDescriptor<CustomerOutOfStock>(
+                    predicate: predicate,
+                    sortBy: [sortDescriptor]
+                )
+            } else {
+                paginatedDescriptor = FetchDescriptor<CustomerOutOfStock>(
+                    sortBy: [sortDescriptor]
+                )
+            }
+            paginatedDescriptor.fetchLimit = fetchLimit
+            paginatedDescriptor.fetchOffset = offset
+            
+            print("📊 [Repository] Executing fetch with predicate: \(predicate != nil)")
+            
+            // Perform the fetch operation with error handling
+            let fetchedItems: [CustomerOutOfStock]
+            do {
+                fetchedItems = try modelContext.fetch(paginatedDescriptor)
+                print("📊 [Repository] Successfully fetched \(fetchedItems.count) items")
+            } catch {
+                print("❌ [Repository] Fetch failed: \(error)")
+                // Try a fallback approach without predicate if status filter fails
+                if criteria.status != nil {
+                    print("📊 [Repository] Retrying without status filter...")
+                    var fallbackDescriptor = FetchDescriptor<CustomerOutOfStock>(sortBy: [sortDescriptor])
+                    fallbackDescriptor.fetchLimit = fetchLimit
+                    fallbackDescriptor.fetchOffset = offset
+                    
+                    let allItems = try modelContext.fetch(fallbackDescriptor)
+                    // Filter in memory for status
+                    if let statusFilter = criteria.status {
+                        let filteredItems = allItems.filter { $0.status == statusFilter }
+                        print("📊 [Repository] Fallback filtering: \(filteredItems.count) items match status")
+                        fetchedItems = Array(filteredItems.prefix(pageSize))
+                    } else {
+                        fetchedItems = allItems
+                    }
+                } else {
+                    throw error
+                }
+            }
+            
+            // Get total count for pagination (with error handling)
+            let totalCount: Int
+            do {
+                totalCount = try await countForNonSearchCriteria(criteria: criteria)
+            } catch {
+                print("⚠️ [Repository] Count operation failed, using fetched items count: \(error)")
+                totalCount = fetchedItems.count
+            }
+            
+            let hasMoreData = fetchedItems.count == pageSize
+            
+            return OutOfStockPaginationResult(
+                items: fetchedItems,
+                totalCount: totalCount,
+                hasMoreData: hasMoreData,
+                page: page,
+                pageSize: pageSize
             )
+            
+        } catch {
+            print("❌ [Repository] Database pagination failed: \(error)")
+            throw NSError(domain: "LocalCustomerOutOfStockRepository", code: 1001,
+                         userInfo: [NSLocalizedDescriptionKey: "Database fetch operation failed: \(error.localizedDescription)"])
         }
-        paginatedDescriptor.fetchLimit = fetchLimit
-        paginatedDescriptor.fetchOffset = offset
-        
-        let fetchedItems = try modelContext.fetch(paginatedDescriptor)
-        
-        // Get total count for pagination
-        let totalCount = try await countForNonSearchCriteria(criteria: criteria)
-        
-        let hasMoreData = fetchedItems.count == pageSize
-        
-        return OutOfStockPaginationResult(
-            items: fetchedItems,
-            totalCount: totalCount,
-            hasMoreData: hasMoreData,
-            page: page,
-            pageSize: pageSize
-        )
     }
     
     func countOutOfStockRecords(criteria: OutOfStockFilterCriteria) async throws -> Int {
@@ -406,32 +466,55 @@ class LocalCustomerOutOfStockRepository: CustomerOutOfStockRepository {
     // MARK: - Private Helper Methods
     
     private func buildPredicate(from criteria: OutOfStockFilterCriteria) -> Predicate<CustomerOutOfStock>? {
-        // Legacy method - maintained for non-search operations
+        // Simplified predicate builder to avoid SwiftData thread issues
+        print("📊 [Repository] Building predicate - Status: \(criteria.status?.displayName ?? "none"), Date: \(criteria.dateRange != nil)")
+        
         do {
             try validateStatusFilter(criteria.status)
         } catch {
-            print("Status validation failed in buildPredicate: \(error)")
+            print("❌ [Repository] Status validation failed in buildPredicate: \(error)")
             return nil
         }
         
-        var predicates: [Predicate<CustomerOutOfStock>] = []
+        let hasStatusFilter = criteria.status != nil
+        let hasDateFilter = criteria.dateRange != nil
         
-        // Status filter - use raw value to avoid SwiftData enum limitation
-        if let status = criteria.status {
-            let statusRawValue = status.rawValue
-            predicates.append(#Predicate<CustomerOutOfStock> { item in
-                item.status.rawValue == statusRawValue
-            })
-        }
-        
-        // Date range filter
-        if let dateStart = criteria.dateRange?.start, let dateEnd = criteria.dateRange?.end {
-            predicates.append(#Predicate<CustomerOutOfStock> { item in
+        // Use simplified approach - create single predicate instead of combining multiple
+        if hasStatusFilter && hasDateFilter {
+            let targetStatus = criteria.status!
+            let dateStart = criteria.dateRange!.start
+            let dateEnd = criteria.dateRange!.end
+            
+            print("📊 [Repository] Creating combined status+date predicate for: \(targetStatus)")
+            
+            // Use direct enum comparison instead of rawValue
+            return #Predicate<CustomerOutOfStock> { item in
+                item.status == targetStatus &&
+                item.requestDate >= dateStart && 
+                item.requestDate <= dateEnd
+            }
+        } else if hasStatusFilter {
+            let targetStatus = criteria.status!
+            
+            print("📊 [Repository] Creating status-only predicate for: \(targetStatus)")
+            
+            // Use direct enum comparison for better SwiftData compatibility
+            return #Predicate<CustomerOutOfStock> { item in
+                item.status == targetStatus
+            }
+        } else if hasDateFilter {
+            let dateStart = criteria.dateRange!.start
+            let dateEnd = criteria.dateRange!.end
+            
+            print("📊 [Repository] Creating date-only predicate")
+            
+            return #Predicate<CustomerOutOfStock> { item in
                 item.requestDate >= dateStart && item.requestDate <= dateEnd
-            })
+            }
         }
         
-        return combinePredicatesWithAND(predicates)
+        print("📊 [Repository] No predicate needed")
+        return nil
     }
     
     private func buildEnhancedPredicate(from criteria: OutOfStockFilterCriteria) -> Predicate<CustomerOutOfStock>? {
@@ -497,17 +580,17 @@ class LocalCustomerOutOfStockRepository: CustomerOutOfStockRepository {
         
         // Ensure the status is a valid enum case
         guard OutOfStockStatus.allCases.contains(status) else {
-            throw RepositoryError.invalidStatus(status)
+            throw RepositoryError.invalidInput("Invalid status: \(status)")
         }
     }
     
     private func validatePaginationParameters(page: Int, pageSize: Int) throws {
         guard page >= 0 else {
-            throw RepositoryError.invalidPageParameters(page: page, pageSize: pageSize)
+            throw RepositoryError.invalidInput("Invalid page parameters: page=\(page), pageSize=\(pageSize)")
         }
         
         guard pageSize > 0 && pageSize <= 1000 else {
-            throw RepositoryError.invalidPageParameters(page: page, pageSize: pageSize)
+            throw RepositoryError.invalidInput("Invalid page size: \(pageSize)")
         }
     }
     
