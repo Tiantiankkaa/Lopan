@@ -594,4 +594,71 @@ class LocalCustomerOutOfStockRepository: CustomerOutOfStockRepository {
         }
     }
     
+    // MARK: - Status Count Methods
+    
+    @MainActor
+    func countOutOfStockRecordsByStatus(criteria: OutOfStockFilterCriteria) async throws -> [OutOfStockStatus: Int] {
+        print("📊 [Repository] Counting records by status with criteria...")
+        
+        do {
+            // Use similar logic as countForNonSearchCriteria but group by status
+            if !criteria.searchText.isEmpty {
+                // For search operations, we need to count all matching records (active + orphaned)
+                let activeRecords = try await fetchAllMatchingActiveRecords(criteria: criteria)
+                let orphanedRecords = try await fetchMatchingOrphanedRecords(
+                    searchText: criteria.searchText,
+                    dateRange: criteria.dateRange,
+                    status: criteria.status
+                )
+                
+                // Count by status
+                var statusCounts: [OutOfStockStatus: Int] = [:]
+                let allRecords = activeRecords + orphanedRecords
+                
+                for record in allRecords {
+                    statusCounts[record.status, default: 0] += 1
+                }
+                
+                return statusCounts
+                
+            } else {
+                // For non-search operations, use efficient database counting
+                return try await countByStatusForNonSearchCriteria(criteria: criteria)
+            }
+            
+        } catch {
+            print("❌ [Repository] Failed to count by status: \(error)")
+            throw NSError(domain: "LocalCustomerOutOfStockRepository", code: 3001,
+                         userInfo: [NSLocalizedDescriptionKey: "Failed to count records by status: \(error.localizedDescription)"])
+        }
+    }
+    
+    @MainActor
+    private func countByStatusForNonSearchCriteria(criteria: OutOfStockFilterCriteria) async throws -> [OutOfStockStatus: Int] {
+        // Build predicate without status filter (since we want all statuses)
+        let criteriaWithoutStatus = OutOfStockFilterCriteria(
+            customer: criteria.customer,
+            product: criteria.product,
+            status: nil, // Remove status filter
+            dateRange: criteria.dateRange,
+            searchText: "",
+            page: 0,
+            pageSize: 1000,
+            sortOrder: criteria.sortOrder
+        )
+        
+        let predicate = buildPredicate(from: criteriaWithoutStatus)
+        let descriptor = FetchDescriptor<CustomerOutOfStock>(predicate: predicate)
+        let records = try modelContext.fetch(descriptor)
+        
+        // Count by status
+        var statusCounts: [OutOfStockStatus: Int] = [:]
+        for record in records {
+            statusCounts[record.status, default: 0] += 1
+        }
+        
+        print("📊 [Repository] Counted by status: \(statusCounts)")
+        return statusCounts
+    }
+    
 }

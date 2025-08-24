@@ -573,17 +573,27 @@ struct CustomerOutOfStockDashboard: View {
                     print("❌ Service error: \(serviceError.localizedDescription)")
                 }
                 
-                // Calculate status counts from loaded items
-                var statusCounts: [OutOfStockStatus: Int] = [:]
-                for item in dashboardState.items {
-                    statusCounts[item.status, default: 0] += 1
-                }
-                dashboardState.statusCounts = statusCounts
-                
-                print("📊 Status counts: \(statusCounts)")
-                
                 dashboardState.cacheHitRate = 0.85
                 dashboardState.isLoading = false
+                
+                // Load real status counts from repository in a separate task
+                Task {
+                    let statusCriteria = OutOfStockFilterCriteria(
+                        customer: dashboardState.activeFilters.customer,
+                        product: dashboardState.activeFilters.product,
+                        status: nil, // Don't filter by status to get all counts
+                        dateRange: CustomerOutOfStockService.createDateRange(for: dashboardState.selectedDate),
+                        searchText: dashboardState.searchText,
+                        page: 0,
+                        pageSize: 50,
+                        sortOrder: dashboardState.sortOrder
+                    )
+                    let statusCounts = await customerOutOfStockService.loadStatusCounts(criteria: statusCriteria)
+                    await MainActor.run {
+                        dashboardState.statusCounts = statusCounts
+                        print("📊 Real status counts: \(statusCounts)")
+                    }
+                }
                 
                 print("✅ Initial data loading completed")
             }
@@ -615,14 +625,26 @@ struct CustomerOutOfStockDashboard: View {
             dashboardState.items = customerOutOfStockService.items
             dashboardState.totalCount = customerOutOfStockService.totalRecordsCount
             
-            // Update status counts from loaded items
-            var statusCounts: [OutOfStockStatus: Int] = [:]
-            for item in dashboardState.items {
-                statusCounts[item.status, default: 0] += 1
+            print("✅ Refresh completed: \(dashboardState.items.count) items")
+        }
+        
+        // Load real status counts from repository in a separate task
+        Task {
+            let statusCriteria = OutOfStockFilterCriteria(
+                customer: dashboardState.activeFilters.customer,
+                product: dashboardState.activeFilters.product,
+                status: nil, // Don't filter by status to get all counts
+                dateRange: CustomerOutOfStockService.createDateRange(for: dashboardState.selectedDate),
+                searchText: dashboardState.searchText,
+                page: 0,
+                pageSize: 50,
+                sortOrder: dashboardState.sortOrder
+            )
+            let statusCounts = await customerOutOfStockService.loadStatusCounts(criteria: statusCriteria)
+            await MainActor.run {
+                dashboardState.statusCounts = statusCounts
+                print("📊 Real status counts loaded: \(statusCounts)")
             }
-            dashboardState.statusCounts = statusCounts
-            
-            print("✅ Refresh completed: \(dashboardState.items.count) items, status counts: \(statusCounts)")
         }
     }
     
@@ -638,20 +660,9 @@ struct CustomerOutOfStockDashboard: View {
         print("📊 Load more with status filter: \(dashboardState.selectedStatusTab?.displayName ?? "All")")
         
         Task {
-            // Create criteria for next page with current filters
-            let criteria = OutOfStockFilterCriteria(
-                customer: dashboardState.activeFilters.customer,
-                product: dashboardState.activeFilters.product,
-                status: dashboardState.selectedStatusTab,
-                dateRange: CustomerOutOfStockService.createDateRange(for: dashboardState.selectedDate),
-                searchText: dashboardState.searchText,
-                page: (dashboardState.items.count / 50), // Calculate current page
-                pageSize: 50,
-                sortOrder: dashboardState.sortOrder
-            )
-            
-            // Load next page with filters
-            await customerOutOfStockService.loadFilteredItems(criteria: criteria, resetPagination: false)
+            // 直接使用Service的loadNextPage方法，让Service自己管理页码状态
+            print("📄 [Dashboard] Calling service.loadNextPage() - currentPage: \(customerOutOfStockService.currentPage)")
+            await customerOutOfStockService.loadNextPage()
             
             await MainActor.run {
                 // Update dashboard state with new data
@@ -692,13 +703,24 @@ struct CustomerOutOfStockDashboard: View {
         await MainActor.run {
             dashboardState.items = customerOutOfStockService.items
             dashboardState.totalCount = customerOutOfStockService.totalRecordsCount
-            
-            // Update status counts from filtered results
-            var statusCounts: [OutOfStockStatus: Int] = [:]
-            for item in dashboardState.items {
-                statusCounts[item.status, default: 0] += 1
+        }
+        
+        // Load real status counts from repository in a separate task
+        Task {
+            let statusCriteria = OutOfStockFilterCriteria(
+                customer: dashboardState.activeFilters.customer,
+                product: dashboardState.activeFilters.product,
+                status: nil, // Don't filter by status to get all counts
+                dateRange: CustomerOutOfStockService.createDateRange(for: dashboardState.selectedDate),
+                searchText: dashboardState.searchText,
+                page: 0,
+                pageSize: 50,
+                sortOrder: dashboardState.sortOrder
+            )
+            let statusCounts = await customerOutOfStockService.loadStatusCounts(criteria: statusCriteria)
+            await MainActor.run {
+                dashboardState.statusCounts = statusCounts
             }
-            dashboardState.statusCounts = statusCounts
         }
     }
     

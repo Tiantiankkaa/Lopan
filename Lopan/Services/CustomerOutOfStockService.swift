@@ -157,10 +157,13 @@ class CustomerOutOfStockService: ObservableObject {
             items = []
             hasMoreData = true
             totalRecordsCount = 0
+        } else {
+            // 从criteria更新currentPage，确保页码状态同步
+            currentPage = criteria.page
         }
         
         currentCriteria = criteria
-        await loadPage(criteria: criteria, date: criteria.dateRange?.start ?? Date(), append: false)
+        await loadPage(criteria: criteria, date: criteria.dateRange?.start ?? Date(), append: !resetPagination)
     }
     
     func loadNextPage() async {
@@ -258,7 +261,12 @@ class CustomerOutOfStockService: ObservableObject {
         let newItems = convertDTOsToModelsForDisplay(page.items)
         
         if append {
-            items.append(contentsOf: newItems)
+            // 去重：过滤掉已存在的ID，防止ForEach重复ID警告
+            let existingIds = Set(items.map { $0.id })
+            let uniqueNewItems = newItems.filter { !existingIds.contains($0.id) }
+            
+            print("📊 [Service] Appending \(uniqueNewItems.count) unique items (filtered \(newItems.count - uniqueNewItems.count) duplicates)")
+            items.append(contentsOf: uniqueNewItems)
         } else {
             items = newItems
             totalRecordsCount = page.totalCount
@@ -284,6 +292,21 @@ class CustomerOutOfStockService: ObservableObject {
         let startOfDay = calendar.startOfDay(for: date)
         let endOfDay = calendar.date(byAdding: .day, value: 1, to: startOfDay)!
         return (start: startOfDay, end: endOfDay)
+    }
+    
+    // MARK: - Status Count Management
+    
+    func loadStatusCounts(criteria: OutOfStockFilterCriteria) async -> [OutOfStockStatus: Int] {
+        guard !isPlaceholder else { return [:] }
+        
+        do {
+            let statusCounts = try await customerOutOfStockRepository.countOutOfStockRecordsByStatus(criteria: criteria)
+            print("📊 [Service] Loaded status counts: \(statusCounts)")
+            return statusCounts
+        } catch {
+            print("❌ [Service] Failed to load status counts: \(error)")
+            return [:]
+        }
     }
     
     // MARK: - Cache Management
@@ -583,7 +606,7 @@ class CustomerOutOfStockService: ObservableObject {
                 createdBy: dto.createdBy
             )
             item.id = dto.id
-            item.status = dto.statusEnum
+            item.status = OutOfStockStatus(rawValue: dto.status) ?? .pending
             item.requestDate = dto.requestDate
             item.actualCompletionDate = dto.actualCompletionDate
             item.updatedAt = dto.updatedAt

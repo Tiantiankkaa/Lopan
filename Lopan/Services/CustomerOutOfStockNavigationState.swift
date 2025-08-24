@@ -323,9 +323,9 @@ extension CustomerOutOfStockNavigationState {
         }
     }
     
-    enum SortOrder: CaseIterable {
-        case newestFirst
-        case oldestFirst
+    enum SortOrder: String, CaseIterable {
+        case newestFirst = "newest_first"
+        case oldestFirst = "oldest_first"
         
         var displayName: String {
             switch self {
