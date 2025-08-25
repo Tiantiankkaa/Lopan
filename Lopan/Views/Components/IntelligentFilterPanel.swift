@@ -99,6 +99,7 @@ enum DateRangeOption: CaseIterable {
 struct IntelligentFilterPanel: View {
     @StateObject private var filterState = IntelligentFilterState()
     @Environment(\.dismiss) private var dismiss
+    @EnvironmentObject private var serviceFactory: ServiceFactory
     
     @Binding var filters: OutOfStockFilters
     @Binding var searchText: String
@@ -111,7 +112,6 @@ struct IntelligentFilterPanel: View {
     @State private var showingProductPicker = false
     @State private var customerSearchText = ""
     @State private var productSearchText = ""
-    @State private var animationOffset: CGFloat = 300
     
     var body: some View {
         NavigationView {
@@ -125,11 +125,8 @@ struct IntelligentFilterPanel: View {
             }
             .background(Color(.systemGroupedBackground))
             .navigationBarHidden(true)
-            .offset(y: animationOffset)
             .onAppear {
-                withAnimation(.spring(response: 0.6, dampingFraction: 0.8)) {
-                    animationOffset = 0
-                }
+                initializeFilterState()
             }
             .sheet(isPresented: $showingCustomerPicker) {
                 SearchableCustomerPicker(
@@ -138,6 +135,9 @@ struct IntelligentFilterPanel: View {
                     searchText: $customerSearchText
                 )
             }
+            .onChange(of: filterState.selectedCustomer) { _, _ in
+                updatePreview()
+            }
             .sheet(isPresented: $showingProductPicker) {
                 SearchableProductPicker(
                     products: products,
@@ -145,6 +145,9 @@ struct IntelligentFilterPanel: View {
                     selectedProductSize: .constant(nil),
                     searchText: $productSearchText
                 )
+            }
+            .onChange(of: filterState.selectedProduct) { _, _ in
+                updatePreview()
             }
         }
     }
@@ -200,12 +203,8 @@ struct IntelligentFilterPanel: View {
                                 option: option,
                                 isSelected: filterState.selectedDateRange == option
                             ) {
-                                if option == .custom {
-                                    showingCustomDatePicker = true
-                                } else {
-                                    filterState.selectedDateRange = filterState.selectedDateRange == option ? nil : option
-                                    updatePreview()
-                                }
+                                filterState.selectedDateRange = filterState.selectedDateRange == option ? nil : option
+                                updatePreview()
                             }
                         }
                     }
@@ -328,14 +327,86 @@ struct IntelligentFilterPanel: View {
     
     // MARK: - Helper Methods
     
+    private func initializeFilterState() {
+        // Initialize filter state from current filters binding
+        filterState.searchText = searchText
+        filterState.selectedCustomer = filters.customer
+        filterState.selectedProduct = filters.product
+        filterState.selectedStatus = filters.status
+        
+        // Initialize date range from current filters
+        if let dateRange = filters.dateRange {
+            switch dateRange {
+            case .today:
+                filterState.selectedDateRange = .today
+            case .thisWeek:
+                filterState.selectedDateRange = .thisWeek
+            case .thisMonth:
+                filterState.selectedDateRange = .thisMonth
+            case .custom(let start, let end):
+                filterState.selectedDateRange = .custom
+                filterState.customStartDate = start
+                filterState.customEndDate = end
+            }
+        }
+        
+        // Update preview with current filters
+        updatePreview()
+    }
     
     private func updatePreview() {
         filterState.previewLoading = true
         
-        // Simulate preview calculation
-        DispatchQueue.main.asyncAfter(deadline: .now() + 0.3) {
-            // This would calculate the actual count based on current filters
-            filterState.previewCount = Int.random(in: 1...1000)
+        Task {
+            await updatePreviewAsync()
+        }
+    }
+    
+    private func updatePreviewAsync() async {
+        await MainActor.run {
+            filterState.previewLoading = true
+        }
+        
+        // Check if this is a "clear all" scenario for optimized handling
+        let isClearAll = filterState.selectedCustomer == nil && 
+                        filterState.selectedProduct == nil && 
+                        filterState.selectedStatus == nil && 
+                        filterState.selectedDateRange == nil && 
+                        filterState.searchText.isEmpty
+        
+        let count: Int
+        if isClearAll {
+            // Use optimized clear all method with special caching
+            count = await serviceFactory.customerOutOfStockService.getClearAllFilteredCount()
+        } else {
+            // Create criteria based on current filter state
+            let dateRange: (start: Date, end: Date)?
+            if let selectedDateRange = filterState.selectedDateRange {
+                switch selectedDateRange {
+                case .custom:
+                    dateRange = (start: filterState.customStartDate, end: filterState.customEndDate)
+                default:
+                    dateRange = selectedDateRange.dateRange
+                }
+            } else {
+                dateRange = nil
+            }
+            
+            let criteria = OutOfStockFilterCriteria(
+                customer: filterState.selectedCustomer,
+                product: filterState.selectedProduct,
+                status: filterState.selectedStatus,
+                dateRange: dateRange,
+                searchText: filterState.searchText,
+                page: 0,
+                pageSize: 1
+            )
+            
+            count = await serviceFactory.customerOutOfStockService.getFilteredCount(criteria: criteria)
+        }
+        
+        await MainActor.run {
+            filterState.previewCount = count
             filterState.previewLoading = false
         }
     }
@@ -347,8 +418,14 @@ struct IntelligentFilterPanel: View {
             filterState.selectedProduct = nil
             filterState.selectedStatus = nil
             filterState.selectedDateRange = nil
+            filterState.previewCount = 0
         }
-        updatePreview()
+        
+        // Debounce the preview update to avoid blocking UI
+        Task {
+            try? await Task.sleep(nanoseconds: 100_000_000) // 100ms delay
+            await updatePreviewAsync()
+        }
     }
     
     private func applyFilters() {
@@ -365,14 +442,29 @@ struct IntelligentFilterPanel: View {
             switch dateRange {
             case .today:
                 filters.dateRange = .today
+            case .yesterday:
+                let yesterday = Calendar.current.date(byAdding: .day, value: -1, to: Date()) ?? Date()
+                let startOfDay = Calendar.current.startOfDay(for: yesterday)
+                let endOfDay = Calendar.current.date(byAdding: .day, value: 1, to: startOfDay) ?? startOfDay
+                filters.dateRange = .custom(start: startOfDay, end: endOfDay)
             case .thisWeek:
                 filters.dateRange = .thisWeek
+            case .lastWeek:
+                let lastWeek = Calendar.current.date(byAdding: .weekOfYear, value: -1, to: Date()) ?? Date()
+                let weekInterval = Calendar.current.dateInterval(of: .weekOfYear, for: lastWeek)
+                let startOfWeek = weekInterval?.start ?? Date()
+                let endOfWeek = Calendar.current.date(byAdding: .day, value: 7, to: startOfWeek) ?? startOfWeek
+                filters.dateRange = .custom(start: startOfWeek, end: endOfWeek)
             case .thisMonth:
                 filters.dateRange = .thisMonth
+            case .lastMonth:
+                let lastMonth = Calendar.current.date(byAdding: .month, value: -1, to: Date()) ?? Date()
+                let monthInterval = Calendar.current.dateInterval(of: .month, for: lastMonth)
+                let startOfMonth = monthInterval?.start ?? Date()
+                let endOfMonth = Calendar.current.date(byAdding: .month, value: 1, to: startOfMonth) ?? startOfMonth
+                filters.dateRange = .custom(start: startOfMonth, end: endOfMonth)
             case .custom:
                 filters.dateRange = .custom(start: filterState.customStartDate, end: filterState.customEndDate)
-            default:
-                break
             }
         } else {
             filters.dateRange = nil

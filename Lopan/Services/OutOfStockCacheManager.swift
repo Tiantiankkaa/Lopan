@@ -143,9 +143,11 @@ struct CachedOutOfStockPage: Codable {
 struct OutOfStockCacheStatistics {
     let memoryHits: Int
     let diskHits: Int
+    let countCacheHits: Int
     let totalMisses: Int
     let memorySize: Int
     let diskSize: Int
+    let countCacheSize: Int
     let memoryUsageBytes: Int
     let diskUsageBytes: Int
     let averageAccessTime: Double
@@ -159,6 +161,7 @@ struct OutOfStockCacheStatistics {
         return """
         📊 Cache Performance:
         • Hit Rate: \(String(format: "%.1f", hitRatePercent))%
+        • Count Cache: \(countCacheHits) hits, \(countCacheSize) entries
         • Memory: \(memorySize) pages (\(memoryMB)MB)
         • Disk: \(diskSize) pages (\(diskMB)MB) 
         • Avg Access: \(String(format: "%.2f", averageAccessTime))ms
@@ -194,10 +197,16 @@ class OutOfStockCacheManager: ObservableObject {
     private let diskQueue = DispatchQueue(label: "outOfStock.diskCache", qos: .utility)
     private let compressionQueue = DispatchQueue(label: "outOfStock.compression", qos: .background)
     
+    // MARK: - Level 0: Count Cache (Ultra Hot Data)
+    
+    private var countCache: [String: (count: Int, timestamp: Date)] = [:]
+    private let countCacheTTL: TimeInterval = 30 // 30 seconds for ultra-fast counts
+    
     // MARK: - Performance Metrics
     
     @Published private var memoryHits = 0
     @Published private var diskHits = 0
+    @Published private var countCacheHits = 0
     @Published private var totalMisses = 0
     private var accessTimes: [Double] = []
     private var cleanupTimer: Timer?
@@ -221,6 +230,90 @@ class OutOfStockCacheManager: ObservableObject {
     }
     
     // MARK: - Public Cache API
+    
+    /// Get cached count for filter criteria (fastest path)
+    func getCachedCount(for criteria: OutOfStockFilterCriteria) -> Int? {
+        let cacheKey = generateCountCacheKey(from: criteria)
+        
+        if let cached = countCache[cacheKey] {
+            let age = Date().timeIntervalSince(cached.timestamp)
+            if age <= countCacheTTL {
+                countCacheHits += 1
+                print("⚡ [Count Cache] Hit for key: \(cacheKey), count: \(cached.count), age: \(String(format: "%.1f", age))s")
+                return cached.count
+            } else {
+                // Remove expired entry
+                countCache.removeValue(forKey: cacheKey)
+                print("⏰ [Count Cache] Expired entry removed: \(cacheKey)")
+            }
+        }
+        
+        return nil
+    }
+    
+    /// Cache count result for ultra-fast future access
+    func cacheCount(_ count: Int, for criteria: OutOfStockFilterCriteria) {
+        let cacheKey = generateCountCacheKey(from: criteria)
+        countCache[cacheKey] = (count: count, timestamp: Date())
+        
+        print("💾 [Count Cache] Stored count: \(count) for key: \(cacheKey)")
+        
+        // Cleanup old entries to prevent memory bloat
+        if countCache.count > 100 {
+            cleanupExpiredCountCacheEntries()
+        }
+    }
+    
+    /// Special method for "clear all" filters - highest priority caching
+    func getCachedClearAllCount() -> Int? {
+        return getCachedCount(for: createClearAllCriteria())
+    }
+    
+    /// Cache the expensive "clear all" count
+    func cacheClearAllCount(_ count: Int) {
+        cacheCount(count, for: createClearAllCriteria())
+    }
+    
+    private func createClearAllCriteria() -> OutOfStockFilterCriteria {
+        return OutOfStockFilterCriteria(
+            customer: nil,
+            product: nil,
+            status: nil,
+            dateRange: nil,
+            searchText: "",
+            page: 0,
+            pageSize: 1
+        )
+    }
+    
+    private func generateCountCacheKey(from criteria: OutOfStockFilterCriteria) -> String {
+        var hasher = Hasher()
+        hasher.combine(criteria.customer?.id)
+        hasher.combine(criteria.product?.id)
+        hasher.combine(criteria.status?.rawValue ?? "all")
+        hasher.combine(criteria.searchText)
+        
+        // For count cache, we don't care about pagination
+        if let dateRange = criteria.dateRange {
+            hasher.combine(dateRange.start.timeIntervalSince1970)
+            hasher.combine(dateRange.end.timeIntervalSince1970)
+        }
+        
+        return "count_\(hasher.finalize())"
+    }
+    
+    private func cleanupExpiredCountCacheEntries() {
+        let now = Date()
+        let keysToRemove = countCache.compactMap { key, cached in
+            now.timeIntervalSince(cached.timestamp) > countCacheTTL ? key : nil
+        }
+        
+        for key in keysToRemove {
+            countCache.removeValue(forKey: key)
+        }
+        
+        print("🧹 [Count Cache] Cleaned up \(keysToRemove.count) expired entries")
+    }
     
     func getCachedPage(for key: OutOfStockCacheKey) async -> CachedOutOfStockPage? {
         let startTime = CFAbsoluteTimeGetCurrent()
@@ -315,6 +408,10 @@ class OutOfStockCacheManager: ObservableObject {
     }
     
     func invalidateCache(for date: Date? = nil, filterHash: String? = nil) async {
+        // Always clear count cache when invalidating
+        countCache.removeAll()
+        print("🧹 [Count Cache] Cleared all count cache entries during invalidation")
+        
         if let date = date, let filterHash = filterHash {
             // Remove specific date/filter combination
             await removeFromCaches { key in
@@ -338,6 +435,10 @@ class OutOfStockCacheManager: ObservableObject {
     
     func clearAllCaches() async {
         let memoryCount = memoryCache.count
+        let countCacheCount = countCache.count
+        
+        // Clear count cache
+        countCache.removeAll()
         
         // Clear memory
         memoryCache.removeAll()
@@ -346,12 +447,12 @@ class OutOfStockCacheManager: ObservableObject {
         // Clear disk cache asynchronously
         await clearDiskCache()
         
-        print("🧹 Cleared all caches: \(memoryCount) memory pages removed")
+        print("🧹 Cleared all caches: \(memoryCount) memory pages, \(countCacheCount) count entries removed")
     }
     
     func getOutOfStockCacheStatistics() async -> OutOfStockCacheStatistics {
-        let totalRequests = memoryHits + diskHits + totalMisses
-        let hitRate = totalRequests > 0 ? Double(memoryHits + diskHits) / Double(totalRequests) : 0.0
+        let totalRequests = memoryHits + diskHits + countCacheHits + totalMisses
+        let hitRate = totalRequests > 0 ? Double(memoryHits + diskHits + countCacheHits) / Double(totalRequests) : 0.0
         
         let memoryUsage = memoryCache.values.reduce(0) { $0 + $1.estimatedSizeInBytes }
         let diskUsage = await calculateDiskUsage()
@@ -360,9 +461,11 @@ class OutOfStockCacheManager: ObservableObject {
         return OutOfStockCacheStatistics(
             memoryHits: memoryHits,
             diskHits: diskHits,
+            countCacheHits: countCacheHits,
             totalMisses: totalMisses,
             memorySize: memoryCache.count,
             diskSize: await countDiskCacheFiles(),
+            countCacheSize: countCache.count,
             memoryUsageBytes: memoryUsage,
             diskUsageBytes: diskUsage,
             averageAccessTime: avgAccessTime,

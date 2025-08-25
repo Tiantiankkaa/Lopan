@@ -423,6 +423,71 @@ class CustomerOutOfStockService: ObservableObject {
         }
     }
     
+    func getFilteredCount(criteria: OutOfStockFilterCriteria) async -> Int {
+        guard !isPlaceholder else { return 0 }
+        
+        // Check cache first for ultra-fast response
+        if let cachedCount = await cacheManager.getCachedCount(for: criteria) {
+            print("⚡ [Service] Using cached count: \(cachedCount)")
+            return cachedCount
+        }
+        
+        do {
+            let result = try await customerOutOfStockRepository.fetchOutOfStockRecords(
+                criteria: criteria,
+                page: 0,
+                pageSize: 1
+            )
+            
+            // Cache the result for future use
+            await cacheManager.cacheCount(result.totalCount, for: criteria)
+            
+            print("📊 [Service] Filtered count for preview: \(result.totalCount) (cached for future)")
+            return result.totalCount
+        } catch {
+            print("❌ [Service] Failed to get filtered count: \(error)")
+            return 0
+        }
+    }
+    
+    /// Fast path for "clear all" counts - uses dedicated caching
+    func getClearAllFilteredCount() async -> Int {
+        guard !isPlaceholder else { return 0 }
+        
+        // Check special "clear all" cache first
+        if let cachedCount = await cacheManager.getCachedClearAllCount() {
+            print("⚡ [Service] Using cached clear all count: \(cachedCount)")
+            return cachedCount
+        }
+        
+        let clearAllCriteria = OutOfStockFilterCriteria(
+            customer: nil,
+            product: nil,
+            status: nil,
+            dateRange: nil,
+            searchText: "",
+            page: 0,
+            pageSize: 1
+        )
+        
+        do {
+            let result = try await customerOutOfStockRepository.fetchOutOfStockRecords(
+                criteria: clearAllCriteria,
+                page: 0,
+                pageSize: 1
+            )
+            
+            // Cache with highest priority
+            await cacheManager.cacheClearAllCount(result.totalCount)
+            
+            print("📊 [Service] Clear all count: \(result.totalCount) (cached with high priority)")
+            return result.totalCount
+        } catch {
+            print("❌ [Service] Failed to get clear all count: \(error)")
+            return 0
+        }
+    }
+    
     // MARK: - Cache Management
     
     func invalidateCache(currentDate: Date) async {

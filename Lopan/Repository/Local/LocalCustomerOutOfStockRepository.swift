@@ -203,8 +203,8 @@ class LocalCustomerOutOfStockRepository: CustomerOutOfStockRepository {
         // Ensure we're on the main thread for ModelContext operations
         print("📊 [Repository] Fetching with database pagination - Page: \(page), Status: \(criteria.status?.displayName ?? "All")")
         
-        // If status filtering is needed, use memory-based approach to avoid SwiftData predicate issues
-        if criteria.status != nil {
+        // If status, customer, or product filtering is needed, use memory-based approach to avoid SwiftData predicate issues
+        if criteria.status != nil || criteria.customer != nil || criteria.product != nil {
             return try await fetchWithMemoryFiltering(criteria: criteria, page: page, pageSize: pageSize)
         }
         
@@ -305,13 +305,25 @@ class LocalCustomerOutOfStockRepository: CustomerOutOfStockRepository {
             return try modelContext.fetch(allItemsDescriptor)
         }
         
-        // Step 2: Filter by status in memory (safe operation)
-        let filteredItems: [CustomerOutOfStock]
+        // Step 2: Apply status, customer, and product filtering in memory (safe operations)
+        var filteredItems = allMatchingItems
+        
+        // Apply status filtering
         if let statusFilter = criteria.status {
-            filteredItems = allMatchingItems.filter { $0.status == statusFilter }
+            filteredItems = filteredItems.filter { $0.status == statusFilter }
             print("📊 [Repository] Memory filtering: \(filteredItems.count) of \(allMatchingItems.count) items match status \(statusFilter.displayName)")
-        } else {
-            filteredItems = allMatchingItems
+        }
+        
+        // Apply customer filtering
+        if let customerFilter = criteria.customer {
+            filteredItems = filteredItems.filter { $0.customer?.id == customerFilter.id }
+            print("📊 [Repository] Memory filtering: \(filteredItems.count) items match customer \(customerFilter.name)")
+        }
+        
+        // Apply product filtering
+        if let productFilter = criteria.product {
+            filteredItems = filteredItems.filter { $0.product?.id == productFilter.id }
+            print("📊 [Repository] Memory filtering: \(filteredItems.count) items match product \(productFilter.name)")
         }
         
         // Step 3: Apply pagination to filtered results
@@ -382,14 +394,26 @@ class LocalCustomerOutOfStockRepository: CustomerOutOfStockRepository {
                 return try modelContext.fetch(descriptor)
             }
             
-            // Apply text search filtering in memory if needed
-            let filteredRecords: [CustomerOutOfStock]
+            // Apply text search, customer, and product filtering in memory if needed
+            var filteredRecords = records
+            
+            // Apply text search filtering
             if !criteria.searchText.isEmpty {
-                filteredRecords = records.filter { record in
+                filteredRecords = filteredRecords.filter { record in
                     matchesTextSearch(record: record, searchText: criteria.searchText)
                 }
-            } else {
-                filteredRecords = records
+            }
+            
+            // Apply customer filtering
+            if let customerFilter = criteria.customer {
+                filteredRecords = filteredRecords.filter { $0.customer?.id == customerFilter.id }
+                print("📊 [Repository] Search filtering: \(filteredRecords.count) items match customer \(customerFilter.name)")
+            }
+            
+            // Apply product filtering
+            if let productFilter = criteria.product {
+                filteredRecords = filteredRecords.filter { $0.product?.id == productFilter.id }
+                print("📊 [Repository] Search filtering: \(filteredRecords.count) items match product \(productFilter.name)")
             }
             
             // Safety check for large datasets
@@ -529,9 +553,9 @@ class LocalCustomerOutOfStockRepository: CustomerOutOfStockRepository {
     }
     
     private func countForNonSearchCriteria(criteria: OutOfStockFilterCriteria) async throws -> Int {
-        // Safe counting - use memory filtering when status is involved
-        if criteria.status != nil {
-            // Use memory-based filtering for status to avoid SwiftData predicate issues
+        // Safe counting - use memory filtering when status, customer, or product is involved
+        if criteria.status != nil || criteria.customer != nil || criteria.product != nil {
+            // Use memory-based filtering for complex filters to avoid SwiftData predicate issues
             var allItemsDescriptor: FetchDescriptor<CustomerOutOfStock>
             
             if let dateRange = criteria.dateRange {
@@ -550,19 +574,68 @@ class LocalCustomerOutOfStockRepository: CustomerOutOfStockRepository {
             let allItems = try await MainActor.run {
                 return try modelContext.fetch(allItemsDescriptor)
             }
-            let filteredItems = allItems.filter { $0.status == criteria.status! }
             
-            print("📊 [Repository] Memory count: \(filteredItems.count) items match status \(criteria.status!.displayName)")
+            // Apply all filters in memory
+            var filteredItems = allItems
+            
+            if let statusFilter = criteria.status {
+                filteredItems = filteredItems.filter { $0.status == statusFilter }
+                print("📊 [Repository] Memory count: \(filteredItems.count) items match status \(statusFilter.displayName)")
+            }
+            
+            if let customerFilter = criteria.customer {
+                filteredItems = filteredItems.filter { $0.customer?.id == customerFilter.id }
+                print("📊 [Repository] Memory count: \(filteredItems.count) items match customer \(customerFilter.name)")
+            }
+            
+            if let productFilter = criteria.product {
+                filteredItems = filteredItems.filter { $0.product?.id == productFilter.id }
+                print("📊 [Repository] Memory count: \(filteredItems.count) items match product \(productFilter.name)")
+            }
+            
             return filteredItems.count
         } else {
-            // For non-status filtering, use safe database counting
-            let predicate = buildPredicate(from: criteria)
-            let descriptor = FetchDescriptor<CustomerOutOfStock>(predicate: predicate)
-            let records = try await MainActor.run {
-                return try modelContext.fetch(descriptor)
-            }
-            return records.count
+            // For date-only filtering, use optimized batch counting to avoid loading all records
+            return try await performOptimizedCount(criteria: criteria)
         }
+    }
+    
+    /// Optimized counting that batches the work to avoid memory spikes
+    private func performOptimizedCount(criteria: OutOfStockFilterCriteria) async throws -> Int {
+        let batchSize = 1000
+        var totalCount = 0
+        var offset = 0
+        
+        print("📊 [Repository] Starting optimized count with batching (batchSize: \(batchSize))")
+        
+        while true {
+            // Create descriptor with limit and offset for batching
+            let predicate = buildPredicate(from: criteria)
+            var descriptor = FetchDescriptor<CustomerOutOfStock>(predicate: predicate)
+            descriptor.fetchLimit = batchSize
+            descriptor.fetchOffset = offset
+            
+            let batchCount = try await MainActor.run {
+                let records = try modelContext.fetch(descriptor)
+                return records.count
+            }
+            
+            totalCount += batchCount
+            print("📊 [Repository] Batch \(offset/batchSize + 1): counted \(batchCount) records (total: \(totalCount))")
+            
+            // If we got fewer records than batch size, we've reached the end
+            if batchCount < batchSize {
+                break
+            }
+            
+            offset += batchSize
+            
+            // Add small delay to prevent overwhelming the system
+            try? await Task.sleep(nanoseconds: 1_000_000) // 1ms pause between batches
+        }
+        
+        print("📊 [Repository] Optimized count completed: \(totalCount) total records")
+        return totalCount
     }
     
     // MARK: - Private Helper Methods
