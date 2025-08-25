@@ -19,7 +19,9 @@ struct OutOfStockCacheKey: Hashable, Codable {
     let pageSize: Int
     
     init(date: Date, criteria: OutOfStockFilterCriteria, page: Int) {
-        self.date = Calendar.current.startOfDay(for: date)
+        // Use criteria.dateRange.start as the authoritative date source to avoid inconsistencies
+        let authorativeDate = criteria.dateRange?.start ?? date
+        self.date = Calendar.current.startOfDay(for: authorativeDate)
         self.page = page
         self.pageSize = criteria.pageSize
         
@@ -27,16 +29,17 @@ struct OutOfStockCacheKey: Hashable, Codable {
         var hasher = Hasher()
         hasher.combine(criteria.customer?.id)
         hasher.combine(criteria.product?.id)
-        hasher.combine(criteria.status?.rawValue)
+        // Ensure status filter is properly represented in cache key
+        hasher.combine(criteria.status?.rawValue ?? "all")  // Use "all" for nil status
         hasher.combine(criteria.searchText)
         hasher.combine(criteria.sortOrder.rawValue)
         
-        if let dateRange = criteria.dateRange {
-            hasher.combine(dateRange.start)
-            hasher.combine(dateRange.end)
-        }
+        // Use the authoritative date in the hash to ensure consistency
+        hasher.combine(self.date.timeIntervalSince1970)
         
         self.filterHash = String(hasher.finalize())
+        
+        print("🔑 [Cache Key] Generated key for date=\(self.date), status=\(criteria.status?.displayName ?? "all"), hash=\(self.filterHash)")
     }
     
     var cacheIdentifier: String {
@@ -226,23 +229,67 @@ class OutOfStockCacheManager: ObservableObject {
             recordAccessTime(accessTime)
         }
         
+        // Validate date in cache key to prevent cross-date contamination
+        let requestedDate = Calendar.current.startOfDay(for: key.date)
+        
         // Level 1: Memory Cache Check (Fastest)
         if let page = getFromMemoryCache(key) {
-            memoryHits += 1
-            return page
+            // Enhanced validation: check if cached data items match the requested date
+            if await validateCachedPageDate(page, expectedDate: requestedDate) {
+                memoryHits += 1
+                print("📥 [Cache] Memory cache hit for date: \(requestedDate), validated items match")
+                return page
+            } else {
+                print("⚠️ [Cache] Date validation failed for memory cache entry, removing")
+                removeFromMemoryCache(key)
+            }
         }
         
         // Level 2: Disk Cache Check (Fast)
         if let page = await getFromDiskCache(key) {
-            // Promote to memory cache
-            addToMemoryCache(page, for: key)
-            diskHits += 1
-            return page
+            // Enhanced validation: check if cached data items match the requested date
+            if await validateCachedPageDate(page, expectedDate: requestedDate) {
+                // Promote to memory cache
+                addToMemoryCache(page, for: key)
+                diskHits += 1
+                print("📥 [Cache] Disk cache hit for date: \(requestedDate), validated items match")
+                return page
+            } else {
+                print("⚠️ [Cache] Date validation failed for disk cache entry, removing")
+                await removeDiskCacheEntry(for: key)
+            }
         }
         
         // Level 3: Cache Miss - will be handled by repository layer
         totalMisses += 1
+        print("📭 [Cache] Cache miss for date: \(requestedDate)")
         return nil
+    }
+    
+    /// Validates that all items in a cached page match the expected date
+    /// - Parameters:
+    ///   - page: The cached page to validate
+    ///   - expectedDate: The expected date (start of day)
+    /// - Returns: True if all items match the expected date, false otherwise
+    private func validateCachedPageDate(_ page: CachedOutOfStockPage, expectedDate: Date) async -> Bool {
+        // If no items, consider it valid (empty result for the date)
+        guard !page.items.isEmpty else { 
+            print("📝 [Cache] Empty cached page considered valid for date: \(expectedDate)")
+            return true 
+        }
+        
+        // Check if all items have requestDate matching the expected date
+        let calendar = Calendar.current
+        for item in page.items {
+            let itemDate = calendar.startOfDay(for: item.requestDate)
+            if itemDate != expectedDate {
+                print("⚠️ [Cache] Item date mismatch: expected \(expectedDate), found \(itemDate)")
+                return false
+            }
+        }
+        
+        print("✅ [Cache] All \(page.items.count) items match expected date: \(expectedDate)")
+        return true
     }
     
     func cachePage(_ page: CachedOutOfStockPage, for key: OutOfStockCacheKey, priority: CachedOutOfStockPage.CachePriority = .normal) async {
@@ -491,6 +538,26 @@ class OutOfStockCacheManager: ObservableObject {
                     }
                 } catch {
                     print("❌ Failed to clear disk cache: \(error)")
+                }
+                
+                continuation.resume(returning: ())
+            }
+        }
+    }
+    
+    private func removeDiskCacheEntry(for key: OutOfStockCacheKey) async {
+        await withCheckedContinuation { continuation in
+            diskQueue.async {
+                let filename = key.cacheIdentifier + ".json"
+                let fileURL = self.diskCacheDirectory.appendingPathComponent(filename)
+                
+                do {
+                    if FileManager.default.fileExists(atPath: fileURL.path) {
+                        try FileManager.default.removeItem(at: fileURL)
+                        print("🗑️ [Cache] Removed disk cache entry: \(filename)")
+                    }
+                } catch {
+                    print("❌ Failed to remove disk cache entry \(filename): \(error)")
                 }
                 
                 continuation.resume(returning: ())

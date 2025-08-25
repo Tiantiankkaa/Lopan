@@ -19,8 +19,14 @@
       "Bash(sed:*)",
       "Bash(awk:*)",
       "Bash(swift:*)",
-      "Bash(grep:*)"
+      "Bash(grep:*)",
+      "WebFetch(domain:docs.anthropic.com)",
+      "Bash(open:*)",
+      "Bash(xcrun simctl install:*)",
+      "Bash(plutil:*)",
+      "Bash(xcrun simctl launch:*)"
     ],
-    "deny": []
+    "deny": [],
+    "defaultMode": "acceptEdits"
   }
 }

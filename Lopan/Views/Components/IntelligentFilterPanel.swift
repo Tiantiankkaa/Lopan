@@ -20,11 +20,6 @@ class IntelligentFilterState: ObservableObject {
     @Published var customStartDate = Date()
     @Published var customEndDate = Date()
     
-    // AI Suggestions
-    @Published var searchSuggestions: [FilterSuggestion] = []
-    @Published var quickFilters: [QuickFilter] = []
-    @Published var isLoadingSuggestions = false
-    
     // Preview
     @Published var previewCount = 0
     @Published var previewLoading = false
@@ -49,51 +44,6 @@ class IntelligentFilterState: ObservableObject {
 }
 
 // MARK: - Supporting Models
-
-struct FilterSuggestion: Identifiable {
-    let id = UUID()
-    let text: String
-    let type: SuggestionType
-    let confidence: Double
-    
-    enum SuggestionType {
-        case customer, product, address, keyword
-        
-        var icon: String {
-            switch self {
-            case .customer: return "person.fill"
-            case .product: return "cube.fill"
-            case .address: return "location.fill"
-            case .keyword: return "magnifyingglass"
-            }
-        }
-        
-        var color: Color {
-            switch self {
-            case .customer: return .blue
-            case .product: return .green
-            case .address: return .orange
-            case .keyword: return .purple
-            }
-        }
-    }
-}
-
-struct QuickFilter: Identifiable {
-    let id = UUID()
-    let title: String
-    let description: String
-    let icon: String
-    let action: FilterAction
-    
-    enum FilterAction {
-        case todayPending
-        case thisWeekCompleted
-        case topCustomers
-        case recentReturns
-        case urgentItems
-    }
-}
 
 enum DateRangeOption: CaseIterable {
     case today, yesterday, thisWeek, lastWeek, thisMonth, lastMonth, custom
@@ -152,9 +102,15 @@ struct IntelligentFilterPanel: View {
     
     @Binding var filters: OutOfStockFilters
     @Binding var searchText: String
+    let customers: [Customer]
+    let products: [Product]
     let onApply: () -> Void
     
     @State private var showingCustomDatePicker = false
+    @State private var showingCustomerPicker = false
+    @State private var showingProductPicker = false
+    @State private var customerSearchText = ""
+    @State private var productSearchText = ""
     @State private var animationOffset: CGFloat = 300
     
     var body: some View {
@@ -162,8 +118,6 @@ struct IntelligentFilterPanel: View {
             ScrollView {
                 VStack(spacing: 24) {
                     headerSection
-                    aiSearchSection
-                    quickFiltersSection
                     detailedFiltersSection
                     previewSection
                 }
@@ -176,8 +130,21 @@ struct IntelligentFilterPanel: View {
                 withAnimation(.spring(response: 0.6, dampingFraction: 0.8)) {
                     animationOffset = 0
                 }
-                loadAISuggestions()
-                generateQuickFilters()
+            }
+            .sheet(isPresented: $showingCustomerPicker) {
+                SearchableCustomerPicker(
+                    customers: customers,
+                    selectedCustomer: $filterState.selectedCustomer,
+                    searchText: $customerSearchText
+                )
+            }
+            .sheet(isPresented: $showingProductPicker) {
+                SearchableProductPicker(
+                    products: products,
+                    selectedProduct: $filterState.selectedProduct,
+                    selectedProductSize: .constant(nil),
+                    searchText: $productSearchText
+                )
             }
         }
     }
@@ -187,7 +154,7 @@ struct IntelligentFilterPanel: View {
     private var headerSection: some View {
         HStack {
             VStack(alignment: .leading, spacing: 4) {
-                Text("智能筛选")
+                Text("筛选")
                     .font(.title)
                     .fontWeight(.bold)
                 
@@ -208,91 +175,7 @@ struct IntelligentFilterPanel: View {
         .padding(.bottom, 8)
     }
     
-    // MARK: - AI Search Section
     
-    private var aiSearchSection: some View {
-        VStack(alignment: .leading, spacing: 16) {
-            HStack {
-                Image(systemName: "brain.head.profile")
-                    .foregroundColor(.purple)
-                    .font(.title2)
-                
-                Text("AI 智能搜索")
-                    .font(.headline)
-                    .fontWeight(.semibold)
-            }
-            
-            // Smart search bar
-            HStack {
-                Image(systemName: "magnifyingglass")
-                    .foregroundColor(.secondary)
-                
-                TextField("输入任意关键词，AI 会为您智能匹配...", text: $filterState.searchText)
-                    .textFieldStyle(.plain)
-                    .onChange(of: filterState.searchText) { _ in
-                        updateAISuggestions()
-                    }
-                
-                if filterState.isLoadingSuggestions {
-                    ProgressView()
-                        .scaleEffect(0.8)
-                }
-            }
-            .padding(12)
-            .background(
-                RoundedRectangle(cornerRadius: 12)
-                    .fill(Color(.systemBackground))
-                    .shadow(color: .black.opacity(0.05), radius: 2, x: 0, y: 1)
-            )
-            
-            // AI Suggestions
-            if !filterState.searchSuggestions.isEmpty {
-                LazyVGrid(columns: [GridItem(.flexible()), GridItem(.flexible())], spacing: 8) {
-                    ForEach(filterState.searchSuggestions) { suggestion in
-                        SuggestionCard(suggestion: suggestion) {
-                            applySuggestion(suggestion)
-                        }
-                    }
-                }
-            }
-        }
-        .padding(16)
-        .background(
-            RoundedRectangle(cornerRadius: 16)
-                .fill(Color(.systemBackground))
-                .shadow(color: .black.opacity(0.08), radius: 8, x: 0, y: 4)
-        )
-    }
-    
-    // MARK: - Quick Filters Section
-    
-    private var quickFiltersSection: some View {
-        VStack(alignment: .leading, spacing: 16) {
-            HStack {
-                Image(systemName: "bolt.fill")
-                    .foregroundColor(.yellow)
-                    .font(.title2)
-                
-                Text("快速筛选")
-                    .font(.headline)
-                    .fontWeight(.semibold)
-            }
-            
-            LazyVGrid(columns: [GridItem(.flexible()), GridItem(.flexible())], spacing: 12) {
-                ForEach(filterState.quickFilters) { quickFilter in
-                    QuickFilterCard(filter: quickFilter) {
-                        applyQuickFilter(quickFilter)
-                    }
-                }
-            }
-        }
-        .padding(16)
-        .background(
-            RoundedRectangle(cornerRadius: 16)
-                .fill(Color(.systemBackground))
-                .shadow(color: .black.opacity(0.08), radius: 8, x: 0, y: 4)
-        )
-    }
     
     // MARK: - Detailed Filters Section
     
@@ -309,23 +192,6 @@ struct IntelligentFilterPanel: View {
             }
             
             VStack(spacing: 16) {
-                // Status Filter
-                FilterSection(title: "状态筛选", icon: "flag.fill") {
-                    LazyVGrid(columns: [GridItem(.flexible()), GridItem(.flexible()), GridItem(.flexible())], spacing: 8) {
-                        ForEach(OutOfStockStatus.allCases, id: \.self) { status in
-                            StatusFilterButton(
-                                status: status,
-                                isSelected: filterState.selectedStatus == status
-                            ) {
-                                filterState.selectedStatus = filterState.selectedStatus == status ? nil : status
-                                updatePreview()
-                            }
-                        }
-                    }
-                }
-                
-                Divider()
-                
                 // Date Range Filter
                 FilterSection(title: "日期筛选", icon: "calendar.circle.fill") {
                     LazyVGrid(columns: [GridItem(.flexible()), GridItem(.flexible())], spacing: 8) {
@@ -462,84 +328,6 @@ struct IntelligentFilterPanel: View {
     
     // MARK: - Helper Methods
     
-    private func loadAISuggestions() {
-        filterState.isLoadingSuggestions = true
-        
-        // Simulate AI suggestions loading
-        DispatchQueue.main.asyncAfter(deadline: .now() + 1.0) {
-            filterState.searchSuggestions = [
-                FilterSuggestion(text: "张三", type: .customer, confidence: 0.95),
-                FilterSuggestion(text: "运动鞋", type: .product, confidence: 0.88),
-                FilterSuggestion(text: "北京", type: .address, confidence: 0.82),
-                FilterSuggestion(text: "急需处理", type: .keyword, confidence: 0.76)
-            ]
-            filterState.isLoadingSuggestions = false
-        }
-    }
-    
-    private func generateQuickFilters() {
-        filterState.quickFilters = [
-            QuickFilter(title: "今日待处理", description: "今天需要处理的记录", icon: "clock.fill", action: .todayPending),
-            QuickFilter(title: "本周已完成", description: "本周完成的记录", icon: "checkmark.circle.fill", action: .thisWeekCompleted),
-            QuickFilter(title: "重要客户", description: "VIP客户的记录", icon: "star.fill", action: .topCustomers),
-            QuickFilter(title: "最近退货", description: "近期退货记录", icon: "arrow.uturn.left.circle.fill", action: .recentReturns)
-        ]
-    }
-    
-    private func updateAISuggestions() {
-        guard !filterState.searchText.isEmpty else {
-            filterState.searchSuggestions = []
-            return
-        }
-        
-        filterState.isLoadingSuggestions = true
-        
-        // Simulate AI-powered suggestion update
-        DispatchQueue.main.asyncAfter(deadline: .now() + 0.5) {
-            // This would normally call an AI service
-            filterState.isLoadingSuggestions = false
-            updatePreview()
-        }
-    }
-    
-    private func applySuggestion(_ suggestion: FilterSuggestion) {
-        switch suggestion.type {
-        case .customer:
-            // Would find and select the customer
-            filterState.searchText = suggestion.text
-        case .product:
-            // Would find and select the product
-            filterState.searchText = suggestion.text
-        case .address, .keyword:
-            filterState.searchText = suggestion.text
-        }
-        
-        updatePreview()
-    }
-    
-    private func applyQuickFilter(_ quickFilter: QuickFilter) {
-        switch quickFilter.action {
-        case .todayPending:
-            filterState.selectedDateRange = .today
-            filterState.selectedStatus = .pending
-        case .thisWeekCompleted:
-            filterState.selectedDateRange = .thisWeek
-            filterState.selectedStatus = .completed
-        case .topCustomers:
-            // Would apply top customers filter
-            break
-        case .recentReturns:
-            filterState.selectedDateRange = .thisWeek
-            // Would apply return filter
-            break
-        case .urgentItems:
-            filterState.selectedStatus = .pending
-            // Would apply urgency filter
-            break
-        }
-        
-        updatePreview()
-    }
     
     private func updatePreview() {
         filterState.previewLoading = true
@@ -568,102 +356,43 @@ struct IntelligentFilterPanel: View {
         searchText = filterState.searchText
         
         // Convert filter state to parent filter model
-        // This is a simplified version - production code would do proper conversion
+        filters.customer = filterState.selectedCustomer
+        filters.product = filterState.selectedProduct
+        filters.status = filterState.selectedStatus
+        
+        // Convert date range if selected
+        if let dateRange = filterState.selectedDateRange {
+            switch dateRange {
+            case .today:
+                filters.dateRange = .today
+            case .thisWeek:
+                filters.dateRange = .thisWeek
+            case .thisMonth:
+                filters.dateRange = .thisMonth
+            case .custom:
+                filters.dateRange = .custom(start: filterState.customStartDate, end: filterState.customEndDate)
+            default:
+                break
+            }
+        } else {
+            filters.dateRange = nil
+        }
         
         dismiss()
         onApply()
     }
     
     private func selectCustomer() {
-        // Show customer selection sheet
-        print("Select customer")
+        showingCustomerPicker = true
     }
     
     private func selectProduct() {
-        // Show product selection sheet
-        print("Select product")
+        showingProductPicker = true
     }
 }
 
 // MARK: - Supporting Views
 
-private struct SuggestionCard: View {
-    let suggestion: FilterSuggestion
-    let onTap: () -> Void
-    
-    var body: some View {
-        Button(action: onTap) {
-            HStack(spacing: 8) {
-                Image(systemName: suggestion.type.icon)
-                    .font(.caption)
-                    .foregroundColor(suggestion.type.color)
-                
-                Text(suggestion.text)
-                    .font(.subheadline)
-                    .fontWeight(.medium)
-                    .foregroundColor(.primary)
-                
-                Spacer()
-                
-                Text("\(Int(suggestion.confidence * 100))%")
-                    .font(.caption2)
-                    .foregroundColor(.secondary)
-            }
-            .padding(.horizontal, 12)
-            .padding(.vertical, 8)
-            .background(
-                RoundedRectangle(cornerRadius: 8)
-                    .fill(suggestion.type.color.opacity(0.1))
-                    .overlay(
-                        RoundedRectangle(cornerRadius: 8)
-                            .stroke(suggestion.type.color.opacity(0.3), lineWidth: 1)
-                    )
-            )
-        }
-    }
-}
-
-private struct QuickFilterCard: View {
-    let filter: QuickFilter
-    let onTap: () -> Void
-    
-    var body: some View {
-        Button(action: onTap) {
-            VStack(alignment: .leading, spacing: 8) {
-                HStack {
-                    Image(systemName: filter.icon)
-                        .font(.title2)
-                        .foregroundColor(.blue)
-                    
-                    Spacer()
-                }
-                
-                VStack(alignment: .leading, spacing: 4) {
-                    Text(filter.title)
-                        .font(.subheadline)
-                        .fontWeight(.semibold)
-                        .foregroundColor(.primary)
-                    
-                    Text(filter.description)
-                        .font(.caption)
-                        .foregroundColor(.secondary)
-                        .lineLimit(2)
-                }
-            }
-            .padding(12)
-            .frame(height: 80)
-            .frame(maxWidth: .infinity, alignment: .leading)
-            .background(
-                RoundedRectangle(cornerRadius: 12)
-                    .fill(Color.blue.opacity(0.05))
-                    .overlay(
-                        RoundedRectangle(cornerRadius: 12)
-                            .stroke(Color.blue.opacity(0.2), lineWidth: 1)
-                    )
-            )
-        }
-    }
-}
 
 private struct FilterSection<Content: View>: View {
     let title: String
@@ -757,7 +486,7 @@ private struct CustomDateRangePicker: View {
                     
                     DatePicker("", selection: $startDate, displayedComponents: .date)
                         .labelsHidden()
-                        .onChange(of: startDate) { _ in onChange() }
+                        .onChange(of: startDate) { onChange() }
                 }
                 
                 Spacer()
@@ -769,7 +498,7 @@ private struct CustomDateRangePicker: View {
                     
                     DatePicker("", selection: $endDate, displayedComponents: .date)
                         .labelsHidden()
-                        .onChange(of: endDate) { _ in onChange() }
+                        .onChange(of: endDate) { onChange() }
                 }
             }
             .padding(12)
@@ -781,13 +510,16 @@ private struct CustomDateRangePicker: View {
     }
 }
 
+
 #Preview {
-    @State var filters = OutOfStockFilters()
-    @State var searchText = ""
+    @Previewable @State var filters = OutOfStockFilters()
+    @Previewable @State var searchText = ""
     
     return IntelligentFilterPanel(
         filters: $filters,
         searchText: $searchText,
+        customers: [],
+        products: [],
         onApply: {}
     )
 }

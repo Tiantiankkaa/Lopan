@@ -32,6 +32,8 @@ protocol CustomerOutOfStockRepository {
     
     func countOutOfStockRecords(criteria: OutOfStockFilterCriteria) async throws -> Int
     
+    func countOutOfStockRecordsByStatus(criteria: OutOfStockFilterCriteria) async throws -> [OutOfStockStatus: Int]
+    
     // CRUD operations
     func addOutOfStockRecord(_ record: CustomerOutOfStock) async throws
     func updateOutOfStockRecord(_ record: CustomerOutOfStock) async throws

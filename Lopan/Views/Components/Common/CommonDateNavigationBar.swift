@@ -24,6 +24,11 @@ struct CommonDateNavigationBar: View {
                         .font(.title2)
                         .foregroundColor(.blue)
                 }
+                .buttonStyle(ScaleButtonStyle())
+                .frame(minWidth: 44, minHeight: 44)
+                .contentShape(Rectangle())
+                .accessibilityLabel("前一天")
+                .accessibilityHint("查看前一天的数据")
                 
                 Spacer()
                 
@@ -52,6 +57,11 @@ struct CommonDateNavigationBar: View {
                         .font(.title2)
                         .foregroundColor(.blue)
                 }
+                .buttonStyle(ScaleButtonStyle())
+                .frame(minWidth: 44, minHeight: 44)
+                .contentShape(Rectangle())
+                .accessibilityLabel("后一天")
+                .accessibilityHint("查看后一天的数据")
             }
             .padding(.horizontal, 20)
             

@@ -54,7 +54,7 @@ class CustomerOutOfStockViewModel: ObservableObject {
     private let pageSize = 50
     
     // Debounced search
-    private var searchWorkItem: DispatchWorkItem?
+    private let searchDebouncer = Debouncer(delay: 0.3)
     
     // Performance tracking
     private var loadStartTime: Date?
@@ -124,15 +124,6 @@ class CustomerOutOfStockViewModel: ObservableObject {
             }
             .store(in: &cancellables)
         
-        // Date change handling
-        $selectedDate
-            .dropFirst()
-            .sink { [weak self] date in
-                Task {
-                    await self?.loadDataForDate(date)
-                }
-            }
-            .store(in: &cancellables)
     }
     
     private func setupInitialState() {
@@ -176,6 +167,10 @@ class CustomerOutOfStockViewModel: ObservableObject {
     }
     
     func refreshData() async {
+        print("🔄 [ViewModel DEBUG] refreshData() STARTED")
+        print("📅 [ViewModel DEBUG] Using selectedDate: \(DateFormatter.debugFormatter.string(from: selectedDate))")
+        print("📊 [ViewModel DEBUG] Current items count before clear: \(items.count)")
+        
         currentPage = 0
         hasMoreData = true
         
@@ -183,13 +178,25 @@ class CustomerOutOfStockViewModel: ObservableObject {
             items = []
         }
         
+        print("⏳ [ViewModel DEBUG] Calling performInitialLoad()...")
         await performInitialLoad()
+        print("✅ [ViewModel DEBUG] refreshData() COMPLETED")
     }
     
     func loadDataForDate(_ date: Date) async {
+        print("🔄 [ViewModel DEBUG] loadDataForDate() STARTED")
+        print("📅 [ViewModel DEBUG] Input date parameter: \(DateFormatter.debugFormatter.string(from: date))")
+        print("📅 [ViewModel DEBUG] Current selectedDate before update: \(DateFormatter.debugFormatter.string(from: selectedDate))")
+        
         navigationState.selectedDate = date
         selectedDate = date
+        
+        print("✅ [ViewModel DEBUG] selectedDate updated to: \(DateFormatter.debugFormatter.string(from: selectedDate))")
+        print("⏳ [ViewModel DEBUG] Calling refreshData()...")
+        
         await refreshData()
+        
+        print("✅ [ViewModel DEBUG] loadDataForDate() COMPLETED")
     }
     
     func loadNextPage() async {
@@ -221,9 +228,16 @@ class CustomerOutOfStockViewModel: ObservableObject {
     }
     
     private func performInitialLoad() async {
+        print("🔄 [ViewModel DEBUG] performInitialLoad() STARTED")
+        
         do {
             let criteria = createFilterCriteria(page: 0)
+            print("⏳ [ViewModel DEBUG] Calling service.loadFilteredItems...")
             await service.loadFilteredItems(criteria: criteria, resetPagination: true)
+            
+            print("📊 [ViewModel DEBUG] Service loaded \(service.items.count) items")
+            print("📊 [ViewModel DEBUG] Service hasMoreData: \(service.hasMoreData)")
+            print("📊 [ViewModel DEBUG] Service totalRecordsCount: \(service.totalRecordsCount)")
             
             // Update UI with animation
             withAnimation(.easeInOut(duration: 0.5)) {
@@ -233,23 +247,37 @@ class CustomerOutOfStockViewModel: ObservableObject {
                 updateStatusCounts()
             }
             
+            print("✅ [ViewModel DEBUG] UI updated with \(items.count) items, totalCount: \(totalCount)")
+            
             // Trigger stagger animation for list items
             animateListItems()
             
         } catch {
+            print("❌ [ViewModel DEBUG] Error in performInitialLoad: \(error)")
             self.error = error
         }
+        
+        print("✅ [ViewModel DEBUG] performInitialLoad() COMPLETED")
     }
     
     // MARK: - Filter Management
     
     private func createFilterCriteria(page: Int) -> OutOfStockFilterCriteria {
+        print("🔄 [ViewModel DEBUG] createFilterCriteria() for page \(page)")
+        print("📅 [ViewModel DEBUG] Using selectedDate: \(DateFormatter.debugFormatter.string(from: selectedDate))")
+        
         let dateRange: (start: Date, end: Date)?
         
         if let customRange = customDateRange {
             dateRange = customRange
+            print("📅 [ViewModel DEBUG] Using custom date range: \(DateFormatter.debugFormatter.string(from: customRange.start)) to \(DateFormatter.debugFormatter.string(from: customRange.end))")
         } else {
             dateRange = CustomerOutOfStockService.createDateRange(for: selectedDate)
+            if let range = dateRange {
+                print("📅 [ViewModel DEBUG] Created date range: \(DateFormatter.debugFormatter.string(from: range.start)) to \(DateFormatter.debugFormatter.string(from: range.end))")
+            } else {
+                print("⚠️ [ViewModel DEBUG] Failed to create date range!")
+            }
         }
         
         return OutOfStockFilterCriteria(
@@ -328,20 +356,15 @@ class CustomerOutOfStockViewModel: ObservableObject {
     // MARK: - Search Methods
     
     private func performDebouncedSearch(_ text: String) {
-        searchWorkItem?.cancel()
-        
-        let workItem = DispatchWorkItem { [weak self] in
+        searchDebouncer.debounce { [weak self] in
             Task { @MainActor in
                 await self?.refreshData()
             }
         }
-        
-        searchWorkItem = workItem
-        DispatchQueue.main.asyncAfter(deadline: .now() + 0.5, execute: workItem)
     }
     
     func performImmediateSearch(_ text: String) {
-        searchWorkItem?.cancel()
+        searchDebouncer.cancel()
         searchText = text
         navigationState.performImmediateSearch(text)
         
@@ -567,7 +590,7 @@ class CustomerOutOfStockViewModel: ObservableObject {
     }
     
     deinit {
-        searchWorkItem?.cancel()
+        searchDebouncer.cancel()
         cancellables.removeAll()
         
         // Final cleanup - handled by main actor context automatically

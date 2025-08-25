@@ -8,6 +8,21 @@
 import Foundation
 import SwiftData
 
+// MARK: - Audit Operation Types
+
+enum AuditOperation: String, CaseIterable {
+    case create = "CREATE"
+    case read = "READ"
+    case update = "UPDATE"
+    case delete = "DELETE"
+    case login = "LOGIN"
+    case logout = "LOGOUT"
+    case access = "ACCESS"
+    case export = "EXPORT"
+    case importData = "IMPORT"
+    case sync = "SYNC"
+}
+
 class AuditingService {
     static let shared = AuditingService()
     
@@ -303,6 +318,41 @@ class AuditingService {
         #else
         return "Unknown Device"
         #endif
+    }
+    
+    // MARK: - Use Case Compatible Methods
+    
+    func logOperation(
+        operation: AuditOperation,
+        entityType: String,
+        entityId: String?,
+        performedBy: String,
+        details: String
+    ) async {
+        // This is a simplified version for Use Cases compatibility
+        // In a real implementation, you would need a ModelContext
+        print("AUDIT: [\(operation.rawValue)] \(entityType) \(entityId ?? "N/A") by \(performedBy) - \(details)")
+    }
+    
+    func logError(
+        operation: AuditOperation,
+        entityType: String,
+        entityId: String?,
+        error: Error,
+        details: String,
+        performedBy: String? = nil
+    ) async {
+        let userInfo = performedBy != nil ? " by \(performedBy!)" : ""
+        print("AUDIT ERROR: [\(operation.rawValue)] \(entityType) \(entityId ?? "N/A")\(userInfo) - \(details): \(error.localizedDescription)")
+    }
+    
+    func logAccess(
+        operation: AuditOperation,
+        entityType: String,
+        entityId: String?,
+        details: String
+    ) async {
+        print("AUDIT ACCESS: [\(operation.rawValue)] \(entityType) \(entityId ?? "N/A") - \(details)")
     }
 }
 

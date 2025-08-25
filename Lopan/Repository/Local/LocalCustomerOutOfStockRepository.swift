@@ -222,6 +222,18 @@ class LocalCustomerOutOfStockRepository: CustomerOutOfStockRepository {
             do {
                 fetchedItems = try modelContext.fetch(paginatedDescriptor)
                 print("📊 [Repository] Successfully fetched \(fetchedItems.count) items")
+                
+                // Log some details about the fetched items for debugging
+                if !fetchedItems.isEmpty {
+                    let dates = fetchedItems.map { $0.requestDate }
+                    let dateRange = "\(dates.min()!) to \(dates.max()!)"
+                    print("📅 [Repository] Fetched items date range: \(dateRange)")
+                } else {
+                    print("📭 [Repository] No items found matching criteria")
+                    if let dateRange = criteria.dateRange {
+                        print("📅 [Repository] Searched date range: \(dateRange.start) to \(dateRange.end)")
+                    }
+                }
             } catch {
                 print("❌ [Repository] Fetch failed: \(error)")
                 // Try a fallback approach without predicate if status filter fails
@@ -254,7 +266,9 @@ class LocalCustomerOutOfStockRepository: CustomerOutOfStockRepository {
                 totalCount = fetchedItems.count
             }
             
-            let hasMoreData = fetchedItems.count == pageSize
+            // Calculate hasMoreData based on total count and current position [rule:§3+.2 API Contract]
+            let currentOffset = page * pageSize
+            let hasMoreData = (currentOffset + fetchedItems.count) < totalCount
             
             return OutOfStockPaginationResult(
                 items: fetchedItems,
@@ -469,6 +483,20 @@ class LocalCustomerOutOfStockRepository: CustomerOutOfStockRepository {
         // Simplified predicate builder to avoid SwiftData thread issues
         print("📊 [Repository] Building predicate - Status: \(criteria.status?.displayName ?? "none"), Date: \(criteria.dateRange != nil)")
         
+        // Validate date range if present
+        if let dateRange = criteria.dateRange {
+            let formatter = DateFormatter()
+            formatter.dateStyle = .short
+            formatter.timeStyle = .short
+            print("📅 [Repository] Date range: \(formatter.string(from: dateRange.start)) to \(formatter.string(from: dateRange.end))")
+            
+            // Validate that the date range makes sense
+            if dateRange.start >= dateRange.end {
+                print("⚠️ [Repository] Invalid date range: start date is not before end date")
+                return nil
+            }
+        }
+        
         do {
             try validateStatusFilter(criteria.status)
         } catch {
@@ -485,7 +513,7 @@ class LocalCustomerOutOfStockRepository: CustomerOutOfStockRepository {
             let dateStart = criteria.dateRange!.start
             let dateEnd = criteria.dateRange!.end
             
-            print("📊 [Repository] Creating combined status+date predicate for: \(targetStatus)")
+            print("📊 [Repository] Creating combined status+date predicate for: \(targetStatus), date range: \(dateStart) to \(dateEnd)")
             
             // Use direct enum comparison instead of rawValue
             return #Predicate<CustomerOutOfStock> { item in
@@ -506,14 +534,14 @@ class LocalCustomerOutOfStockRepository: CustomerOutOfStockRepository {
             let dateStart = criteria.dateRange!.start
             let dateEnd = criteria.dateRange!.end
             
-            print("📊 [Repository] Creating date-only predicate")
+            print("📊 [Repository] Creating date-only predicate for range: \(dateStart) to \(dateEnd)")
             
             return #Predicate<CustomerOutOfStock> { item in
                 item.requestDate >= dateStart && item.requestDate <= dateEnd
             }
         }
         
-        print("📊 [Repository] No predicate needed")
+        print("📊 [Repository] No predicate needed - returning all records")
         return nil
     }
     

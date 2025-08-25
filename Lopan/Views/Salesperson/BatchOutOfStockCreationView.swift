@@ -628,7 +628,7 @@ struct ProductItemCard: View {
 
 // MARK: - SearchableCustomerPicker
 
-struct SearchableCustomerPicker: View {
+internal struct SearchableCustomerPicker: View {
     let customers: [Customer]
     @Binding var selectedCustomer: Customer?
     @Binding var searchText: String
@@ -677,7 +677,7 @@ struct SearchableCustomerPicker: View {
 
 // MARK: - SearchableProductPicker
 
-struct SearchableProductPicker: View {
+internal struct SearchableProductPicker: View {
     let products: [Product]
     @Binding var selectedProduct: Product?
     @Binding var selectedProductSize: ProductSize?
@@ -727,7 +727,7 @@ product.colorDisplay.localizedCaseInsensitiveContains(searchText)
 
 // MARK: - Helper Views
 
-struct SearchBar: View {
+internal struct SearchBar: View {
     @Binding var text: String
     
     var body: some View {
@@ -741,7 +741,7 @@ struct SearchBar: View {
     }
 }
 
-struct CustomerRow: View {
+internal struct CustomerRow: View {
     let customer: Customer
     let isSelected: Bool
     let onTap: () -> Void
@@ -777,7 +777,7 @@ struct CustomerRow: View {
     }
 }
 
-struct ProductRow: View {
+internal struct ProductRow: View {
     let product: Product
     let isSelected: Bool
     let onTap: () -> Void
@@ -794,8 +794,8 @@ struct ProductRow: View {
                         .font(.caption)
                         .foregroundColor(.secondary)
                     
-                    if !product.colors.isEmpty {
-                        Text("颜色: \(product.colors.joined(separator: ", "))")
+                    if !product.sizeNames.isEmpty {
+                        Text("尺码: \(product.sizeNames.joined(separator: ", "))")
                             .font(.caption)
                             .foregroundColor(.secondary)
                     }

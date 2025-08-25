@@ -11,44 +11,32 @@ import SwiftUI
 
 @MainActor
 class CommonAnimationState: ObservableObject {
-    @Published var headerOffset: CGFloat = -50
-    @Published var searchBarScale: CGFloat = 0.9
-    @Published var filterChipScale: CGFloat = 0.8
-    @Published var listItemOffset: CGFloat = 20
-    @Published var contentOpacity: Double = 0
+    @Published var headerOffset: CGFloat = 0
+    @Published var searchBarScale: CGFloat = 1.0
+    @Published var filterChipScale: CGFloat = 1.0
+    @Published var listItemOffset: CGFloat = 0
+    @Published var contentOpacity: Double = 1.0
+    
+    private var hasInitialized = false
     
     func animateInitialAppearance() {
-        // Staggered entrance animations
-        withAnimation(.easeOut(duration: 0.6)) {
-            headerOffset = 0
-        }
+        guard !hasInitialized else { return }
+        hasInitialized = true
         
-        DispatchQueue.main.asyncAfter(deadline: .now() + 0.2) {
-            withAnimation(.spring(response: 0.4, dampingFraction: 0.8)) {
-                self.searchBarScale = 1.0
-            }
-        }
-        
-        DispatchQueue.main.asyncAfter(deadline: .now() + 0.3) {
-            withAnimation(.spring(response: 0.5, dampingFraction: 0.7)) {
-                self.filterChipScale = 1.0
-            }
-        }
-        
-        DispatchQueue.main.asyncAfter(deadline: .now() + 0.4) {
-            withAnimation(.easeInOut(duration: 0.4)) {
-                self.listItemOffset = 0
-                self.contentOpacity = 1.0
-            }
+        // Simplified animation that doesn't interfere with touch response
+        // Remove headerOffset animation to prevent touch area conflicts
+        withAnimation(.easeOut(duration: 0.4)) {
+            searchBarScale = 1.0
+            filterChipScale = 1.0
+            contentOpacity = 1.0
         }
     }
     
     func resetAnimations() {
+        hasInitialized = false
         withAnimation(.none) {
-            headerOffset = 0
             searchBarScale = 1.0
             filterChipScale = 1.0
-            listItemOffset = 0
             contentOpacity = 1.0
         }
     }
@@ -84,7 +72,11 @@ struct CommonEntranceAnimation: ViewModifier {
 
 struct CommonScaleAnimation: ViewModifier {
     let delay: Double
-    @State private var scale: CGFloat = 0.8
+    @State private var scale: CGFloat = 1.0
+    
+    private func validateScale(_ scale: CGFloat) -> CGFloat {
+        return max(0.1, min(2.0, scale)) // Ensure scale is always valid
+    }
     
     func body(content: Content) -> some View {
         content
@@ -92,7 +84,7 @@ struct CommonScaleAnimation: ViewModifier {
             .onAppear {
                 DispatchQueue.main.asyncAfter(deadline: .now() + delay) {
                     withAnimation(.spring(response: 0.4, dampingFraction: 0.7)) {
-                        scale = 1.0
+                        scale = validateScale(1.0)
                     }
                 }
             }

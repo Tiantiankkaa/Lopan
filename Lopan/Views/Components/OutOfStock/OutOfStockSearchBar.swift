@@ -13,7 +13,7 @@ struct OutOfStockSearchBar: View {
     let onSearch: (String) -> Void
     let onFilterTap: () -> Void
     
-    @FocusState private var isTextFieldFocused: Bool
+    @State private var isTextFieldFocused: Bool = false
     
     var body: some View {
         HStack(spacing: 12) {
@@ -23,15 +23,19 @@ struct OutOfStockSearchBar: View {
                     .font(.system(size: 16))
                     .foregroundColor(.gray)
                 
-                TextField(placeholder, text: $searchText)
-                    .font(.system(size: 15))
-                    .focused($isTextFieldFocused)
-                    .onSubmit {
+                CustomTextField(
+                    placeholder,
+                    text: $searchText,
+                    onEditingChanged: { editing in
+                        isTextFieldFocused = editing
+                    },
+                    onCommit: {
                         onSearch(searchText)
                     }
-                    .onChange(of: searchText) { _, newValue in
-                        onSearch(newValue)
-                    }
+                )
+                .onChange(of: searchText) { _, newValue in
+                    onSearch(newValue)
+                }
                 
                 if !searchText.isEmpty {
                     Button(action: {

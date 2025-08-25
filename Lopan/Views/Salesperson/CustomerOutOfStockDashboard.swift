@@ -38,7 +38,12 @@ class CustomerOutOfStockDashboardState: ObservableObject {
     @Published var isLoading = false
     @Published var isLoadingMore = false
     @Published var totalCount = 0
+    @Published var unfilteredTotalCount = 0 // [rule:§2.1 Layering] Separate unfiltered total from filtered results
     @Published var statusCounts: [OutOfStockStatus: Int] = [:]
+    
+    // Scroll position management for better UX [rule:§3+.2 API Contract]
+    @Published var totalScrollPosition: String? = nil // Save "总计" scroll position
+    @Published var shouldScrollToTop = false // Trigger scroll to top on filter change
     
     // MARK: - Filter State
     
@@ -134,6 +139,8 @@ struct CustomerOutOfStockDashboard: View {
             IntelligentFilterPanel(
                 filters: $dashboardState.activeFilters,
                 searchText: $dashboardState.searchText,
+                customers: dashboardState.customers,
+                products: dashboardState.products,
                 onApply: applyFilters
             )
         }
@@ -158,6 +165,20 @@ struct CustomerOutOfStockDashboard: View {
         .onAppear {
             animationState.animateInitialAppearance()
             loadInitialData()
+        }
+        .onChange(of: dashboardState.selectedDate) { oldValue, newValue in
+            print("📅 [Date Change] Date changed from \(oldValue) to \(newValue), clearing UI and refreshing data...")
+            
+            // Immediately clear UI state to prevent showing stale data
+            dashboardState.items = []
+            dashboardState.totalCount = 0
+            dashboardState.unfilteredTotalCount = 0
+            dashboardState.statusCounts = [:]
+            dashboardState.isLoading = true
+            
+            Task {
+                await refreshData()
+            }
         }
         .refreshable {
             await refreshData()
@@ -322,7 +343,7 @@ struct CustomerOutOfStockDashboard: View {
         ], spacing: 12) {
             QuickStatCard(
                 title: "总计",
-                value: "\(dashboardState.totalCount)",
+                value: "\(dashboardState.unfilteredTotalCount)", // [rule:§3.2 Repository Protocol] Always show unfiltered total count
                 icon: "list.bullet.rectangle.fill",
                 color: .blue,
                 trend: nil,
@@ -383,7 +404,7 @@ struct CustomerOutOfStockDashboard: View {
                     Image(systemName: "magnifyingglass")
                         .foregroundColor(.secondary)
                     
-                    TextField("智能搜索客户、产品、备注...", text: $dashboardState.searchText)
+                    TextField("搜索客户、产品、备注...", text: $dashboardState.searchText)
                         .textFieldStyle(.plain)
                         .focused($isSearchFocused)
                         .onChange(of: dashboardState.searchText) { oldValue, newValue in
@@ -499,32 +520,63 @@ struct CustomerOutOfStockDashboard: View {
     // MARK: - Virtual List Section
     
     private var virtualListSection: some View {
-        VirtualListView(
-            items: dashboardState.items,
-            configuration: VirtualListConfiguration(
-                bufferSize: 15,
-                estimatedItemHeight: 140,
-                maxVisibleItems: 50,
-                prefetchRadius: 5,
-                recyclingEnabled: true
-            ),
-            onScrollToBottom: {
-                loadMoreData()
+        ScrollViewReader { proxy in
+            VirtualListView(
+                items: dashboardState.items,
+                configuration: VirtualListConfiguration(
+                    bufferSize: 15,
+                    estimatedItemHeight: 140,
+                    maxVisibleItems: 30, // [rule:§3+.2 API Contract] Reduced for better pagination
+                    prefetchRadius: 5,
+                    recyclingEnabled: true
+                ),
+                onScrollToBottom: {
+                    loadMoreData()
+                }
+            ) { item in
+                OutOfStockItemCard(
+                    item: item,
+                    isSelected: dashboardState.selectedItems.contains(item.id),
+                    isSelectionMode: dashboardState.isSelectionMode,
+                    onTap: { handleItemTap(item) },
+                    onLongPress: { handleItemLongPress(item) }
+                )
+                .padding(.horizontal, 20)
+                .padding(.vertical, 6)
+                .id(item.id) // Add ID for scroll targeting
             }
-        ) { item in
-            OutOfStockItemCard(
-                item: item,
-                isSelected: dashboardState.selectedItems.contains(item.id),
-                isSelectionMode: dashboardState.isSelectionMode,
-                onTap: { handleItemTap(item) },
-                onLongPress: { handleItemLongPress(item) }
+            .scrollDismissesKeyboard(.immediately)
+            .opacity(animationState.contentOpacity)
+            .animation(.easeInOut(duration: 0.4), value: animationState.contentOpacity)
+            .onChange(of: dashboardState.shouldScrollToTop) { shouldScroll in
+                if shouldScroll {
+                    // Scroll to top when filter changes [rule:§3+.2 API Contract]
+                    withAnimation(.easeInOut(duration: 0.3)) {
+                        proxy.scrollTo("top", anchor: .top)
+                    }
+                    dashboardState.shouldScrollToTop = false
+                }
+            }
+            .onChange(of: dashboardState.totalScrollPosition) { position in
+                if let position = position, dashboardState.selectedStatusTab == nil {
+                    // Restore "总计" scroll position [rule:§3+.2 API Contract]
+                    DispatchQueue.main.asyncAfter(deadline: .now() + 0.1) {
+                        withAnimation(.easeInOut(duration: 0.3)) {
+                            proxy.scrollTo(position, anchor: .top)
+                        }
+                        dashboardState.totalScrollPosition = nil
+                    }
+                }
+            }
+            .overlay(
+                // Invisible anchor at top for scrolling
+                Color.clear
+                    .frame(height: 1)
+                    .id("top")
+                    .offset(y: -8),
+                alignment: .top
             )
-            .padding(.horizontal, 20)
-            .padding(.vertical, 6)
         }
-        .scrollDismissesKeyboard(.immediately)
-        .opacity(animationState.contentOpacity)
-        .animation(.easeInOut(duration: 0.4), value: animationState.contentOpacity)
     }
     
     // MARK: - Helper Methods
@@ -576,7 +628,7 @@ struct CustomerOutOfStockDashboard: View {
                 dashboardState.cacheHitRate = 0.85
                 dashboardState.isLoading = false
                 
-                // Load real status counts from repository in a separate task
+                // Load real status counts and unfiltered total count in separate tasks
                 Task {
                     let statusCriteria = OutOfStockFilterCriteria(
                         customer: dashboardState.activeFilters.customer,
@@ -589,9 +641,20 @@ struct CustomerOutOfStockDashboard: View {
                         sortOrder: dashboardState.sortOrder
                     )
                     let statusCounts = await customerOutOfStockService.loadStatusCounts(criteria: statusCriteria)
+                    
+                    // Load unfiltered total count for "总计" display [rule:§3.2 Repository Protocol]
+                    let unfilteredCriteria = OutOfStockFilterCriteria(
+                        dateRange: CustomerOutOfStockService.createDateRange(for: dashboardState.selectedDate),
+                        page: 0,
+                        pageSize: 1 // Only need count, not data
+                    )
+                    let unfilteredTotal = await customerOutOfStockService.loadUnfilteredTotalCount(criteria: unfilteredCriteria)
+                    
                     await MainActor.run {
                         dashboardState.statusCounts = statusCounts
+                        dashboardState.unfilteredTotalCount = unfilteredTotal
                         print("📊 Real status counts: \(statusCounts)")
+                        print("📊 Unfiltered total count: \(unfilteredTotal)")
                     }
                 }
                 
@@ -604,7 +667,12 @@ struct CustomerOutOfStockDashboard: View {
         lastRefreshTime = Date()
         refreshTrigger.toggle()
         
-        print("🔄 Refreshing data with status filter: \(dashboardState.selectedStatusTab?.displayName ?? "All")")
+        print("🔄 Refreshing data with status filter: \(dashboardState.selectedStatusTab?.displayName ?? "All") for date: \(dashboardState.selectedDate)")
+        
+        // Set loading state
+        await MainActor.run {
+            dashboardState.isLoading = true
+        }
         
         // Create criteria with current filters including status filter
         let criteria = OutOfStockFilterCriteria(
@@ -624,11 +692,17 @@ struct CustomerOutOfStockDashboard: View {
         await MainActor.run {
             dashboardState.items = customerOutOfStockService.items
             dashboardState.totalCount = customerOutOfStockService.totalRecordsCount
+            dashboardState.isLoading = false
             
-            print("✅ Refresh completed: \(dashboardState.items.count) items")
+            print("✅ Refresh completed: \(dashboardState.items.count) items for date \(dashboardState.selectedDate)")
+            
+            // Explicitly log empty state for debugging
+            if dashboardState.items.isEmpty {
+                print("📭 [Dashboard] Empty state: No items found for selected date and filters")
+            }
         }
         
-        // Load real status counts from repository in a separate task
+        // Load real status counts and unfiltered total count in separate tasks
         Task {
             let statusCriteria = OutOfStockFilterCriteria(
                 customer: dashboardState.activeFilters.customer,
@@ -641,22 +715,36 @@ struct CustomerOutOfStockDashboard: View {
                 sortOrder: dashboardState.sortOrder
             )
             let statusCounts = await customerOutOfStockService.loadStatusCounts(criteria: statusCriteria)
+            
+            // Load unfiltered total count for "总计" display [rule:§3.2 Repository Protocol]
+            let unfilteredCriteria = OutOfStockFilterCriteria(
+                dateRange: CustomerOutOfStockService.createDateRange(for: dashboardState.selectedDate),
+                page: 0,
+                pageSize: 1 // Only need count, not data
+            )
+            let unfilteredTotal = await customerOutOfStockService.loadUnfilteredTotalCount(criteria: unfilteredCriteria)
+            
             await MainActor.run {
                 dashboardState.statusCounts = statusCounts
+                dashboardState.unfilteredTotalCount = unfilteredTotal
                 print("📊 Real status counts loaded: \(statusCounts)")
+                print("📊 Unfiltered total count: \(unfilteredTotal)")
             }
         }
     }
     
     private func loadMoreData() {
+        // Improved conditions for loading more data [rule:§3+.2 API Contract]
         guard !dashboardState.isLoadingMore && 
-              customerOutOfStockService.hasMoreData else { 
-            print("🚫 Skip load more: loading=\(dashboardState.isLoadingMore), hasMore=\(customerOutOfStockService.hasMoreData)")
+              !customerOutOfStockService.isLoadingMore &&
+              customerOutOfStockService.hasMoreData &&
+              dashboardState.items.count < customerOutOfStockService.totalRecordsCount else { 
+            print("🚫 Skip load more: loading=\(dashboardState.isLoadingMore), serviceLoading=\(customerOutOfStockService.isLoadingMore), hasMore=\(customerOutOfStockService.hasMoreData), items=\(dashboardState.items.count)/\(customerOutOfStockService.totalRecordsCount)")
             return 
         }
         
         dashboardState.isLoadingMore = true
-        print("📄 Loading more data... current items: \(dashboardState.items.count)")
+        print("📄 Loading more data... current items: \(dashboardState.items.count)/\(customerOutOfStockService.totalRecordsCount)")
         print("📊 Load more with status filter: \(dashboardState.selectedStatusTab?.displayName ?? "All")")
         
         Task {
@@ -919,6 +1007,17 @@ struct CustomerOutOfStockDashboard: View {
         // Set processing flag
         dashboardState.isProcessingStatusChange = true
         
+        // Handle scroll position management [rule:§3+.2 API Contract]
+        let previousStatus = dashboardState.selectedStatusTab
+        
+        if previousStatus == nil && status != nil {
+            // Switching from "总计" to filtered view - save scroll position
+            if let firstVisibleItem = dashboardState.items.first {
+                dashboardState.totalScrollPosition = firstVisibleItem.id
+                print("📍 [Scroll] Saved 总计 scroll position: \(firstVisibleItem.id)")
+            }
+        }
+        
         // Animate status tab selection
         withAnimation(.easeInOut(duration: 0.3)) {
             // If tapping the same status, clear the filter
@@ -931,12 +1030,39 @@ struct CustomerOutOfStockDashboard: View {
             }
         }
         
-        // Debounced data refresh with status filter
+        // Trigger scroll to top for filtered views [rule:§3+.2 API Contract]
+        if dashboardState.selectedStatusTab != nil {
+            dashboardState.shouldScrollToTop = true
+            print("📍 [Scroll] Triggered scroll to top for filtered view")
+        }
+        
+        // Reset pagination state for status filter change [rule:§3+.2 API Contract]
         Task { @MainActor in
             do {
                 print("🔄 [Status Filter] Refreshing data with status filter...")
+                
+                // Clear UI data immediately to prevent showing stale data
+                dashboardState.items = []
+                dashboardState.totalCount = 0
+                dashboardState.isLoading = true
+                
+                // Reset service pagination state when changing status filters
+                customerOutOfStockService.currentPage = 0
+                customerOutOfStockService.hasMoreData = true
+                
+                // Clear cache for potential conflicting entries to ensure fresh data
+                let currentDate = dashboardState.selectedDate
+                print("🧹 [Status Filter] Clearing cache for date: \(currentDate) to ensure fresh data")
+                await customerOutOfStockService.invalidateCacheForDate(currentDate)
+                
                 await refreshData()
                 print("✅ [Status Filter] Data refresh completed")
+                
+                // Restore "总计" scroll position if switching back from filtered view [rule:§3+.2 API Contract]
+                if dashboardState.selectedStatusTab == nil && dashboardState.totalScrollPosition != nil {
+                    print("📍 [Scroll] Will restore 总计 scroll position")
+                    // The position restoration is handled in virtualListSection's onChange
+                }
             } catch {
                 print("❌ [Status Filter] Data refresh failed: \(error)")
                 dashboardState.error = error

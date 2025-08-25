@@ -1,0 +1,301 @@
+//
+//  CloudRepositoryAdapter.swift
+//  Lopan
+//
+//  Created by Claude Code on 2025/8/23.
+//
+
+import Foundation
+
+// MARK: - Cloud Provider Protocol
+
+protocol CloudProvider {
+    func get<T: Codable>(endpoint: String, type: T.Type) async throws -> CloudResponse<T>
+    func post<T: Codable, R: Codable>(endpoint: String, body: T, responseType: R.Type) async throws -> CloudResponse<R>
+    func put<T: Codable, R: Codable>(endpoint: String, body: T, responseType: R.Type) async throws -> CloudResponse<R>
+    func delete(endpoint: String) async throws -> CloudResponse<EmptyResponse>
+    func getPaginated<T: Codable>(endpoint: String, type: T.Type, page: Int, pageSize: Int) async throws -> CloudPaginatedResponse<T>
+}
+
+struct EmptyResponse: Codable {}
+
+// MARK: - Generic Cloud Repository
+
+class CloudRepositoryAdapter<Entity, DTO: Codable>: Repository {
+    typealias ID = String
+    
+    private let cloudProvider: CloudProvider
+    private let baseEndpoint: String
+    private let entityToDTOMapper: (Entity) -> DTO
+    private let dtoToEntityMapper: (DTO) throws -> Entity
+    
+    init(
+        cloudProvider: CloudProvider,
+        baseEndpoint: String,
+        entityToDTOMapper: @escaping (Entity) -> DTO,
+        dtoToEntityMapper: @escaping (DTO) throws -> Entity
+    ) {
+        self.cloudProvider = cloudProvider
+        self.baseEndpoint = baseEndpoint
+        self.entityToDTOMapper = entityToDTOMapper
+        self.dtoToEntityMapper = dtoToEntityMapper
+    }
+    
+    func findById(_ id: String) async throws -> Entity? {
+        let endpoint = "\(baseEndpoint)/\(id)"
+        let response = try await cloudProvider.get(endpoint: endpoint, type: DTO.self)
+        
+        guard response.success, let dto = response.data else {
+            if let error = response.error {
+                throw RepositoryError.notFound(error)
+            }
+            return nil
+        }
+        
+        return try dtoToEntityMapper(dto)
+    }
+    
+    func findAll() async throws -> [Entity] {
+        let endpoint = baseEndpoint
+        let response = try await cloudProvider.getPaginated(endpoint: endpoint, type: DTO.self, page: 0, pageSize: 1000)
+        
+        guard response.success else {
+            throw RepositoryError.connectionFailed(response.error ?? "Unknown error")
+        }
+        
+        return try response.items.map(dtoToEntityMapper)
+    }
+    
+    func save(_ entity: Entity) async throws -> Entity {
+        let dto = entityToDTOMapper(entity)
+        let endpoint = baseEndpoint
+        let response = try await cloudProvider.post(endpoint: endpoint, body: dto, responseType: DTO.self)
+        
+        guard response.success, let responseDTO = response.data else {
+            throw RepositoryError.unknownError(NSError(domain: "CloudRepository", code: -1, userInfo: [NSLocalizedDescriptionKey: response.error ?? "Save failed"]))
+        }
+        
+        return try dtoToEntityMapper(responseDTO)
+    }
+    
+    func delete(_ entity: Entity) async throws {
+        // This requires the entity to have an ID field
+        // In practice, you'd need to extract the ID somehow
+        throw RepositoryError.invalidInput("Delete by entity not supported - use deleteById instead")
+    }
+    
+    func deleteById(_ id: String) async throws {
+        let endpoint = "\(baseEndpoint)/\(id)"
+        let response = try await cloudProvider.delete(endpoint: endpoint)
+        
+        guard response.success else {
+            throw RepositoryError.unknownError(NSError(domain: "CloudRepository", code: -1, userInfo: [NSLocalizedDescriptionKey: response.error ?? "Delete failed"]))
+        }
+    }
+}
+
+// MARK: - Cloud Customer Out of Stock Repository (temporarily disabled)
+
+/*
+class CloudCustomerOutOfStockRepository: CustomerOutOfStockRepository {
+    private let cloudProvider: CloudProvider
+    private let baseEndpoint = "/api/customer-out-of-stock"
+    
+    init(cloudProvider: CloudProvider) {
+        self.cloudProvider = cloudProvider
+    }
+    
+    // MARK: - Repository Protocol Methods
+    
+    func findById(_ id: String) async throws -> CustomerOutOfStock? {
+        let endpoint = "\(baseEndpoint)/\(id)"
+        let response = try await cloudProvider.get(endpoint: endpoint, type: CustomerOutOfStockDTO.self)
+        
+        guard response.success, let dto = response.data else {
+            return nil
+        }
+        
+        return try dto.toDomain()
+    }
+    
+    func findAll() async throws -> [CustomerOutOfStock] {
+        let result = try await findFiltered(criteria: OutOfStockFilterCriteria(), page: 0, pageSize: 1000)
+        return result.items
+    }
+    
+    func save(_ entity: CustomerOutOfStock) async throws -> CustomerOutOfStock {
+        let dto = CustomerOutOfStockDTO(from: entity)
+        let response = try await cloudProvider.post(endpoint: baseEndpoint, body: dto, responseType: CustomerOutOfStockDTO.self)
+        
+        guard response.success, let responseDTO = response.data else {
+            throw RepositoryError.unknownError(NSError(domain: "CloudRepository", code: -1))
+        }
+        
+        return try responseDTO.toDomain()
+    }
+    
+    func delete(_ entity: CustomerOutOfStock) async throws {
+        try await deleteById(entity.id)
+    }
+    
+    func deleteById(_ id: String) async throws {
+        let endpoint = "\(baseEndpoint)/\(id)"
+        _ = try await cloudProvider.delete(endpoint: endpoint)
+    }
+    
+    // MARK: - Paginated Repository Methods
+    
+    func findAll(page: Int, pageSize: Int) async throws -> PaginatedResult<CustomerOutOfStock> {
+        return try await findFiltered(criteria: OutOfStockFilterCriteria(), page: page, pageSize: pageSize)
+    }
+    
+    func count() async throws -> Int {
+        return try await countFiltered(criteria: OutOfStockFilterCriteria())
+    }
+    
+    // MARK: - Filtered Repository Methods
+    
+    func findFiltered(
+        criteria: OutOfStockFilterCriteria,
+        page: Int,
+        pageSize: Int
+    ) async throws -> PaginatedResult<CustomerOutOfStock> {
+        var endpoint = "\(baseEndpoint)/filtered?page=\(page)&pageSize=\(pageSize)"
+        
+        // Add filter parameters
+        if let customerId = criteria.customer?.id {
+            endpoint += "&customerId=\(customerId)"
+        }
+        if let productId = criteria.product?.id {
+            endpoint += "&productId=\(productId)"
+        }
+        if let status = criteria.status {
+            endpoint += "&status=\(status.rawValue)"
+        }
+        if !criteria.searchText.isEmpty {
+            endpoint += "&search=\(criteria.searchText.addingPercentEncoding(withAllowedCharacters: .urlQueryAllowed) ?? "")"
+        }
+        if let dateRange = criteria.dateRange {
+            let formatter = ISO8601DateFormatter()
+            endpoint += "&startDate=\(formatter.string(from: dateRange.start))"
+            endpoint += "&endDate=\(formatter.string(from: dateRange.end))"
+        }
+        
+        let response = try await cloudProvider.getPaginated(
+            endpoint: endpoint,
+            type: CustomerOutOfStockDTO.self,
+            page: page,
+            pageSize: pageSize
+        )
+        
+        guard response.success else {
+            throw RepositoryError.connectionFailed(response.error ?? "Unknown error")
+        }
+        
+        let entities = try response.items.compactMap { dto in
+            try? dto.toDomain()
+        }
+        
+        return PaginatedResult(
+            items: entities,
+            totalCount: response.totalCount,
+            page: page,
+            pageSize: pageSize
+        )
+    }
+    
+    func countFiltered(criteria: OutOfStockFilterCriteria) async throws -> Int {
+        // Implementation would call a count endpoint
+        let result = try await findFiltered(criteria: criteria, page: 0, pageSize: 1)
+        return result.totalCount
+    }
+    
+    // MARK: - Cacheable Repository Methods
+    
+    func invalidateCache() async {
+        // Implementation would clear cloud cache
+    }
+    
+    func invalidateCache(for id: String) async {
+        // Implementation would clear specific item cache
+    }
+    
+    func preload(ids: [String]) async throws {
+        // Implementation would batch load items
+    }
+    
+    // MARK: - Batch Repository Methods
+    
+    func saveAll(_ entities: [CustomerOutOfStock]) async throws -> [CustomerOutOfStock] {
+        let dtos = entities.map { CustomerOutOfStockDTO(from: $0) }
+        let endpoint = "\(baseEndpoint)/batch"
+        let response = try await cloudProvider.post(endpoint: endpoint, body: dtos, responseType: [CustomerOutOfStockDTO].self)
+        
+        guard response.success, let responseDTOs = response.data else {
+            throw RepositoryError.unknownError(NSError(domain: "CloudRepository", code: -1))
+        }
+        
+        return try responseDTOs.compactMap { try? $0.toDomain() }
+    }
+    
+    func deleteAll(_ entities: [CustomerOutOfStock]) async throws {
+        let ids = entities.map { $0.id }
+        try await deleteAll(ids: ids)
+    }
+    
+    func deleteAll(ids: [String]) async throws {
+        let endpoint = "\(baseEndpoint)/batch"
+        let response = try await cloudProvider.post(endpoint: endpoint, body: ["ids": ids], responseType: EmptyResponse.self)
+        
+        guard response.success else {
+            throw RepositoryError.unknownError(NSError(domain: "CloudRepository", code: -1))
+        }
+    }
+    
+    // MARK: - Domain-Specific Methods
+    
+    func findByCustomer(_ customerId: String) async throws -> [CustomerOutOfStock] {
+        let criteria = OutOfStockFilterCriteria(customer: Customer(name: "", address: "", phone: ""))
+        let result = try await findFiltered(criteria: criteria, page: 0, pageSize: 1000)
+        return result.items
+    }
+    
+    func findByProduct(_ productId: String) async throws -> [CustomerOutOfStock] {
+        let criteria = OutOfStockFilterCriteria(product: Product(name: "", colors: []))
+        let result = try await findFiltered(criteria: criteria, page: 0, pageSize: 1000)
+        return result.items
+    }
+    
+    func findByStatus(_ status: OutOfStockStatus) async throws -> [CustomerOutOfStock] {
+        let criteria = OutOfStockFilterCriteria(status: status)
+        let result = try await findFiltered(criteria: criteria, page: 0, pageSize: 1000)
+        return result.items
+    }
+    
+    func findByDateRange(_ startDate: Date, _ endDate: Date) async throws -> [CustomerOutOfStock] {
+        let criteria = OutOfStockFilterCriteria(dateRange: (start: startDate, end: endDate))
+        let result = try await findFiltered(criteria: criteria, page: 0, pageSize: 1000)
+        return result.items
+    }
+    
+    // MARK: - Analytics Methods
+    
+    func getStatusCounts(for criteria: OutOfStockFilterCriteria) async throws -> [OutOfStockStatus: Int] {
+        let endpoint = "\(baseEndpoint)/analytics/status-counts"
+        // Implementation would call analytics endpoint
+        return [:]
+    }
+    
+    func getCustomerCounts(for criteria: OutOfStockFilterCriteria) async throws -> [String: Int] {
+        let endpoint = "\(baseEndpoint)/analytics/customer-counts"
+        // Implementation would call analytics endpoint
+        return [:]
+    }
+    
+    func getProductCounts(for criteria: OutOfStockFilterCriteria) async throws -> [String: Int] {
+        let endpoint = "\(baseEndpoint)/analytics/product-counts"
+        // Implementation would call analytics endpoint
+        return [:]
+    }
+}
+*/

@@ -73,7 +73,7 @@ class CustomerOutOfStockService: ObservableObject {
     // Current filter state
     @Published var currentCriteria: OutOfStockFilterCriteria
     
-    private let pageSize = 50
+    private let pageSize = 20 // [rule:§3+.2 API Contract] Reduced to enable better pagination triggering
     private var backgroundQueue = DispatchQueue(label: "customerOutOfStock.processing", qos: .userInitiated)
     
     init(
@@ -154,16 +154,33 @@ class CustomerOutOfStockService: ObservableObject {
     func loadFilteredItems(criteria: OutOfStockFilterCriteria, resetPagination: Bool = true) async {
         if resetPagination {
             currentPage = 0
-            items = []
-            hasMoreData = true
-            totalRecordsCount = 0
+            // Force clear items array immediately to prevent stale data display
+            await MainActor.run {
+                items = []
+                totalRecordsCount = 0
+            }
+            hasMoreData = true // [rule:§3+.2 API Contract] Always assume more data initially
+            print("📊 [Service] Reset pagination for filtered items - criteria has status: \(criteria.status?.displayName ?? "None")")
         } else {
             // 从criteria更新currentPage，确保页码状态同步
             currentPage = criteria.page
         }
         
+        // Validate date criteria to prevent cross-date contamination
+        let requestedDate = criteria.dateRange?.start ?? Date()
+        let currentDate = currentCriteria.dateRange?.start ?? Date()
+        let calendar = Calendar.current
+        
+        // If switching dates, force reset pagination and clear cache
+        if !calendar.isDate(requestedDate, inSameDayAs: currentDate) && resetPagination {
+            print("📅 [Service] Date changed from \(currentDate) to \(requestedDate), clearing cache")
+            await invalidateCacheForDate(requestedDate)
+        }
+        
         currentCriteria = criteria
-        await loadPage(criteria: criteria, date: criteria.dateRange?.start ?? Date(), append: !resetPagination)
+        await loadPage(criteria: criteria, date: requestedDate, append: !resetPagination)
+        
+        print("📊 [Service] Loaded filtered items: \(items.count), hasMore: \(hasMoreData), totalCount: \(totalRecordsCount)")
     }
     
     func loadNextPage() async {
@@ -199,12 +216,15 @@ class CustomerOutOfStockService: ObservableObject {
         }
         
         do {
-            // Create cache key
+            // Create cache key using criteria's dateRange for consistency
+            let cacheKeyDate = criteria.dateRange?.start ?? date
             let cacheKey = OutOfStockCacheKey(
-                date: date,
+                date: cacheKeyDate,
                 criteria: criteria,
                 page: criteria.page
             )
+            
+            print("📊 [Service] Creating cache key with date=\(cacheKeyDate), status=\(criteria.status?.displayName ?? "all")")
             
             // Try to get from cache first
             if let cachedPage = await cacheManager.getCachedPage(for: cacheKey) {
@@ -267,12 +287,59 @@ class CustomerOutOfStockService: ObservableObject {
             
             print("📊 [Service] Appending \(uniqueNewItems.count) unique items (filtered \(newItems.count - uniqueNewItems.count) duplicates)")
             items.append(contentsOf: uniqueNewItems)
+            
+            // For append operations, check if we have more data to load [rule:§3+.2 API Contract]
+            hasMoreData = page.hasMoreData && (items.count < page.totalCount)
+            
+            print("📊 [Service] After append: items=\(items.count), total=\(page.totalCount), repoHasMore=\(page.hasMoreData), serviceHasMore=\(hasMoreData)")
         } else {
+            // For initial/replacement loads, validate data consistency before updating UI
+            if !newItems.isEmpty {
+                // Validate that all items match the current filter criteria date range
+                if let dateRange = currentCriteria.dateRange {
+                    let expectedDate = Calendar.current.startOfDay(for: dateRange.start)
+                    var dateValidationFailed = false
+                    
+                    for item in newItems {
+                        let itemDate = Calendar.current.startOfDay(for: item.requestDate)
+                        if itemDate != expectedDate {
+                            print("❌ [Service] Data validation failed: Item date \(itemDate) doesn't match expected \(expectedDate)")
+                            dateValidationFailed = true
+                            break
+                        }
+                    }
+                    
+                    // If validation failed, reject the data and keep UI empty
+                    if dateValidationFailed {
+                        print("🚫 [Service] Rejecting mismatched data, keeping UI empty")
+                        items = []
+                        totalRecordsCount = 0
+                        hasMoreData = false
+                        return
+                    }
+                }
+            }
+            
+            // For initial/replacement loads, always use the new data (even if empty)
             items = newItems
             totalRecordsCount = page.totalCount
+            
+            // For initial/replacement loads, check if we need to load more pages [rule:§3+.2 API Contract]  
+            hasMoreData = page.hasMoreData && (newItems.count < page.totalCount)
+            
+            print("📊 [Service] Initial/replacement load: items=\(newItems.count), total=\(page.totalCount), repoHasMore=\(page.hasMoreData), serviceHasMore=\(hasMoreData)")
+            
+            // Explicitly log when empty results are loaded (important for debugging date filtering issues)
+            if newItems.isEmpty && page.totalCount == 0 {
+                print("🗂️ [Service] Empty result set loaded - no items found for current criteria")
+            } else if !newItems.isEmpty {
+                // Log first item's date for debugging
+                let firstItemDate = Calendar.current.startOfDay(for: newItems[0].requestDate)
+                print("✅ [Service] Validated data loaded for date: \(firstItemDate)")
+            }
         }
         
-        hasMoreData = page.hasMoreData
+        print("📊 [Service] Final state: items=\(items.count), total=\(totalRecordsCount), hasMore=\(hasMoreData), currentPage=\(currentPage)")
         
         // Force UI refresh
         objectWillChange.send()
@@ -306,6 +373,31 @@ class CustomerOutOfStockService: ObservableObject {
         } catch {
             print("❌ [Service] Failed to load status counts: \(error)")
             return [:]
+        }
+    }
+    
+    func loadUnfilteredTotalCount(criteria: OutOfStockFilterCriteria) async -> Int {
+        guard !isPlaceholder else { return 0 }
+        
+        do {
+            // Create criteria without status or search filters [rule:§3.2 Repository Protocol]
+            let unfilteredCriteria = OutOfStockFilterCriteria(
+                dateRange: criteria.dateRange,
+                page: 0,
+                pageSize: 1
+            )
+            
+            let result = try await customerOutOfStockRepository.fetchOutOfStockRecords(
+                criteria: unfilteredCriteria,
+                page: 0,
+                pageSize: 1
+            )
+            
+            print("📊 [Service] Loaded unfiltered total count: \(result.totalCount)")
+            return result.totalCount
+        } catch {
+            print("❌ [Service] Failed to load unfiltered total count: \(error)")
+            return 0
         }
     }
     
