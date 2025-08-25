@@ -18,46 +18,62 @@ class LocalCustomerOutOfStockRepository: CustomerOutOfStockRepository {
     
     func fetchOutOfStockRecords() async throws -> [CustomerOutOfStock] {
         let descriptor = FetchDescriptor<CustomerOutOfStock>()
-        return try modelContext.fetch(descriptor)
+        return try await MainActor.run {
+            return try modelContext.fetch(descriptor)
+        }
     }
     
     func fetchOutOfStockRecord(by id: String) async throws -> CustomerOutOfStock? {
         let descriptor = FetchDescriptor<CustomerOutOfStock>()
-        let records = try modelContext.fetch(descriptor)
+        let records = try await MainActor.run {
+            return try modelContext.fetch(descriptor)
+        }
         return records.first { $0.id == id }
     }
     
     func fetchOutOfStockRecords(for customer: Customer) async throws -> [CustomerOutOfStock] {
         let descriptor = FetchDescriptor<CustomerOutOfStock>()
-        let records = try modelContext.fetch(descriptor)
+        let records = try await MainActor.run {
+            return try modelContext.fetch(descriptor)
+        }
         return records.filter { $0.customer?.id == customer.id }
     }
     
     func fetchOutOfStockRecords(for product: Product) async throws -> [CustomerOutOfStock] {
         let descriptor = FetchDescriptor<CustomerOutOfStock>()
-        let records = try modelContext.fetch(descriptor)
+        let records = try await MainActor.run {
+            return try modelContext.fetch(descriptor)
+        }
         return records.filter { $0.product?.id == product.id }
     }
     
     func addOutOfStockRecord(_ record: CustomerOutOfStock) async throws {
-        modelContext.insert(record)
-        try modelContext.save()
+        try await MainActor.run {
+            modelContext.insert(record)
+            try modelContext.save()
+        }
     }
     
     func updateOutOfStockRecord(_ record: CustomerOutOfStock) async throws {
-        try modelContext.save()
+        try await MainActor.run {
+            try modelContext.save()
+        }
     }
     
     func deleteOutOfStockRecord(_ record: CustomerOutOfStock) async throws {
-        modelContext.delete(record)
-        try modelContext.save()
+        try await MainActor.run {
+            modelContext.delete(record)
+            try modelContext.save()
+        }
     }
     
     func deleteOutOfStockRecords(_ records: [CustomerOutOfStock]) async throws {
-        for record in records {
-            modelContext.delete(record)
+        try await MainActor.run {
+            for record in records {
+                modelContext.delete(record)
+            }
+            try modelContext.save()
         }
-        try modelContext.save()
     }
     
     // MARK: - Paginated Methods
@@ -187,6 +203,12 @@ class LocalCustomerOutOfStockRepository: CustomerOutOfStockRepository {
         // Ensure we're on the main thread for ModelContext operations
         print("📊 [Repository] Fetching with database pagination - Page: \(page), Status: \(criteria.status?.displayName ?? "All")")
         
+        // If status filtering is needed, use memory-based approach to avoid SwiftData predicate issues
+        if criteria.status != nil {
+            return try await fetchWithMemoryFiltering(criteria: criteria, page: page, pageSize: pageSize)
+        }
+        
+        // For non-status filtering (date-only or no filters), use safe database pagination
         do {
             let predicate = buildPredicate(from: criteria)
             
@@ -215,56 +237,17 @@ class LocalCustomerOutOfStockRepository: CustomerOutOfStockRepository {
             paginatedDescriptor.fetchLimit = fetchLimit
             paginatedDescriptor.fetchOffset = offset
             
-            print("📊 [Repository] Executing fetch with predicate: \(predicate != nil)")
+            print("📊 [Repository] Executing safe fetch with predicate: \(predicate != nil)")
             
-            // Perform the fetch operation with error handling
-            let fetchedItems: [CustomerOutOfStock]
-            do {
-                fetchedItems = try modelContext.fetch(paginatedDescriptor)
-                print("📊 [Repository] Successfully fetched \(fetchedItems.count) items")
-                
-                // Log some details about the fetched items for debugging
-                if !fetchedItems.isEmpty {
-                    let dates = fetchedItems.map { $0.requestDate }
-                    let dateRange = "\(dates.min()!) to \(dates.max()!)"
-                    print("📅 [Repository] Fetched items date range: \(dateRange)")
-                } else {
-                    print("📭 [Repository] No items found matching criteria")
-                    if let dateRange = criteria.dateRange {
-                        print("📅 [Repository] Searched date range: \(dateRange.start) to \(dateRange.end)")
-                    }
-                }
-            } catch {
-                print("❌ [Repository] Fetch failed: \(error)")
-                // Try a fallback approach without predicate if status filter fails
-                if criteria.status != nil {
-                    print("📊 [Repository] Retrying without status filter...")
-                    var fallbackDescriptor = FetchDescriptor<CustomerOutOfStock>(sortBy: [sortDescriptor])
-                    fallbackDescriptor.fetchLimit = fetchLimit
-                    fallbackDescriptor.fetchOffset = offset
-                    
-                    let allItems = try modelContext.fetch(fallbackDescriptor)
-                    // Filter in memory for status
-                    if let statusFilter = criteria.status {
-                        let filteredItems = allItems.filter { $0.status == statusFilter }
-                        print("📊 [Repository] Fallback filtering: \(filteredItems.count) items match status")
-                        fetchedItems = Array(filteredItems.prefix(pageSize))
-                    } else {
-                        fetchedItems = allItems
-                    }
-                } else {
-                    throw error
-                }
+            // Perform the fetch operation with error handling - ensure main thread execution
+            let fetchedItems = try await MainActor.run {
+                return try modelContext.fetch(paginatedDescriptor)
             }
             
-            // Get total count for pagination (with error handling)
-            let totalCount: Int
-            do {
-                totalCount = try await countForNonSearchCriteria(criteria: criteria)
-            } catch {
-                print("⚠️ [Repository] Count operation failed, using fetched items count: \(error)")
-                totalCount = fetchedItems.count
-            }
+            print("📊 [Repository] Successfully fetched \(fetchedItems.count) items")
+            
+            // Get total count for pagination
+            let totalCount = try await countForNonSearchCriteria(criteria: criteria)
             
             // Calculate hasMoreData based on total count and current position [rule:§3+.2 API Contract]
             let currentOffset = page * pageSize
@@ -283,6 +266,78 @@ class LocalCustomerOutOfStockRepository: CustomerOutOfStockRepository {
             throw NSError(domain: "LocalCustomerOutOfStockRepository", code: 1001,
                          userInfo: [NSLocalizedDescriptionKey: "Database fetch operation failed: \(error.localizedDescription)"])
         }
+    }
+    
+    @MainActor
+    private func fetchWithMemoryFiltering(
+        criteria: OutOfStockFilterCriteria,
+        page: Int,
+        pageSize: Int
+    ) async throws -> OutOfStockPaginationResult {
+        print("📊 [Repository] Using memory-based filtering for status: \(criteria.status?.displayName ?? "none")")
+        
+        // Create sort descriptor based on criteria
+        let sortDescriptor = SortDescriptor<CustomerOutOfStock>(
+            \.requestDate,
+            order: criteria.sortOrder.isDescending ? .reverse : .forward
+        )
+        
+        // Step 1: Get all matching items with date filter only (safe)
+        var allItemsDescriptor: FetchDescriptor<CustomerOutOfStock>
+        
+        if let dateRange = criteria.dateRange {
+            let dateStart = dateRange.start
+            let dateEnd = dateRange.end
+            allItemsDescriptor = FetchDescriptor<CustomerOutOfStock>(
+                predicate: #Predicate<CustomerOutOfStock> { item in
+                    item.requestDate >= dateStart && 
+                    item.requestDate <= dateEnd
+                },
+                sortBy: [sortDescriptor]
+            )
+        } else {
+            allItemsDescriptor = FetchDescriptor<CustomerOutOfStock>(
+                sortBy: [sortDescriptor]
+            )
+        }
+        
+        let allMatchingItems = try await MainActor.run {
+            return try modelContext.fetch(allItemsDescriptor)
+        }
+        
+        // Step 2: Filter by status in memory (safe operation)
+        let filteredItems: [CustomerOutOfStock]
+        if let statusFilter = criteria.status {
+            filteredItems = allMatchingItems.filter { $0.status == statusFilter }
+            print("📊 [Repository] Memory filtering: \(filteredItems.count) of \(allMatchingItems.count) items match status \(statusFilter.displayName)")
+        } else {
+            filteredItems = allMatchingItems
+        }
+        
+        // Step 3: Apply pagination to filtered results
+        let offset = page * pageSize
+        let startIndex = offset
+        let endIndex = min(startIndex + pageSize, filteredItems.count)
+        
+        let paginatedItems: [CustomerOutOfStock]
+        if startIndex < filteredItems.count {
+            paginatedItems = Array(filteredItems[startIndex..<endIndex])
+        } else {
+            paginatedItems = []
+        }
+        
+        // Calculate hasMoreData based on filtered total count and current position
+        let hasMoreData = (offset + paginatedItems.count) < filteredItems.count
+        
+        print("📊 [Repository] Memory filtering results: \(filteredItems.count) total matches, returning \(paginatedItems.count) items for page \(page), hasMore: \(hasMoreData)")
+        
+        return OutOfStockPaginationResult(
+            items: paginatedItems,
+            totalCount: filteredItems.count,
+            hasMoreData: hasMoreData,
+            page: page,
+            pageSize: pageSize
+        )
     }
     
     func countOutOfStockRecords(criteria: OutOfStockFilterCriteria) async throws -> Int {
@@ -323,7 +378,9 @@ class LocalCustomerOutOfStockRepository: CustomerOutOfStockRepository {
             }
             
             // Get all records matching database-level filters
-            let records = try modelContext.fetch(descriptor)
+            let records = try await MainActor.run {
+                return try modelContext.fetch(descriptor)
+            }
             
             // Apply text search filtering in memory if needed
             let filteredRecords: [CustomerOutOfStock]
@@ -406,7 +463,9 @@ class LocalCustomerOutOfStockRepository: CustomerOutOfStockRepository {
             }
             
             let descriptor = FetchDescriptor<CustomerOutOfStock>(predicate: predicate)
-            let orphanedRecords = try modelContext.fetch(descriptor)
+            let orphanedRecords = try await MainActor.run {
+                return try modelContext.fetch(descriptor)
+            }
             
             // Filter by cached customer name in notes using in-memory text search
             let filteredRecords = orphanedRecords.filter { item in
@@ -470,20 +529,49 @@ class LocalCustomerOutOfStockRepository: CustomerOutOfStockRepository {
     }
     
     private func countForNonSearchCriteria(criteria: OutOfStockFilterCriteria) async throws -> Int {
-        // Efficient counting for non-search operations
-        let predicate = buildPredicate(from: criteria)
-        let descriptor = FetchDescriptor<CustomerOutOfStock>(predicate: predicate)
-        let records = try modelContext.fetch(descriptor)
-        return records.count
+        // Safe counting - use memory filtering when status is involved
+        if criteria.status != nil {
+            // Use memory-based filtering for status to avoid SwiftData predicate issues
+            var allItemsDescriptor: FetchDescriptor<CustomerOutOfStock>
+            
+            if let dateRange = criteria.dateRange {
+                let dateStart = dateRange.start
+                let dateEnd = dateRange.end
+                allItemsDescriptor = FetchDescriptor<CustomerOutOfStock>(
+                    predicate: #Predicate<CustomerOutOfStock> { item in
+                        item.requestDate >= dateStart && 
+                        item.requestDate <= dateEnd
+                    }
+                )
+            } else {
+                allItemsDescriptor = FetchDescriptor<CustomerOutOfStock>()
+            }
+            
+            let allItems = try await MainActor.run {
+                return try modelContext.fetch(allItemsDescriptor)
+            }
+            let filteredItems = allItems.filter { $0.status == criteria.status! }
+            
+            print("📊 [Repository] Memory count: \(filteredItems.count) items match status \(criteria.status!.displayName)")
+            return filteredItems.count
+        } else {
+            // For non-status filtering, use safe database counting
+            let predicate = buildPredicate(from: criteria)
+            let descriptor = FetchDescriptor<CustomerOutOfStock>(predicate: predicate)
+            let records = try await MainActor.run {
+                return try modelContext.fetch(descriptor)
+            }
+            return records.count
+        }
     }
     
     // MARK: - Private Helper Methods
     
     private func buildPredicate(from criteria: OutOfStockFilterCriteria) -> Predicate<CustomerOutOfStock>? {
-        // Simplified predicate builder to avoid SwiftData thread issues
-        print("📊 [Repository] Building predicate - Status: \(criteria.status?.displayName ?? "none"), Date: \(criteria.dateRange != nil)")
+        // Safe predicate builder - only include date filtering, status filtering done in memory
+        print("📊 [Repository] Building predicate - Status: \(criteria.status?.displayName ?? "none") (will filter in memory), Date: \(criteria.dateRange != nil)")
         
-        // Validate date range if present
+        // Only create date-based predicates as they are safe in SwiftData
         if let dateRange = criteria.dateRange {
             let formatter = DateFormatter()
             formatter.dateStyle = .short
@@ -495,44 +583,9 @@ class LocalCustomerOutOfStockRepository: CustomerOutOfStockRepository {
                 print("⚠️ [Repository] Invalid date range: start date is not before end date")
                 return nil
             }
-        }
-        
-        do {
-            try validateStatusFilter(criteria.status)
-        } catch {
-            print("❌ [Repository] Status validation failed in buildPredicate: \(error)")
-            return nil
-        }
-        
-        let hasStatusFilter = criteria.status != nil
-        let hasDateFilter = criteria.dateRange != nil
-        
-        // Use simplified approach - create single predicate instead of combining multiple
-        if hasStatusFilter && hasDateFilter {
-            let targetStatus = criteria.status!
-            let dateStart = criteria.dateRange!.start
-            let dateEnd = criteria.dateRange!.end
             
-            print("📊 [Repository] Creating combined status+date predicate for: \(targetStatus), date range: \(dateStart) to \(dateEnd)")
-            
-            // Use direct enum comparison instead of rawValue
-            return #Predicate<CustomerOutOfStock> { item in
-                item.status == targetStatus &&
-                item.requestDate >= dateStart && 
-                item.requestDate <= dateEnd
-            }
-        } else if hasStatusFilter {
-            let targetStatus = criteria.status!
-            
-            print("📊 [Repository] Creating status-only predicate for: \(targetStatus)")
-            
-            // Use direct enum comparison for better SwiftData compatibility
-            return #Predicate<CustomerOutOfStock> { item in
-                item.status == targetStatus
-            }
-        } else if hasDateFilter {
-            let dateStart = criteria.dateRange!.start
-            let dateEnd = criteria.dateRange!.end
+            let dateStart = dateRange.start
+            let dateEnd = dateRange.end
             
             print("📊 [Repository] Creating date-only predicate for range: \(dateStart) to \(dateEnd)")
             
@@ -541,48 +594,25 @@ class LocalCustomerOutOfStockRepository: CustomerOutOfStockRepository {
             }
         }
         
-        print("📊 [Repository] No predicate needed - returning all records")
+        print("📊 [Repository] No date filter - will fetch all records and filter by status in memory")
         return nil
     }
     
     private func buildEnhancedPredicate(from criteria: OutOfStockFilterCriteria) -> Predicate<CustomerOutOfStock>? {
-        // Enhanced predicate builder - only database-supported filters (no text search at DB level)
-        do {
-            try validateStatusFilter(criteria.status)
-        } catch {
-            print("Status validation failed in buildEnhancedPredicate: \(error)")
-            return nil
-        }
-        
+        // Safe enhanced predicate builder - only date filtering, status filtering done in memory
         let hasDateFilter = criteria.dateRange != nil
-        let hasStatusFilter = criteria.status != nil
         
-        // Build predicate with only database-supported filters
-        if hasDateFilter && hasStatusFilter {
-            let dateStart = criteria.dateRange!.start
-            let dateEnd = criteria.dateRange!.end
-            let statusRawValue = criteria.status!.rawValue
-            
-            return #Predicate<CustomerOutOfStock> { item in
-                item.requestDate >= dateStart && item.requestDate <= dateEnd &&
-                item.status.rawValue == statusRawValue
-            }
-        } else if hasDateFilter {
+        // Only build date-based predicates to avoid SwiftData enum issues
+        if hasDateFilter {
             let dateStart = criteria.dateRange!.start
             let dateEnd = criteria.dateRange!.end
             
             return #Predicate<CustomerOutOfStock> { item in
                 item.requestDate >= dateStart && item.requestDate <= dateEnd
             }
-        } else if hasStatusFilter {
-            let statusRawValue = criteria.status!.rawValue
-            
-            return #Predicate<CustomerOutOfStock> { item in
-                item.status.rawValue == statusRawValue
-            }
         }
         
-        // No database-level filtering needed - text search handled in memory
+        // No database-level filtering needed - status and text search handled in memory
         return nil
     }
     
@@ -663,29 +693,33 @@ class LocalCustomerOutOfStockRepository: CustomerOutOfStockRepository {
     
     @MainActor
     private func countByStatusForNonSearchCriteria(criteria: OutOfStockFilterCriteria) async throws -> [OutOfStockStatus: Int] {
-        // Build predicate without status filter (since we want all statuses)
-        let criteriaWithoutStatus = OutOfStockFilterCriteria(
-            customer: criteria.customer,
-            product: criteria.product,
-            status: nil, // Remove status filter
-            dateRange: criteria.dateRange,
-            searchText: "",
-            page: 0,
-            pageSize: 1000,
-            sortOrder: criteria.sortOrder
-        )
+        // Use safe approach - only date filtering in predicate
+        var allItemsDescriptor: FetchDescriptor<CustomerOutOfStock>
         
-        let predicate = buildPredicate(from: criteriaWithoutStatus)
-        let descriptor = FetchDescriptor<CustomerOutOfStock>(predicate: predicate)
-        let records = try modelContext.fetch(descriptor)
+        if let dateRange = criteria.dateRange {
+            let dateStart = dateRange.start
+            let dateEnd = dateRange.end
+            allItemsDescriptor = FetchDescriptor<CustomerOutOfStock>(
+                predicate: #Predicate<CustomerOutOfStock> { item in
+                    item.requestDate >= dateStart && 
+                    item.requestDate <= dateEnd
+                }
+            )
+        } else {
+            allItemsDescriptor = FetchDescriptor<CustomerOutOfStock>()
+        }
         
-        // Count by status
+        let records = try await MainActor.run {
+            return try modelContext.fetch(allItemsDescriptor)
+        }
+        
+        // Count by status in memory (safe)
         var statusCounts: [OutOfStockStatus: Int] = [:]
         for record in records {
             statusCounts[record.status, default: 0] += 1
         }
         
-        print("📊 [Repository] Counted by status: \(statusCounts)")
+        print("📊 [Repository] Memory-based count by status: \(statusCounts)")
         return statusCounts
     }
     

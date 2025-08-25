@@ -1046,14 +1046,17 @@ struct CustomerOutOfStockDashboard: View {
                 dashboardState.totalCount = 0
                 dashboardState.isLoading = true
                 
-                // Reset service pagination state when changing status filters
+                // Force service state reset when changing status filters - critical fix!
                 customerOutOfStockService.currentPage = 0
                 customerOutOfStockService.hasMoreData = true
+                customerOutOfStockService.isLoading = false
+                customerOutOfStockService.isLoadingMore = false
                 
-                // Clear cache for potential conflicting entries to ensure fresh data
-                let currentDate = dashboardState.selectedDate
-                print("🧹 [Status Filter] Clearing cache for date: \(currentDate) to ensure fresh data")
-                await customerOutOfStockService.invalidateCacheForDate(currentDate)
+                // Clear service items array to prevent stale data
+                customerOutOfStockService.items = []
+                customerOutOfStockService.totalRecordsCount = 0
+                
+                print("🔧 [Status Filter] Service state reset: page=\(customerOutOfStockService.currentPage), hasMore=\(customerOutOfStockService.hasMoreData)")
                 
                 await refreshData()
                 print("✅ [Status Filter] Data refresh completed")

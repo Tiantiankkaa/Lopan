@@ -73,7 +73,7 @@ class CustomerOutOfStockService: ObservableObject {
     // Current filter state
     @Published var currentCriteria: OutOfStockFilterCriteria
     
-    private let pageSize = 20 // [rule:§3+.2 API Contract] Reduced to enable better pagination triggering
+    private let pageSize = 50 // [rule:§3+.2 API Contract] Increased to match Dashboard initial load size
     private var backgroundQueue = DispatchQueue(label: "customerOutOfStock.processing", qos: .userInitiated)
     
     init(
@@ -152,17 +152,27 @@ class CustomerOutOfStockService: ObservableObject {
     }
     
     func loadFilteredItems(criteria: OutOfStockFilterCriteria, resetPagination: Bool = true) async {
+        let isStatusFilterChange = resetPagination && criteria.status != currentCriteria.status
+        
         if resetPagination {
             currentPage = 0
             // Force clear items array immediately to prevent stale data display
             await MainActor.run {
                 items = []
                 totalRecordsCount = 0
+                isLoading = true
             }
             hasMoreData = true // [rule:§3+.2 API Contract] Always assume more data initially
             print("📊 [Service] Reset pagination for filtered items - criteria has status: \(criteria.status?.displayName ?? "None")")
+            
+            // Clear cache when switching status filters to ensure fresh data
+            if isStatusFilterChange {
+                let targetDate = criteria.dateRange?.start ?? Date()
+                print("🧹 [Service] Status filter changed, clearing cache for date: \(targetDate)")
+                await invalidateCacheForDate(targetDate)
+            }
         } else {
-            // 从criteria更新currentPage，确保页码状态同步
+            // Update currentPage from criteria to ensure page state synchronization
             currentPage = criteria.page
         }
         
@@ -232,7 +242,7 @@ class CustomerOutOfStockService: ObservableObject {
                 return
             }
             
-            // Fetch from repository
+            // Fetch from repository - the repository itself handles thread safety
             let result = try await customerOutOfStockRepository.fetchOutOfStockRecords(
                 criteria: criteria,
                 page: criteria.page,
@@ -288,8 +298,14 @@ class CustomerOutOfStockService: ObservableObject {
             print("📊 [Service] Appending \(uniqueNewItems.count) unique items (filtered \(newItems.count - uniqueNewItems.count) duplicates)")
             items.append(contentsOf: uniqueNewItems)
             
-            // For append operations, check if we have more data to load [rule:§3+.2 API Contract]
-            hasMoreData = page.hasMoreData && (items.count < page.totalCount)
+            // For append operations, trust the repository's hasMoreData flag [rule:§3+.2 API Contract]
+            hasMoreData = page.hasMoreData
+            
+            // Service layer protection for append operations too
+            if items.count < page.totalCount && !page.hasMoreData {
+                print("⚠️ [Service] After append: Repository hasMoreData=false but items(\(items.count)) < total(\(page.totalCount)), correcting to true")
+                hasMoreData = true
+            }
             
             print("📊 [Service] After append: items=\(items.count), total=\(page.totalCount), repoHasMore=\(page.hasMoreData), serviceHasMore=\(hasMoreData)")
         } else {
@@ -324,8 +340,14 @@ class CustomerOutOfStockService: ObservableObject {
             items = newItems
             totalRecordsCount = page.totalCount
             
-            // For initial/replacement loads, check if we need to load more pages [rule:§3+.2 API Contract]  
-            hasMoreData = page.hasMoreData && (newItems.count < page.totalCount)
+            // For initial/replacement loads, validate and trust the repository's hasMoreData flag [rule:§3+.2 API Contract]  
+            hasMoreData = page.hasMoreData
+            
+            // Service layer protection: If we have fewer items than total count, there must be more data
+            if newItems.count < page.totalCount && !page.hasMoreData {
+                print("⚠️ [Service] Repository hasMoreData=false but items(\(newItems.count)) < total(\(page.totalCount)), correcting to true")
+                hasMoreData = true
+            }
             
             print("📊 [Service] Initial/replacement load: items=\(newItems.count), total=\(page.totalCount), repoHasMore=\(page.hasMoreData), serviceHasMore=\(hasMoreData)")
             
