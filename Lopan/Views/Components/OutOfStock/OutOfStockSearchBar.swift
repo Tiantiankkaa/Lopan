@@ -13,7 +13,7 @@ struct OutOfStockSearchBar: View {
     let onSearch: (String) -> Void
     let onFilterTap: () -> Void
     
-    @State private var isTextFieldFocused: Bool = false
+    @FocusState private var isTextFieldFocused: Bool
     
     var body: some View {
         HStack(spacing: 12) {
@@ -21,21 +21,22 @@ struct OutOfStockSearchBar: View {
             HStack(spacing: 8) {
                 Image(systemName: "magnifyingglass")
                     .font(.system(size: 16))
-                    .foregroundColor(.gray)
+                    .foregroundColor(.secondary)
+                    .accessibilityHidden(true) // Decorative icon
                 
-                CustomTextField(
-                    placeholder,
-                    text: $searchText,
-                    onEditingChanged: { editing in
-                        isTextFieldFocused = editing
-                    },
-                    onCommit: {
+                TextField(placeholder, text: $searchText)
+                    .focused($isTextFieldFocused)
+                    .textFieldStyle(.plain)
+                    .font(.system(size: 16, design: .default))
+                    .onSubmit {
                         onSearch(searchText)
                     }
-                )
-                .onChange(of: searchText) { _, newValue in
-                    onSearch(newValue)
-                }
+                    .onChange(of: searchText) { _, newValue in
+                        onSearch(newValue)
+                    }
+                    .accessibilityLabel("搜索缺货记录")
+                    .accessibilityHint("输入客户姓名、产品名称或备注来搜索")
+                    .accessibilityValue(searchText.isEmpty ? "无内容" : searchText)
                 
                 if !searchText.isEmpty {
                     Button(action: {
@@ -43,25 +44,37 @@ struct OutOfStockSearchBar: View {
                         onSearch("")
                     }) {
                         Image(systemName: "xmark.circle.fill")
-                            .font(.system(size: 14))
-                            .foregroundColor(.gray)
+                            .font(.system(size: 16))
+                            .foregroundColor(.secondary)
+                            .frame(minWidth: 44, minHeight: 44) // HIG compliant touch target
                     }
+                    .accessibilityLabel("清除搜索内容")
+                    .accessibilityHint("清空搜索框并重置搜索结果")
                 }
             }
             .padding(.horizontal, 12)
             .padding(.vertical, 10)
-            .background(Color(.systemGray6))
-            .cornerRadius(10)
+            .background(
+                RoundedRectangle(cornerRadius: 10)
+                    .fill(Color(.systemGray6))
+                    .overlay(
+                        RoundedRectangle(cornerRadius: 10)
+                            .stroke(isTextFieldFocused ? Color.accentColor : Color.clear, lineWidth: 2)
+                    )
+            )
             
-            // Filter button
+            // Filter button - HIG compliant 44pt touch target
             Button(action: onFilterTap) {
                 Image(systemName: "line.3.horizontal")
                     .font(.system(size: 16, weight: .medium))
-                    .foregroundColor(.gray)
-                    .frame(width: 32, height: 32)
+                    .foregroundColor(.primary)
+                    .frame(minWidth: 44, minHeight: 44) // HIG compliant touch target
                     .background(Color(.systemGray6))
                     .cornerRadius(8)
             }
+            .accessibilityLabel("筛选条件")
+            .accessibilityHint("打开筛选面板设置搜索条件")
+            .accessibilityAddTraits(.isButton)
         }
     }
 }

@@ -59,8 +59,8 @@ struct OutOfStockEmptyStateView: View {
                 .fill(
                     LinearGradient(
                         colors: [
-                            Color.blue.opacity(0.1),
-                            Color.blue.opacity(0.05)
+                            Color.accentColor.opacity(0.1),
+                            Color.accentColor.opacity(0.05)
                         ],
                         startPoint: .topLeading,
                         endPoint: .bottomTrailing
@@ -73,24 +73,27 @@ struct OutOfStockEmptyStateView: View {
                     .repeatForever(autoreverses: true),
                     value: pulseScale
                 )
+                .accessibilityHidden(true) // Decorative background
             
             // Main icon
             VStack(spacing: 8) {
                 if hasActiveFilters {
                     Image(systemName: "line.3.horizontal.decrease.circle")
                         .font(.system(size: 40, weight: .light))
-                        .foregroundColor(.blue)
+                        .foregroundColor(.accentColor)
+                        .accessibilityLabel("筛选结果为空")
                 } else {
                     Image(systemName: "cube.box")
                         .font(.system(size: 40, weight: .light))
-                        .foregroundColor(.blue)
+                        .foregroundColor(.accentColor)
+                        .accessibilityLabel("暂无数据")
                 }
                 
-                // Decorative dots
+                // Decorative dots - hidden from accessibility
                 HStack(spacing: 4) {
                     ForEach(0..<3) { index in
                         Circle()
-                            .fill(Color.blue.opacity(0.6))
+                            .fill(Color.accentColor.opacity(0.6))
                             .frame(width: 6, height: 6)
                             .scaleEffect(pulseScale)
                             .animation(
@@ -99,10 +102,14 @@ struct OutOfStockEmptyStateView: View {
                                 .delay(Double(index) * 0.2),
                                 value: pulseScale
                             )
+                            .accessibilityHidden(true)
                     }
                 }
+                .accessibilityHidden(true) // Decorative animation
             }
         }
+        .accessibilityElement(children: .ignore)
+        .accessibilityLabel(hasActiveFilters ? "筛选结果为空状态" : "暂无数据状态")
     }
     
     // MARK: - Text Content
@@ -114,13 +121,21 @@ struct OutOfStockEmptyStateView: View {
                 .fontWeight(.bold)
                 .foregroundColor(.primary)
                 .multilineTextAlignment(.center)
+                .accessibilityAddTraits(.isHeader)
+                .accessibilityHeading(.h2)
             
             Text(descriptionText)
                 .font(.body)
                 .foregroundColor(.secondary)
                 .multilineTextAlignment(.center)
                 .lineLimit(nil)
+                .accessibilityLabel(accessibleDescriptionText)
         }
+    }
+    
+    private var accessibleDescriptionText: String {
+        // Remove line breaks for screen reader
+        return descriptionText.replacingOccurrences(of: "\n", with: ". ")
     }
     
     private var titleText: String {
@@ -149,13 +164,14 @@ struct OutOfStockEmptyStateView: View {
                     HStack(spacing: 8) {
                         Image(systemName: "xmark.circle.fill")
                             .font(.system(size: 16, weight: .medium))
+                            .accessibilityHidden(true) // Decorative icon
                         
                         Text("清除筛选条件")
                             .font(.system(size: 16, weight: .semibold))
                     }
                     .foregroundColor(.white)
                     .frame(maxWidth: .infinity)
-                    .frame(height: 48)
+                    .frame(minHeight: 48) // Ensure minimum touch target
                     .background(
                         LinearGradient(
                             colors: [Color.orange, Color.orange.opacity(0.8)],
@@ -166,29 +182,36 @@ struct OutOfStockEmptyStateView: View {
                     .cornerRadius(12)
                 }
                 .buttonStyle(ScaleButtonStyle())
+                .accessibilityLabel("清除筛选条件")
+                .accessibilityHint("移除所有筛选条件，显示全部记录")
+                .accessibilityAddTraits(.isButton)
                 
                 // Add new button (secondary)
                 Button(action: onAddNew) {
                     HStack(spacing: 8) {
                         Image(systemName: "plus.circle")
                             .font(.system(size: 16, weight: .medium))
+                            .accessibilityHidden(true) // Decorative icon
                         
                         Text("添加新记录")
                             .font(.system(size: 16, weight: .medium))
                     }
-                    .foregroundColor(.blue)
+                    .foregroundColor(.accentColor)
                     .frame(maxWidth: .infinity)
-                    .frame(height: 44)
+                    .frame(minHeight: 44) // Ensure minimum touch target
                     .background(
                         RoundedRectangle(cornerRadius: 12)
-                            .stroke(Color.blue, lineWidth: 1.5)
+                            .stroke(Color.accentColor, lineWidth: 1.5)
                             .background(
                                 RoundedRectangle(cornerRadius: 12)
-                                    .fill(Color.blue.opacity(0.05))
+                                    .fill(Color.accentColor.opacity(0.05))
                             )
                     )
                 }
                 .buttonStyle(ScaleButtonStyle())
+                .accessibilityLabel("添加新记录")
+                .accessibilityHint("创建新的缺货记录")
+                .accessibilityAddTraits(.isButton)
                 
             } else {
                 // Add new button (primary)
@@ -196,16 +219,17 @@ struct OutOfStockEmptyStateView: View {
                     HStack(spacing: 8) {
                         Image(systemName: "plus.circle.fill")
                             .font(.system(size: 16, weight: .medium))
+                            .accessibilityHidden(true) // Decorative icon
                         
                         Text("添加缺货记录")
                             .font(.system(size: 16, weight: .semibold))
                     }
                     .foregroundColor(.white)
                     .frame(maxWidth: .infinity)
-                    .frame(height: 48)
+                    .frame(minHeight: 48) // Ensure minimum touch target
                     .background(
                         LinearGradient(
-                            colors: [Color.blue, Color.blue.opacity(0.8)],
+                            colors: [Color.accentColor, Color.accentColor.opacity(0.8)],
                             startPoint: .leading,
                             endPoint: .trailing
                         )
@@ -213,6 +237,9 @@ struct OutOfStockEmptyStateView: View {
                     .cornerRadius(12)
                 }
                 .buttonStyle(ScaleButtonStyle())
+                .accessibilityLabel("添加缺货记录")
+                .accessibilityHint("创建新的客户缺货记录")
+                .accessibilityAddTraits(.isButton)
                 
                 // Tips section
                 tipsSection
@@ -228,11 +255,14 @@ struct OutOfStockEmptyStateView: View {
                 Image(systemName: "lightbulb.fill")
                     .font(.caption)
                     .foregroundColor(.yellow)
+                    .accessibilityHidden(true) // Decorative icon
                 
                 Text("使用提示")
                     .font(.caption)
                     .fontWeight(.semibold)
                     .foregroundColor(.secondary)
+                    .accessibilityAddTraits(.isHeader)
+                    .accessibilityHeading(.h3)
                 
                 Spacer()
             }
@@ -248,14 +278,18 @@ struct OutOfStockEmptyStateView: View {
             RoundedRectangle(cornerRadius: 12)
                 .fill(Color(.systemGray6).opacity(0.5))
         )
+        .accessibilityElement(children: .combine)
+        .accessibilityLabel("使用提示")
+        .accessibilityValue("切换日期查看其他日期的缺货记录. 使用筛选功能快速找到特定记录. 搜索客户名称、产品或备注信息")
     }
     
     private func tipRow(icon: String, text: String) -> some View {
         HStack(spacing: 8) {
             Image(systemName: icon)
                 .font(.caption)
-                .foregroundColor(.blue)
+                .foregroundColor(.accentColor)
                 .frame(width: 16)
+                .accessibilityHidden(true) // Decorative icon
             
             Text(text)
                 .font(.caption)
@@ -264,6 +298,7 @@ struct OutOfStockEmptyStateView: View {
             
             Spacer()
         }
+        .accessibilityElement(children: .combine)
     }
     
     // MARK: - Animation Methods

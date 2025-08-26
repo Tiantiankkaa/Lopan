@@ -15,6 +15,35 @@ struct CommonDateNavigationBar: View {
     let onPreviousDay: () -> Void
     let onNextDay: () -> Void
     
+    // Support future and past date navigation limits
+    private var canNavigateToNextDay: Bool {
+        let tomorrow = Calendar.current.date(byAdding: .day, value: 1, to: selectedDate) ?? selectedDate
+        return tomorrow <= Date()
+    }
+    
+    private var previousDayDescription: String {
+        let previousDay = Calendar.current.date(byAdding: .day, value: -1, to: selectedDate) ?? selectedDate
+        let formatter = DateFormatter()
+        formatter.dateStyle = .medium
+        formatter.locale = Locale.current // Respect user locale
+        return formatter.string(from: previousDay)
+    }
+    
+    private var nextDayDescription: String {
+        let nextDay = Calendar.current.date(byAdding: .day, value: 1, to: selectedDate) ?? selectedDate
+        let formatter = DateFormatter()
+        formatter.dateStyle = .medium
+        formatter.locale = Locale.current
+        return formatter.string(from: nextDay)
+    }
+    
+    private var formattedAccessibilityDate: String {
+        let formatter = DateFormatter()
+        formatter.dateStyle = .full
+        formatter.locale = Locale.current
+        return formatter.string(from: selectedDate)
+    }
+    
     var body: some View {
         VStack(spacing: 12) {
             // Date navigation
@@ -22,20 +51,22 @@ struct CommonDateNavigationBar: View {
                 Button(action: onPreviousDay) {
                     Image(systemName: "chevron.left.circle.fill")
                         .font(.title2)
-                        .foregroundColor(.blue)
+                        .foregroundColor(.accentColor)
+                        .accessibilityHidden(true) // Icon is decorative
                 }
                 .buttonStyle(ScaleButtonStyle())
                 .frame(minWidth: 44, minHeight: 44)
                 .contentShape(Rectangle())
                 .accessibilityLabel("前一天")
-                .accessibilityHint("查看前一天的数据")
+                .accessibilityHint("查看 \(previousDayDescription) 的缺货数据")
+                .accessibilityAddTraits(.isButton)
                 
                 Spacer()
                 
                 Button(action: { showingDatePicker = true }) {
                     VStack(spacing: 2) {
                         Text(selectedDate, style: .date)
-                            .font(.system(size: 16, weight: .semibold))
+                            .font(.system(size: 16, weight: .semibold, design: .default))
                             .foregroundColor(.primary)
                         
                         Text(dayOfWeek(selectedDate))
@@ -49,19 +80,26 @@ struct CommonDateNavigationBar: View {
                             .fill(Color(.systemGray6))
                     )
                 }
+                .frame(minHeight: 44) // Ensure touch target
+                .accessibilityLabel("当前选中日期：\(formattedAccessibilityDate)")
+                .accessibilityHint("点击更改日期")
+                .accessibilityAddTraits(.isButton)
                 
                 Spacer()
                 
                 Button(action: onNextDay) {
                     Image(systemName: "chevron.right.circle.fill")
                         .font(.title2)
-                        .foregroundColor(.blue)
+                        .foregroundColor(canNavigateToNextDay ? .accentColor : .secondary)
+                        .accessibilityHidden(true) // Icon is decorative
                 }
                 .buttonStyle(ScaleButtonStyle())
                 .frame(minWidth: 44, minHeight: 44)
                 .contentShape(Rectangle())
+                .disabled(!canNavigateToNextDay)
                 .accessibilityLabel("后一天")
-                .accessibilityHint("查看后一天的数据")
+                .accessibilityHint(canNavigateToNextDay ? "查看 \(nextDayDescription) 的数据" : "已经是最新日期")
+                .accessibilityAddTraits(.isButton)
             }
             .padding(.horizontal, 20)
             
@@ -72,7 +110,7 @@ struct CommonDateNavigationBar: View {
     private func dayOfWeek(_ date: Date) -> String {
         let formatter = DateFormatter()
         formatter.dateFormat = "EEEE"
-        formatter.locale = Locale(identifier: "zh_CN")
+        formatter.locale = Locale.current // Respect user's locale preference
         return formatter.string(from: date)
     }
 }
