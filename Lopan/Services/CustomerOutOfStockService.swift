@@ -6,43 +6,28 @@
 //
 
 import Foundation
+import os
 
-struct OutOfStockCreationRequest {
-    let customer: Customer
-    let product: Product
-    let productSize: ProductSize?
-    let quantity: Int
-    let notes: String?
-}
-
-struct OutOfStockFilterCriteria {
-    let customer: Customer?
-    let product: Product?
-    let status: OutOfStockStatus?
-    let dateRange: (start: Date, end: Date)?
-    let searchText: String
-    let page: Int
-    let pageSize: Int
-    let sortOrder: CustomerOutOfStockNavigationState.SortOrder
+enum CustomerOutOfStockServiceError: Error, LocalizedError {
+    case userNotAuthenticated
+    case sessionExpired
+    case authenticationRequired
+    case invalidUserCredentials
+    case serviceUnavailable
     
-    init(
-        customer: Customer? = nil,
-        product: Product? = nil,
-        status: OutOfStockStatus? = nil,
-        dateRange: (start: Date, end: Date)? = nil,
-        searchText: String = "",
-        page: Int = 0,
-        pageSize: Int = 50,
-        sortOrder: CustomerOutOfStockNavigationState.SortOrder = .newestFirst
-    ) {
-        self.customer = customer
-        self.product = product
-        self.status = status
-        self.dateRange = dateRange
-        self.searchText = searchText
-        self.page = page
-        self.pageSize = pageSize
-        self.sortOrder = sortOrder
+    var errorDescription: String? {
+        switch self {
+        case .userNotAuthenticated:
+            return "用户未登录，请先登录后再操作"
+        case .sessionExpired:
+            return "登录会话已过期，请重新登录"
+        case .authenticationRequired:
+            return "此操作需要身份验证"
+        case .invalidUserCredentials:
+            return "用户凭证无效"
+        case .serviceUnavailable:
+            return "服务暂时不可用，请稍后再试"
+        }
     }
 }
 
@@ -75,6 +60,7 @@ class CustomerOutOfStockService: ObservableObject {
     
     private let pageSize = 50 // [rule:§3+.2 API Contract] Increased to match Dashboard initial load size
     private var backgroundQueue = DispatchQueue(label: "customerOutOfStock.processing", qos: .userInitiated)
+    private let logger = Logger(subsystem: "com.lopan.app", category: "CustomerOutOfStockService")
     
     init(
         repositoryFactory: RepositoryFactory,
@@ -152,13 +138,17 @@ class CustomerOutOfStockService: ObservableObject {
     }
     
     func loadFilteredItems(criteria: OutOfStockFilterCriteria, resetPagination: Bool = true) async {
-        print("🔧 [Service] Loading filtered items - status: \(criteria.status?.displayName ?? "all"), date: \(criteria.dateRange?.start.description ?? "none"), search: \(criteria.searchText.isEmpty ? "none" : criteria.searchText)")
+        logger.safeInfo("Loading filtered items", [
+            "status": criteria.status?.displayName ?? "all",
+            "has_date_filter": criteria.dateRange != nil ? "yes" : "no",
+            "has_search": !criteria.searchText.isEmpty ? "yes" : "no"
+        ])
         
         // Try incremental filtering first for status-only changes
         if resetPagination {
             let usedIncrementalFiltering = await tryIncrementalStatusFiltering(criteria: criteria)
             if usedIncrementalFiltering {
-                print("⚡ [Service] Used incremental status filtering - ultra fast!")
+                logger.info("Used incremental status filtering optimization")
                 return
             }
         }
@@ -180,12 +170,12 @@ class CustomerOutOfStockService: ObservableObject {
                 isLoading = true
             }
             hasMoreData = true // [rule:§3+.2 API Contract] Always assume more data initially
-            print("📊 [Service] Reset pagination for filtered items - status: \(normalizedCriteria.status?.displayName ?? "None")")
+            logger.info("Reset pagination for filtered items")
             
             // Clear cache when any significant filter changes to ensure fresh data
             if isStatusFilterChange || isCustomerFilterChange || isProductFilterChange || isSearchTextChange {
                 let targetDate = normalizedCriteria.dateRange?.start ?? Date()
-                print("🧹 [Service] Filter changed (status:\(isStatusFilterChange), customer:\(isCustomerFilterChange), product:\(isProductFilterChange), search:\(isSearchTextChange)), clearing cache for date: \(targetDate)")
+                logger.info("Filter changed, clearing cache")
                 await cacheManager.invalidateCache(for: targetDate)
             }
         } else {
@@ -200,7 +190,7 @@ class CustomerOutOfStockService: ObservableObject {
         
         // If switching dates, force reset pagination and clear cache
         if !calendar.isDate(requestedDate, inSameDayAs: currentDate) && resetPagination {
-            print("📅 [Service] Date changed from \(currentDate) to \(requestedDate), clearing cache")
+            logger.info("Date filter changed, clearing cache")
             await cacheManager.invalidateCache(for: requestedDate)
             
             // Also clear previous date cache to prevent memory buildup
@@ -211,7 +201,11 @@ class CustomerOutOfStockService: ObservableObject {
         currentCriteria = normalizedCriteria
         await loadPage(criteria: normalizedCriteria, date: requestedDate, append: !resetPagination)
         
-        print("✅ [Service] Loaded filtered items: \(items.count), hasMore: \(hasMoreData), totalCount: \(totalRecordsCount)")
+        logger.safeInfo("Loaded filtered items", [
+            "item_count": String(items.count),
+            "has_more": String(hasMoreData),
+            "total_count": String(totalRecordsCount)
+        ])
     }
     
     // MARK: - Criteria Validation and Normalization
@@ -240,7 +234,7 @@ class CustomerOutOfStockService: ObservableObject {
             sortOrder: criteria.sortOrder
         )
         
-        print("🔍 [Service] Normalized criteria - dateRange: \(normalizedDateRange?.start.description ?? "none") to \(normalizedDateRange?.end.description ?? "none")")
+        logger.info("Normalized filter criteria")
         
         return normalizedCriteria
     }
@@ -278,7 +272,11 @@ class CustomerOutOfStockService: ObservableObject {
     }
     
     private func loadPage(criteria: OutOfStockFilterCriteria, date: Date, append: Bool) async {
-        print("📄 [Service] Loading page \(criteria.page) - append: \(append), status: \(criteria.status?.displayName ?? "all")")
+        logger.safeInfo("Loading page", [
+            "page": String(criteria.page),
+            "append": String(append),
+            "status": criteria.status?.displayName ?? "all"
+        ])
         
         if append {
             isLoadingMore = true
@@ -303,16 +301,16 @@ class CustomerOutOfStockService: ObservableObject {
                 page: criteria.page
             )
             
-            print("📊 [Service] Creating cache key with validated date=\(cacheKeyDate), status=\(criteria.status?.displayName ?? "all"), hash=\(cacheKey.cacheIdentifier)")
+            logger.info("Creating cache key")
             
             // Try to get from cache first
             if let cachedPage = await cacheManager.getCachedPage(for: cacheKey) {
-                print("💾 [Service] Cache hit for page \(criteria.page)")
+                logger.info("Cache hit")
                 await updateUIWithData(cachedPage, append: append)
                 return
             }
             
-            print("🌐 [Service] Cache miss, fetching from repository...")
+            logger.info("Cache miss, fetching from repository")
             
             // Fetch from repository - the repository itself handles thread safety
             let result = try await customerOutOfStockRepository.fetchOutOfStockRecords(
@@ -346,7 +344,7 @@ class CustomerOutOfStockService: ObservableObject {
                     }
                 } catch {
                     // If caching fails, still update UI with data
-                    print("⚠️ Cache conversion failed: \(error), continuing without cache")
+                    logger.safeError("Cache conversion failed", error: error)
                     let simpleCachedPage = self.createFallbackCachedPage(from: result)
                     Task { @MainActor in
                         await self.updateUIWithData(simpleCachedPage, append: append)
@@ -357,7 +355,7 @@ class CustomerOutOfStockService: ObservableObject {
         } catch {
             await MainActor.run {
                 self.error = error
-                print("Error loading page: \(error)")
+                logger.safeError("Error loading page", error: error)
             }
         }
     }
@@ -372,7 +370,10 @@ class CustomerOutOfStockService: ObservableObject {
             let existingIds = Set(items.map { $0.id })
             let uniqueNewItems = newItems.filter { !existingIds.contains($0.id) }
             
-            print("📊 [Service] Appending \(uniqueNewItems.count) unique items (filtered \(newItems.count - uniqueNewItems.count) duplicates)")
+            logger.safeInfo("Appending items", [
+                "unique_items": String(uniqueNewItems.count),
+                "total_new_items": String(newItems.count)
+            ])
             items.append(contentsOf: uniqueNewItems)
             
             // For append operations, trust the repository's hasMoreData flag [rule:§3+.2 API Contract]
@@ -380,11 +381,18 @@ class CustomerOutOfStockService: ObservableObject {
             
             // Service layer protection for append operations too
             if items.count < page.totalCount && !page.hasMoreData {
-                print("⚠️ [Service] After append: Repository hasMoreData=false but items(\(items.count)) < total(\(page.totalCount)), correcting to true")
+                logger.safeWarning("Correcting hasMoreData flag", [
+                    "current_items": String(items.count),
+                    "total_count": String(page.totalCount)
+                ])
                 hasMoreData = true
             }
             
-            print("📊 [Service] After append: items=\(items.count), total=\(page.totalCount), repoHasMore=\(page.hasMoreData), serviceHasMore=\(hasMoreData)")
+            logger.safeInfo("After append state", [
+                "items_count": String(items.count),
+                "total_count": String(page.totalCount),
+                "has_more_data": String(hasMoreData)
+            ])
         } else {
             // For initial/replacement loads, validate data consistency before updating UI
             if !newItems.isEmpty {
@@ -405,14 +413,14 @@ class CustomerOutOfStockService: ObservableObject {
                         if isSingleDayFilter {
                             // For single-day filters (today, yesterday), use exact match
                             if itemDate != rangeStart {
-                                print("❌ [Service] Single-day validation failed: Item date \(itemDate) doesn't match expected \(rangeStart)")
+                                logger.warning("Single-day validation failed")
                                 dateValidationFailed = true
                                 break
                             }
                         } else {
                             // For multi-day ranges (week, month), use range validation
                             if itemDate < rangeStart || itemDate >= rangeEnd {
-                                print("❌ [Service] Range validation failed: Item date \(itemDate) outside range \(rangeStart) to \(rangeEnd)")
+                                logger.warning("Range validation failed")
                                 dateValidationFailed = true
                                 break
                             }
@@ -421,13 +429,13 @@ class CustomerOutOfStockService: ObservableObject {
                     
                     // If validation failed, reject the data and keep UI empty
                     if dateValidationFailed {
-                        print("🚫 [Service] Rejecting mismatched data, keeping UI empty")
+                        logger.warning("Rejecting mismatched data")
                         items = []
                         totalRecordsCount = 0
                         hasMoreData = false
                         return
                     } else {
-                        print("✅ [Service] Date validation passed for \(isSingleDayFilter ? "single-day" : "multi-day range") filter")
+                        logger.info("Date validation passed")
                     }
                 }
             }
@@ -441,23 +449,35 @@ class CustomerOutOfStockService: ObservableObject {
             
             // Service layer protection: If we have fewer items than total count, there must be more data
             if newItems.count < page.totalCount && !page.hasMoreData {
-                print("⚠️ [Service] Repository hasMoreData=false but items(\(newItems.count)) < total(\(page.totalCount)), correcting to true")
+                logger.safeWarning("Correcting hasMoreData flag for initial load", [
+                    "items_count": String(newItems.count),
+                    "total_count": String(page.totalCount)
+                ])
                 hasMoreData = true
             }
             
-            print("📊 [Service] Initial/replacement load: items=\(newItems.count), total=\(page.totalCount), repoHasMore=\(page.hasMoreData), serviceHasMore=\(hasMoreData)")
+            logger.safeInfo("Initial/replacement load complete", [
+                "items_count": String(newItems.count),
+                "total_count": String(page.totalCount),
+                "has_more_data": String(hasMoreData)
+            ])
             
             // Explicitly log when empty results are loaded (important for debugging date filtering issues)
             if newItems.isEmpty && page.totalCount == 0 {
-                print("🗂️ [Service] Empty result set loaded - no items found for current criteria")
+                logger.info("Empty result set loaded")
             } else if !newItems.isEmpty {
                 // Log first item's date for debugging
                 let firstItemDate = Calendar.current.startOfDay(for: newItems[0].requestDate)
-                print("✅ [Service] Validated data loaded for date: \(firstItemDate)")
+                logger.info("Validated data loaded")
             }
         }
         
-        print("📊 [Service] Final state: items=\(items.count), total=\(totalRecordsCount), hasMore=\(hasMoreData), currentPage=\(currentPage)")
+        logger.safeInfo("Final load state", [
+            "items_count": String(items.count),
+            "total_count": String(totalRecordsCount),
+            "has_more_data": String(hasMoreData),
+            "current_page": String(currentPage)
+        ])
         
         // Force UI refresh
         objectWillChange.send()
@@ -486,20 +506,20 @@ class CustomerOutOfStockService: ObservableObject {
         
         // Check cache first for ultra-fast response
         if let cachedCounts = cacheManager.getCachedStatusCounts(for: criteria) {
-            print("⚡ [Service] Using cached status counts: \(cachedCounts)")
+            logger.info("Using cached status counts")
             return cachedCounts
         }
         
         do {
             let statusCounts = try await customerOutOfStockRepository.countOutOfStockRecordsByStatus(criteria: criteria)
-            print("📊 [Service] Loaded status counts: \(statusCounts)")
+            logger.info("Loaded status counts")
             
             // Cache the result for future use
             cacheManager.cacheStatusCounts(statusCounts, for: criteria)
             
             return statusCounts
         } catch {
-            print("❌ [Service] Failed to load status counts: \(error)")
+            logger.safeError("Failed to load status counts", error: error)
             return [:]
         }
     }
@@ -521,10 +541,10 @@ class CustomerOutOfStockService: ObservableObject {
                 pageSize: 1
             )
             
-            print("📊 [Service] Loaded unfiltered total count: \(result.totalCount)")
+            logger.info("Loaded unfiltered total count")
             return result.totalCount
         } catch {
-            print("❌ [Service] Failed to load unfiltered total count: \(error)")
+            logger.safeError("Failed to load unfiltered total count", error: error)
             return 0
         }
     }
@@ -534,7 +554,7 @@ class CustomerOutOfStockService: ObservableObject {
         
         // Check cache first for ultra-fast response
         if let cachedCount = cacheManager.getCachedCount(for: criteria) {
-            print("⚡ [Service] Using cached count: \(cachedCount)")
+            logger.info("Using cached filtered count")
             return cachedCount
         }
         
@@ -548,10 +568,10 @@ class CustomerOutOfStockService: ObservableObject {
             // Cache the result for future use
             cacheManager.cacheCount(result.totalCount, for: criteria)
             
-            print("📊 [Service] Filtered count for preview: \(result.totalCount) (cached for future)")
+            logger.info("Loaded filtered count for preview")
             return result.totalCount
         } catch {
-            print("❌ [Service] Failed to get filtered count: \(error)")
+            logger.safeError("Failed to get filtered count", error: error)
             return 0
         }
     }
@@ -562,7 +582,7 @@ class CustomerOutOfStockService: ObservableObject {
         
         // Check special "clear all" cache first
         if let cachedCount = cacheManager.getCachedClearAllCount() {
-            print("⚡ [Service] Using cached clear all count: \(cachedCount)")
+            logger.info("Using cached clear all count")
             return cachedCount
         }
         
@@ -586,10 +606,10 @@ class CustomerOutOfStockService: ObservableObject {
             // Cache with highest priority
             cacheManager.cacheClearAllCount(result.totalCount)
             
-            print("📊 [Service] Clear all count: \(result.totalCount) (cached with high priority)")
+            logger.info("Loaded clear all count")
             return result.totalCount
         } catch {
-            print("❌ [Service] Failed to get clear all count: \(error)")
+            logger.safeError("Failed to get clear all count", error: error)
             return 0
         }
     }
@@ -608,7 +628,7 @@ class CustomerOutOfStockService: ObservableObject {
     // MARK: - Single Item Creation
     
     func createOutOfStockItem(_ request: OutOfStockCreationRequest) async throws {
-        let currentUser = getCurrentUser()
+        let currentUser = try getCurrentUser()
         
         let item = CustomerOutOfStock(
             customer: request.customer,
@@ -635,7 +655,7 @@ class CustomerOutOfStockService: ObservableObject {
     // MARK: - Batch Creation
     
     func createMultipleOutOfStockItems(_ requests: [OutOfStockCreationRequest]) async throws {
-        let currentUser = getCurrentUser()
+        let currentUser = try getCurrentUser()
         var createdItems: [CustomerOutOfStock] = []
         
         for request in requests {
@@ -673,7 +693,7 @@ class CustomerOutOfStockService: ObservableObject {
         quantity: Int,
         notes: String?
     ) async throws {
-        let currentUser = getCurrentUser()
+        let currentUser = try getCurrentUser()
         
         // Capture before values for audit
         let beforeValues = CustomerOutOfStockOperation.CustomerOutOfStockValues(
@@ -738,7 +758,7 @@ class CustomerOutOfStockService: ObservableObject {
     // MARK: - Return Processing
     
     func processReturn(_ request: ReturnProcessingRequest) async throws {
-        let currentUser = getCurrentUser()
+        let currentUser = try getCurrentUser()
         let item = request.item
         
         // Validate return quantity
@@ -775,7 +795,7 @@ class CustomerOutOfStockService: ObservableObject {
     // MARK: - Batch Return Processing
     
     func processBatchReturns(_ requests: [ReturnProcessingRequest]) async throws {
-        let currentUser = getCurrentUser()
+        let currentUser = try getCurrentUser()
         
         for request in requests {
             let item = request.item
@@ -816,7 +836,7 @@ class CustomerOutOfStockService: ObservableObject {
     // MARK: - Item Deletion
     
     func deleteOutOfStockItem(_ item: CustomerOutOfStock) async throws {
-        let currentUser = getCurrentUser()
+        let currentUser = try getCurrentUser()
         
         // Log deletion
         await auditService.logCustomerOutOfStockDeletion(
@@ -834,7 +854,7 @@ class CustomerOutOfStockService: ObservableObject {
     // MARK: - Batch Operations
     
     func deleteBatchItems(_ items: [CustomerOutOfStock]) async throws {
-        let currentUser = getCurrentUser()
+        let currentUser = try getCurrentUser()
         
         // Log batch deletion and delete items
         for item in items {
@@ -855,7 +875,7 @@ class CustomerOutOfStockService: ObservableObject {
     private func cacheBaseDataIfApplicable(_ page: CachedOutOfStockPage, criteria: OutOfStockFilterCriteria) async {
         // Only cache base data if this is a full load without status filtering
         guard criteria.status == nil else {
-            print("📝 [Service] Not caching base data - has status filter")
+            logger.info("Not caching base data - has status filter")
             return
         }
         
@@ -872,7 +892,7 @@ class CustomerOutOfStockService: ObservableObject {
         )
         
         cacheManager.cacheBaseData(page.items, for: baseCriteria)
-        print("💾 [Service] Cached base data for incremental filtering: \(page.items.count) items")
+        logger.info("Cached base data for incremental filtering")
     }
     
     /// Try to apply status filtering on cached base data for ultra-fast switching
@@ -880,7 +900,7 @@ class CustomerOutOfStockService: ObservableObject {
         // Only use incremental filtering if this is a status-only change
         guard let statusFilter = criteria.status,
               criteria.searchText.isEmpty else {
-            print("🚫 [Service] Incremental filtering not applicable: has search or status is nil")
+            logger.info("Incremental filtering not applicable")
             return false
         }
         
@@ -898,13 +918,16 @@ class CustomerOutOfStockService: ObservableObject {
         
         // Check if we have cached base data
         if let baseItems = cacheManager.getCachedBaseData(for: baseCriteria) {
-            print("⚡ [Service] Found cached base data: \(baseItems.count) items")
+            logger.info("Found cached base data")
             
             // Apply status filtering in memory
             let filteredItems = baseItems.filter { dto in
                 OutOfStockStatus(rawValue: dto.status) == statusFilter
             }
-            print("⚡ [Service] Status filtering result: \(filteredItems.count) items match \(statusFilter.displayName)")
+            logger.safeInfo("Status filtering result", [
+                "filtered_count": String(filteredItems.count),
+                "status": statusFilter.displayName
+            ])
             
             // Create a cached page with filtered results
             let filteredPage = CachedOutOfStockPage(
@@ -921,7 +944,7 @@ class CustomerOutOfStockService: ObservableObject {
             return true
         }
         
-        print("📭 [Service] No cached base data found, falling back to full load")
+        logger.info("No cached base data found, falling back to full load")
         return false
     }
     
@@ -1004,10 +1027,16 @@ class CustomerOutOfStockService: ObservableObject {
     
     // MARK: - Helper Methods
     
-    private func getCurrentUser() -> (id: String, name: String) {
+    private func getCurrentUser() throws -> (id: String, name: String) {
         guard let currentUser = authService.currentUser else {
-            fatalError("Attempted to access customer out-of-stock service without authentication. User must be logged in.")
+            throw CustomerOutOfStockServiceError.userNotAuthenticated
         }
+        
+        // 验证用户session是否有效
+        if !authService.isSessionValid() {
+            throw CustomerOutOfStockServiceError.sessionExpired
+        }
+        
         return (id: currentUser.id, name: currentUser.name)
     }
     
@@ -1030,7 +1059,11 @@ class CustomerOutOfStockService: ObservableObject {
     private func logCurrentFilterOperation(resultCount: Int) async {
         guard !isPlaceholder else { return }
         
-        let currentUser = getCurrentUser()
+        // 安全地获取用户信息，如果认证失败则跳过日志记录
+        guard let currentUser = try? getCurrentUser() else {
+            logger.safeWarning("Cannot log filter operation - user not authenticated")
+            return
+        }
         let status = currentCriteria.status?.rawValue ?? "all"
         
         var additionalContext: [String: Any] = [:]
@@ -1087,7 +1120,11 @@ extension NewAuditingService {
         operatorUserName: String
     ) async {
         // Implementation would depend on your audit service structure
-        print("Audit: Customer out of stock item created - \(item.productDisplayName) for \(item.customer?.name ?? "Unknown")")
+        let logger = Logger(subsystem: "com.lopan.app", category: "AuditService")
+        logger.safeInfo("Audit: Customer out of stock item created", [
+            "product": item.productDisplayName,
+            "customer_name": item.customer?.name ?? "Unknown"
+        ])
     }
     
     func logCustomerOutOfStockUpdate(
@@ -1098,7 +1135,10 @@ extension NewAuditingService {
         operatorUserName: String,
         additionalInfo: String
     ) async {
-        print("Audit: Customer out of stock item updated - \(additionalInfo)")
+        let logger = Logger(subsystem: "com.lopan.app", category: "AuditService")
+        logger.safeInfo("Audit: Customer out of stock item updated", [
+            "additional_info": additionalInfo
+        ])
     }
     
     func logCustomerOutOfStockDeletion(
@@ -1106,7 +1146,11 @@ extension NewAuditingService {
         operatorUserId: String,
         operatorUserName: String
     ) async {
-        print("Audit: Customer out of stock item deleted - \(item.productDisplayName) for \(item.customer?.name ?? "Unknown")")
+        let logger = Logger(subsystem: "com.lopan.app", category: "AuditService")
+        logger.safeInfo("Audit: Customer out of stock item deleted", [
+            "product": item.productDisplayName,
+            "customer_name": item.customer?.name ?? "Unknown"
+        ])
     }
     
     func logReturnProcessing(
@@ -1116,6 +1160,10 @@ extension NewAuditingService {
         operatorUserId: String,
         operatorUserName: String
     ) async {
-        print("Audit: Return processed - \(returnQuantity) items for \(item.productDisplayName)")
+        let logger = Logger(subsystem: "com.lopan.app", category: "AuditService")
+        logger.safeInfo("Audit: Return processed", [
+            "return_quantity": String(returnQuantity),
+            "product": item.productDisplayName
+        ])
     }
 }
