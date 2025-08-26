@@ -248,8 +248,8 @@ class LargeSampleDataGenerator {
         let calendar = Calendar.current
         let daysInMonth = calendar.range(of: .day, in: .month, for: calendar.date(from: DateComponents(year: year, month: month))!)!.count
         
-        // 对于8月，限制在20号之前
-        let maxDay = (month == 8) ? min(20, daysInMonth) : daysInMonth
+        // 对于8月，限制在26号之前
+        let maxDay = (month == 8) ? min(26, daysInMonth) : daysInMonth
         let day = Int.random(in: 1...maxDay)
         let hour = Int.random(in: 8...18) // 工作时间
         let minute = Int.random(in: 0...59)

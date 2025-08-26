@@ -8,6 +8,7 @@
 
 import SwiftUI
 import SwiftData
+import Foundation
 
 // MARK: - Dashboard State Manager
 
@@ -17,7 +18,7 @@ class CustomerOutOfStockDashboardState: ObservableObject {
     // MARK: - UI State
     
     @Published var selectedDate = Date()
-    @Published var isTimelineExpanded = false
+    @Published var showingDatePicker = false
     @Published var showingFilterPanel = false
     @Published var showingAnalytics = false
     @Published var showingBatchCreation = false
@@ -25,10 +26,49 @@ class CustomerOutOfStockDashboardState: ObservableObject {
     @Published var selectedItems: Set<String> = []
     @Published var selectedDetailItem: CustomerOutOfStock?
     
+    // MARK: - View Mode State
+    
+    @Published var currentViewMode: DateNavigationMode = .dateNavigation(date: Date(), isEnabled: true)
+    
+    // View mode management
+    func enterFilterMode(with filters: OutOfStockFilters) {
+        let summary = filters.intelligentSummary
+        let filterCount = filters.activeFilterCount
+        let dateRange = filters.dateRange?.toFormattedDateRange()
+        
+        withAnimation(.easeInOut(duration: 0.3)) {
+            currentViewMode = .filtered(summary: summary, dateRange: dateRange, filterCount: filterCount)
+        }
+        
+        print("📊 [Dashboard] Entered filter mode: \(summary), date range: \(dateRange ?? "none")")
+    }
+    
+    func exitFilterMode() {
+        withAnimation(.easeInOut(duration: 0.3)) {
+            currentViewMode = .dateNavigation(date: selectedDate, isEnabled: true)
+            activeFilters = OutOfStockFilters() // Clear filters
+        }
+        
+        print("📊 [Dashboard] Exited filter mode, returned to date navigation")
+    }
+    
+    func updateDateInNavigationMode(_ date: Date) {
+        if case .dateNavigation = currentViewMode {
+            withAnimation(.easeInOut(duration: 0.2)) {
+                currentViewMode = .dateNavigation(date: date, isEnabled: true)
+            }
+        }
+    }
+    
     // Status filtering state
     @Published var selectedStatusTab: OutOfStockStatus? = nil
     @Published var statusTabAnimationScale: CGFloat = 1.0
     @Published var isProcessingStatusChange = false
+    
+    // Debouncing state for performance optimization
+    var statusChangeTimer: Timer?
+    var pendingStatusChange: OutOfStockStatus?
+    let statusChangeDebounceDelay: TimeInterval = 0.3
     
     // MARK: - Data State
     
@@ -64,6 +104,10 @@ class CustomerOutOfStockDashboardState: ObservableObject {
     var filteredItemsCount: Int {
         hasActiveFilters ? totalCount : items.count
     }
+    
+    var isInFilterMode: Bool {
+        currentViewMode.isFilterMode
+    }
 }
 
 // MARK: - Filter Model
@@ -76,23 +120,115 @@ struct OutOfStockFilters {
     var address: String?
     
     enum DateRange {
-        case today
-        case thisWeek  
+        case thisWeek
+        case lastWeek
         case thisMonth
+        case lastMonth
         case custom(start: Date, end: Date)
         
         var displayText: String {
             switch self {
-            case .today: return "今天"
             case .thisWeek: return "本周"
+            case .lastWeek: return "上周"
             case .thisMonth: return "本月"
+            case .lastMonth: return "上月"
             case .custom: return "自定义"
+            }
+        }
+        
+        func toFormattedDateRange() -> String {
+            let dateInterval = toDateInterval()
+            let formatter = DateFormatter()
+            formatter.dateFormat = "M/d"
+            
+            let startString = formatter.string(from: dateInterval.start)
+            let endDate = Calendar.current.date(byAdding: .day, value: -1, to: dateInterval.end)!
+            let endString = formatter.string(from: endDate)
+            
+            return "\(startString)-\(endString)"
+        }
+        
+        func toDateInterval() -> (start: Date, end: Date) {
+            let calendar = Calendar.current
+            let now = Date()
+            
+            switch self {
+            case .thisWeek:
+                let weekInterval = calendar.dateInterval(of: .weekOfYear, for: now)!
+                // DateInterval.end is already the start of the next period, perfect for exclusive comparison
+                return (weekInterval.start, weekInterval.end)
+                
+            case .lastWeek:
+                let lastWeek = calendar.date(byAdding: .weekOfYear, value: -1, to: now)!
+                let weekInterval = calendar.dateInterval(of: .weekOfYear, for: lastWeek)!
+                return (weekInterval.start, weekInterval.end)
+                
+            case .thisMonth:
+                let monthInterval = calendar.dateInterval(of: .month, for: now)!
+                // DateInterval.end is already the start of the next period, perfect for exclusive comparison
+                return (monthInterval.start, monthInterval.end)
+                
+            case .lastMonth:
+                let lastMonth = calendar.date(byAdding: .month, value: -1, to: now)!
+                let monthInterval = calendar.dateInterval(of: .month, for: lastMonth)!
+                return (monthInterval.start, monthInterval.end)
+                
+            case .custom(let start, let end):
+                // For custom ranges, ensure end date includes the entire day by adding one day
+                let adjustedEnd = calendar.date(byAdding: .day, value: 1, to: calendar.startOfDay(for: end))!
+                return (start, adjustedEnd)
             }
         }
     }
     
     var hasAnyFilters: Bool {
         customer != nil || product != nil || status != nil || dateRange != nil || address != nil
+    }
+    
+    var activeFilterCount: Int {
+        var count = 0
+        if customer != nil { count += 1 }
+        if product != nil { count += 1 }
+        if status != nil { count += 1 }
+        if dateRange != nil { count += 1 }
+        if address != nil { count += 1 }
+        return count
+    }
+    
+    var intelligentSummary: String {
+        var components: [String] = []
+        
+        if let customer = customer {
+            components.append("客户\(customer.name)")
+        }
+        
+        if let dateRange = dateRange {
+            components.append(dateRange.displayText)
+        }
+        
+        if let status = status {
+            components.append(status.displayName)
+        }
+        
+        if let product = product {
+            components.append("产品\(product.name)")
+        }
+        
+        if let address = address, !address.isEmpty {
+            components.append("地址\(address)")
+        }
+        
+        if components.isEmpty {
+            return "无筛选条件"
+        }
+        
+        // 显示前2个主要条件，如果有更多则显示"等X项"
+        if components.count <= 2 {
+            return components.joined(separator: " + ")
+        } else {
+            let mainComponents = components.prefix(2).joined(separator: " + ")
+            return "\(mainComponents) 等\(components.count)项"
+        }
     }
 }
 
@@ -129,7 +265,7 @@ struct CustomerOutOfStockDashboard: View {
                 headerSection
                 filterSection
                 quickStatsSection
-                timelineNavigationSection
+                adaptiveNavigationSection
                 mainContentSection
             }
         }
@@ -141,7 +277,11 @@ struct CustomerOutOfStockDashboard: View {
                 searchText: $dashboardState.searchText,
                 customers: dashboardState.customers,
                 products: dashboardState.products,
-                onApply: applyFilters
+                onApply: applyFilters,
+                onDateRangeApplied: handleDateRangeApplied,
+                onFilterModeEntered: { filters in
+                    dashboardState.enterFilterMode(with: filters)
+                }
             )
         }
         .sheet(isPresented: $dashboardState.showingAnalytics) {
@@ -159,6 +299,19 @@ struct CustomerOutOfStockDashboard: View {
                     Task {
                         await refreshData()
                     }
+                }
+            )
+        }
+        .sheet(isPresented: $dashboardState.showingDatePicker) {
+            DatePickerContent(
+                initialDate: dashboardState.selectedDate,
+                onSave: { newDate in
+                    dashboardState.showingDatePicker = false
+                    dashboardState.selectedDate = newDate
+                    dashboardState.updateDateInNavigationMode(newDate)
+                },
+                onCancel: {
+                    dashboardState.showingDatePicker = false
                 }
             )
         }
@@ -263,71 +416,21 @@ struct CustomerOutOfStockDashboard: View {
         .animation(.spring(response: 0.6, dampingFraction: 0.8), value: animationState.headerOffset)
     }
     
-    // MARK: - Timeline Navigation
+    // MARK: - Adaptive Navigation
     
-    private var timelineNavigationSection: some View {
+    private var adaptiveNavigationSection: some View {
         VStack(spacing: 0) {
-            // Date selector with compact design
-            HStack {
-                Button(action: previousDay) {
-                    Image(systemName: "chevron.left")
-                        .font(.system(size: 16, weight: .medium))
-                        .foregroundColor(.blue)
-                        .padding(.vertical, 8)
-                        .padding(.horizontal, 12)
-                }
-                .buttonStyle(.plain)
-                
-                Spacer()
-                
-                // Compact Date display
-                Button(action: { dashboardState.isTimelineExpanded.toggle() }) {
-                    HStack(spacing: 8) {
-                        Text(dashboardState.selectedDate, style: .date)
-                            .font(.system(size: 16, weight: .semibold))
-                            .foregroundColor(.primary)
-                        
-                        Text(dayOfWeekText(dashboardState.selectedDate))
-                            .font(.system(size: 12, weight: .medium))
-                            .foregroundColor(.secondary)
-                    }
-                    .padding(.horizontal, 12)
-                    .padding(.vertical, 6)
-                    .background(
-                        RoundedRectangle(cornerRadius: 8)
-                            .fill(Color.blue.opacity(0.08))
-                            .overlay(
-                                RoundedRectangle(cornerRadius: 8)
-                                    .stroke(Color.blue.opacity(0.15), lineWidth: 1)
-                            )
-                    )
-                    .scaleEffect(dashboardState.isTimelineExpanded ? 1.02 : 1.0)
-                    .animation(.spring(response: 0.3, dampingFraction: 0.7), value: dashboardState.isTimelineExpanded)
-                }
-                
-                Spacer()
-                
-                Button(action: nextDay) {
-                    Image(systemName: "chevron.right")
-                        .font(.system(size: 16, weight: .medium))
-                        .foregroundColor(isSelectedDateToday ? .gray : .blue)
-                        .padding(.vertical, 8)
-                        .padding(.horizontal, 12)
-                }
-                .buttonStyle(.plain)
-                .disabled(isSelectedDateToday)
-            }
-            .padding(.horizontal, 20)
+            AdaptiveDateNavigationBar(
+                mode: dashboardState.currentViewMode,
+                onPreviousDay: previousDay,
+                onNextDay: adaptiveNextDay,
+                onDateTapped: { dashboardState.showingDatePicker = true },
+                onClearFilters: clearFilters,
+                onFilterSummaryTapped: { dashboardState.showingFilterPanel = true },
+                sortOrder: dashboardState.sortOrder,
+                onToggleSort: toggleSortOrder
+            )
             
-            // Expanded timeline picker
-            if dashboardState.isTimelineExpanded {
-                TimelinePickerView(
-                    selectedDate: $dashboardState.selectedDate,
-                    dateRange: $dashboardState.activeFilters.dateRange
-                )
-                .transition(.scale.combined(with: .opacity))
-                .animation(.spring(response: 0.4, dampingFraction: 0.8), value: dashboardState.isTimelineExpanded)
-            }
         }
         .padding(.vertical, 8)
     }
@@ -343,7 +446,7 @@ struct CustomerOutOfStockDashboard: View {
         ], spacing: 12) {
             QuickStatCard(
                 title: "总计",
-                value: "\(dashboardState.unfilteredTotalCount)", // [rule:§3.2 Repository Protocol] Always show unfiltered total count
+                value: "\(getTotalCount())", // Show filtered total when filters are active
                 icon: "list.bullet.rectangle.fill",
                 color: .blue,
                 trend: nil,
@@ -455,16 +558,6 @@ struct CustomerOutOfStockDashboard: View {
                         }
                     }
                 }
-            }
-            
-            // Active filter chips
-            if dashboardState.hasActiveFilters {
-                ActiveFiltersView(
-                    filters: dashboardState.activeFilters,
-                    searchText: dashboardState.searchText,
-                    onRemove: removeFilter,
-                    onClearAll: clearAllFilters
-                )
             }
         }
         .padding(.horizontal, 20)
@@ -674,12 +767,24 @@ struct CustomerOutOfStockDashboard: View {
             dashboardState.isLoading = true
         }
         
-        // Create criteria with current filters including status filter
+        // Determine date range based on active filters
+        let dateRange: (start: Date, end: Date)
+        if let filterDateRange = dashboardState.activeFilters.dateRange {
+            // Use the date range from filters
+            dateRange = filterDateRange.toDateInterval()
+            print("🔧 [Dashboard] Using filter date range: \(filterDateRange.displayText) -> \(dateRange.start) to \(dateRange.end)")
+        } else {
+            // Fall back to single day for selected date
+            dateRange = CustomerOutOfStockService.createDateRange(for: dashboardState.selectedDate)
+            print("🔧 [Dashboard] Using selected date range: \(dashboardState.selectedDate) -> \(dateRange.start) to \(dateRange.end)")
+        }
+        
+        // Create criteria with correct date range
         let criteria = OutOfStockFilterCriteria(
             customer: dashboardState.activeFilters.customer,
             product: dashboardState.activeFilters.product,
             status: dashboardState.selectedStatusTab,
-            dateRange: CustomerOutOfStockService.createDateRange(for: dashboardState.selectedDate),
+            dateRange: dateRange,
             searchText: dashboardState.searchText,
             page: 0,
             pageSize: 50,
@@ -708,7 +813,7 @@ struct CustomerOutOfStockDashboard: View {
                 customer: dashboardState.activeFilters.customer,
                 product: dashboardState.activeFilters.product,
                 status: nil, // Don't filter by status to get all counts
-                dateRange: CustomerOutOfStockService.createDateRange(for: dashboardState.selectedDate),
+                dateRange: dateRange, // Use the same date range as main data loading
                 searchText: dashboardState.searchText,
                 page: 0,
                 pageSize: 50,
@@ -718,7 +823,7 @@ struct CustomerOutOfStockDashboard: View {
             
             // Load unfiltered total count for "总计" display [rule:§3.2 Repository Protocol]
             let unfilteredCriteria = OutOfStockFilterCriteria(
-                dateRange: CustomerOutOfStockService.createDateRange(for: dashboardState.selectedDate),
+                dateRange: dateRange, // Use the same date range as main data loading
                 page: 0,
                 pageSize: 1 // Only need count, not data
             )
@@ -727,7 +832,7 @@ struct CustomerOutOfStockDashboard: View {
             await MainActor.run {
                 dashboardState.statusCounts = statusCounts
                 dashboardState.unfilteredTotalCount = unfilteredTotal
-                print("📊 Real status counts loaded: \(statusCounts)")
+                print("📊 Real status counts loaded for range \(dateRange.start) to \(dateRange.end): \(statusCounts)")
                 print("📊 Unfiltered total count: \(unfilteredTotal)")
             }
         }
@@ -814,9 +919,51 @@ struct CustomerOutOfStockDashboard: View {
     
     private func applyFilters() {
         // Apply filters and reload data
-        print("🔧 Applying filters")
+        print("🔧 [Dashboard] Applying filters")
+        
+        // Enter filter mode if filters are active
+        if dashboardState.activeFilters.hasAnyFilters || !dashboardState.searchText.isEmpty {
+            dashboardState.enterFilterMode(with: dashboardState.activeFilters)
+        }
+        
+        // Clear current data immediately to prevent stale data display
+        dashboardState.items = []
+        dashboardState.totalCount = 0
+        dashboardState.isLoading = true
+        
+        // Trigger scroll to top when filters are applied
+        dashboardState.shouldScrollToTop = true
+        
         Task {
+            // Clear service state to ensure fresh data load
+            customerOutOfStockService.currentPage = 0
+            customerOutOfStockService.hasMoreData = true
+            customerOutOfStockService.items = []
+            customerOutOfStockService.totalRecordsCount = 0
+            
+            // Refresh data with new filters
             await refreshData()
+            
+            print("✅ [Dashboard] Filters applied and data refreshed")
+        }
+    }
+    
+    private func handleDateRangeApplied(_ targetDate: Date?) {
+        // Handle date synchronization from filter panel
+        print("📅 [Dashboard] Date range applied from filter: \(targetDate?.description ?? "nil")")
+        
+        if let targetDate = targetDate {
+            // Update the selected date to match the filter
+            withAnimation(.easeInOut(duration: 0.3)) {
+                dashboardState.selectedDate = targetDate
+            }
+            print("📅 [Dashboard] Updated selectedDate to: \(targetDate)")
+        } else {
+            // If no specific date provided, use current date
+            withAnimation(.easeInOut(duration: 0.3)) {
+                dashboardState.selectedDate = Date()
+            }
+            print("📅 [Dashboard] Reset selectedDate to today")
         }
     }
     
@@ -834,6 +981,76 @@ struct CustomerOutOfStockDashboard: View {
         
         Task {
             await refreshData()
+        }
+    }
+    
+    private func toggleSortOrder() {
+        withAnimation(.easeInOut(duration: 0.3)) {
+            dashboardState.sortOrder = dashboardState.sortOrder == .newestFirst ? .oldestFirst : .newestFirst
+        }
+        
+        Task {
+            await refreshData()
+        }
+    }
+    
+    // MARK: - Helper Functions
+    
+    private func getTotalCount() -> Int {
+        // Check if any filters are active (customer or product)
+        let hasFilters = dashboardState.activeFilters.customer != nil || 
+                        dashboardState.activeFilters.product != nil
+        
+        if hasFilters {
+            // When filters are active, sum all filtered status counts
+            return dashboardState.statusCounts.values.reduce(0, +)
+        } else {
+            // When no filters are active, show unfiltered total
+            return dashboardState.unfilteredTotalCount
+        }
+    }
+    
+    // MARK: - Mode Management
+    
+    private func clearFilters() {
+        print("🧹 [Dashboard] Clearing filters and returning to date navigation mode")
+        
+        // Clear filters
+        withAnimation(.easeInOut(duration: 0.3)) {
+            dashboardState.activeFilters = OutOfStockFilters()
+            dashboardState.searchText = ""
+            dashboardState.selectedStatusTab = nil
+        }
+        
+        // Exit filter mode
+        dashboardState.exitFilterMode()
+        
+        // Refresh data
+        Task {
+            await refreshData()
+        }
+    }
+    
+    private func adaptiveNextDay() {
+        if case .dateNavigation = dashboardState.currentViewMode {
+            let nextDate = Calendar.current.date(byAdding: .day, value: 1, to: dashboardState.selectedDate) ?? dashboardState.selectedDate
+            
+            // Check if next date is not in the future
+            let today = Date()
+            let calendar = Calendar.current
+            if calendar.compare(nextDate, to: today, toGranularity: .day) == .orderedDescending {
+                print("⚠️ [Adaptive Navigation] Cannot select future date")
+                return
+            }
+            
+            dashboardState.selectedDate = nextDate
+            dashboardState.updateDateInNavigationMode(nextDate)
+            
+            Task {
+                print("🔄 [Adaptive Navigation] Loading data for next date...")
+                await refreshData()
+                print("✅ [Adaptive Navigation] Data refresh completed")
+            }
         }
     }
     
@@ -886,6 +1103,7 @@ struct CustomerOutOfStockDashboard: View {
         withAnimation(.easeInOut(duration: 0.3)) {
             dashboardState.selectedDate = newDate
         }
+        dashboardState.updateDateInNavigationMode(newDate)
         
         Task {
             print("🔄 [日期切换] 开始刷新数据...")
@@ -998,9 +1216,36 @@ struct CustomerOutOfStockDashboard: View {
     private func handleStatusTabTap(_ status: OutOfStockStatus?) {
         print("📊 [Status Filter] Tapped status tab: \(status?.displayName ?? "总计")")
         
-        // Prevent rapid taps while processing
+        // Debounce rapid taps for better performance
+        dashboardState.statusChangeTimer?.invalidate()
+        dashboardState.pendingStatusChange = status
+        
+        // Immediately update UI state for responsiveness
+        withAnimation(.easeInOut(duration: 0.2)) {
+            // If tapping the same status, clear the filter
+            if dashboardState.selectedStatusTab == status {
+                dashboardState.selectedStatusTab = nil
+                print("📊 [Status Filter] Applied status filter: 总计")
+            } else {
+                dashboardState.selectedStatusTab = status
+                print("📊 [Status Filter] Applied status filter: \(status?.displayName ?? "总计")")
+            }
+        }
+        
+        // Debounced data loading
+        dashboardState.statusChangeTimer = Timer.scheduledTimer(withTimeInterval: dashboardState.statusChangeDebounceDelay, repeats: false) { _ in
+            Task { @MainActor in
+                await self.performDebouncedStatusChange()
+            }
+        }
+    }
+    
+    private func performDebouncedStatusChange() async {
+        guard let pendingStatus = dashboardState.pendingStatusChange else { return }
+        
+        // Prevent processing if already processing
         guard !dashboardState.isProcessingStatusChange else {
-            print("⏸️ [Status Filter] Ignoring tap - already processing status change")
+            print("⏸️ [Status Filter] Ignoring debounced change - already processing")
             return
         }
         
@@ -1008,9 +1253,9 @@ struct CustomerOutOfStockDashboard: View {
         dashboardState.isProcessingStatusChange = true
         
         // Handle scroll position management [rule:§3+.2 API Contract]
-        let previousStatus = dashboardState.selectedStatusTab
+        let currentStatus = dashboardState.selectedStatusTab
         
-        if previousStatus == nil && status != nil {
+        if currentStatus == nil && pendingStatus != nil {
             // Switching from "总计" to filtered view - save scroll position
             if let firstVisibleItem = dashboardState.items.first {
                 dashboardState.totalScrollPosition = firstVisibleItem.id
@@ -1018,64 +1263,49 @@ struct CustomerOutOfStockDashboard: View {
             }
         }
         
-        // Animate status tab selection
-        withAnimation(.easeInOut(duration: 0.3)) {
-            // If tapping the same status, clear the filter
-            if dashboardState.selectedStatusTab == status {
-                dashboardState.selectedStatusTab = nil
-                print("📊 [Status Filter] Cleared status filter (show all)")
-            } else {
-                dashboardState.selectedStatusTab = status
-                print("📊 [Status Filter] Applied status filter: \(status?.displayName ?? "总计")")
-            }
-        }
-        
         // Trigger scroll to top for filtered views [rule:§3+.2 API Contract]
-        if dashboardState.selectedStatusTab != nil {
+        if currentStatus != nil {
             dashboardState.shouldScrollToTop = true
             print("📍 [Scroll] Triggered scroll to top for filtered view")
         }
         
         // Reset pagination state for status filter change [rule:§3+.2 API Contract]
-        Task { @MainActor in
-            do {
-                print("🔄 [Status Filter] Refreshing data with status filter...")
-                
-                // Clear UI data immediately to prevent showing stale data
-                dashboardState.items = []
-                dashboardState.totalCount = 0
-                dashboardState.isLoading = true
-                
-                // Force service state reset when changing status filters - critical fix!
-                customerOutOfStockService.currentPage = 0
-                customerOutOfStockService.hasMoreData = true
-                customerOutOfStockService.isLoading = false
-                customerOutOfStockService.isLoadingMore = false
-                
-                // Clear service items array to prevent stale data
-                customerOutOfStockService.items = []
-                customerOutOfStockService.totalRecordsCount = 0
-                
-                print("🔧 [Status Filter] Service state reset: page=\(customerOutOfStockService.currentPage), hasMore=\(customerOutOfStockService.hasMoreData)")
-                
-                await refreshData()
-                print("✅ [Status Filter] Data refresh completed")
-                
-                // Restore "总计" scroll position if switching back from filtered view [rule:§3+.2 API Contract]
-                if dashboardState.selectedStatusTab == nil && dashboardState.totalScrollPosition != nil {
-                    print("📍 [Scroll] Will restore 总计 scroll position")
-                    // The position restoration is handled in virtualListSection's onChange
-                }
-            } catch {
-                print("❌ [Status Filter] Data refresh failed: \(error)")
-                dashboardState.error = error
-            }
+        do {
+            print("🔄 [Status Filter] Refreshing data with debounced status filter...")
             
-            // Reset processing flag after a short delay to prevent rapid taps
-            DispatchQueue.main.asyncAfter(deadline: .now() + 0.5) {
-                dashboardState.isProcessingStatusChange = false
+            // Clear UI data immediately to prevent showing stale data
+            dashboardState.items = []
+            dashboardState.totalCount = 0
+            dashboardState.isLoading = true
+            
+            // Force service state reset when changing status filters - critical fix!
+            customerOutOfStockService.currentPage = 0
+            customerOutOfStockService.hasMoreData = true
+            customerOutOfStockService.isLoading = false
+            customerOutOfStockService.isLoadingMore = false
+            
+            // Clear service items array to prevent stale data
+            customerOutOfStockService.items = []
+            customerOutOfStockService.totalRecordsCount = 0
+            
+            print("🔧 [Status Filter] Service state reset: page=\(customerOutOfStockService.currentPage), hasMore=\(customerOutOfStockService.hasMoreData)")
+            
+            await refreshData()
+            print("✅ [Status Filter] Data refresh completed")
+            
+            // Restore "总计" scroll position if switching back from filtered view [rule:§3+.2 API Contract]
+            if currentStatus == nil && dashboardState.totalScrollPosition != nil {
+                print("📍 [Scroll] Will restore 总计 scroll position")
+                // The position restoration is handled in virtualListSection's onChange
             }
+        } catch {
+            print("❌ [Status Filter] Data refresh failed: \(error)")
+            dashboardState.error = error
         }
+        
+        // Reset processing flag and clear pending change
+        dashboardState.isProcessingStatusChange = false
+        dashboardState.pendingStatusChange = nil
     }
 }
 
@@ -1178,13 +1408,44 @@ private struct QuickStatCard: View {
     }
 }
 
-// Implementation placeholders removed - functionality integrated into main dashboard
-private struct TimelinePickerView: View {
-    @Binding var selectedDate: Date
-    @Binding var dateRange: OutOfStockFilters.DateRange?
+// MARK: - Date Picker Content
+
+private struct DatePickerContent: View {
+    @State private var tempDate: Date
+    let onSave: (Date) -> Void
+    let onCancel: () -> Void
+    
+    init(initialDate: Date, onSave: @escaping (Date) -> Void, onCancel: @escaping () -> Void) {
+        _tempDate = State(initialValue: initialDate)
+        self.onSave = onSave
+        self.onCancel = onCancel
+    }
     
     var body: some View {
-        EmptyView()
+        NavigationView {
+            VStack {
+                DatePicker("选择日期", 
+                          selection: $tempDate,
+                          displayedComponents: .date)
+                    .datePickerStyle(GraphicalDatePickerStyle())
+                    .padding()
+                
+                Spacer()
+            }
+            .navigationTitle("选择日期")
+            .navigationBarTitleDisplayMode(.inline)
+            .navigationBarItems(
+                leading: Button("取消") {
+                    onCancel()
+                },
+                trailing: Button("完成") {
+                    onSave(tempDate)
+                }
+                .fontWeight(.semibold)
+            )
+        }
+        .presentationDetents([.medium])
+        .presentationDragIndicator(.visible)
     }
 }
 
@@ -1193,11 +1454,101 @@ private struct ActiveFiltersView: View {
     let searchText: String
     let onRemove: (String) -> Void
     let onClearAll: () -> Void
+    let sortOrder: CustomerOutOfStockNavigationState.SortOrder
+    let onToggleSort: () -> Void
     
     var body: some View {
-        EmptyView()
+        HStack(spacing: 12) {
+            // Active filter chips
+            LazyHStack(spacing: 8) {
+                // Search filter chip
+                if !searchText.isEmpty {
+                    FilterChip(
+                        title: "搜索: \(searchText)",
+                        color: .blue,
+                        onRemove: { onRemove("search") }
+                    )
+                }
+                
+                // Date range filter chip
+                if let dateRange = filters.dateRange {
+                    FilterChip(
+                        title: "\(dateRange.displayText)",
+                        color: .green,
+                        onRemove: { onRemove("dateRange") }
+                    )
+                }
+                
+                // Customer filter chip
+                if let customer = filters.customer {
+                    FilterChip(
+                        title: "客户: \(customer.name)",
+                        color: .purple,
+                        onRemove: { onRemove("customer") }
+                    )
+                }
+                
+                // Product filter chip
+                if let product = filters.product {
+                    FilterChip(
+                        title: "产品: \(product.name)",
+                        color: .orange,
+                        onRemove: { onRemove("product") }
+                    )
+                }
+                
+                // Status filter chip
+                if let status = filters.status {
+                    FilterChip(
+                        title: "状态: \(status.displayName)",
+                        color: .red,
+                        onRemove: { onRemove("status") }
+                    )
+                }
+            }
+            
+            Spacer()
+            
+            // Sort button
+            Button(action: onToggleSort) {
+                HStack(spacing: 4) {
+                    Image(systemName: sortOrder == .newestFirst ? "arrow.down" : "arrow.up")
+                        .font(.system(size: 12, weight: .semibold))
+                    Text(sortOrder == .newestFirst ? "倒序" : "正序")
+                        .font(.caption)
+                        .fontWeight(.medium)
+                }
+                .foregroundColor(.blue)
+                .padding(.horizontal, 12)
+                .padding(.vertical, 6)
+                .background(
+                    Capsule()
+                        .fill(Color.blue.opacity(0.1))
+                )
+            }
+            
+            // Clear all button
+            Button("清除筛选", action: onClearAll)
+                .font(.caption)
+                .fontWeight(.medium)
+                .foregroundColor(.red)
+                .padding(.horizontal, 12)
+                .padding(.vertical, 6)
+                .background(
+                    Capsule()
+                        .fill(Color.red.opacity(0.1))
+                )
+        }
+        .padding(.horizontal, 16)
+        .padding(.vertical, 8)
+        .background(
+            RoundedRectangle(cornerRadius: 12)
+                .fill(Color(.systemBackground))
+                .shadow(color: .black.opacity(0.05), radius: 4, x: 0, y: 2)
+        )
     }
 }
+
 
 private struct OutOfStockAnalyticsSheet: View {
     let items: [CustomerOutOfStock]

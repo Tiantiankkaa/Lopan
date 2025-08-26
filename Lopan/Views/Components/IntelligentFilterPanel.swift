@@ -46,12 +46,10 @@ class IntelligentFilterState: ObservableObject {
 // MARK: - Supporting Models
 
 enum DateRangeOption: CaseIterable {
-    case today, yesterday, thisWeek, lastWeek, thisMonth, lastMonth, custom
+    case thisWeek, lastWeek, thisMonth, lastMonth, custom
     
     var title: String {
         switch self {
-        case .today: return "今天"
-        case .yesterday: return "昨天"
         case .thisWeek: return "本周"
         case .lastWeek: return "上周"
         case .thisMonth: return "本月"
@@ -65,29 +63,26 @@ enum DateRangeOption: CaseIterable {
         let now = Date()
         
         switch self {
-        case .today:
-            return (calendar.startOfDay(for: now), calendar.date(byAdding: .day, value: 1, to: calendar.startOfDay(for: now))!)
-        case .yesterday:
-            let yesterday = calendar.date(byAdding: .day, value: -1, to: now)!
-            return (calendar.startOfDay(for: yesterday), calendar.date(byAdding: .day, value: 1, to: calendar.startOfDay(for: yesterday))!)
         case .thisWeek:
-            let startOfWeek = calendar.dateInterval(of: .weekOfYear, for: now)?.start ?? now
-            let endOfWeek = calendar.date(byAdding: .day, value: 7, to: startOfWeek)!
-            return (startOfWeek, endOfWeek)
+            let weekInterval = calendar.dateInterval(of: .weekOfYear, for: now)!
+            // DateInterval.end is already the start of the next period, perfect for exclusive comparison
+            return (weekInterval.start, weekInterval.end)
+            
         case .lastWeek:
             let lastWeek = calendar.date(byAdding: .weekOfYear, value: -1, to: now)!
-            let startOfWeek = calendar.dateInterval(of: .weekOfYear, for: lastWeek)?.start ?? now
-            let endOfWeek = calendar.date(byAdding: .day, value: 7, to: startOfWeek)!
-            return (startOfWeek, endOfWeek)
+            let weekInterval = calendar.dateInterval(of: .weekOfYear, for: lastWeek)!
+            return (weekInterval.start, weekInterval.end)
+            
         case .thisMonth:
-            let startOfMonth = calendar.dateInterval(of: .month, for: now)?.start ?? now
-            let endOfMonth = calendar.date(byAdding: .month, value: 1, to: startOfMonth)!
-            return (startOfMonth, endOfMonth)
+            let monthInterval = calendar.dateInterval(of: .month, for: now)!
+            // DateInterval.end is already the start of the next period, perfect for exclusive comparison
+            return (monthInterval.start, monthInterval.end)
+            
         case .lastMonth:
             let lastMonth = calendar.date(byAdding: .month, value: -1, to: now)!
-            let startOfMonth = calendar.dateInterval(of: .month, for: lastMonth)?.start ?? now
-            let endOfMonth = calendar.date(byAdding: .month, value: 1, to: startOfMonth)!
-            return (startOfMonth, endOfMonth)
+            let monthInterval = calendar.dateInterval(of: .month, for: lastMonth)!
+            return (monthInterval.start, monthInterval.end)
+            
         case .custom:
             return (now, now) // Will be overridden by custom dates
         }
@@ -106,6 +101,8 @@ struct IntelligentFilterPanel: View {
     let customers: [Customer]
     let products: [Product]
     let onApply: () -> Void
+    let onDateRangeApplied: ((Date?) -> Void)?
+    let onFilterModeEntered: ((OutOfStockFilters) -> Void)?
     
     @State private var showingCustomDatePicker = false
     @State private var showingCustomerPicker = false
@@ -337,12 +334,14 @@ struct IntelligentFilterPanel: View {
         // Initialize date range from current filters
         if let dateRange = filters.dateRange {
             switch dateRange {
-            case .today:
-                filterState.selectedDateRange = .today
             case .thisWeek:
                 filterState.selectedDateRange = .thisWeek
+            case .lastWeek:
+                filterState.selectedDateRange = .lastWeek
             case .thisMonth:
                 filterState.selectedDateRange = .thisMonth
+            case .lastMonth:
+                filterState.selectedDateRange = .lastMonth
             case .custom(let start, let end):
                 filterState.selectedDateRange = .custom
                 filterState.customStartDate = start
@@ -384,7 +383,10 @@ struct IntelligentFilterPanel: View {
             if let selectedDateRange = filterState.selectedDateRange {
                 switch selectedDateRange {
                 case .custom:
-                    dateRange = (start: filterState.customStartDate, end: filterState.customEndDate)
+                    // For custom ranges, ensure end date includes the entire day by adding one day
+                    let calendar = Calendar.current
+                    let adjustedEnd = calendar.date(byAdding: .day, value: 1, to: calendar.startOfDay(for: filterState.customEndDate))!
+                    dateRange = (start: filterState.customStartDate, end: adjustedEnd)
                 default:
                     dateRange = selectedDateRange.dateRange
                 }
@@ -437,37 +439,57 @@ struct IntelligentFilterPanel: View {
         filters.product = filterState.selectedProduct
         filters.status = filterState.selectedStatus
         
+        // Track the target date for main interface synchronization
+        var targetDateForSync: Date? = nil
+        
         // Convert date range if selected
         if let dateRange = filterState.selectedDateRange {
             switch dateRange {
-            case .today:
-                filters.dateRange = .today
-            case .yesterday:
-                let yesterday = Calendar.current.date(byAdding: .day, value: -1, to: Date()) ?? Date()
-                let startOfDay = Calendar.current.startOfDay(for: yesterday)
-                let endOfDay = Calendar.current.date(byAdding: .day, value: 1, to: startOfDay) ?? startOfDay
-                filters.dateRange = .custom(start: startOfDay, end: endOfDay)
             case .thisWeek:
                 filters.dateRange = .thisWeek
+                targetDateForSync = Date() // Sync to today for this week
             case .lastWeek:
+                filters.dateRange = .lastWeek
                 let lastWeek = Calendar.current.date(byAdding: .weekOfYear, value: -1, to: Date()) ?? Date()
                 let weekInterval = Calendar.current.dateInterval(of: .weekOfYear, for: lastWeek)
                 let startOfWeek = weekInterval?.start ?? Date()
-                let endOfWeek = Calendar.current.date(byAdding: .day, value: 7, to: startOfWeek) ?? startOfWeek
-                filters.dateRange = .custom(start: startOfWeek, end: endOfWeek)
+                targetDateForSync = startOfWeek // Sync to start of last week
             case .thisMonth:
                 filters.dateRange = .thisMonth
+                targetDateForSync = Date() // Sync to today for this month
             case .lastMonth:
+                filters.dateRange = .lastMonth
                 let lastMonth = Calendar.current.date(byAdding: .month, value: -1, to: Date()) ?? Date()
                 let monthInterval = Calendar.current.dateInterval(of: .month, for: lastMonth)
                 let startOfMonth = monthInterval?.start ?? Date()
-                let endOfMonth = Calendar.current.date(byAdding: .month, value: 1, to: startOfMonth) ?? startOfMonth
-                filters.dateRange = .custom(start: startOfMonth, end: endOfMonth)
+                targetDateForSync = startOfMonth // Sync to start of last month
             case .custom:
                 filters.dateRange = .custom(start: filterState.customStartDate, end: filterState.customEndDate)
+                targetDateForSync = filterState.customStartDate // Sync to custom start date
             }
         } else {
             filters.dateRange = nil
+            targetDateForSync = nil // Clear date selection
+        }
+        
+        // Notify the main interface about date range changes
+        if let onDateRangeApplied = onDateRangeApplied {
+            onDateRangeApplied(targetDateForSync)
+            print("📅 [IntelligentFilterPanel] Applied date sync: \(targetDateForSync?.description ?? "nil")")
+        }
+        
+        // Notify about filter mode entry if filters are active
+        let finalFilters = OutOfStockFilters(
+            customer: filters.customer,
+            product: filters.product,
+            status: filters.status,
+            dateRange: filters.dateRange,
+            address: filters.address
+        )
+        
+        if finalFilters.hasAnyFilters || !searchText.isEmpty {
+            onFilterModeEntered?(finalFilters)
+            print("🎯 [IntelligentFilterPanel] Entered filter mode with summary: \(finalFilters.intelligentSummary)")
         }
         
         dismiss()
@@ -612,6 +634,12 @@ private struct CustomDateRangePicker: View {
         searchText: $searchText,
         customers: [],
         products: [],
-        onApply: {}
+        onApply: {},
+        onDateRangeApplied: { date in
+            print("Preview: Date applied: \(date?.description ?? "nil")")
+        },
+        onFilterModeEntered: { filters in
+            print("Preview: Filter mode entered: \(filters.intelligentSummary)")
+        }
     )
 }

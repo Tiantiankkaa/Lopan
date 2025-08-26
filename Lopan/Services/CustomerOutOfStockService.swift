@@ -152,7 +152,24 @@ class CustomerOutOfStockService: ObservableObject {
     }
     
     func loadFilteredItems(criteria: OutOfStockFilterCriteria, resetPagination: Bool = true) async {
-        let isStatusFilterChange = resetPagination && criteria.status != currentCriteria.status
+        print("🔧 [Service] Loading filtered items - status: \(criteria.status?.displayName ?? "all"), date: \(criteria.dateRange?.start.description ?? "none"), search: \(criteria.searchText.isEmpty ? "none" : criteria.searchText)")
+        
+        // Try incremental filtering first for status-only changes
+        if resetPagination {
+            let usedIncrementalFiltering = await tryIncrementalStatusFiltering(criteria: criteria)
+            if usedIncrementalFiltering {
+                print("⚡ [Service] Used incremental status filtering - ultra fast!")
+                return
+            }
+        }
+        
+        // Validate and normalize criteria before processing
+        let normalizedCriteria = validateAndNormalizeCriteria(criteria)
+        
+        let isStatusFilterChange = resetPagination && normalizedCriteria.status != currentCriteria.status
+        let isCustomerFilterChange = resetPagination && normalizedCriteria.customer?.id != currentCriteria.customer?.id
+        let isProductFilterChange = resetPagination && normalizedCriteria.product?.id != currentCriteria.product?.id
+        let isSearchTextChange = resetPagination && normalizedCriteria.searchText != currentCriteria.searchText
         
         if resetPagination {
             currentPage = 0
@@ -163,34 +180,84 @@ class CustomerOutOfStockService: ObservableObject {
                 isLoading = true
             }
             hasMoreData = true // [rule:§3+.2 API Contract] Always assume more data initially
-            print("📊 [Service] Reset pagination for filtered items - criteria has status: \(criteria.status?.displayName ?? "None")")
+            print("📊 [Service] Reset pagination for filtered items - status: \(normalizedCriteria.status?.displayName ?? "None")")
             
-            // Clear cache when switching status filters to ensure fresh data
-            if isStatusFilterChange {
-                let targetDate = criteria.dateRange?.start ?? Date()
-                print("🧹 [Service] Status filter changed, clearing cache for date: \(targetDate)")
-                await invalidateCacheForDate(targetDate)
+            // Clear cache when any significant filter changes to ensure fresh data
+            if isStatusFilterChange || isCustomerFilterChange || isProductFilterChange || isSearchTextChange {
+                let targetDate = normalizedCriteria.dateRange?.start ?? Date()
+                print("🧹 [Service] Filter changed (status:\(isStatusFilterChange), customer:\(isCustomerFilterChange), product:\(isProductFilterChange), search:\(isSearchTextChange)), clearing cache for date: \(targetDate)")
+                await cacheManager.invalidateCache(for: targetDate)
             }
         } else {
             // Update currentPage from criteria to ensure page state synchronization
-            currentPage = criteria.page
+            currentPage = normalizedCriteria.page
         }
         
-        // Validate date criteria to prevent cross-date contamination
-        let requestedDate = criteria.dateRange?.start ?? Date()
+        // Enhanced date validation to prevent cross-date contamination
+        let requestedDate = normalizedCriteria.dateRange?.start ?? Date()
         let currentDate = currentCriteria.dateRange?.start ?? Date()
         let calendar = Calendar.current
         
         // If switching dates, force reset pagination and clear cache
         if !calendar.isDate(requestedDate, inSameDayAs: currentDate) && resetPagination {
             print("📅 [Service] Date changed from \(currentDate) to \(requestedDate), clearing cache")
-            await invalidateCacheForDate(requestedDate)
+            await cacheManager.invalidateCache(for: requestedDate)
+            
+            // Also clear previous date cache to prevent memory buildup
+            await cacheManager.invalidateCache(for: currentDate)
         }
         
-        currentCriteria = criteria
-        await loadPage(criteria: criteria, date: requestedDate, append: !resetPagination)
+        // Update current criteria with normalized version
+        currentCriteria = normalizedCriteria
+        await loadPage(criteria: normalizedCriteria, date: requestedDate, append: !resetPagination)
         
-        print("📊 [Service] Loaded filtered items: \(items.count), hasMore: \(hasMoreData), totalCount: \(totalRecordsCount)")
+        print("✅ [Service] Loaded filtered items: \(items.count), hasMore: \(hasMoreData), totalCount: \(totalRecordsCount)")
+    }
+    
+    // MARK: - Criteria Validation and Normalization
+    
+    private func validateAndNormalizeCriteria(_ criteria: OutOfStockFilterCriteria) -> OutOfStockFilterCriteria {
+        // Ensure date range is properly normalized to start of day
+        var normalizedDateRange = criteria.dateRange
+        if let dateRange = criteria.dateRange {
+            let calendar = Calendar.current
+            let normalizedStart = calendar.startOfDay(for: dateRange.start)
+            let normalizedEnd = calendar.startOfDay(for: dateRange.end)
+            normalizedDateRange = (start: normalizedStart, end: normalizedEnd)
+        }
+        
+        // Trim whitespace from search text
+        let normalizedSearchText = criteria.searchText.trimmingCharacters(in: .whitespacesAndNewlines)
+        
+        let normalizedCriteria = OutOfStockFilterCriteria(
+            customer: criteria.customer,
+            product: criteria.product,
+            status: criteria.status,
+            dateRange: normalizedDateRange,
+            searchText: normalizedSearchText,
+            page: criteria.page,
+            pageSize: criteria.pageSize,
+            sortOrder: criteria.sortOrder
+        )
+        
+        print("🔍 [Service] Normalized criteria - dateRange: \(normalizedDateRange?.start.description ?? "none") to \(normalizedDateRange?.end.description ?? "none")")
+        
+        return normalizedCriteria
+    }
+    
+    // MARK: - Cache Key Date Validation
+    
+    private func validateCacheKeyDate(criteria: OutOfStockFilterCriteria, fallbackDate: Date) -> Date {
+        // Use criteria's dateRange start if available and valid
+        if let dateRangeStart = criteria.dateRange?.start {
+            let calendar = Calendar.current
+            // Ensure the date is normalized to start of day for consistent caching
+            return calendar.startOfDay(for: dateRangeStart)
+        }
+        
+        // Fallback to provided date (also normalize to start of day)
+        let calendar = Calendar.current
+        return calendar.startOfDay(for: fallbackDate)
     }
     
     func loadNextPage() async {
@@ -211,6 +278,8 @@ class CustomerOutOfStockService: ObservableObject {
     }
     
     private func loadPage(criteria: OutOfStockFilterCriteria, date: Date, append: Bool) async {
+        print("📄 [Service] Loading page \(criteria.page) - append: \(append), status: \(criteria.status?.displayName ?? "all")")
+        
         if append {
             isLoadingMore = true
         } else {
@@ -226,21 +295,24 @@ class CustomerOutOfStockService: ObservableObject {
         }
         
         do {
-            // Create cache key using criteria's dateRange for consistency
-            let cacheKeyDate = criteria.dateRange?.start ?? date
+            // Enhanced cache key generation with better date validation
+            let cacheKeyDate = validateCacheKeyDate(criteria: criteria, fallbackDate: date)
             let cacheKey = OutOfStockCacheKey(
                 date: cacheKeyDate,
                 criteria: criteria,
                 page: criteria.page
             )
             
-            print("📊 [Service] Creating cache key with date=\(cacheKeyDate), status=\(criteria.status?.displayName ?? "all")")
+            print("📊 [Service] Creating cache key with validated date=\(cacheKeyDate), status=\(criteria.status?.displayName ?? "all"), hash=\(cacheKey.cacheIdentifier)")
             
             // Try to get from cache first
             if let cachedPage = await cacheManager.getCachedPage(for: cacheKey) {
+                print("💾 [Service] Cache hit for page \(criteria.page)")
                 await updateUIWithData(cachedPage, append: append)
                 return
             }
+            
+            print("🌐 [Service] Cache miss, fetching from repository...")
             
             // Fetch from repository - the repository itself handles thread safety
             let result = try await customerOutOfStockRepository.fetchOutOfStockRecords(
@@ -261,6 +333,11 @@ class CustomerOutOfStockService: ObservableObject {
                     // Cache the result asynchronously
                     Task {
                         await cacheManager.cachePage(cachedPage, for: cacheKey)
+                        
+                        // Also cache base data (without status filter) for fast status switching
+                        if !append && criteria.page == 0 {
+                            await self.cacheBaseDataIfApplicable(cachedPage, criteria: criteria)
+                        }
                     }
                     
                     // Update UI immediately with the data
@@ -311,17 +388,34 @@ class CustomerOutOfStockService: ObservableObject {
         } else {
             // For initial/replacement loads, validate data consistency before updating UI
             if !newItems.isEmpty {
-                // Validate that all items match the current filter criteria date range
+                // Validate that all items fall within the current filter criteria date range
                 if let dateRange = currentCriteria.dateRange {
-                    let expectedDate = Calendar.current.startOfDay(for: dateRange.start)
+                    let calendar = Calendar.current
+                    let rangeStart = calendar.startOfDay(for: dateRange.start)
+                    let rangeEnd = calendar.startOfDay(for: dateRange.end)
                     var dateValidationFailed = false
                     
+                    // Check if this is a single-day filter or a multi-day range
+                    let daysBetween = calendar.dateComponents([.day], from: rangeStart, to: rangeEnd).day ?? 0
+                    let isSingleDayFilter = daysBetween <= 1
+                    
                     for item in newItems {
-                        let itemDate = Calendar.current.startOfDay(for: item.requestDate)
-                        if itemDate != expectedDate {
-                            print("❌ [Service] Data validation failed: Item date \(itemDate) doesn't match expected \(expectedDate)")
-                            dateValidationFailed = true
-                            break
+                        let itemDate = calendar.startOfDay(for: item.requestDate)
+                        
+                        if isSingleDayFilter {
+                            // For single-day filters (today, yesterday), use exact match
+                            if itemDate != rangeStart {
+                                print("❌ [Service] Single-day validation failed: Item date \(itemDate) doesn't match expected \(rangeStart)")
+                                dateValidationFailed = true
+                                break
+                            }
+                        } else {
+                            // For multi-day ranges (week, month), use range validation
+                            if itemDate < rangeStart || itemDate >= rangeEnd {
+                                print("❌ [Service] Range validation failed: Item date \(itemDate) outside range \(rangeStart) to \(rangeEnd)")
+                                dateValidationFailed = true
+                                break
+                            }
                         }
                     }
                     
@@ -332,6 +426,8 @@ class CustomerOutOfStockService: ObservableObject {
                         totalRecordsCount = 0
                         hasMoreData = false
                         return
+                    } else {
+                        print("✅ [Service] Date validation passed for \(isSingleDayFilter ? "single-day" : "multi-day range") filter")
                     }
                 }
             }
@@ -388,9 +484,19 @@ class CustomerOutOfStockService: ObservableObject {
     func loadStatusCounts(criteria: OutOfStockFilterCriteria) async -> [OutOfStockStatus: Int] {
         guard !isPlaceholder else { return [:] }
         
+        // Check cache first for ultra-fast response
+        if let cachedCounts = cacheManager.getCachedStatusCounts(for: criteria) {
+            print("⚡ [Service] Using cached status counts: \(cachedCounts)")
+            return cachedCounts
+        }
+        
         do {
             let statusCounts = try await customerOutOfStockRepository.countOutOfStockRecordsByStatus(criteria: criteria)
             print("📊 [Service] Loaded status counts: \(statusCounts)")
+            
+            // Cache the result for future use
+            cacheManager.cacheStatusCounts(statusCounts, for: criteria)
+            
             return statusCounts
         } catch {
             print("❌ [Service] Failed to load status counts: \(error)")
@@ -427,7 +533,7 @@ class CustomerOutOfStockService: ObservableObject {
         guard !isPlaceholder else { return 0 }
         
         // Check cache first for ultra-fast response
-        if let cachedCount = await cacheManager.getCachedCount(for: criteria) {
+        if let cachedCount = cacheManager.getCachedCount(for: criteria) {
             print("⚡ [Service] Using cached count: \(cachedCount)")
             return cachedCount
         }
@@ -440,7 +546,7 @@ class CustomerOutOfStockService: ObservableObject {
             )
             
             // Cache the result for future use
-            await cacheManager.cacheCount(result.totalCount, for: criteria)
+            cacheManager.cacheCount(result.totalCount, for: criteria)
             
             print("📊 [Service] Filtered count for preview: \(result.totalCount) (cached for future)")
             return result.totalCount
@@ -455,7 +561,7 @@ class CustomerOutOfStockService: ObservableObject {
         guard !isPlaceholder else { return 0 }
         
         // Check special "clear all" cache first
-        if let cachedCount = await cacheManager.getCachedClearAllCount() {
+        if let cachedCount = cacheManager.getCachedClearAllCount() {
             print("⚡ [Service] Using cached clear all count: \(cachedCount)")
             return cachedCount
         }
@@ -478,7 +584,7 @@ class CustomerOutOfStockService: ObservableObject {
             )
             
             // Cache with highest priority
-            await cacheManager.cacheClearAllCount(result.totalCount)
+            cacheManager.cacheClearAllCount(result.totalCount)
             
             print("📊 [Service] Clear all count: \(result.totalCount) (cached with high priority)")
             return result.totalCount
@@ -743,6 +849,80 @@ class CustomerOutOfStockService: ObservableObject {
         
         // Note: Data refresh should be handled by the calling view/state manager
         await invalidateCache(currentDate: Date())
+    }
+    
+    /// Cache base data (without status filter) for incremental filtering
+    private func cacheBaseDataIfApplicable(_ page: CachedOutOfStockPage, criteria: OutOfStockFilterCriteria) async {
+        // Only cache base data if this is a full load without status filtering
+        guard criteria.status == nil else {
+            print("📝 [Service] Not caching base data - has status filter")
+            return
+        }
+        
+        // Create base criteria (same as original but ensure no status filter)
+        let baseCriteria = OutOfStockFilterCriteria(
+            customer: criteria.customer,
+            product: criteria.product,
+            status: nil,
+            dateRange: criteria.dateRange,
+            searchText: criteria.searchText,
+            page: criteria.page,
+            pageSize: criteria.pageSize,
+            sortOrder: criteria.sortOrder
+        )
+        
+        cacheManager.cacheBaseData(page.items, for: baseCriteria)
+        print("💾 [Service] Cached base data for incremental filtering: \(page.items.count) items")
+    }
+    
+    /// Try to apply status filtering on cached base data for ultra-fast switching
+    private func tryIncrementalStatusFiltering(criteria: OutOfStockFilterCriteria) async -> Bool {
+        // Only use incremental filtering if this is a status-only change
+        guard let statusFilter = criteria.status,
+              criteria.searchText.isEmpty else {
+            print("🚫 [Service] Incremental filtering not applicable: has search or status is nil")
+            return false
+        }
+        
+        // Try to get base data from cache (without status filter)
+        let baseCriteria = OutOfStockFilterCriteria(
+            customer: criteria.customer,
+            product: criteria.product,
+            status: nil, // No status filter for base data
+            dateRange: criteria.dateRange,
+            searchText: criteria.searchText,
+            page: 0,
+            pageSize: criteria.pageSize,
+            sortOrder: criteria.sortOrder
+        )
+        
+        // Check if we have cached base data
+        if let baseItems = cacheManager.getCachedBaseData(for: baseCriteria) {
+            print("⚡ [Service] Found cached base data: \(baseItems.count) items")
+            
+            // Apply status filtering in memory
+            let filteredItems = baseItems.filter { dto in
+                OutOfStockStatus(rawValue: dto.status) == statusFilter
+            }
+            print("⚡ [Service] Status filtering result: \(filteredItems.count) items match \(statusFilter.displayName)")
+            
+            // Create a cached page with filtered results
+            let filteredPage = CachedOutOfStockPage(
+                items: filteredItems,
+                totalCount: filteredItems.count,
+                hasMoreData: false // All data is already loaded for status filtering
+            )
+            
+            // Update current criteria
+            currentCriteria = criteria
+            
+            // Update UI with filtered results
+            await updateUIWithData(filteredPage, append: false)
+            return true
+        }
+        
+        print("📭 [Service] No cached base data found, falling back to full load")
+        return false
     }
     
     /// Create fallback cached page when DTO conversion fails

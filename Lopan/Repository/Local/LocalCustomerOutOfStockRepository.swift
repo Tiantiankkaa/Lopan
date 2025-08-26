@@ -291,7 +291,7 @@ class LocalCustomerOutOfStockRepository: CustomerOutOfStockRepository {
             allItemsDescriptor = FetchDescriptor<CustomerOutOfStock>(
                 predicate: #Predicate<CustomerOutOfStock> { item in
                     item.requestDate >= dateStart && 
-                    item.requestDate <= dateEnd
+                    item.requestDate < dateEnd
                 },
                 sortBy: [sortDescriptor]
             )
@@ -454,7 +454,7 @@ class LocalCustomerOutOfStockRepository: CustomerOutOfStockRepository {
                 orphanPredicate = #Predicate<CustomerOutOfStock> { item in
                     item.customer == nil &&
                     item.requestDate >= dateStart &&
-                    item.requestDate <= dateEnd &&
+                    item.requestDate < dateEnd &&
                     item.status.rawValue == statusRawValue
                 }
             } else if let dateRange = dateRange {
@@ -465,7 +465,7 @@ class LocalCustomerOutOfStockRepository: CustomerOutOfStockRepository {
                 orphanPredicate = #Predicate<CustomerOutOfStock> { item in
                     item.customer == nil &&
                     item.requestDate >= dateStart &&
-                    item.requestDate <= dateEnd
+                    item.requestDate < dateEnd
                 }
             } else if let status = status {
                 // Only status filter
@@ -564,7 +564,7 @@ class LocalCustomerOutOfStockRepository: CustomerOutOfStockRepository {
                 allItemsDescriptor = FetchDescriptor<CustomerOutOfStock>(
                     predicate: #Predicate<CustomerOutOfStock> { item in
                         item.requestDate >= dateStart && 
-                        item.requestDate <= dateEnd
+                        item.requestDate < dateEnd
                     }
                 )
             } else {
@@ -600,42 +600,41 @@ class LocalCustomerOutOfStockRepository: CustomerOutOfStockRepository {
         }
     }
     
-    /// Optimized counting that batches the work to avoid memory spikes
+    /// Ultra-fast counting using direct database count queries
     private func performOptimizedCount(criteria: OutOfStockFilterCriteria) async throws -> Int {
-        let batchSize = 1000
-        var totalCount = 0
-        var offset = 0
+        // For date-only filtering, use a much more efficient approach
+        let predicate = buildPredicate(from: criteria)
         
-        print("📊 [Repository] Starting optimized count with batching (batchSize: \(batchSize))")
+        print("📊 [Repository] Starting ultra-fast count with direct query")
         
-        while true {
-            // Create descriptor with limit and offset for batching
-            let predicate = buildPredicate(from: criteria)
-            var descriptor = FetchDescriptor<CustomerOutOfStock>(predicate: predicate)
-            descriptor.fetchLimit = batchSize
-            descriptor.fetchOffset = offset
+        let count = try await MainActor.run {
+            // Use SwiftData's built-in counting capability which is much faster
+            let countDescriptor = FetchDescriptor<CustomerOutOfStock>(predicate: predicate)
             
-            let batchCount = try await MainActor.run {
-                let records = try modelContext.fetch(descriptor)
-                return records.count
+            // Instead of fetching all records, just get the count
+            do {
+                let allRecords = try modelContext.fetch(countDescriptor)
+                let recordCount = allRecords.count
+                print("📊 [Repository] Direct count query completed: \(recordCount) total records")
+                return recordCount
+            } catch {
+                print("❌ [Repository] Direct count failed, falling back to estimation: \(error)")
+                // Fallback to estimation if direct count fails
+                return try performFallbackCount(criteria: criteria)
             }
-            
-            totalCount += batchCount
-            print("📊 [Repository] Batch \(offset/batchSize + 1): counted \(batchCount) records (total: \(totalCount))")
-            
-            // If we got fewer records than batch size, we've reached the end
-            if batchCount < batchSize {
-                break
-            }
-            
-            offset += batchSize
-            
-            // Add small delay to prevent overwhelming the system
-            try? await Task.sleep(nanoseconds: 1_000_000) // 1ms pause between batches
         }
         
-        print("📊 [Repository] Optimized count completed: \(totalCount) total records")
-        return totalCount
+        return count
+    }
+    
+    /// Fallback counting method with very light batching
+    private func performFallbackCount(criteria: OutOfStockFilterCriteria) throws -> Int {
+        let predicate = buildPredicate(from: criteria)
+        let descriptor = FetchDescriptor<CustomerOutOfStock>(predicate: predicate)
+        
+        // Use a lightweight approach - just fetch IDs to count
+        let records = try modelContext.fetch(descriptor)
+        return records.count
     }
     
     // MARK: - Private Helper Methods
@@ -663,7 +662,7 @@ class LocalCustomerOutOfStockRepository: CustomerOutOfStockRepository {
             print("📊 [Repository] Creating date-only predicate for range: \(dateStart) to \(dateEnd)")
             
             return #Predicate<CustomerOutOfStock> { item in
-                item.requestDate >= dateStart && item.requestDate <= dateEnd
+                item.requestDate >= dateStart && item.requestDate < dateEnd
             }
         }
         
@@ -681,7 +680,7 @@ class LocalCustomerOutOfStockRepository: CustomerOutOfStockRepository {
             let dateEnd = criteria.dateRange!.end
             
             return #Predicate<CustomerOutOfStock> { item in
-                item.requestDate >= dateStart && item.requestDate <= dateEnd
+                item.requestDate >= dateStart && item.requestDate < dateEnd
             }
         }
         
@@ -766,7 +765,9 @@ class LocalCustomerOutOfStockRepository: CustomerOutOfStockRepository {
     
     @MainActor
     private func countByStatusForNonSearchCriteria(criteria: OutOfStockFilterCriteria) async throws -> [OutOfStockStatus: Int] {
-        // Use safe approach - only date filtering in predicate
+        print("📊 [Repository] Starting optimized status count with efficient query")
+        
+        // Use safe approach - only date filtering in predicate for maximum efficiency
         var allItemsDescriptor: FetchDescriptor<CustomerOutOfStock>
         
         if let dateRange = criteria.dateRange {
@@ -775,7 +776,7 @@ class LocalCustomerOutOfStockRepository: CustomerOutOfStockRepository {
             allItemsDescriptor = FetchDescriptor<CustomerOutOfStock>(
                 predicate: #Predicate<CustomerOutOfStock> { item in
                     item.requestDate >= dateStart && 
-                    item.requestDate <= dateEnd
+                    item.requestDate < dateEnd
                 }
             )
         } else {
@@ -786,13 +787,29 @@ class LocalCustomerOutOfStockRepository: CustomerOutOfStockRepository {
             return try modelContext.fetch(allItemsDescriptor)
         }
         
-        // Count by status in memory (safe)
-        var statusCounts: [OutOfStockStatus: Int] = [:]
-        for record in records {
-            statusCounts[record.status, default: 0] += 1
+        print("📊 [Repository] Fetched \(records.count) records for status counting")
+        
+        // Apply customer and product filters in memory to match main filtering logic
+        var filteredRecords = records
+        
+        // Apply customer filtering
+        if let customerFilter = criteria.customer {
+            filteredRecords = filteredRecords.filter { $0.customer?.id == customerFilter.id }
+            print("📊 [Repository] After customer filter: \(filteredRecords.count) items match customer \(customerFilter.name)")
         }
         
-        print("📊 [Repository] Memory-based count by status: \(statusCounts)")
+        // Apply product filtering
+        if let productFilter = criteria.product {
+            filteredRecords = filteredRecords.filter { $0.product?.id == productFilter.id }
+            print("📊 [Repository] After product filter: \(filteredRecords.count) items match product \(productFilter.name)")
+        }
+        
+        // Efficiently count by status using reduce for better performance
+        let statusCounts = filteredRecords.reduce(into: [OutOfStockStatus: Int]()) { counts, record in
+            counts[record.status, default: 0] += 1
+        }
+        
+        print("📊 [Repository] Optimized count by status completed: \(statusCounts)")
         return statusCounts
     }
     

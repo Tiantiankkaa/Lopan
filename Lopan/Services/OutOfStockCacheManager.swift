@@ -200,13 +200,22 @@ class OutOfStockCacheManager: ObservableObject {
     // MARK: - Level 0: Count Cache (Ultra Hot Data)
     
     private var countCache: [String: (count: Int, timestamp: Date)] = [:]
+    private var statusCountCache: [String: (counts: [OutOfStockStatus: Int], timestamp: Date)] = [:]
     private let countCacheTTL: TimeInterval = 30 // 30 seconds for ultra-fast counts
+    private let statusCountCacheTTL: TimeInterval = 60 // 60 seconds for status counts
+    
+    // MARK: - Level -1: Base Data Cache (Status-agnostic)
+    
+    private var baseDataCache: [String: (items: [CustomerOutOfStockDTO], timestamp: Date)] = [:]
+    private let baseDataCacheTTL: TimeInterval = 300 // 5 minutes for base data
     
     // MARK: - Performance Metrics
     
     @Published private var memoryHits = 0
     @Published private var diskHits = 0
     @Published private var countCacheHits = 0
+    @Published private var statusCountCacheHits = 0
+    @Published private var baseDataCacheHits = 0
     @Published private var totalMisses = 0
     private var accessTimes: [Double] = []
     private var cleanupTimer: Timer?
@@ -249,6 +258,37 @@ class OutOfStockCacheManager: ObservableObject {
         }
         
         return nil
+    }
+    
+    /// Get cached status counts for base filter criteria (very fast)
+    func getCachedStatusCounts(for criteria: OutOfStockFilterCriteria) -> [OutOfStockStatus: Int]? {
+        let baseKey = generateBaseDataKey(from: criteria)
+        
+        if let cached = statusCountCache[baseKey] {
+            let age = Date().timeIntervalSince(cached.timestamp)
+            if age <= statusCountCacheTTL {
+                statusCountCacheHits += 1
+                print("⚡ [Status Count Cache] Hit for key: \(baseKey), age: \(String(format: "%.1f", age))s")
+                return cached.counts
+            } else {
+                statusCountCache.removeValue(forKey: baseKey)
+                print("⏰ [Status Count Cache] Expired entry removed: \(baseKey)")
+            }
+        }
+        
+        return nil
+    }
+    
+    /// Cache status counts for base filter criteria
+    func cacheStatusCounts(_ counts: [OutOfStockStatus: Int], for criteria: OutOfStockFilterCriteria) {
+        let baseKey = generateBaseDataKey(from: criteria)
+        statusCountCache[baseKey] = (counts: counts, timestamp: Date())
+        print("💾 [Status Count Cache] Stored counts for key: \(baseKey)")
+        
+        // Cleanup old entries
+        if statusCountCache.count > 50 {
+            cleanupExpiredStatusCountCache()
+        }
     }
     
     /// Cache count result for ultra-fast future access
@@ -313,6 +353,78 @@ class OutOfStockCacheManager: ObservableObject {
         }
         
         print("🧹 [Count Cache] Cleaned up \(keysToRemove.count) expired entries")
+    }
+    
+    private func cleanupExpiredStatusCountCache() {
+        let now = Date()
+        let keysToRemove = statusCountCache.compactMap { key, cached in
+            now.timeIntervalSince(cached.timestamp) > statusCountCacheTTL ? key : nil
+        }
+        
+        for key in keysToRemove {
+            statusCountCache.removeValue(forKey: key)
+        }
+        
+        print("🧹 [Status Count Cache] Cleaned up \(keysToRemove.count) expired entries")
+    }
+    
+    private func generateBaseDataKey(from criteria: OutOfStockFilterCriteria) -> String {
+        // Base data key excludes status and pagination to allow status filtering on cached data
+        var hasher = Hasher()
+        hasher.combine(criteria.customer?.id)
+        hasher.combine(criteria.product?.id)
+        hasher.combine(criteria.searchText)
+        
+        if let dateRange = criteria.dateRange {
+            hasher.combine(dateRange.start.timeIntervalSince1970)
+            hasher.combine(dateRange.end.timeIntervalSince1970)
+        }
+        
+        return "baseData_\(hasher.finalize())"
+    }
+    
+    /// Get cached base data items (status-agnostic)
+    func getCachedBaseData(for criteria: OutOfStockFilterCriteria) -> [CustomerOutOfStockDTO]? {
+        let baseKey = generateBaseDataKey(from: criteria)
+        
+        if let cached = baseDataCache[baseKey] {
+            let age = Date().timeIntervalSince(cached.timestamp)
+            if age <= baseDataCacheTTL {
+                baseDataCacheHits += 1
+                print("⚡ [Base Data Cache] Hit for key: \(baseKey), items: \(cached.items.count), age: \(String(format: "%.1f", age))s")
+                return cached.items
+            } else {
+                baseDataCache.removeValue(forKey: baseKey)
+                print("⏰ [Base Data Cache] Expired entry removed: \(baseKey)")
+            }
+        }
+        
+        return nil
+    }
+    
+    /// Cache base data items (status-agnostic)
+    func cacheBaseData(_ items: [CustomerOutOfStockDTO], for criteria: OutOfStockFilterCriteria) {
+        let baseKey = generateBaseDataKey(from: criteria)
+        baseDataCache[baseKey] = (items: items, timestamp: Date())
+        print("💾 [Base Data Cache] Stored \(items.count) items for key: \(baseKey)")
+        
+        // Cleanup old entries
+        if baseDataCache.count > 20 {
+            cleanupExpiredBaseDataCache()
+        }
+    }
+    
+    private func cleanupExpiredBaseDataCache() {
+        let now = Date()
+        let keysToRemove = baseDataCache.compactMap { key, cached in
+            now.timeIntervalSince(cached.timestamp) > baseDataCacheTTL ? key : nil
+        }
+        
+        for key in keysToRemove {
+            baseDataCache.removeValue(forKey: key)
+        }
+        
+        print("🧹 [Base Data Cache] Cleaned up \(keysToRemove.count) expired entries")
     }
     
     func getCachedPage(for key: OutOfStockCacheKey) async -> CachedOutOfStockPage? {
@@ -408,46 +520,67 @@ class OutOfStockCacheManager: ObservableObject {
     }
     
     func invalidateCache(for date: Date? = nil, filterHash: String? = nil) async {
-        // Always clear count cache when invalidating
+        print("🧹 [Cache] Starting cache invalidation - date: \(date?.description ?? "all"), filter: \(filterHash ?? "all")")
+        
+        // Always clear count cache when invalidating - critical for filter changes
+        let countCacheCleared = countCache.count
+        let statusCountCacheCleared = statusCountCache.count
+        let baseDataCacheCleared = baseDataCache.count
+        
         countCache.removeAll()
-        print("🧹 [Count Cache] Cleared all count cache entries during invalidation")
+        statusCountCache.removeAll()
+        baseDataCache.removeAll()
+        
+        print("🧹 [Count Cache] Cleared \(countCacheCleared) count cache entries during invalidation")
+        print("🧹 [Status Count Cache] Cleared \(statusCountCacheCleared) status count entries during invalidation")
+        print("🧹 [Base Data Cache] Cleared \(baseDataCacheCleared) base data entries during invalidation")
         
         if let date = date, let filterHash = filterHash {
             // Remove specific date/filter combination
+            let normalizedDate = Calendar.current.startOfDay(for: date)
             await removeFromCaches { key in
-                key.date == Calendar.current.startOfDay(for: date) && key.filterHash == filterHash
+                key.date == normalizedDate && key.filterHash == filterHash
             }
+            print("🧹 [Cache] Invalidated specific date/filter combo: \(normalizedDate), hash: \(filterHash)")
         } else if let date = date {
             // Remove all entries for specific date
+            let normalizedDate = Calendar.current.startOfDay(for: date)
             await removeFromCaches { key in
-                key.date == Calendar.current.startOfDay(for: date)
+                key.date == normalizedDate
             }
+            print("🧹 [Cache] Invalidated all entries for date: \(normalizedDate)")
         } else if let filterHash = filterHash {
             // Remove all entries with specific filter
             await removeFromCaches { key in
                 key.filterHash == filterHash
             }
+            print("🧹 [Cache] Invalidated all entries with filter hash: \(filterHash)")
         } else {
             // Clear all caches
+            print("🧹 [Cache] Clearing ALL caches")
             await clearAllCaches()
         }
+        
+        print("✅ [Cache] Cache invalidation completed")
     }
     
     func clearAllCaches() async {
         let memoryCount = memoryCache.count
         let countCacheCount = countCache.count
+        let statusCountCacheCount = statusCountCache.count
+        let baseDataCacheCount = baseDataCache.count
         
-        // Clear count cache
+        // Clear all caches
         countCache.removeAll()
-        
-        // Clear memory
+        statusCountCache.removeAll()
+        baseDataCache.removeAll()
         memoryCache.removeAll()
         memoryAccessOrder.removeAll()
         
         // Clear disk cache asynchronously
         await clearDiskCache()
         
-        print("🧹 Cleared all caches: \(memoryCount) memory pages, \(countCacheCount) count entries removed")
+        print("🧹 Cleared all caches: \(memoryCount) memory pages, \(countCacheCount) count entries, \(statusCountCacheCount) status count entries, \(baseDataCacheCount) base data entries removed")
     }
     
     func getOutOfStockCacheStatistics() async -> OutOfStockCacheStatistics {
@@ -461,11 +594,11 @@ class OutOfStockCacheManager: ObservableObject {
         return OutOfStockCacheStatistics(
             memoryHits: memoryHits,
             diskHits: diskHits,
-            countCacheHits: countCacheHits,
+            countCacheHits: countCacheHits + statusCountCacheHits + baseDataCacheHits,
             totalMisses: totalMisses,
             memorySize: memoryCache.count,
             diskSize: await countDiskCacheFiles(),
-            countCacheSize: countCache.count,
+            countCacheSize: countCache.count + statusCountCache.count + baseDataCache.count,
             memoryUsageBytes: memoryUsage,
             diskUsageBytes: diskUsage,
             averageAccessTime: avgAccessTime,

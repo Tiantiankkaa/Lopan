@@ -18,7 +18,7 @@ struct SampleDataConstants {
     
     // MARK: - 时间范围
     static let startDate = Calendar.current.date(from: DateComponents(year: 2025, month: 1, day: 1))!
-    static let endDate = Calendar.current.date(from: DateComponents(year: 2025, month: 8, day: 20))!
+    static let endDate = Calendar.current.date(from: DateComponents(year: 2025, month: 8, day: 26))!
     
     // MARK: - 数据分布比例
     struct Distribution {
