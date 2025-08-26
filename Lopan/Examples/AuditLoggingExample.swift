@@ -11,15 +11,19 @@ import SwiftData
 /// Example of how to integrate audit logging into CRUD operations
 /// This demonstrates the patterns to follow when adding audit logging to existing views
 class AuditLoggingExample {
+    private let auditingService: AuditingService
+    
+    init(auditingService: AuditingService) {
+        self.auditingService = auditingService
+    }
     
     /// Example: Adding audit logging to CREATE operations
     func createCustomerOutOfStock(
         customer: Customer?,
         product: Product?,
         quantity: Int,
-        notes: String?,
-        modelContext: ModelContext
-    ) {
+        notes: String?
+    ) async {
         // Create the new item
         let newItem = CustomerOutOfStock(
             customer: customer,
@@ -29,32 +33,20 @@ class AuditLoggingExample {
             createdBy: "demo_user" // TODO: Get from current user
         )
         
-        // Insert into context
-        modelContext.insert(newItem)
-        
-        // Log the creation AFTER inserting but BEFORE saving
-        AuditingService.shared.logCustomerOutOfStockCreation(
+        // Log the creation
+        await auditingService.logCustomerOutOfStockCreation(
             item: newItem,
             operatorUserId: "demo_user", // TODO: Get from authentication service
-            operatorUserName: "演示用户", // TODO: Get from authentication service
-            modelContext: modelContext
+            operatorUserName: "演示用户" // TODO: Get from authentication service
         )
-        
-        // Save the context
-        do {
-            try modelContext.save()
-        } catch {
-            print("Error saving new item: \(error)")
-        }
     }
     
     /// Example: Adding audit logging to UPDATE operations
     func updateCustomerOutOfStock(
         item: CustomerOutOfStock,
         newQuantity: Int?,
-        newNotes: String?,
-        modelContext: ModelContext
-    ) {
+        newNotes: String?
+    ) async {
         // Capture values before update for audit log
         let beforeValues = CustomerOutOfStockOperation.CustomerOutOfStockValues(
             customerName: item.customer?.name,
@@ -86,52 +78,39 @@ class AuditLoggingExample {
         
         // Log the update if any fields changed
         if !changedFields.isEmpty {
-            AuditingService.shared.logCustomerOutOfStockUpdate(
+            await auditingService.logCustomerOutOfStockUpdate(
                 item: item,
                 beforeValues: beforeValues,
                 changedFields: changedFields,
                 operatorUserId: "demo_user", // TODO: Get from authentication service
                 operatorUserName: "演示用户", // TODO: Get from authentication service
-                modelContext: modelContext,
                 additionalInfo: "字段更新: \(changedFields.joined(separator: ", "))"
             )
         }
         
-        // Save the context
-        do {
-            try modelContext.save()
-        } catch {
-            print("Error updating item: \(error)")
-        }
+        // Changes are handled by the repository layer
     }
     
     /// Example: Adding audit logging to RETURN PROCESSING operations
     func processReturn(
         item: CustomerOutOfStock,
         returnQuantity: Int,
-        returnNotes: String?,
-        modelContext: ModelContext
-    ) {
+        returnNotes: String?
+    ) async {
         // Process the return using the existing method
         let success = item.processReturn(quantity: returnQuantity, notes: returnNotes)
         
         if success {
             // Log the return processing
-            AuditingService.shared.logReturnProcessing(
+            await auditingService.logReturnProcessing(
                 item: item,
                 returnQuantity: returnQuantity,
                 returnNotes: returnNotes,
                 operatorUserId: "demo_user", // TODO: Get from authentication service
-                operatorUserName: "演示用户", // TODO: Get from authentication service
-                modelContext: modelContext
+                operatorUserName: "演示用户" // TODO: Get from authentication service
             )
             
-            // Save the context
-            do {
-                try modelContext.save()
-            } catch {
-                print("Error processing return: \(error)")
-            }
+            // Changes are handled by the repository layer
         }
     }
     
@@ -150,9 +129,8 @@ class AuditLoggingExample {
     func createWithRealUser(
         customer: Customer?,
         product: Product?,
-        quantity: Int,
-        modelContext: ModelContext
-    ) {
+        quantity: Int
+    ) async {
         let (userId, userName) = getCurrentUserInfo()
         
         let newItem = CustomerOutOfStock(
@@ -162,59 +140,46 @@ class AuditLoggingExample {
             createdBy: userId
         )
         
-        modelContext.insert(newItem)
-        
-        AuditingService.shared.logCustomerOutOfStockCreation(
+        await auditingService.logCustomerOutOfStockCreation(
             item: newItem,
             operatorUserId: userId,
-            operatorUserName: userName,
-            modelContext: modelContext
+            operatorUserName: userName
         )
         
-        do {
-            try modelContext.save()
-        } catch {
-            print("Error saving: \(error)")
-        }
+        // Changes are handled by the repository layer
     }
 }
 
 /*
 INTEGRATION CHECKLIST for adding audit logging to existing views:
 
-1. Import the AuditingService (already available as shared instance)
+1. Inject AuditingService through dependency injection
 
 2. For CREATE operations:
-   - Create and insert the entity
-   - Call AuditingService.shared.logCustomerOutOfStockCreation()
-   - Save the context
+   - Create the entity
+   - Call await auditingService.logCustomerOutOfStockCreation()
 
 3. For UPDATE operations:
    - Capture before values
    - Apply changes
    - Track changed fields
-   - Call AuditingService.shared.logCustomerOutOfStockUpdate()
-   - Save the context
+   - Call await auditingService.logCustomerOutOfStockUpdate()
 
 4. For DELETE operations:
-   - Call AuditingService.shared.logCustomerOutOfStockDeletion() BEFORE deleting
+   - Call await auditingService.logCustomerOutOfStockDeletion() BEFORE deleting
    - Delete the entity
-   - Save the context
 
 5. For STATUS CHANGES:
-   - Call AuditingService.shared.logCustomerOutOfStockStatusChange()
+   - Call await auditingService.logCustomerOutOfStockStatusChange()
    - Apply the status change
-   - Save the context
 
 6. For RETURN PROCESSING:
-   - Call AuditingService.shared.logReturnProcessing()
+   - Call await auditingService.logReturnProcessing()
    - Process the return
-   - Save the context
 
 7. For BATCH operations:
-   - Call AuditingService.shared.logBatchOperation()
+   - Call await auditingService.logBatchOperation()
    - Apply the batch changes
-   - Save the context
 
 8. Get user information from AuthenticationService instead of hardcoded values
 

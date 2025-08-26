@@ -6,7 +6,7 @@
 //
 
 import Foundation
-import SwiftData
+import os
 
 // MARK: - Audit Operation Types
 
@@ -23,10 +23,14 @@ enum AuditOperation: String, CaseIterable {
     case sync = "SYNC"
 }
 
+@MainActor
 class AuditingService {
-    static let shared = AuditingService()
+    private let auditRepository: AuditRepository
+    private let logger = Logger(subsystem: "com.lopan.app", category: "AuditingService")
     
-    private init() {}
+    init(auditRepository: AuditRepository) {
+        self.auditRepository = auditRepository
+    }
     
     // MARK: - Main Logging Methods
     
@@ -39,10 +43,9 @@ class AuditingService {
         operatorUserId: String,
         operatorUserName: String,
         operationDetails: [String: Any],
-        modelContext: ModelContext,
         batchId: String? = nil,
         relatedEntityIds: [String] = []
-    ) {
+    ) async {
         let detailsJson = convertToJsonString(operationDetails)
         
         let auditLog = AuditLog(
@@ -58,12 +61,10 @@ class AuditingService {
             relatedEntityIds: relatedEntityIds
         )
         
-        modelContext.insert(auditLog)
-        
         do {
-            try modelContext.save()
+            try await auditRepository.addAuditLog(auditLog)
         } catch {
-            print("Failed to save audit log: \(error)")
+            logger.safeError("Failed to save audit log", error: error)
         }
     }
     
@@ -73,9 +74,8 @@ class AuditingService {
     func logCustomerOutOfStockCreation(
         item: CustomerOutOfStock,
         operatorUserId: String,
-        operatorUserName: String,
-        modelContext: ModelContext
-    ) {
+        operatorUserName: String
+    ) async {
         let afterValues = CustomerOutOfStockOperation.CustomerOutOfStockValues(
             customerName: item.customer?.name,
             productName: item.product?.name,
@@ -98,15 +98,14 @@ class AuditingService {
             "productDisplayName": item.productDisplayName
         ]
         
-        logOperation(
+        await logOperation(
             operationType: .create,
             entityType: .customerOutOfStock,
             entityId: item.id,
             entityDescription: "\(item.customer?.name ?? "未知客户") - \(item.productDisplayName)",
             operatorUserId: operatorUserId,
             operatorUserName: operatorUserName,
-            operationDetails: details,
-            modelContext: modelContext
+            operationDetails: details
         )
     }
     
@@ -117,9 +116,8 @@ class AuditingService {
         changedFields: [String],
         operatorUserId: String,
         operatorUserName: String,
-        modelContext: ModelContext,
         additionalInfo: String? = nil
-    ) {
+    ) async {
         let afterValues = CustomerOutOfStockOperation.CustomerOutOfStockValues(
             customerName: item.customer?.name,
             productName: item.product?.name,
@@ -142,15 +140,14 @@ class AuditingService {
             "productDisplayName": item.productDisplayName
         ]
         
-        logOperation(
+        await logOperation(
             operationType: .update,
             entityType: .customerOutOfStock,
             entityId: item.id,
             entityDescription: "\(item.customer?.name ?? "未知客户") - \(item.productDisplayName)",
             operatorUserId: operatorUserId,
             operatorUserName: operatorUserName,
-            operationDetails: details,
-            modelContext: modelContext
+            operationDetails: details
         )
     }
     
@@ -160,9 +157,8 @@ class AuditingService {
         fromStatus: OutOfStockStatus,
         toStatus: OutOfStockStatus,
         operatorUserId: String,
-        operatorUserName: String,
-        modelContext: ModelContext
-    ) {
+        operatorUserName: String
+    ) async {
         let details: [String: Any] = [
             "fromStatus": fromStatus.displayName,
             "toStatus": toStatus.displayName,
@@ -170,15 +166,14 @@ class AuditingService {
             "productDisplayName": item.productDisplayName
         ]
         
-        logOperation(
+        await logOperation(
             operationType: .statusChange,
             entityType: .customerOutOfStock,
             entityId: item.id,
             entityDescription: "\(item.customer?.name ?? "未知客户") - \(item.productDisplayName)",
             operatorUserId: operatorUserId,
             operatorUserName: operatorUserName,
-            operationDetails: details,
-            modelContext: modelContext
+            operationDetails: details
         )
     }
     
@@ -188,9 +183,8 @@ class AuditingService {
         returnQuantity: Int,
         returnNotes: String?,
         operatorUserId: String,
-        operatorUserName: String,
-        modelContext: ModelContext
-    ) {
+        operatorUserName: String
+    ) async {
         let details: [String: Any] = [
             "returnQuantity": returnQuantity,
             "returnNotes": returnNotes ?? "",
@@ -200,15 +194,14 @@ class AuditingService {
             "productDisplayName": item.productDisplayName
         ]
         
-        logOperation(
+        await logOperation(
             operationType: .returnProcess,
             entityType: .customerOutOfStock,
             entityId: item.id,
             entityDescription: "\(item.customer?.name ?? "未知客户") - \(item.productDisplayName)",
             operatorUserId: operatorUserId,
             operatorUserName: operatorUserName,
-            operationDetails: details,
-            modelContext: modelContext
+            operationDetails: details
         )
     }
     
@@ -216,9 +209,8 @@ class AuditingService {
     func logCustomerOutOfStockDeletion(
         item: CustomerOutOfStock,
         operatorUserId: String,
-        operatorUserName: String,
-        modelContext: ModelContext
-    ) {
+        operatorUserName: String
+    ) async {
         let beforeValues = CustomerOutOfStockOperation.CustomerOutOfStockValues(
             customerName: item.customer?.name,
             productName: item.product?.name,
@@ -241,15 +233,14 @@ class AuditingService {
             "productDisplayName": item.productDisplayName
         ]
         
-        logOperation(
+        await logOperation(
             operationType: .delete,
             entityType: .customerOutOfStock,
             entityId: item.id,
             entityDescription: "\(item.customer?.name ?? "未知客户") - \(item.productDisplayName)",
             operatorUserId: operatorUserId,
             operatorUserName: operatorUserName,
-            operationDetails: details,
-            modelContext: modelContext
+            operationDetails: details
         )
     }
     
@@ -263,9 +254,8 @@ class AuditingService {
         entityDescriptions: [String],
         changeDetails: [String: Any],
         operatorUserId: String,
-        operatorUserName: String,
-        modelContext: ModelContext
-    ) {
+        operatorUserName: String
+    ) async {
         let batchId = UUID().uuidString
         
         let batchOperation = BatchOperation(
@@ -280,7 +270,7 @@ class AuditingService {
             "affectedEntityDescriptions": entityDescriptions
         ]
         
-        logOperation(
+        await logOperation(
             operationType: operationType,
             entityType: entityType,
             entityId: batchId,
@@ -288,7 +278,6 @@ class AuditingService {
             operatorUserId: operatorUserId,
             operatorUserName: operatorUserName,
             operationDetails: details,
-            modelContext: modelContext,
             batchId: batchId,
             relatedEntityIds: affectedItems
         )

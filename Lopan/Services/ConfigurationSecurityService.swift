@@ -8,6 +8,7 @@
 import Foundation
 import CryptoKit
 import SwiftUI
+import os
 
 // MARK: - Configuration Security Service (配置安全服务)
 
@@ -32,9 +33,11 @@ class ConfigurationSecurityService: ObservableObject {
     
     // MARK: - Security Configuration
     private let securityDirectory: URL
+    private let keychain = SecureKeychain(serviceName: "com.lopan.app.security")
     private let encryptionKeyIdentifier = "lopan.configuration.encryption"
     private let maxFailedAttempts = 3
     private var failedDecryptionAttempts: [String: Int] = [:]
+    private let logger = Logger(subsystem: "com.lopan.app", category: "ConfigurationSecurity")
     
     init(
         configurationService: SystemConfigurationService,
@@ -531,16 +534,27 @@ class ConfigurationSecurityService: ObservableObject {
     }
     
     private func storeEncryptionKey(_ key: SymmetricKey) throws {
-        // In a real implementation, this would use Keychain
-        let keyData = key.withUnsafeBytes { Data($0) }
-        let keyURL = securityDirectory.appendingPathComponent("keys").appendingPathComponent("master.key")
-        try keyData.write(to: keyURL)
+        do {
+            try keychain.store(key, account: encryptionKeyIdentifier)
+            logger.info("Encryption key stored securely in Keychain")
+        } catch {
+            logger.safeError("Failed to store encryption key in Keychain", error: error)
+            throw SecurityError.encryptionKeyStorageFailed
+        }
     }
     
     private func getEncryptionKey() throws -> SymmetricKey {
-        let keyURL = securityDirectory.appendingPathComponent("keys").appendingPathComponent("master.key")
-        let keyData = try Data(contentsOf: keyURL)
-        return SymmetricKey(data: keyData)
+        do {
+            let key = try keychain.loadSymmetricKey(account: encryptionKeyIdentifier)
+            logger.info("Encryption key loaded from Keychain")
+            return key
+        } catch KeychainError.itemNotFound {
+            logger.warning("Encryption key not found in Keychain")
+            throw SecurityError.encryptionKeyNotFound
+        } catch {
+            logger.safeError("Failed to load encryption key from Keychain", error: error)
+            throw SecurityError.encryptionKeyLoadFailed
+        }
     }
     
     private func verifyEncryptionKey(_ key: SymmetricKey) throws {
@@ -554,8 +568,13 @@ class ConfigurationSecurityService: ObservableObject {
     }
     
     private func removeEncryptionKey() throws {
-        let keyURL = securityDirectory.appendingPathComponent("keys").appendingPathComponent("master.key")
-        try FileManager.default.removeItem(at: keyURL)
+        do {
+            try keychain.delete(account: encryptionKeyIdentifier)
+            logger.info("Encryption key removed from Keychain")
+        } catch {
+            logger.safeError("Failed to remove encryption key from Keychain", error: error)
+            throw SecurityError.encryptionKeyRemovalFailed
+        }
     }
     
     private func encryptData(_ data: Data, using key: SymmetricKey) throws -> Data {
@@ -905,6 +924,10 @@ enum SecurityError: LocalizedError {
     case invalidBackup
     case checksumMismatch
     case keyStorageError
+    case encryptionKeyStorageFailed
+    case encryptionKeyNotFound
+    case encryptionKeyLoadFailed
+    case encryptionKeyRemovalFailed
     
     var errorDescription: String? {
         switch self {
@@ -930,6 +953,14 @@ enum SecurityError: LocalizedError {
             return "校验和不匹配，文件可能已损坏"
         case .keyStorageError:
             return "密钥存储错误"
+        case .encryptionKeyStorageFailed:
+            return "无法将加密密钥存储到Keychain"
+        case .encryptionKeyNotFound:
+            return "在Keychain中找不到加密密钥"
+        case .encryptionKeyLoadFailed:
+            return "无法从Keychain加载加密密钥"
+        case .encryptionKeyRemovalFailed:
+            return "无法从Keychain删除加密密钥"
         }
     }
 }

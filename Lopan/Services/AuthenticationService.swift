@@ -256,4 +256,43 @@ class AuthenticationService: ObservableObject {
         
         isLoading = false
     }
+    
+    // MARK: - Session Validation
+    
+    /// 验证当前用户会话是否有效
+    func isSessionValid() -> Bool {
+        guard let user = currentUser else {
+            return false
+        }
+        
+        // 检查用户是否已认证
+        guard isAuthenticated else {
+            return false
+        }
+        
+        // 检查最后登录时间，如果超过24小时则认为session过期
+        if let lastLogin = user.lastLoginAt {
+            let twentyFourHoursAgo = Date().addingTimeInterval(-24 * 60 * 60)
+            if lastLogin < twentyFourHoursAgo {
+                return false
+            }
+        }
+        
+        // 检查用户对象是否完整
+        if user.name.isEmpty {
+            return false
+        }
+        
+        return true
+    }
+    
+    /// 强制session过期，需要重新登录
+    func invalidateSession() {
+        currentUser = nil
+        isAuthenticated = false
+        showingSMSVerification = false
+        smsCode = ""
+        phoneNumber = ""
+        pendingSMSUser = nil
+    }
 } 
