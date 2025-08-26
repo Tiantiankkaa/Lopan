@@ -11,6 +11,7 @@ import SwiftData
 struct GiveBackManagementView: View {
     @Environment(\.modelContext) private var modelContext
     @Query(sort: \CustomerOutOfStock.requestDate, order: .reverse) private var outOfStockItems: [CustomerOutOfStock]
+    @Inject private var auditingService: AuditingService
     
     @State private var searchText = ""
     @State private var debouncedSearchText = ""
@@ -544,14 +545,15 @@ struct GiveBackManagementView: View {
             _ = item.processReturn(quantity: quantity, notes: notes)
             
             // Log each return processing
-            AuditingService.shared.logReturnProcessing(
-                item: item,
-                returnQuantity: quantity,
-                returnNotes: notes,
-                operatorUserId: "demo_user", // TODO: Get from authentication service
-                operatorUserName: "演示用户", // TODO: Get from authentication service
-                modelContext: modelContext
-            )
+            Task {
+                await auditingService.logReturnProcessing(
+                    item: item,
+                    returnQuantity: quantity,
+                    returnNotes: notes,
+                    operatorUserId: "demo_user", // TODO: Get from authentication service
+                    operatorUserName: "演示用户" // TODO: Get from authentication service
+                )
+            }
         }
         
         do {
