@@ -8,6 +8,25 @@
 import Foundation
 import SwiftData
 
+// MARK: - App Environment
+
+enum AppEnvironment {
+    case development
+    case testing
+    case production
+    
+    static var current: AppEnvironment {
+        #if DEBUG
+        if ProcessInfo.processInfo.environment["XCTestConfigurationFilePath"] != nil {
+            return .testing
+        }
+        return .development
+        #else
+        return .production
+        #endif
+    }
+}
+
 // MARK: - App Model Container
 
 class AppModelContainer {

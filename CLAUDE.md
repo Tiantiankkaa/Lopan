@@ -449,3 +449,198 @@ Module: <name> · Context: <business> · Goal: <measurable deliverable> · Const
 # Tests
 - <unit/integration/UI cases>
 ```
+
+---
+
+## 15. Reusable System Components (Generated from Customer Out-of-Stock Refactoring)
+
+> **Note**: The following components were created during the Customer Out-of-Stock management module refactoring and are designed for system-wide reuse across all Lopan modules.
+
+### 15.1 Security & Privacy Components
+
+#### SecureKeychain Wrapper (`Utils/Security/SecureKeychain.swift`)
+Enhanced Keychain wrapper with secure key derivation and PII protection:
+```swift
+// REUSABLE: Enhanced keychain operations with secure key derivation
+enum SecureKeychain {
+    static func saveSecurely<T: Codable>(_ value: T, forKey key: String) throws {
+        let derivedKey = deriveSecureKey(from: key)
+        let data = try JSONEncoder().encode(value)
+        try save(data, account: derivedKey, service: "com.lopan.secure")
+    }
+    
+    private static func deriveSecureKey(from key: String) -> String {
+        // Implements PBKDF2 key derivation for secure storage keys
+    }
+}
+```
+
+#### DataRedaction Utility (`Utils/Privacy/DataRedaction.swift`)
+PII-aware data redaction for logging and audit trails:
+```swift
+// REUSABLE: Privacy-aware data redaction for all logging
+struct DataRedaction {
+    static func redactPII<T>(_ value: T, fields: [String]) -> [String: Any] {
+        // Safe redaction of sensitive fields in logs and audit events
+        // Usage: DataRedaction.redactPII(user, fields: ["phone", "email"])
+    }
+}
+```
+
+### 15.2 Performance & Caching Components
+
+#### LRU Memory Cache (`Utils/Caching/LRUMemoryCache.swift`)
+Generic LRU cache with memory pressure handling:
+```swift
+// REUSABLE: Memory-efficient LRU cache for any data type
+@MainActor
+class LRUMemoryCache<Key: Hashable, Value> {
+    private var cache: [Key: Value] = [:]
+    private var accessOrder: [Key] = []
+    private let maxSize: Int
+    private let maxMemoryBytes: Int
+    
+    func get(_ key: Key) -> Value? { /* LRU access pattern */ }
+    func set(_ key: Key, value: Value) { /* Memory-aware insertion */ }
+    func handleMemoryPressure() { /* Aggressive cleanup */ }
+}
+```
+
+#### SmartCacheManager (`Utils/Caching/SmartCacheManager.swift`)
+Three-tier intelligent caching with predictive preloading:
+```swift
+// REUSABLE: Advanced caching system for high-performance data access
+@MainActor
+class SmartCacheManager<T: Cacheable> {
+    // Hot cache - frequently accessed (TTL: 5 min)
+    // Warm cache - recently accessed (TTL: 15 min)  
+    // Predictive cache - anticipated data (TTL: 1 hour)
+    
+    func getCachedData(for key: String) -> T? { /* Multi-tier lookup */ }
+    func triggerPredictivePreloading(for key: String) { /* Pattern-based preloading */ }
+}
+```
+
+### 15.3 Concurrency & Performance Patterns
+
+#### Concurrent Batch Processing Pattern
+Optimized TaskGroup pattern for batch operations:
+```swift
+// REUSABLE: Concurrent batch processing with actor safety
+func processConcurrentBatches<T, R>(
+    items: [T], 
+    batchSize: Int = 10,
+    processor: @escaping (T) async throws -> R
+) async throws -> [R] {
+    return try await withThrowingTaskGroup(of: [R].self) { group in
+        for batch in items.batched(into: batchSize) {
+            group.addTask {
+                // Process batch concurrently while maintaining actor safety
+            }
+        }
+        // Collect and flatten results
+    }
+}
+```
+
+#### Single-Pass Algorithm Optimization
+Performance pattern for O(n) complexity algorithms:
+```swift
+// REUSABLE: Single-pass statistics calculation pattern
+func calculateStatistics<T>(_ items: [T]) -> Statistics {
+    return items.reduce(into: Statistics()) { stats, item in
+        // Single iteration: update all counters and aggregates
+        // Reduces O(4n) → O(n) complexity
+    }
+}
+```
+
+### 15.4 Architecture Components
+
+#### Service Layer Base Classes
+Foundation classes for service layer architecture:
+```swift
+// REUSABLE: Base coordinator pattern for all feature modules
+@MainActor
+class BaseCoordinator<DataService, BusinessService, CacheService>: ObservableObject {
+    @Published var isLoading = false
+    @Published var error: Error?
+    
+    // Standardized error handling, loading states, and lifecycle management
+}
+
+// REUSABLE: Business service validation framework
+protocol BusinessServiceValidation {
+    associatedtype Entity
+    func validateRecord(_ record: Entity) throws
+    func validateCreationRequest(_ request: Any) throws
+}
+```
+
+#### Repository Pattern Templates
+```swift
+// REUSABLE: Generic repository with caching integration
+protocol CacheableRepository {
+    associatedtype Entity
+    associatedtype FilterCriteria
+    
+    func fetchWithCache(_ criteria: FilterCriteria) async throws -> [Entity]
+    func invalidateCache(for criteria: FilterCriteria)
+}
+```
+
+### 15.5 UI/UX Utility Components
+
+#### Memory Usage Monitoring
+```swift
+// REUSABLE: Memory usage tracking for performance debugging
+struct CacheMemoryUsage {
+    let recordsCount: Int
+    let approximateMemoryUsage: Int
+    let cacheHitRate: Double
+    let lastEvictionTime: Date?
+    
+    // Usage: let usage = cacheService.getMemoryUsage()
+}
+```
+
+#### Debounced Search Pattern
+```swift
+// REUSABLE: Search input debouncing for performance
+@MainActor
+class Debouncer {
+    private var task: Task<Void, Never>?
+    
+    func debounce(duration: TimeInterval = 0.3, action: @escaping () async -> Void) {
+        task?.cancel()
+        task = Task {
+            try? await Task.sleep(nanoseconds: UInt64(duration * 1_000_000_000))
+            await action()
+        }
+    }
+}
+```
+
+### 15.6 Usage Guidelines
+
+1. **Security Components**: Use `SecureKeychain` and `DataRedaction` for all sensitive data handling
+2. **Caching**: Implement `LRUMemoryCache` for simple caching, `SmartCacheManager` for complex scenarios
+3. **Performance**: Apply concurrent batch processing and single-pass patterns for heavy operations
+4. **Architecture**: Extend base coordinator and repository patterns for new feature modules
+5. **Memory Management**: Monitor memory usage and implement proper cleanup in all cache implementations
+
+### 15.7 Integration Examples
+
+```swift
+// Example: Integrating reusable components in a new feature module
+class ProductManagementCoordinator: BaseCoordinator<ProductDataService, ProductBusinessService, ProductCacheService> {
+    private let smartCache = SmartCacheManager<Product>()
+    private let debouncer = Debouncer()
+    
+    func searchProducts(_ query: String) {
+        debouncer.debounce { [weak self] in
+            // Use smart cache for search results
+            await self?.loadProductsWithSmartCache(query)
+        }
+    }
+}

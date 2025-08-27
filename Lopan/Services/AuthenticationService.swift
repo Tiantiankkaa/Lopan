@@ -123,6 +123,7 @@ class AuthenticationService: ObservableObject {
         print("User \(user.name) returned to primary workbench: \(user.primaryRole.displayName)")
     }
     
+    @MainActor
     func updateUserRoles(_ roles: [UserRole], primaryRole: UserRole) {
         guard let user = currentUser else { return }
         user.roles = roles
@@ -133,6 +134,7 @@ class AuthenticationService: ObservableObject {
     }
     
     /// Switch to a different workbench role (for users with multiple roles or administrators)
+    @MainActor
     func switchToWorkbenchRole(_ targetRole: UserRole) {
         guard let user = currentUser else { return }
         
@@ -152,6 +154,7 @@ class AuthenticationService: ObservableObject {
     }
     
     /// Reset user back to original primary role
+    @MainActor
     func resetToOriginalRole() {
         guard let user = currentUser else { return }
         

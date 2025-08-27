@@ -197,8 +197,10 @@ struct DemoLoginView: View {
                             wechatId: "demo_\(selectedRole.rawValue)",
                             name: "演示用户 - \(selectedRole.displayName)"
                         )
-                        authService.updateUserRoles([selectedRole], primaryRole: selectedRole)
-                        dismiss()
+                        await MainActor.run {
+                            authService.updateUserRoles([selectedRole], primaryRole: selectedRole)
+                            dismiss()
+                        }
                     }
                 }
                 .frame(maxWidth: .infinity)
@@ -262,7 +264,9 @@ struct SMSLoginView: View {
                 Button("发送验证码") {
                     Task {
                         await authService.sendSMSCode(to: phoneNumber, name: name)
-                        dismiss()
+                        await MainActor.run {
+                            dismiss()
+                        }
                     }
                 }
                 .frame(maxWidth: .infinity)
