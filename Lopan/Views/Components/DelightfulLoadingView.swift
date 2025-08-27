@@ -255,9 +255,9 @@ struct SimpleSkeletonLoadingView: View {
     }
 }
 
-// MARK: - Pull to Refresh Indicator
+// MARK: - Simple Pull to Refresh Indicator
 
-struct PullToRefreshIndicator: View {
+struct SimplePullToRefreshIndicator: View {
     let pullProgress: CGFloat
     
     @State private var rotationAngle: Double = 0

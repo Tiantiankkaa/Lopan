@@ -196,11 +196,22 @@ struct DataSyncIndicator: View {
     let syncState: SyncState
     let lastSyncTime: Date?
     
-    enum SyncState {
+    enum SyncState: Equatable {
         case idle
         case syncing
         case success
         case failed(String)
+        
+        static func == (lhs: SyncState, rhs: SyncState) -> Bool {
+            switch (lhs, rhs) {
+            case (.idle, .idle), (.syncing, .syncing), (.success, .success):
+                return true
+            case (.failed(let lhsError), .failed(let rhsError)):
+                return lhsError == rhsError
+            default:
+                return false
+            }
+        }
     }
     
     var body: some View {
@@ -338,33 +349,31 @@ struct LinearProgressIndicator: View {
                 }
             }
             
-            ZStack(alignment: .leading) {
-                // Background track
-                RoundedRectangle(cornerRadius: 4)
-                    .fill(Color(.systemGray5))
-                    .frame(height: 8)
-                
-                // Progress fill
-                RoundedRectangle(cornerRadius: 4)
-                    .fill(
-                        LinearGradient(
-                            colors: [.blue, .blue.opacity(0.8)],
-                            startPoint: .leading,
-                            endPoint: .trailing
+            GeometryReader { geometry in
+                ZStack(alignment: .leading) {
+                    // Background track
+                    RoundedRectangle(cornerRadius: 4)
+                        .fill(Color(.systemGray5))
+                        .frame(height: 8)
+                    
+                    // Progress fill
+                    RoundedRectangle(cornerRadius: 4)
+                        .fill(
+                            LinearGradient(
+                                colors: [.blue, .blue.opacity(0.8)],
+                                startPoint: .leading,
+                                endPoint: .trailing
+                            )
                         )
-                    )
-                    .frame(width: progressWidth, height: 8)
-                    .animation(.easeInOut(duration: 0.3), value: progress)
+                        .frame(width: geometry.size.width * CGFloat(progress), height: 8)
+                        .animation(.easeInOut(duration: 0.3), value: progress)
+                }
             }
+            .frame(height: 8)
         }
         .accessibilityElement(children: .ignore)
         .accessibilityLabel(label.isEmpty ? "进度指示器" : label)
         .accessibilityValue("进度 \(Int(progress * 100)) 百分比")
-    }
-    
-    private var progressWidth: CGFloat? {
-        // Will be calculated by GeometryReader in actual implementation
-        nil
     }
 }
 
