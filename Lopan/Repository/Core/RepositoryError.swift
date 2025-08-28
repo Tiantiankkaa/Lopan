@@ -18,6 +18,12 @@ enum RepositoryError: Error, LocalizedError {
     case insufficientPermissions(String)
     case dataCorruption(String)
     case unknownError(Error)
+    case authenticationFailed(String)
+    case conflictDetected(String)
+    case rateLimited(String)
+    case serverError(String)
+    case saveFailed(String)
+    case deleteFailed(String)
     
     var errorDescription: String? {
         switch self {
@@ -37,6 +43,18 @@ enum RepositoryError: Error, LocalizedError {
             return "Data Corruption: \(message)"
         case .unknownError(let error):
             return "Unknown Error: \(error.localizedDescription)"
+        case .authenticationFailed(let message):
+            return "Authentication Failed: \(message)"
+        case .conflictDetected(let message):
+            return "Conflict Detected: \(message)"
+        case .rateLimited(let message):
+            return "Rate Limited: \(message)"
+        case .serverError(let message):
+            return "Server Error: \(message)"
+        case .saveFailed(let message):
+            return "Save Failed: \(message)"
+        case .deleteFailed(let message):
+            return "Delete Failed: \(message)"
         }
     }
     
@@ -58,6 +76,18 @@ enum RepositoryError: Error, LocalizedError {
             return "The data in the store appears to be corrupted."
         case .unknownError:
             return "An unexpected error occurred."
+        case .authenticationFailed:
+            return "Authentication credentials are invalid or expired."
+        case .conflictDetected:
+            return "The operation conflicts with the current state of the resource."
+        case .rateLimited:
+            return "Too many requests have been made in a short time period."
+        case .serverError:
+            return "The server encountered an internal error."
+        case .saveFailed:
+            return "Failed to save data to the repository."
+        case .deleteFailed:
+            return "Failed to delete data from the repository."
         }
     }
 }

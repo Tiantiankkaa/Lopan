@@ -60,8 +60,8 @@ enum PackagingPriority: String, CaseIterable, Codable {
 }
 
 @Model
-final class PackagingTeam {
-    var id: String
+public final class PackagingTeam {
+    public var id: String
     var teamName: String
     var teamLeader: String
     var members: [String] // Array of member names
@@ -83,8 +83,8 @@ final class PackagingTeam {
 }
 
 @Model
-final class PackagingRecord {
-    var id: String
+public final class PackagingRecord {
+    public var id: String
     var packageDate: Date
     var teamId: String // Reference to PackagingTeam
     var teamName: String // Cached team name for easier display

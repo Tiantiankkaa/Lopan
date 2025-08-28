@@ -428,6 +428,16 @@
 				INFOPLIST_KEY_UILaunchScreen_Generation = YES;
 				INFOPLIST_KEY_UISupportedInterfaceOrientations_iPad = "UIInterfaceOrientationPortrait UIInterfaceOrientationPortraitUpsideDown UIInterfaceOrientationLandscapeLeft UIInterfaceOrientationLandscapeRight";
 				INFOPLIST_KEY_UISupportedInterfaceOrientations_iPhone = "UIInterfaceOrientationPortrait UIInterfaceOrientationLandscapeLeft UIInterfaceOrientationLandscapeRight";
+				INFOPLIST_KEY_NSCameraUsageDescription = "洛盘生产管理需要访问相机来拍摄产品照片和客户缺货记录。";
+				INFOPLIST_KEY_NSPhotoLibraryUsageDescription = "洛盘生产管理需要访问照片库来选择和保存产品图片。";
+				INFOPLIST_KEY_NSFaceIDUsageDescription = "洛盘生产管理使用Face ID来保护敏感数据和快速登录。";
+				INFOPLIST_KEY_NSLocalNetworkUsageDescription = "洛盘生产管理需要访问本地网络来连接生产设备和服务器。";
+				INFOPLIST_KEY_NSContactsUsageDescription = "洛盘生产管理需要访问通讯录来快速添加客户联系信息。";
+				INFOPLIST_KEY_NSLocationWhenInUseUsageDescription = "洛盘生产管理需要访问位置信息来记录客户地址和配送信息。";
+				INFOPLIST_KEY_NSMicrophoneUsageDescription = "洛盘生产管理需要访问麦克风来录制语音备注。";
+				INFOPLIST_KEY_NSCalendarsUsageDescription = "洛盘生产管理需要访问日历来安排生产计划和提醒事项。";
+				INFOPLIST_KEY_NSRemindersUsageDescription = "洛盘生产管理需要访问提醒事项来创建任务提醒。";
+				INFOPLIST_KEY_NSAppTransportSecurity = "<dict><key>NSAllowsArbitraryLoads</key><false/><key>NSAllowsLocalNetworking</key><false/><key>NSRequiresCertificateTransparency</key><true/></dict>";
 				LD_RUNPATH_SEARCH_PATHS = (
 					"$(inherited)",
 					"@executable_path/Frameworks",
@@ -456,6 +466,16 @@
 				INFOPLIST_KEY_UILaunchScreen_Generation = YES;
 				INFOPLIST_KEY_UISupportedInterfaceOrientations_iPad = "UIInterfaceOrientationPortrait UIInterfaceOrientationPortraitUpsideDown UIInterfaceOrientationLandscapeLeft UIInterfaceOrientationLandscapeRight";
 				INFOPLIST_KEY_UISupportedInterfaceOrientations_iPhone = "UIInterfaceOrientationPortrait UIInterfaceOrientationLandscapeLeft UIInterfaceOrientationLandscapeRight";
+				INFOPLIST_KEY_NSCameraUsageDescription = "洛盘生产管理需要访问相机来拍摄产品照片和客户缺货记录。";
+				INFOPLIST_KEY_NSPhotoLibraryUsageDescription = "洛盘生产管理需要访问照片库来选择和保存产品图片。";
+				INFOPLIST_KEY_NSFaceIDUsageDescription = "洛盘生产管理使用Face ID来保护敏感数据和快速登录。";
+				INFOPLIST_KEY_NSLocalNetworkUsageDescription = "洛盘生产管理需要访问本地网络来连接生产设备和服务器。";
+				INFOPLIST_KEY_NSContactsUsageDescription = "洛盘生产管理需要访问通讯录来快速添加客户联系信息。";
+				INFOPLIST_KEY_NSLocationWhenInUseUsageDescription = "洛盘生产管理需要访问位置信息来记录客户地址和配送信息。";
+				INFOPLIST_KEY_NSMicrophoneUsageDescription = "洛盘生产管理需要访问麦克风来录制语音备注。";
+				INFOPLIST_KEY_NSCalendarsUsageDescription = "洛盘生产管理需要访问日历来安排生产计划和提醒事项。";
+				INFOPLIST_KEY_NSRemindersUsageDescription = "洛盘生产管理需要访问提醒事项来创建任务提醒。";
+				INFOPLIST_KEY_NSAppTransportSecurity = "<dict><key>NSAllowsArbitraryLoads</key><false/><key>NSAllowsLocalNetworking</key><false/><key>NSRequiresCertificateTransparency</key><true/></dict>";
 				LD_RUNPATH_SEARCH_PATHS = (
 					"$(inherited)",
 					"@executable_path/Frameworks",

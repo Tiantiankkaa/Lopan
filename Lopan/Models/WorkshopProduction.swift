@@ -11,8 +11,8 @@ import SwiftData
 // MachineStatus is now defined in WorkshopMachine.swift
 
 @Model
-final class WorkshopProduction {
-    var id: String
+public final class WorkshopProduction {
+    public var id: String
     var machineId: String
     var machineName: String
     var styleCode: String

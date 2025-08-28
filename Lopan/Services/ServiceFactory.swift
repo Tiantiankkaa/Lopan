@@ -6,6 +6,7 @@
 //
 
 import Foundation
+import SwiftData
 
 // MARK: - Service Cleanup Protocol
 protocol ServiceCleanupProtocol {
@@ -13,11 +14,16 @@ protocol ServiceCleanupProtocol {
 }
 
 @MainActor
-class ServiceFactory: ObservableObject {
+public class ServiceFactory: ObservableObject {
     let repositoryFactory: RepositoryFactory
     
     // MARK: - Service Cleanup Management
     private var cleanupServices: [ServiceCleanupProtocol] = []
+    
+    lazy var sessionSecurityService: SessionSecurityService = {
+        let service = SessionSecurityService(auditingService: auditingService)
+        return service
+    }()
     
     lazy var authenticationService: AuthenticationService = {
         let service = AuthenticationService(repositoryFactory: repositoryFactory, serviceFactory: self)
@@ -317,6 +323,43 @@ class ServiceFactory: ObservableObject {
     
     init(repositoryFactory: RepositoryFactory) {
         self.repositoryFactory = repositoryFactory
+    }
+    
+    // MARK: - Factory Methods
+    
+    /// Creates appropriate repository factory based on environment and feature flags
+    public static func createRepositoryFactory(for environment: AppEnvironment, 
+                                      modelContext: ModelContext? = nil) -> RepositoryFactory {
+        
+        // Check if cloud should be enabled
+        let shouldUseCloud = RepositoryFeatureFlag.useCloudAll.isEnabled || 
+                           RepositoryFeatureFlag.useCloudCustomerOutOfStock.isEnabled
+        
+        guard let modelContext = modelContext else {
+            fatalError("ModelContext required for local repositories")
+        }
+        
+        let localFactory = LocalRepositoryFactory(modelContext: modelContext)
+        
+        if shouldUseCloud {
+            let cloudEnv = cloudEnvironment(for: environment)
+            let cloudFactory = CloudRepositoryFactory.create(for: cloudEnv, authService: nil)
+            return FeatureFlagRepositoryFactory(localFactory: localFactory, cloudFactory: cloudFactory)
+        } else {
+            return localFactory
+        }
+    }
+    
+    /// Maps app environment to cloud environment
+    private static func cloudEnvironment(for appEnv: AppEnvironment) -> CloudEnvironment {
+        switch appEnv {
+        case .development:
+            return .development(baseURL: ProcessInfo.processInfo.environment["CLOUD_DEV_URL"] ?? "https://dev-api.lopan.app")
+        case .testing:
+            return .mock
+        case .production:
+            return .production(baseURL: ProcessInfo.processInfo.environment["CLOUD_PROD_URL"] ?? "https://api.lopan.app")
+        }
     }
     
     // MARK: - Service Cleanup Management

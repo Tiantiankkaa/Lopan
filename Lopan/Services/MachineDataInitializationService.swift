@@ -8,7 +8,7 @@
 import Foundation
 
 @MainActor
-class MachineDataInitializationService {
+public class MachineDataInitializationService {
     private let repositoryFactory: RepositoryFactory
     
     init(repositoryFactory: RepositoryFactory) {

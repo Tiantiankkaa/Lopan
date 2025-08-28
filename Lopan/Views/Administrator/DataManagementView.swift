@@ -13,7 +13,7 @@ import SwiftData
 /// Comprehensive data management interface for administrators
 /// 管理员的综合数据管理界面
 struct DataManagementView: View {
-    @EnvironmentObject var serviceFactory: ServiceFactory
+    @Environment(\.appDependencies) private var appDependencies
     @State private var selectedTab = 0
     
     var body: some View {
@@ -48,7 +48,7 @@ struct DataManagementView: View {
                     .tag(3)
             }
             .navigationTitle("数据管理")
-            .environmentObject(serviceFactory)
+            .environmentObject(appDependencies.serviceFactory)
         }
         .requirePermission(.backupData)
     }
@@ -57,7 +57,7 @@ struct DataManagementView: View {
 // MARK: - Data Export View (数据导出视图)
 
 struct DataExportView: View {
-    @EnvironmentObject var serviceFactory: ServiceFactory
+    @Environment(\.appDependencies) private var appDependencies
     
     // Configuration state
     @State private var selectedDataTypes: Set<ExportDataType> = []
@@ -77,7 +77,7 @@ struct DataExportView: View {
     @State private var showingActiveExports = false
     
     private var exportEngine: DataExportEngine {
-        serviceFactory.dataExportEngine
+        appDependencies.serviceFactory.dataExportEngine
     }
     
     var body: some View {
@@ -474,12 +474,12 @@ struct ActiveExportRow: View {
 // MARK: - Data Import View (数据导入视图)
 
 struct DataImportView: View {
-    @EnvironmentObject var serviceFactory: ServiceFactory
+    @Environment(\.appDependencies) private var appDependencies
     @State private var showingImportConfiguration = false
     @State private var showingActiveImports = false
     
     private var importEngine: DataImportEngine {
-        serviceFactory.dataImportEngine
+        appDependencies.serviceFactory.dataImportEngine
     }
     
     var body: some View {
@@ -859,13 +859,13 @@ struct ActiveImportRow: View {
 // MARK: - Data Backup View (数据备份视图)
 
 struct DataBackupView: View {
-    @EnvironmentObject var serviceFactory: ServiceFactory
+    @Environment(\.appDependencies) private var appDependencies
     @State private var showingBackupConfiguration = false
     @State private var showingActiveBackups = false
     @State private var showingBackupScheduler = false
     
     private var backupService: DataBackupService {
-        serviceFactory.dataBackupService
+        appDependencies.serviceFactory.dataBackupService
     }
     
     var body: some View {
@@ -1357,12 +1357,12 @@ struct BackupSchedulerView: View {
 // MARK: - Data Recovery View (数据恢复视图)
 
 struct DataRecoveryView: View {
-    @EnvironmentObject var serviceFactory: ServiceFactory
+    @Environment(\.appDependencies) private var appDependencies
     @State private var selectedBackup: BackupInfo?
     @State private var showingRecoveryConfiguration = false
     
     private var backupService: DataBackupService {
-        serviceFactory.dataBackupService
+        appDependencies.serviceFactory.dataBackupService
     }
     
     var body: some View {

@@ -9,7 +9,7 @@ import Foundation
 import SwiftUI
 
 @MainActor
-class ProductionBatchService: ObservableObject, ServiceCleanupProtocol {
+public class ProductionBatchService: ObservableObject, ServiceCleanupProtocol {
     // MARK: - Published Properties
     @Published var batches: [ProductionBatch] = []
     @Published var pendingBatches: [ProductionBatch] = []

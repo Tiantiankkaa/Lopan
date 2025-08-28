@@ -15,7 +15,7 @@ import os
 /// Service responsible for securing configuration data and managing access
 /// 负责保护配置数据和管理访问的服务
 @MainActor
-class ConfigurationSecurityService: ObservableObject {
+public class ConfigurationSecurityService: ObservableObject {
     
     // MARK: - Dependencies
     private let configurationService: SystemConfigurationService

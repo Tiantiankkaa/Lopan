@@ -9,8 +9,8 @@ import Foundation
 import SwiftData
 
 @Model
-final class EVAGranulation {
-    var id: String
+public final class EVAGranulation {
+    public var id: String
     var batchNumber: String
     var rawMaterialType: String
     var rawMaterialQuantity: Double

@@ -307,47 +307,6 @@ extension View {
     }
 }
 
-// MARK: - Accessible Colors
-
-struct AccessibleColors {
-    static func textColor(for background: Color, in colorScheme: ColorScheme) -> Color {
-        // Calculate contrast ratio and return appropriate text color
-        switch colorScheme {
-        case .dark:
-            return .white
-        case .light:
-            return .black
-        @unknown default:
-            return .primary
-        }
-    }
-    
-    static func contrastRatio(foreground: Color, background: Color) -> Double {
-        // Simplified contrast ratio calculation
-        // In a real implementation, you would convert colors to RGB and calculate luminance
-        return 4.5 // Placeholder for minimum WCAG AA contrast ratio
-    }
-    
-    static var adaptiveColors: [String: (light: Color, dark: Color, highContrast: Color)] {
-        return [
-            "primary": (
-                light: Color.blue,
-                dark: Color.blue,
-                highContrast: Color.white
-            ),
-            "secondary": (
-                light: Color.gray,
-                dark: Color.gray,
-                highContrast: Color.black
-            ),
-            "background": (
-                light: Color.white,
-                dark: Color.black,
-                highContrast: Color.black
-            )
-        ]
-    }
-}
 
 // MARK: - Accessibility Testing Helper
 

@@ -138,7 +138,7 @@ enum SynchronizationAction: String, CaseIterable {
 /// Service for detecting and fixing machine-batch state inconsistencies
 /// 检测和修复机台-批次状态不一致的服务
 @MainActor
-class MachineStateSynchronizationService: ObservableObject {
+public class MachineStateSynchronizationService: ObservableObject {
     
     // MARK: - Dependencies
     private let machineRepository: MachineRepository

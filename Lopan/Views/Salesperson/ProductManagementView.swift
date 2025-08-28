@@ -11,10 +11,10 @@ import PhotosUI
 import UniformTypeIdentifiers
 
 struct ProductManagementView: View {
-    @EnvironmentObject private var serviceFactory: ServiceFactory
+    @Environment(\.appDependencies) private var appDependencies
     
     private var productRepository: ProductRepository {
-        serviceFactory.repositoryFactory.productRepository
+        appDependencies.serviceFactory.repositoryFactory.productRepository
     }
     
     @State private var products: [Product] = []

@@ -9,7 +9,7 @@ import Foundation
 import SwiftUI
 
 @MainActor
-class ColorService: ObservableObject, ServiceCleanupProtocol {
+public class ColorService: ObservableObject, ServiceCleanupProtocol {
     // MARK: - Published Properties
     @Published var colors: [ColorCard] = []
     @Published var isLoading = false

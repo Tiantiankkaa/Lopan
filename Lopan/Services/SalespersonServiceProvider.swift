@@ -8,7 +8,7 @@
 import Foundation
 
 @MainActor
-class SalespersonServiceProvider: ObservableObject {
+public class SalespersonServiceProvider: ObservableObject {
     private let repositoryFactory: RepositoryFactory
     private let authService: AuthenticationService
     private let auditService: NewAuditingService

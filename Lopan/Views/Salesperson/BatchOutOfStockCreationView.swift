@@ -17,11 +17,11 @@ struct OutOfStockProductItem: Identifiable {
 }
 
 struct BatchOutOfStockCreationView: View {
-    @EnvironmentObject private var serviceFactory: ServiceFactory
+    @Environment(\.appDependencies) private var appDependencies
     @Environment(\.dismiss) private var dismiss
     
     private var salespersonService: SalespersonServiceProvider {
-        serviceFactory.salespersonServiceProvider
+        appDependencies.serviceFactory.salespersonServiceProvider
     }
     
     let customers: [Customer]

@@ -52,11 +52,13 @@ struct LopanApp: App {
 
     var body: some Scene {
         WindowGroup {
-            let repositoryFactory = LocalRepositoryFactory(modelContext: Self.sharedModelContainer.mainContext)
-            let serviceFactory = ServiceFactory(repositoryFactory: repositoryFactory)
+            let appDependencies = AppDependencies.create(
+                for: determineAppEnvironment(),
+                modelContext: Self.sharedModelContainer.mainContext
+            )
             
-            DashboardView(authService: serviceFactory.authenticationService)
-                .environmentObject(serviceFactory)
+            DashboardView(authService: appDependencies.authenticationService)
+                .withAppDependencies(appDependencies)
                 .onAppear {
                     Task {
                         #if DEBUG
@@ -64,13 +66,13 @@ struct LopanApp: App {
                         if ProcessInfo.processInfo.environment["LARGE_SAMPLE_DATA"] == "true" {
                             print("🚀 检测到大规模样本数据环境变量，开始生成大规模测试数据...")
                             let largeSampleDataService = CustomerOutOfStockSampleDataService(
-                                repositoryFactory: repositoryFactory
+                                repositoryFactory: appDependencies.repositoryFactory
                             )
                             await largeSampleDataService.initializeLargeScaleSampleData()
                         } else {
                             print("📊 使用标准样本数据...")
                             // Initialize sample data on first launch using new repository pattern
-                            await serviceFactory.dataInitializationService.initializeSampleData()
+                            await appDependencies.dataInitializationService.initializeSampleData()
                         }
                         #else
                         // 生产环境不加载任何样本数据
@@ -78,12 +80,28 @@ struct LopanApp: App {
                         #endif
                         
                         // Initialize workshop data (colors, machines, batches)
-                        await serviceFactory.machineDataInitializationService.initializeAllSampleData()
+                        await appDependencies.serviceFactory.machineDataInitializationService.initializeAllSampleData()
                         // Start ProductionBatchService for automatic batch execution
-                        _ = serviceFactory.productionBatchService // This will trigger lazy initialization and startService()
+                        _ = appDependencies.productionBatchService // This will trigger lazy initialization and startService()
                     }
                 }
         }
         .modelContainer(Self.sharedModelContainer)
+    }
+    
+    // MARK: - Environment Detection
+    
+    private func determineAppEnvironment() -> AppEnvironment {
+        #if DEBUG
+        if ProcessInfo.processInfo.environment["XCODE_RUNNING_FOR_PREVIEWS"] == "1" {
+            return .development
+        } else if ProcessInfo.processInfo.environment["XCTestConfigurationFilePath"] != nil {
+            return .testing
+        } else {
+            return .development
+        }
+        #else
+        return .production
+        #endif
     }
 }

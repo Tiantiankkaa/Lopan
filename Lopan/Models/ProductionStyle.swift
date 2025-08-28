@@ -8,7 +8,7 @@
 import Foundation
 import SwiftData
 
-enum StyleStatus: String, CaseIterable, Codable {
+public enum StyleStatus: String, CaseIterable, Codable {
     case planning = "planning"
     case inProduction = "in_production"
     case completed = "completed"
@@ -32,8 +32,8 @@ enum StyleStatus: String, CaseIterable, Codable {
 }
 
 @Model
-final class ProductionStyle {
-    var id: String
+public final class ProductionStyle {
+    public var id: String
     var styleCode: String
     var styleName: String
     var color: String

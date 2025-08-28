@@ -420,7 +420,7 @@ struct ErrorEvent: Identifiable, Codable {
 /// Comprehensive error handling and logging service for production systems
 /// 生产系统的综合错误处理和日志服务
 @MainActor
-class UnifiedErrorHandlingService: ObservableObject {
+public class UnifiedErrorHandlingService: ObservableObject {
     
     // MARK: - Dependencies
     private let auditService: NewAuditingService

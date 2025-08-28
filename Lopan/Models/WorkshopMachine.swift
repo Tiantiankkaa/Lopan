@@ -9,7 +9,7 @@ import Foundation
 import SwiftData
 
 // MARK: - Machine Status & States
-enum MachineStatus: String, CaseIterable, Codable {
+public enum MachineStatus: String, CaseIterable, Codable {
     case running = "running"
     case stopped = "stopped"
     case maintenance = "maintenance"
@@ -43,7 +43,7 @@ enum MachineStatus: String, CaseIterable, Codable {
     }
 }
 
-enum StationStatus: String, CaseIterable, Codable {
+public enum StationStatus: String, CaseIterable, Codable {
     case idle = "idle"
     case running = "running"
     case blocked = "blocked"
@@ -61,8 +61,8 @@ enum StationStatus: String, CaseIterable, Codable {
 
 // MARK: - SwiftData Models
 @Model
-final class WorkshopMachine: Codable, Identifiable {
-    var id: String
+public final class WorkshopMachine: Codable, Identifiable {
+    public var id: String
     var machineNumber: Int
     var status: MachineStatus
     var isActive: Bool
@@ -213,7 +213,7 @@ final class WorkshopMachine: Codable, Identifiable {
         case curingTime, moldOpeningTimes
     }
     
-    func encode(to encoder: Encoder) throws {
+    public func encode(to encoder: Encoder) throws {
         var container = encoder.container(keyedBy: CodingKeys.self)
         try container.encode(id, forKey: .id)
         try container.encode(machineNumber, forKey: .machineNumber)
@@ -237,7 +237,7 @@ final class WorkshopMachine: Codable, Identifiable {
         try container.encode(moldOpeningTimes, forKey: .moldOpeningTimes)
     }
     
-    required init(from decoder: Decoder) throws {
+    public required init(from decoder: Decoder) throws {
         let container = try decoder.container(keyedBy: CodingKeys.self)
         id = try container.decode(String.self, forKey: .id)
         machineNumber = try container.decode(Int.self, forKey: .machineNumber)
@@ -267,8 +267,8 @@ final class WorkshopMachine: Codable, Identifiable {
 }
 
 @Model
-final class WorkshopStation: Codable {
-    var id: String
+public final class WorkshopStation: Codable {
+    public var id: String
     var stationNumber: Int
     var status: StationStatus
     var machineId: String
@@ -303,7 +303,7 @@ final class WorkshopStation: Codable {
         case createdAt, updatedAt
     }
     
-    func encode(to encoder: Encoder) throws {
+    public func encode(to encoder: Encoder) throws {
         var container = encoder.container(keyedBy: CodingKeys.self)
         try container.encode(id, forKey: .id)
         try container.encode(stationNumber, forKey: .stationNumber)
@@ -316,7 +316,7 @@ final class WorkshopStation: Codable {
         try container.encode(updatedAt, forKey: .updatedAt)
     }
     
-    required init(from decoder: Decoder) throws {
+    public required init(from decoder: Decoder) throws {
         let container = try decoder.container(keyedBy: CodingKeys.self)
         id = try container.decode(String.self, forKey: .id)
         stationNumber = try container.decode(Int.self, forKey: .stationNumber)
@@ -331,8 +331,8 @@ final class WorkshopStation: Codable {
 }
 
 @Model
-final class WorkshopGun: Codable, Identifiable {
-    var id: String
+public final class WorkshopGun: Codable, Identifiable {
+    public var id: String
     var name: String // "Gun A" or "Gun B"
     var stationRangeStart: Int
     var stationRangeEnd: Int
@@ -394,7 +394,7 @@ final class WorkshopGun: Codable, Identifiable {
         case totalShotCount, lastColorChangeDate, createdAt, updatedAt
     }
     
-    func encode(to encoder: Encoder) throws {
+    public func encode(to encoder: Encoder) throws {
         var container = encoder.container(keyedBy: CodingKeys.self)
         try container.encode(id, forKey: .id)
         try container.encode(name, forKey: .name)
@@ -410,7 +410,7 @@ final class WorkshopGun: Codable, Identifiable {
         try container.encode(updatedAt, forKey: .updatedAt)
     }
     
-    required init(from decoder: Decoder) throws {
+    public required init(from decoder: Decoder) throws {
         let container = try decoder.container(keyedBy: CodingKeys.self)
         id = try container.decode(String.self, forKey: .id)
         name = try container.decode(String.self, forKey: .name)

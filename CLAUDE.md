@@ -320,6 +320,32 @@ Lopan/
 
 > No cross‑domain access: all writes go through **Service → Repository → Audit**.
 
+## 8.1 Business Module Clarification (重要业务模块区分)
+
+### Customer Out-of-Stock Management (客户缺货管理)
+- **Purpose**: Track customer out-of-stock requests lifecycle
+- **Status Model**: THREE states only
+  - `pending`: Request registered, awaiting fulfillment (待处理)
+  - `completed`: Successfully fulfilled and delivered (已完成)
+  - `returned`: Cannot fulfill, refunded to customer (已退货)
+- **IMPORTANT**: Do NOT add extra states like inProgress or cancelled
+- **Location**: `/Models/CustomerOutOfStock.swift`
+- **Business Flow**: 
+  - Customer reports out-of-stock → pending
+  - Stock replenished and delivered → completed
+  - Cannot replenish, refund issued → returned
+
+### Give-Back Management (还货管理) 
+- **Purpose**: Handle customer-initiated returns of delivered products
+- **Separate Module**: Independent from out-of-stock management
+- **Location**: `/Views/Salesperson/GiveBackManagementView.swift`
+- **Business Flow**: Customer returns delivered products → process return
+- **Note**: This handles returns of already delivered goods, NOT out-of-stock refunds
+
+> ⚠️ **CRITICAL DISTINCTION**: Never confuse these two modules:
+> - Out-of-stock "returned" status = refund due to inability to fulfill
+> - Give-Back management = processing returns of delivered products
+
 ---
 
 ## 9. Coding Conventions

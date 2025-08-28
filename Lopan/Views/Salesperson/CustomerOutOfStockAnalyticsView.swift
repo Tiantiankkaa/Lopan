@@ -228,7 +228,7 @@ struct CustomerOutOfStockAnalyticsView: View {
             return .orange
         case .completed:
             return .green
-        case .cancelled:
+        case .returned:
             return .red
         }
     }

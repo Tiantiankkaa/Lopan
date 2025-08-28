@@ -4,7 +4,7 @@ import SwiftUI
 
 /// Secure session management service with timeout controls and audit logging
 @MainActor
-final class SessionSecurityService: ObservableObject {
+public final class SessionSecurityService: ObservableObject {
     
     // MARK: - Published Properties
     

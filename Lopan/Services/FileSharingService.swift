@@ -8,7 +8,7 @@
 import Foundation
 import UIKit
 
-class FileSharingService {
+public class FileSharingService {
     
     static func getExportsDirectory() -> URL? {
         let documentsPath = FileManager.default.urls(for: .documentDirectory, in: .userDomainMask)[0]

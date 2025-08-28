@@ -49,8 +49,8 @@ enum IssueStatus: String, CaseIterable, Codable {
 }
 
 @Model
-final class WorkshopIssue {
-    var id: String
+public final class WorkshopIssue {
+    public var id: String
     var machineId: String
     var machineName: String
     var issueType: String

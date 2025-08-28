@@ -56,59 +56,6 @@ struct ModernSheet<SheetContent: View>: ViewModifier {
     }
 }
 
-// MARK: - Accessibility-Enhanced Components
-struct AccessibleButton: View {
-    let title: String
-    let systemImage: String?
-    let action: () -> Void
-    let style: ButtonStyle
-    
-    init(
-        _ title: String,
-        systemImage: String? = nil,
-        style: ButtonStyle = .primary,
-        action: @escaping () -> Void
-    ) {
-        self.title = title
-        self.systemImage = systemImage
-        self.action = action
-        self.style = style
-    }
-    
-    enum ButtonStyle {
-        case primary, secondary, destructive, plain
-    }
-    
-    var body: some View {
-        getButtonStyle()
-    }
-    
-    @ViewBuilder
-    private func getButtonStyle() -> some View {
-        let baseButton = Button(action: action) {
-            HStack(spacing: 8) {
-                if let systemImage = systemImage {
-                    Image(systemName: systemImage)
-                        .accessibilityHidden(true)
-                }
-                Text(title)
-            }
-        }
-        .accessibilityLabel(title)
-        .accessibilityAddTraits(.isButton)
-        
-        switch style {
-        case .primary:
-            baseButton.buttonStyle(.borderedProminent)
-        case .secondary:
-            baseButton.buttonStyle(.bordered)
-        case .destructive:
-            baseButton.buttonStyle(.bordered).foregroundColor(.red)
-        case .plain:
-            baseButton.buttonStyle(.plain)
-        }
-    }
-}
 
 // MARK: - Loading State Component
 struct LoadingStateView: View {
@@ -173,10 +120,14 @@ struct ErrorStateView: View {
             }
             
             if let retryAction = retryAction {
-                AccessibleButton("重试", systemImage: "arrow.clockwise") {
-                    retryAction()
+                Button(action: retryAction) {
+                    HStack {
+                        Image(systemName: "arrow.clockwise")
+                        Text("重试")
+                    }
                 }
                 .foregroundColor(.blue)
+                .accessibilityLabel("重试")
             }
         }
         .padding()
@@ -229,9 +180,13 @@ struct EmptyStateView: View {
             }
             
             if let actionTitle = actionTitle, let action = action {
-                AccessibleButton(actionTitle, systemImage: "plus.circle") {
-                    action()
+                Button(action: action) {
+                    HStack {
+                        Image(systemName: "plus.circle")
+                        Text(actionTitle)
+                    }
                 }
+                .accessibilityLabel(actionTitle)
             }
         }
         .padding()

@@ -114,7 +114,7 @@ struct UnauthorizedView: View {
 struct SalespersonDashboardView: View {
     @ObservedObject var authService: AuthenticationService
     @ObservedObject var navigationService: WorkbenchNavigationService
-    @EnvironmentObject private var serviceFactory: ServiceFactory
+    @Environment(\.appDependencies) private var appDependencies
     @State private var customers: [Customer] = []
     @State private var products: [Product] = []
     @State private var isLoading: Bool = false
@@ -224,15 +224,18 @@ struct SalespersonDashboardView: View {
     
     private func loadDashboardData() {
         Task {
+            // Update UI on MainActor
             await MainActor.run {
                 isLoading = true
                 errorMessage = nil
             }
             
             do {
-                let loadedCustomers = try await serviceFactory.repositoryFactory.customerRepository.fetchCustomers()
-                let loadedProducts = try await serviceFactory.repositoryFactory.productRepository.fetchProducts()
+                // Perform async operations outside MainActor context
+                let loadedCustomers = try await appDependencies.repositoryFactory.customerRepository.fetchCustomers()
+                let loadedProducts = try await appDependencies.repositoryFactory.productRepository.fetchProducts()
                 
+                // Update UI on MainActor
                 await MainActor.run {
                     self.customers = loadedCustomers
                     self.products = loadedProducts
@@ -429,14 +432,14 @@ struct WarehouseKeeperDashboardView: View {
 struct WorkshopManagerDashboardView: View {
     @ObservedObject var authService: AuthenticationService
     @ObservedObject var navigationService: WorkbenchNavigationService
-    @EnvironmentObject var serviceFactory: ServiceFactory
+    @Environment(\.appDependencies) private var appDependencies
     
     var body: some View {
         NavigationView {
             WorkshopManagerDashboard(
-                repositoryFactory: serviceFactory.repositoryFactory,
+                repositoryFactory: appDependencies.repositoryFactory,
                 authService: authService,
-                auditService: serviceFactory.auditingService,
+                auditService: appDependencies.auditingService,
                 navigationService: navigationService
             )
             .navigationTitle("workshop_manager_dashboard".localized)
@@ -575,7 +578,7 @@ struct WorkshopTechnicianDashboardView: View {
 struct SimplifiedAdministratorDashboardView: View {
     @ObservedObject var authService: AuthenticationService
     @ObservedObject var navigationService: WorkbenchNavigationService
-    @EnvironmentObject var serviceFactory: ServiceFactory
+    @Environment(\.appDependencies) private var appDependencies
     
     @State private var navigationPath = NavigationPath()
     
@@ -644,9 +647,9 @@ struct SimplifiedAdministratorDashboardView: View {
                     UserManagementView()
                 case "BatchManagement":
                     BatchManagementView(
-                        repositoryFactory: serviceFactory.repositoryFactory,
+                        repositoryFactory: appDependencies.repositoryFactory,
                         authService: authService,
-                        auditService: serviceFactory.auditingService
+                        auditService: appDependencies.auditingService
                     )
                 case "SystemOverview":
                     SystemOverviewView()

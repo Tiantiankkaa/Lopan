@@ -13,7 +13,7 @@ import SwiftUI
 /// Service responsible for detecting system faults and implementing automatic recovery mechanisms
 /// 负责检测系统故障并实施自动恢复机制的服务
 @MainActor
-class FaultDetectionAndRecoveryService: ObservableObject {
+public class FaultDetectionAndRecoveryService: ObservableObject {
     
     // MARK: - Dependencies
     private let repositoryFactory: RepositoryFactory

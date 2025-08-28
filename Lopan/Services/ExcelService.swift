@@ -9,7 +9,7 @@ import Foundation
 import SwiftData
 import UniformTypeIdentifiers
 
-class ExcelService {
+public class ExcelService {
     static let shared = ExcelService()
     
     private init() {}

@@ -8,16 +8,19 @@
 import Foundation
 
 enum DateFilterOption: CaseIterable, Hashable {
+    case today
     case thisWeek
     case thisMonth
     case custom(start: Date, end: Date)
     
     static var allCases: [DateFilterOption] {
-        [.thisWeek, .thisMonth, .custom(start: Date(), end: Date())]
+        [.today, .thisWeek, .thisMonth, .custom(start: Date(), end: Date())]
     }
     
     var displayName: String {
         switch self {
+        case .today:
+            return "今天"
         case .thisWeek:
             return "本周"
         case .thisMonth:
@@ -29,6 +32,8 @@ enum DateFilterOption: CaseIterable, Hashable {
     
     var systemImage: String {
         switch self {
+        case .today:
+            return "today"
         case .thisWeek:
             return "calendar.badge.plus"
         case .thisMonth:
@@ -43,6 +48,11 @@ enum DateFilterOption: CaseIterable, Hashable {
         let now = Date()
         
         switch self {
+        case .today:
+            let startOfDay = calendar.startOfDay(for: now)
+            let endOfDay = calendar.date(byAdding: .day, value: 1, to: startOfDay) ?? now
+            return (start: startOfDay, end: endOfDay)
+            
         case .thisWeek:
             let startOfWeek = calendar.dateInterval(of: .weekOfYear, for: now)?.start ?? now
             let endOfWeek = calendar.dateInterval(of: .weekOfYear, for: now)?.end ?? now
@@ -77,7 +87,7 @@ enum DateFilterOption: CaseIterable, Hashable {
 extension DateFilterOption {
     static func == (lhs: DateFilterOption, rhs: DateFilterOption) -> Bool {
         switch (lhs, rhs) {
-        case (.thisWeek, .thisWeek), (.thisMonth, .thisMonth):
+        case (.today, .today), (.thisWeek, .thisWeek), (.thisMonth, .thisMonth):
             return true
         case (.custom(let start1, let end1), .custom(let start2, let end2)):
             return start1 == start2 && end1 == end2
@@ -88,6 +98,8 @@ extension DateFilterOption {
     
     func hash(into hasher: inout Hasher) {
         switch self {
+        case .today:
+            hasher.combine("today")
         case .thisWeek:
             hasher.combine("thisWeek")
         case .thisMonth:

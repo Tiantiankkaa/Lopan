@@ -11,7 +11,7 @@ import SwiftUI
 /// Service for managing batch data in edit views
 /// 用于在编辑视图中管理批次数据的服务
 @MainActor
-class BatchEditService: ObservableObject {
+public class BatchEditService: ObservableObject {
     
     // MARK: - Published Properties (发布属性)
     

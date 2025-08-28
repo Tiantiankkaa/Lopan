@@ -7,8 +7,7 @@
 
 import Foundation
 
-@MainActor
-protocol ColorRepository {
+public protocol ColorRepository {
     func fetchAllColors() async throws -> [ColorCard]
     func fetchActiveColors() async throws -> [ColorCard]
     func fetchColorById(_ id: String) async throws -> ColorCard?

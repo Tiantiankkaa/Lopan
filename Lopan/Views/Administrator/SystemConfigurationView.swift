@@ -13,7 +13,7 @@ import SwiftData
 /// Comprehensive system configuration management interface
 /// 综合系统配置管理界面
 struct SystemConfigurationView: View {
-    @EnvironmentObject var serviceFactory: ServiceFactory
+    @Environment(\.appDependencies) private var appDependencies
     
     @State private var selectedTab = 0
     @State private var showingSecuritySettings = false
@@ -21,11 +21,11 @@ struct SystemConfigurationView: View {
     @State private var showingConfigurationHistory = false
     
     private var configurationService: SystemConfigurationService {
-        serviceFactory.systemConfigurationService
+        appDependencies.serviceFactory.systemConfigurationService
     }
     
     private var securityService: ConfigurationSecurityService {
-        serviceFactory.configurationSecurityService
+        appDependencies.serviceFactory.configurationSecurityService
     }
     
     var body: some View {

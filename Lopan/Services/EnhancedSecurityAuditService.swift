@@ -278,7 +278,7 @@ enum SecurityResponseAction {
 /// Comprehensive security audit service with threat detection and encryption
 /// 具有威胁检测和加密功能的综合安全审计服务
 @MainActor
-class EnhancedSecurityAuditService: ObservableObject {
+public class EnhancedSecurityAuditService: ObservableObject {
     
     // MARK: - Dependencies
     private let baseAuditService: NewAuditingService

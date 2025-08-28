@@ -11,7 +11,7 @@ import SwiftData
 struct EnhancedProductDetailView: View {
     @Environment(\.modelContext) private var modelContext
     @Environment(\.dismiss) private var dismiss
-    @EnvironmentObject private var serviceFactory: ServiceFactory
+    @Environment(\.appDependencies) private var appDependencies
     
     let product: Product
     

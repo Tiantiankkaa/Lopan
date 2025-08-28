@@ -13,7 +13,7 @@ import SwiftUI
 /// Comprehensive system health monitoring and metrics collection service
 /// 综合系统健康监控和指标收集服务
 @MainActor
-class HealthCheckAndMonitoringService: ObservableObject {
+public class HealthCheckAndMonitoringService: ObservableObject {
     
     // MARK: - Dependencies
     private let repositoryFactory: RepositoryFactory

@@ -13,7 +13,7 @@ import SwiftData
 /// Comprehensive permission and role management interface for administrators
 /// 管理员的综合权限和角色管理界面
 struct PermissionManagementView: View {
-    @EnvironmentObject var serviceFactory: ServiceFactory
+    @Environment(\.appDependencies) private var appDependencies
     @ObservedObject var permissionService: AdvancedPermissionService
     @ObservedObject var roleManagementService: RoleManagementService
     

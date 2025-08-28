@@ -355,19 +355,19 @@ class CustomerOutOfStockSampleDataService {
         
         // 根据状态设置相关日期和数据
         switch status {
+        case .pending:
+            // 待处理状态不需要额外设置
+            break
+            
         case .completed:
             record.actualCompletionDate = LargeSampleDataGenerator.generateCompletionDate(from: requestDate)
             
-        case .cancelled:
+        case .returned:
             let returnDate = LargeSampleDataGenerator.generateReturnDate(from: requestDate)
             let returnQuantity = LargeSampleDataGenerator.generateReturnQuantity(originalQuantity: quantity)
             record.returnDate = returnDate
             record.returnQuantity = returnQuantity
             record.returnNotes = "样本数据：模拟退货记录"
-            
-        case .pending:
-            // 待处理状态不需要额外设置
-            break
         }
         
         return record

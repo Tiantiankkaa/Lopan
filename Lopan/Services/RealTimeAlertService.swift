@@ -449,7 +449,7 @@ struct AlertGroup: Identifiable {
 /// Main service for real-time alert monitoring and management
 /// 实时警报监控和管理的主要服务
 @MainActor
-class RealTimeAlertService: ObservableObject {
+public class RealTimeAlertService: ObservableObject {
     
     // MARK: - Dependencies
     private let notificationEngine: NotificationEngine

@@ -100,7 +100,7 @@ class CombinedStrategy: CacheWarmingStrategy {
 /// Service for intelligent cache warming and background optimization
 /// 智能缓存预热和后台优化服务
 @MainActor
-class CacheWarmingService: ObservableObject {
+public class CacheWarmingService: ObservableObject {
     
     // MARK: - Dependencies
     private let batchMachineCoordinator: StandardBatchMachineCoordinator

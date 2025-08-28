@@ -68,7 +68,7 @@ struct OutOfStockStatusTabBar: View {
         case .completed:
             return statusCounts[.completed] ?? 0
         case .returned:
-            return statusCounts[.cancelled] ?? 0
+            return statusCounts[.returned] ?? 0
         }
     }
 }
@@ -137,7 +137,7 @@ private struct TabItemView: View {
         statusCounts: [
             .pending: 20,
             .completed: 24,
-            .cancelled: 5
+            .returned: 5
         ],
         totalCount: 187
     )

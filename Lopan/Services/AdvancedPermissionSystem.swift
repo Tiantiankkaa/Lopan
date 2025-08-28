@@ -484,7 +484,7 @@ class RoleHierarchyManager {
 /// Comprehensive permission management service
 /// 综合权限管理服务
 @MainActor
-class AdvancedPermissionService: ObservableObject {
+public class AdvancedPermissionService: ObservableObject {
     
     // MARK: - Dependencies
     private let authService: AuthenticationService

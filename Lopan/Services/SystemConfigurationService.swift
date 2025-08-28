@@ -385,7 +385,7 @@ enum ConfigurationEnvironment: String, CaseIterable, Codable {
 /// Comprehensive system configuration management service
 /// 综合系统配置管理服务
 @MainActor
-class SystemConfigurationService: ObservableObject {
+public class SystemConfigurationService: ObservableObject {
     
     // MARK: - Dependencies
     private let auditService: NewAuditingService

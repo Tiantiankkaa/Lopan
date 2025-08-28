@@ -9,16 +9,16 @@ import SwiftUI
 import SwiftData
 
 struct CustomerDetailView: View {
-    @EnvironmentObject private var serviceFactory: ServiceFactory
+    @Environment(\.appDependencies) private var appDependencies
     @Environment(\.dismiss) private var dismiss
     let customer: Customer
     
     private var customerRepository: CustomerRepository {
-        serviceFactory.repositoryFactory.customerRepository
+        appDependencies.serviceFactory.repositoryFactory.customerRepository
     }
     
     private var customerOutOfStockRepository: CustomerOutOfStockRepository {
-        serviceFactory.repositoryFactory.customerOutOfStockRepository
+        appDependencies.serviceFactory.repositoryFactory.customerOutOfStockRepository
     }
     
     private var sevenDaysAgo: Date {
@@ -203,7 +203,7 @@ struct CustomerDetailView: View {
         switch status {
         case .pending: return LopanColors.warning
         case .completed: return LopanColors.success
-        case .cancelled: return LopanColors.error
+        case .returned: return LopanColors.success
         }
     }
     
@@ -309,11 +309,11 @@ struct InfoRow: View {
 
 struct EditCustomerView: View {
     @Environment(\.dismiss) private var dismiss
-    @EnvironmentObject private var serviceFactory: ServiceFactory
+    @Environment(\.appDependencies) private var appDependencies
     let customer: Customer
     
     private var customerRepository: CustomerRepository {
-        serviceFactory.repositoryFactory.customerRepository
+        appDependencies.serviceFactory.repositoryFactory.customerRepository
     }
     
     @State private var name: String

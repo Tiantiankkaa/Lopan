@@ -175,6 +175,16 @@ struct UserDTO: Codable, Identifiable {
     }
 }
 
+// MARK: - Empty Response for DELETE operations
+
+struct EmptyResponse: Codable {
+    let success: Bool?
+    
+    init() {
+        self.success = true
+    }
+}
+
 // MARK: - Cloud Response Wrappers
 
 struct CloudResponse<T: Codable>: Codable {
@@ -286,5 +296,9 @@ extension UserDTO {
             // Create a generic user - this is simplified for DTO conversion
             return User(wechatId: "", name: name, phone: phone)
         }
+    }
+    
+    static func fromDomain(_ user: User) -> UserDTO {
+        return UserDTO(from: user)
     }
 }

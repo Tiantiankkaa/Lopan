@@ -36,7 +36,7 @@ enum ProductionMode: String, CaseIterable, Codable {
     }
 }
 
-enum BatchStatus: String, CaseIterable, Codable {
+public enum BatchStatus: String, CaseIterable, Codable {
     case unsubmitted = "unsubmitted"
     case pending = "pending"
     case approved = "approved"
@@ -97,7 +97,7 @@ enum BatchStatus: String, CaseIterable, Codable {
     
 }
 
-enum BatchType: String, CaseIterable, Codable {
+public enum BatchType: String, CaseIterable, Codable {
     case productionConfig = "PC"  // 生产配置 (单机)
     case batchProcessing = "BP"   // 批次处理 (多机)
     
@@ -115,8 +115,8 @@ enum BatchType: String, CaseIterable, Codable {
 
 // MARK: - SwiftData Models
 @Model
-final class ProductionBatch: Identifiable {
-    var id: String
+public final class ProductionBatch: Identifiable {
+    public var id: String
     var batchNumber: String
     var machineId: String
     var mode: ProductionMode
@@ -429,8 +429,8 @@ final class ProductionBatch: Identifiable {
 }
 
 @Model
-final class ProductConfig {
-    var id: String
+public final class ProductConfig {
+    public var id: String
     var batchId: String
     var productName: String
     var productId: String? // Reference to existing Product in sales platform

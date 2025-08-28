@@ -10,7 +10,7 @@ import SwiftData
 
 // MARK: - App Environment
 
-enum AppEnvironment {
+public enum AppEnvironment {
     case development
     case testing
     case production

@@ -10,7 +10,7 @@ import SwiftData
 import SwiftUI
 
 @MainActor
-class WorkshopIntegrationService {
+public class WorkshopIntegrationService {
     private let repositoryFactory: RepositoryFactory
     private let authService: AuthenticationService
     private let auditService: NewAuditingService

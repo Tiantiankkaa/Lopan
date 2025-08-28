@@ -35,6 +35,8 @@ struct EnhancedDateNavigationBar: View {
     
     private var displayText: String {
         switch dateFilterMode {
+        case .today:
+            return "今天"
         case .thisWeek:
             let dateRange = DateFilterOption.thisWeek.dateRange
             let formatter = DateFormatter()
@@ -59,7 +61,7 @@ struct EnhancedDateNavigationBar: View {
     
     private var displayTextColor: LinearGradient {
         switch dateFilterMode {
-        case .thisWeek, .thisMonth, .custom:
+        case .today, .thisWeek, .thisMonth, .custom:
             return LinearGradient(
                 colors: [LopanColors.primary, LopanColors.primary.opacity(0.8)],
                 startPoint: .top,
@@ -251,6 +253,8 @@ struct EnhancedDateNavigationBar: View {
         let dateText = displayText
         
         switch dateFilterMode {
+        case .today:
+            return "当前选择今天筛选模式"
         case .thisWeek:
             return "当前选择本周筛选模式"
         case .thisMonth:

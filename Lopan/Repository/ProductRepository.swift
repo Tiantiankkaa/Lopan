@@ -7,7 +7,7 @@
 
 import Foundation
 
-protocol ProductRepository {
+public protocol ProductRepository {
     func fetchProducts() async throws -> [Product]
     func fetchProduct(by id: String) async throws -> Product?
     func addProduct(_ product: Product) async throws

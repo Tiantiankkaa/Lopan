@@ -9,7 +9,7 @@ import Foundation
 import SwiftData
 
 @MainActor
-class CustomerDeletionValidationService: ObservableObject {
+public class CustomerDeletionValidationService: ObservableObject {
     private let modelContext: ModelContext
     
     struct DeletionValidationResult {
@@ -38,7 +38,7 @@ class CustomerDeletionValidationService: ObservableObject {
         
         let pendingRecords = customerRecords.filter { $0.status == .pending }
         let completedRecords = customerRecords.filter { $0.status == .completed }
-        let cancelledRecords = customerRecords.filter { $0.status == .cancelled }
+        let returnedRecords = customerRecords.filter { $0.status == .returned }
         
         let canDelete = pendingRecords.isEmpty
         let warningMessage = pendingRecords.isEmpty ? nil : 
@@ -48,7 +48,7 @@ class CustomerDeletionValidationService: ObservableObject {
             customer: customer,
             pendingCount: pendingRecords.count,
             completedCount: completedRecords.count,
-            cancelledCount: cancelledRecords.count,
+            returnedCount: returnedRecords.count,
             totalCount: customerRecords.count
         )
         
@@ -89,7 +89,7 @@ class CustomerDeletionValidationService: ObservableObject {
         try modelContext.save()
     }
     
-    private func buildImpactSummary(customer: Customer, pendingCount: Int, completedCount: Int, cancelledCount: Int, totalCount: Int) -> String {
+    private func buildImpactSummary(customer: Customer, pendingCount: Int, completedCount: Int, returnedCount: Int, totalCount: Int) -> String {
         var summary = "删除客户「\(customer.name)」的影响分析：\n\n"
         
         if totalCount == 0 {
@@ -103,8 +103,8 @@ class CustomerDeletionValidationService: ObservableObject {
             if completedCount > 0 {
                 summary += "• 已完成记录：\(completedCount) 条\n"
             }
-            if cancelledCount > 0 {
-                summary += "• 已取消记录：\(cancelledCount) 条\n"
+            if returnedCount > 0 {
+                summary += "• 已退货记录：\(returnedCount) 条\n"
             }
             
             summary += "\n删除后，这些记录将保留但失去客户关联。"

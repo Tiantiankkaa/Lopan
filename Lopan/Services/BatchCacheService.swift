@@ -10,7 +10,7 @@ import SwiftUI
 
 // MARK: - Batch Cache Service (批次缓存服务)
 @MainActor
-class BatchCacheService: ObservableObject {
+public class BatchCacheService: ObservableObject {
     
     // MARK: - Cache Storage (缓存存储)
     

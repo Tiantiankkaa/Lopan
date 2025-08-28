@@ -313,7 +313,7 @@ struct RecoveryConfiguration {
 /// Comprehensive backup and recovery service
 /// 综合备份和恢复服务
 @MainActor
-class DataBackupService: ObservableObject {
+public class DataBackupService: ObservableObject {
     
     // MARK: - Dependencies
     private let repositoryFactory: RepositoryFactory

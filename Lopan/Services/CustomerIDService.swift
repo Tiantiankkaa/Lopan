@@ -8,7 +8,7 @@
 import Foundation
 import SwiftData
 
-class CustomerIDService {
+public class CustomerIDService {
     private let userDefaults = UserDefaults.standard
     private let customerIDKey = "LastCustomerID"
     

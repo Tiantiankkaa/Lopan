@@ -10,7 +10,7 @@ import SwiftData
 import AuthenticationServices
 
 @MainActor
-class AuthenticationService: ObservableObject {
+public class AuthenticationService: ObservableObject {
     @Published var currentUser: User?
     @Published var isAuthenticated = false
     @Published var isLoading = false
@@ -21,6 +21,9 @@ class AuthenticationService: ObservableObject {
     private let userRepository: UserRepository
     private var pendingSMSUser: User?
     private weak var serviceFactory: ServiceFactory?
+    private var sessionSecurityService: SessionSecurityService? {
+        serviceFactory?.sessionSecurityService
+    }
     
     init(repositoryFactory: RepositoryFactory, serviceFactory: ServiceFactory? = nil) {
         self.userRepository = repositoryFactory.userRepository
@@ -28,8 +31,30 @@ class AuthenticationService: ObservableObject {
     }
     
     // Simulate WeChat login
+    // TODO: Replace with proper WeChat SDK integration and server-side verification
     func loginWithWeChat(wechatId: String, name: String, phone: String? = nil) async {
         isLoading = true
+        
+        // Check rate limiting
+        guard let sessionService = sessionSecurityService,
+              sessionService.isAuthenticationAllowed(for: wechatId) else {
+            print("❌ Security: Authentication rate limited for WeChat ID: \(wechatId)")
+            isLoading = false
+            return
+        }
+        
+        // Input validation
+        guard isValidWeChatId(wechatId) else {
+            print("❌ Security: Invalid WeChat ID format rejected")
+            isLoading = false
+            return
+        }
+        
+        guard isValidName(name) else {
+            print("❌ Security: Invalid name format rejected")
+            isLoading = false
+            return
+        }
         
         // Simulate network delay
         try? await Task.sleep(nanoseconds: 1_000_000_000)
@@ -38,13 +63,33 @@ class AuthenticationService: ObservableObject {
             if let existingUser = try await userRepository.fetchUser(byWechatId: wechatId) {
                 // User exists, update last login
                 existingUser.lastLoginAt = Date()
+                
+                // Role assignment should be handled by administrators through proper authorization
+                // TODO: Implement proper role-based access control with admin verification
+                
                 try await userRepository.updateUser(existingUser)
                 currentUser = existingUser
+                
+                // Create secure session
+                if let sessionService = sessionSecurityService {
+                    let sessionToken = sessionService.createSession(for: existingUser.id, userRole: existingUser.primaryRole)
+                    sessionService.resetRateLimit(for: wechatId)
+                }
             } else {
                 // Create new user
                 let newUser = User(wechatId: wechatId, name: name, phone: phone)
+                
+                // New users get default role - role upgrades require administrator approval
+                // TODO: Implement secure role assignment workflow
+                
                 try await userRepository.addUser(newUser)
                 currentUser = newUser
+                
+                // Create secure session
+                if let sessionService = sessionSecurityService {
+                    let sessionToken = sessionService.createSession(for: newUser.id, userRole: newUser.primaryRole)
+                    sessionService.resetRateLimit(for: wechatId)
+                }
             }
             
             isAuthenticated = true
@@ -66,12 +111,19 @@ class AuthenticationService: ObservableObject {
     private func performComprehensiveLogout() async {
         print("⚙️ Starting comprehensive logout process...")
         
-        // Step 1: Cleanup all services to cancel background tasks
+        // Step 1: Invalidate secure session
+        await MainActor.run {
+            if let user = currentUser, let sessionService = sessionSecurityService {
+                sessionService.forceLogout(userId: user.id, reason: "User logout")
+            }
+        }
+        
+        // Step 2: Cleanup all services to cancel background tasks
         if let serviceFactory = serviceFactory {
             await serviceFactory.cleanupAllServices()
         }
         
-        // Step 2: Clear user session after services are cleaned up
+        // Step 3: Clear user session after services are cleaned up
         await MainActor.run {
             currentUser = nil
             isAuthenticated = false
@@ -176,6 +228,14 @@ class AuthenticationService: ObservableObject {
                 let fullName = appleIDCredential.fullName
                 let email = appleIDCredential.email
                 
+                // Check rate limiting
+                guard let sessionService = sessionSecurityService,
+                      sessionService.isAuthenticationAllowed(for: userID) else {
+                    print("❌ Security: Authentication rate limited for Apple ID: \(userID)")
+                    isLoading = false
+                    return
+                }
+                
                 let displayName = [fullName?.givenName, fullName?.familyName]
                     .compactMap { $0 }
                     .joined(separator: " ")
@@ -187,10 +247,22 @@ class AuthenticationService: ObservableObject {
                     existingUser.lastLoginAt = Date()
                     try await userRepository.updateUser(existingUser)
                     currentUser = existingUser
+                    
+                    // Create secure session
+                    if let sessionService = sessionSecurityService {
+                        let sessionToken = sessionService.createSession(for: existingUser.id, userRole: existingUser.primaryRole)
+                        sessionService.resetRateLimit(for: userID)
+                    }
                 } else {
                     let newUser = User(appleUserId: userID, name: name, email: email)
                     try await userRepository.addUser(newUser)
                     currentUser = newUser
+                    
+                    // Create secure session
+                    if let sessionService = sessionSecurityService {
+                        let sessionToken = sessionService.createSession(for: newUser.id, userRole: newUser.primaryRole)
+                        sessionService.resetRateLimit(for: userID)
+                    }
                 }
                 
                 isAuthenticated = true
@@ -206,6 +278,14 @@ class AuthenticationService: ObservableObject {
     func sendSMSCode(to phoneNumber: String, name: String) async {
         isLoading = true
         self.phoneNumber = phoneNumber
+        
+        // Check rate limiting for SMS sending
+        guard let sessionService = sessionSecurityService,
+              sessionService.isAuthenticationAllowed(for: phoneNumber) else {
+            print("❌ Security: SMS rate limited for phone: \(phoneNumber)")
+            isLoading = false
+            return
+        }
         
         // Simulate SMS sending delay
         try? await Task.sleep(nanoseconds: 2_000_000_000)
@@ -226,9 +306,16 @@ class AuthenticationService: ObservableObject {
         // Simulate verification delay
         try? await Task.sleep(nanoseconds: 1_000_000_000)
         
+        // Input validation for SMS code
+        guard isValidSMSCode(code) else {
+            print("❌ Security: Invalid SMS code format rejected")
+            isLoading = false
+            return
+        }
+        
         // In production, verify with SMS service
-        // For demo, accept "1234" as valid code
-        if code == "1234" || code.count == 6 {
+        // TODO: Replace with proper SMS service verification
+        if isValidVerificationCode(code) {
             guard let pendingUser = pendingSMSUser else {
                 isLoading = false
                 return
@@ -240,9 +327,21 @@ class AuthenticationService: ObservableObject {
                     existingUser.lastLoginAt = Date()
                     try await userRepository.updateUser(existingUser)
                     currentUser = existingUser
+                    
+                    // Create secure session
+                    if let sessionService = sessionSecurityService {
+                        let sessionToken = sessionService.createSession(for: existingUser.id, userRole: existingUser.primaryRole)
+                        sessionService.resetRateLimit(for: pendingUser.phone ?? "")
+                    }
                 } else {
                     try await userRepository.addUser(pendingUser)
                     currentUser = pendingUser
+                    
+                    // Create secure session
+                    if let sessionService = sessionSecurityService {
+                        let sessionToken = sessionService.createSession(for: pendingUser.id, userRole: pendingUser.primaryRole)
+                        sessionService.resetRateLimit(for: pendingUser.phone ?? "")
+                    }
                 }
                 
                 isAuthenticated = true
@@ -262,7 +361,7 @@ class AuthenticationService: ObservableObject {
     
     // MARK: - Session Validation
     
-    /// 验证当前用户会话是否有效
+    /// 验证当前用户会话是否有效（增强版本，使用SessionSecurityService）
     func isSessionValid() -> Bool {
         guard let user = currentUser else {
             return false
@@ -273,6 +372,12 @@ class AuthenticationService: ObservableObject {
             return false
         }
         
+        // 使用SessionSecurityService进行会话验证
+        if let sessionService = sessionSecurityService {
+            return sessionService.isSessionValid
+        }
+        
+        // 回退到基本验证逻辑
         // 检查最后登录时间，如果超过24小时则认为session过期
         if let lastLogin = user.lastLoginAt {
             let twentyFourHoursAgo = Date().addingTimeInterval(-24 * 60 * 60)
@@ -291,11 +396,90 @@ class AuthenticationService: ObservableObject {
     
     /// 强制session过期，需要重新登录
     func invalidateSession() {
+        // 使用SessionSecurityService清理会话
+        if let sessionService = sessionSecurityService {
+            sessionService.invalidateSession()
+        }
+        
         currentUser = nil
         isAuthenticated = false
         showingSMSVerification = false
         smsCode = ""
         phoneNumber = ""
         pendingSMSUser = nil
+    }
+    
+    // MARK: - Input Validation
+    
+    /// Validates WeChat ID format (basic security check)
+    /// TODO: Implement proper WeChat ID format validation based on official specs
+    private func isValidWeChatId(_ wechatId: String) -> Bool {
+        // Basic validation - reject empty, too short, or suspicious patterns
+        guard !wechatId.isEmpty,
+              wechatId.count >= 3,
+              wechatId.count <= 50 else {
+            return false
+        }
+        
+        // Reject common injection patterns and scripts
+        let suspiciousPatterns = ["<script", "javascript:", "onload", "eval(", "alert("]
+        for pattern in suspiciousPatterns {
+            if wechatId.lowercased().contains(pattern) {
+                return false
+            }
+        }
+        
+        // WeChat ID should contain only alphanumeric characters, underscore, and hyphen
+        let allowedCharacters = CharacterSet.alphanumerics.union(CharacterSet(charactersIn: "_-"))
+        return wechatId.unicodeScalars.allSatisfy { allowedCharacters.contains($0) }
+    }
+    
+    /// Validates user name format
+    private func isValidName(_ name: String) -> Bool {
+        guard !name.isEmpty,
+              name.count >= 1,
+              name.count <= 50 else {
+            return false
+        }
+        
+        // Reject HTML/script injection attempts
+        let suspiciousPatterns = ["<", ">", "script", "javascript:", "onload"]
+        for pattern in suspiciousPatterns {
+            if name.lowercased().contains(pattern) {
+                return false
+            }
+        }
+        
+        return true
+    }
+    
+    /// Validates SMS code format
+    private func isValidSMSCode(_ code: String) -> Bool {
+        // SMS codes should be 4-8 digits only
+        guard !code.isEmpty,
+              code.count >= 4,
+              code.count <= 8 else {
+            return false
+        }
+        
+        // Only numeric characters allowed
+        return code.allSatisfy { $0.isNumber }
+    }
+    
+    /// Validates verification code (placeholder for actual SMS service integration)
+    /// TODO: Replace with proper SMS service verification
+    private func isValidVerificationCode(_ code: String) -> Bool {
+        #if DEBUG
+        // In DEBUG builds, accept "1234" for testing purposes only
+        if code == "1234" {
+            print("⚠️ DEBUG: Accepting test verification code")
+            return true
+        }
+        #endif
+        
+        // In production, this should verify with SMS service
+        // For now, reject all codes to prevent unauthorized access
+        print("❌ SMS verification disabled - implement proper SMS service")
+        return false
     }
 } 

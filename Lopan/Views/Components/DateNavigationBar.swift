@@ -29,6 +29,8 @@ struct DateNavigationBar: View {
     
     private var displayText: String {
         switch dateFilterMode {
+        case .today:
+            return "今天 (\(formattedDate))"
         case .thisWeek:
             let dateRange = DateFilterOption.thisWeek.dateRange
             let formatter = DateFormatter()

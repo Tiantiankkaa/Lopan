@@ -9,8 +9,8 @@ import Foundation
 import SwiftData
 
 @Model
-final class Customer {
-    var id: String
+public final class Customer {
+    public var id: String
     var customerNumber: String
     var name: String
     var address: String

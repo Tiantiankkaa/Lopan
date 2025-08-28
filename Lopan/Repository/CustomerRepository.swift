@@ -7,7 +7,7 @@
 
 import Foundation
 
-protocol CustomerRepository {
+public protocol CustomerRepository {
     func fetchCustomers() async throws -> [Customer]
     func fetchCustomer(by id: String) async throws -> Customer?
     func addCustomer(_ customer: Customer) async throws

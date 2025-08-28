@@ -11,7 +11,7 @@ import SwiftData
 struct GiveBackManagementView: View {
     @Environment(\.modelContext) private var modelContext
     @Query(sort: \CustomerOutOfStock.requestDate, order: .reverse) private var outOfStockItems: [CustomerOutOfStock]
-    @EnvironmentObject private var serviceFactory: ServiceFactory
+    @Environment(\.appDependencies) private var appDependencies
     
     @State private var searchText = ""
     @State private var debouncedSearchText = ""
@@ -420,8 +420,8 @@ struct GiveBackManagementView: View {
     var filteredItemsNeedingReturn: [CustomerOutOfStock] {
         var filtered = outOfStockItems
         
-        // 首先过滤掉已退货的记录（客户已取消，不需要还货）
-        filtered = filtered.filter { $0.status != .cancelled }
+        // 首先过滤掉已退货的记录（客户已退货，不需要还货）
+        filtered = filtered.filter { $0.status != .returned }
         
         // 过滤掉已完成的记录（已经全部还货完成）
         filtered = filtered.filter { $0.status != .completed }
@@ -546,7 +546,7 @@ struct GiveBackManagementView: View {
             
             // Log each return processing
             Task {
-                await serviceFactory.auditingService.logReturnProcessing(
+                await appDependencies.serviceFactory.auditingService.logReturnProcessing(
                     item: item,
                     returnQuantity: quantity,
                     returnNotes: notes,

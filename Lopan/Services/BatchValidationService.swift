@@ -10,7 +10,7 @@ import SwiftUI
 
 // MARK: - Batch Validation Service (批次验证服务)
 @MainActor
-class BatchValidationService: ObservableObject {
+public class BatchValidationService: ObservableObject {
     
     private let repositoryFactory: RepositoryFactory
     private let authService: AuthenticationService

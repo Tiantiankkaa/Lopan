@@ -11,14 +11,14 @@ import SwiftData
 struct CustomerOutOfStockDetailView: View {
     let item: CustomerOutOfStock
     @Environment(\.dismiss) private var dismiss
-    @EnvironmentObject private var serviceFactory: ServiceFactory
+    @Environment(\.appDependencies) private var appDependencies
     
     @State private var showingEditSheet = false
     @State private var showingDeleteAlert = false
     @State private var isUpdatingStatus = false
     
     private var customerOutOfStockService: CustomerOutOfStockService {
-        serviceFactory.customerOutOfStockService
+        appDependencies.serviceFactory.customerOutOfStockService
     }
     
     var body: some View {
@@ -42,7 +42,7 @@ struct CustomerOutOfStockDetailView: View {
                 }
                 
                 // Return Info Card (if applicable)
-                if item.status == .cancelled && item.returnQuantity > 0 {
+                if item.status == .returned && item.returnQuantity > 0 {
                     returnInfoCard
                 }
             }
@@ -65,7 +65,7 @@ struct CustomerOutOfStockDetailView: View {
                         }
                         .disabled(isUpdatingStatus)
                         
-                        Button(action: { updateStatus(to: .cancelled) }) {
+                        Button(action: { updateStatus(to: .returned) }) {
                             Label("标记为已退货", systemImage: "return.left")
                         }
                         .disabled(isUpdatingStatus)
@@ -407,7 +407,7 @@ struct CustomerOutOfStockDetailView: View {
             return .orange
         case .completed:
             return .green
-        case .cancelled:
+        case .returned:
             return .red
         }
     }

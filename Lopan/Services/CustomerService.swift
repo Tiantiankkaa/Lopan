@@ -9,7 +9,7 @@ import Foundation
 
 @MainActor
 @Observable
-class CustomerService {
+public class CustomerService {
     private let customerRepository: CustomerRepository
     private let auditingService: NewAuditingService
     

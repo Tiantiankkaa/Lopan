@@ -7,8 +7,7 @@
 
 import Foundation
 
-@MainActor
-protocol ProductionBatchRepository {
+public protocol ProductionBatchRepository {
     func fetchAllBatches() async throws -> [ProductionBatch]
     func fetchBatchesByStatus(_ status: BatchStatus) async throws -> [ProductionBatch]
     func fetchBatchesByMachine(_ machineId: String) async throws -> [ProductionBatch]

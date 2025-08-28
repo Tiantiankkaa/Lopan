@@ -12,7 +12,7 @@ import SwiftData
 /// 车间经理工作台服务提供者
 /// Centralized service provider for Workshop Manager module
 @MainActor
-class WorkshopManagerServiceProvider: ObservableObject {
+public class WorkshopManagerServiceProvider: ObservableObject {
     
     // MARK: - Dependencies
     let repositoryFactory: RepositoryFactory

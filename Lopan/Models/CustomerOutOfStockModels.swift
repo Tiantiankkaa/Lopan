@@ -9,7 +9,7 @@ import Foundation
 
 // MARK: - Request Models
 
-struct OutOfStockCreationRequest {
+public struct OutOfStockCreationRequest {
     let customer: Customer
     let product: Product
     let productSize: ProductSize?
@@ -19,15 +19,15 @@ struct OutOfStockCreationRequest {
 
 // MARK: - Filter Models
 
-struct OutOfStockFilterCriteria {
-    let customer: Customer?
-    let product: Product?
-    let status: OutOfStockStatus?
-    let dateRange: (start: Date, end: Date)?
-    let searchText: String
-    let page: Int
-    let pageSize: Int
-    let sortOrder: CustomerOutOfStockNavigationState.SortOrder
+public struct OutOfStockFilterCriteria {
+    var customer: Customer?
+    var product: Product?
+    var status: OutOfStockStatus?
+    var dateRange: (start: Date, end: Date)?
+    var searchText: String
+    var page: Int
+    var pageSize: Int
+    var sortOrder: CustomerOutOfStockNavigationState.SortOrder
     
     init(
         customer: Customer? = nil,

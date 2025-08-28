@@ -10,8 +10,8 @@ import SwiftData
 import SwiftUI
 
 @Model
-final class ColorCard {
-    var id: String
+public final class ColorCard {
+    public var id: String
     var name: String
     var hexCode: String
     var createdAt: Date

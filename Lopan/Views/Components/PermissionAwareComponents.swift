@@ -18,7 +18,7 @@ struct PermissionAwareButton: View {
     let action: () -> Void
     let style: ButtonStyle
     
-    @EnvironmentObject var serviceFactory: ServiceFactory
+    @Environment(\.appDependencies) private var appDependencies
     @State private var hasPermission = false
     @State private var isLoading = true
     
@@ -68,7 +68,7 @@ struct PermissionAwareButton: View {
     }
     
     private func checkPermission() async {
-        let result = await serviceFactory.advancedPermissionService.hasPermission(permission)
+        let result = await appDependencies.serviceFactory.advancedPermissionService.hasPermission(permission)
         await MainActor.run {
             hasPermission = result.isGranted
             isLoading = false
@@ -83,7 +83,7 @@ struct PermissionGuarded<Content: View>: View {
     let content: Content
     let fallback: AnyView?
     
-    @EnvironmentObject var serviceFactory: ServiceFactory
+    @Environment(\.appDependencies) private var appDependencies
     @State private var hasPermission = false
     @State private var isLoading = true
     
@@ -112,7 +112,7 @@ struct PermissionGuarded<Content: View>: View {
     }
     
     private func checkPermission() async {
-        let result = await serviceFactory.advancedPermissionService.hasPermission(permission)
+        let result = await appDependencies.serviceFactory.advancedPermissionService.hasPermission(permission)
         await MainActor.run {
             hasPermission = result.isGranted
             isLoading = false
@@ -127,7 +127,7 @@ struct PermissionAwareNavigationLink<Destination: View>: View {
     let title: String
     let destination: Destination
     
-    @EnvironmentObject var serviceFactory: ServiceFactory
+    @Environment(\.appDependencies) private var appDependencies
     @State private var hasPermission = false
     @State private var isLoading = true
     
@@ -166,7 +166,7 @@ struct PermissionAwareNavigationLink<Destination: View>: View {
     }
     
     private func checkPermission() async {
-        let result = await serviceFactory.advancedPermissionService.hasPermission(permission)
+        let result = await appDependencies.serviceFactory.advancedPermissionService.hasPermission(permission)
         await MainActor.run {
             hasPermission = result.isGranted
             isLoading = false
@@ -182,7 +182,7 @@ struct PermissionAwareMenuItem: View {
     let icon: String?
     let action: () -> Void
     
-    @EnvironmentObject var serviceFactory: ServiceFactory
+    @Environment(\.appDependencies) private var appDependencies
     @State private var hasPermission = false
     @State private var isLoading = true
     
@@ -211,7 +211,7 @@ struct PermissionAwareMenuItem: View {
     }
     
     private func checkPermission() async {
-        let result = await serviceFactory.advancedPermissionService.hasPermission(permission)
+        let result = await appDependencies.serviceFactory.advancedPermissionService.hasPermission(permission)
         await MainActor.run {
             hasPermission = result.isGranted
             isLoading = false
@@ -227,7 +227,7 @@ struct PermissionAwareTab<Content: View>: View {
     let icon: String
     let content: Content
     
-    @EnvironmentObject var serviceFactory: ServiceFactory
+    @Environment(\.appDependencies) private var appDependencies
     @State private var hasPermission = false
     @State private var isLoading = true
     
@@ -253,7 +253,7 @@ struct PermissionAwareTab<Content: View>: View {
     }
     
     private func checkPermission() async {
-        let result = await serviceFactory.advancedPermissionService.hasPermission(permission)
+        let result = await appDependencies.serviceFactory.advancedPermissionService.hasPermission(permission)
         await MainActor.run {
             hasPermission = result.isGranted
             isLoading = false
@@ -269,7 +269,7 @@ struct PermissionStatusIndicator: View {
     let permission: Permission
     let compact: Bool
     
-    @EnvironmentObject var serviceFactory: ServiceFactory
+    @Environment(\.appDependencies) private var appDependencies
     @State private var permissionResult: PermissionResult?
     @State private var isLoading = true
     
@@ -311,7 +311,7 @@ struct PermissionStatusIndicator: View {
     }
     
     private func checkPermission() async {
-        let result = await serviceFactory.advancedPermissionService.hasPermission(permission)
+        let result = await appDependencies.serviceFactory.advancedPermissionService.hasPermission(permission)
         await MainActor.run {
             permissionResult = result
             isLoading = false
@@ -322,7 +322,7 @@ struct PermissionStatusIndicator: View {
 /// Shows a comprehensive permission summary for the current user
 /// 显示当前用户的综合权限摘要
 struct UserPermissionSummary: View {
-    @EnvironmentObject var serviceFactory: ServiceFactory
+    @Environment(\.appDependencies) private var appDependencies
     @State private var permissionsByCategory: [PermissionCategory: [Permission]] = [:]
     @State private var isLoading = true
     
@@ -362,7 +362,7 @@ struct UserPermissionSummary: View {
     
     private func loadPermissions() async {
         await MainActor.run {
-            permissionsByCategory = serviceFactory.advancedPermissionService.getPermissionsByCategory()
+            permissionsByCategory = appDependencies.serviceFactory.advancedPermissionService.getPermissionsByCategory()
             isLoading = false
         }
     }
@@ -428,7 +428,7 @@ struct RequirePermissionModifier: ViewModifier {
     let permission: Permission
     let fallback: AnyView?
     
-    @EnvironmentObject var serviceFactory: ServiceFactory
+    @Environment(\.appDependencies) private var appDependencies
     @State private var hasPermission = false
     @State private var isLoading = true
     
@@ -460,7 +460,7 @@ struct RequirePermissionModifier: ViewModifier {
     }
     
     private func checkPermission() async {
-        let result = await serviceFactory.advancedPermissionService.hasPermission(permission)
+        let result = await appDependencies.serviceFactory.advancedPermissionService.hasPermission(permission)
         await MainActor.run {
             hasPermission = result.isGranted
             isLoading = false
@@ -495,7 +495,7 @@ struct PermissionAwareTextField: View {
     @Binding var text: String
     let axis: Axis
     
-    @EnvironmentObject var serviceFactory: ServiceFactory
+    @Environment(\.appDependencies) private var appDependencies
     @State private var hasPermission = false
     @State private var isLoading = true
     
@@ -516,7 +516,7 @@ struct PermissionAwareTextField: View {
     }
     
     private func checkPermission() async {
-        let result = await serviceFactory.advancedPermissionService.hasPermission(permission)
+        let result = await appDependencies.serviceFactory.advancedPermissionService.hasPermission(permission)
         await MainActor.run {
             hasPermission = result.isGranted
             isLoading = false
@@ -532,7 +532,7 @@ struct PermissionAwarePicker<SelectionValue: Hashable, Content: View>: View {
     @Binding var selection: SelectionValue
     let content: Content
     
-    @EnvironmentObject var serviceFactory: ServiceFactory
+    @Environment(\.appDependencies) private var appDependencies
     @State private var hasPermission = false
     @State private var isLoading = true
     
@@ -555,7 +555,7 @@ struct PermissionAwarePicker<SelectionValue: Hashable, Content: View>: View {
     }
     
     private func checkPermission() async {
-        let result = await serviceFactory.advancedPermissionService.hasPermission(permission)
+        let result = await appDependencies.serviceFactory.advancedPermissionService.hasPermission(permission)
         await MainActor.run {
             hasPermission = result.isGranted
             isLoading = false

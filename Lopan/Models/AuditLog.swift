@@ -203,8 +203,8 @@ enum EntityType: String, CaseIterable, Codable {
 
 // MARK: - Audit Log Model
 @Model
-final class AuditLog {
-    var id: String
+public final class AuditLog {
+    public var id: String
     var operationType: OperationType
     var entityType: EntityType
     var entityId: String
@@ -335,7 +335,7 @@ struct BatchOperation: Codable {
         changeDetails = [:] // Initialize with empty dict for now
     }
     
-    func encode(to encoder: Encoder) throws {
+    public func encode(to encoder: Encoder) throws {
         var container = encoder.container(keyedBy: CodingKeys.self)
         try container.encode(affectedItems, forKey: .affectedItems)
         try container.encode(operationType, forKey: .operationType)

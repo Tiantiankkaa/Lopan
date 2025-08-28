@@ -12,7 +12,7 @@ import SwiftUI
 /// Comprehensive notification center for administrators
 /// 管理员的综合通知中心
 struct NotificationCenterView: View {
-    @EnvironmentObject var serviceFactory: ServiceFactory
+    @Environment(\.appDependencies) private var appDependencies
     @State private var selectedTab = NotificationTab.notifications
     @State private var showingSettings = false
     @State private var showingQuickNotification: NotificationMessage?
@@ -62,7 +62,7 @@ struct NotificationCenterView: View {
             }
             .sheet(isPresented: $showingSettings) {
                 NotificationSettingsView()
-                    .environmentObject(serviceFactory)
+                    .environmentObject(appDependencies.serviceFactory)
             }
             .overlay(
                 // Quick notification overlay
@@ -141,19 +141,19 @@ struct NotificationCenterView: View {
             }
         case .rules:
             NotificationRulesView()
-                .environmentObject(serviceFactory)
+                .environmentObject(appDependencies.serviceFactory)
         case .analytics:
             NotificationAnalyticsView()
-                .environmentObject(serviceFactory)
+                .environmentObject(appDependencies.serviceFactory)
         }
     }
     
     private func getNotificationEngine() -> NotificationEngine? {
-        return serviceFactory.notificationEngine
+        return appDependencies.serviceFactory.notificationEngine
     }
     
     private func getRealTimeAlertService() -> RealTimeAlertService? {
-        return serviceFactory.realTimeAlertService
+        return appDependencies.serviceFactory.realTimeAlertService
     }
 }
 
@@ -162,7 +162,7 @@ struct NotificationCenterView: View {
 /// View for managing notification rules and alert rules
 /// 管理通知规则和警报规则的视图
 struct NotificationRulesView: View {
-    @EnvironmentObject var serviceFactory: ServiceFactory
+    @Environment(\.appDependencies) private var appDependencies
     @State private var showingNewRule = false
     @State private var selectedRule: AlertRule?
     @State private var alertRules: [AlertRule] = []
@@ -584,7 +584,7 @@ struct EditNotificationRuleView: View {
 /// Analytics view for notification system performance
 /// 通知系统性能的分析视图
 struct NotificationAnalyticsView: View {
-    @EnvironmentObject var serviceFactory: ServiceFactory
+    @Environment(\.appDependencies) private var appDependencies
     @State private var selectedTimeRange = TimeRange.day
     @State private var analytics = NotificationAnalytics()
     
@@ -803,7 +803,7 @@ struct ResponseTimeRow: View {
 /// Settings view for notification preferences
 /// 通知偏好设置视图
 struct NotificationSettingsView: View {
-    @EnvironmentObject var serviceFactory: ServiceFactory
+    @Environment(\.appDependencies) private var appDependencies
     @Environment(\.dismiss) private var dismiss
     
     @State private var enablePushNotifications = true

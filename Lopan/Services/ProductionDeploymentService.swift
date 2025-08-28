@@ -13,7 +13,7 @@ import SwiftUI
 /// Service responsible for production environment preparation and deployment management
 /// 负责生产环境准备和部署管理的服务
 @MainActor
-class ProductionDeploymentService: ObservableObject {
+public class ProductionDeploymentService: ObservableObject {
     
     // MARK: - Dependencies
     private let healthMonitoringService: HealthCheckAndMonitoringService

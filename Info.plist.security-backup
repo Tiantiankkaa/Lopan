@@ -1,0 +1,162 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+<dict>
+    <!-- Bundle Configuration -->
+    <key>CFBundleDevelopmentRegion</key>
+    <string>en</string>
+    <key>CFBundleExecutable</key>
+    <string>$(EXECUTABLE_NAME)</string>
+    <key>CFBundleIdentifier</key>
+    <string>$(PRODUCT_BUNDLE_IDENTIFIER)</string>
+    <key>CFBundleInfoDictionaryVersion</key>
+    <string>6.0</string>
+    <key>CFBundleName</key>
+    <string>$(PRODUCT_NAME)</string>
+    <key>CFBundlePackageType</key>
+    <string>APPL</string>
+    <key>CFBundleShortVersionString</key>
+    <string>1.0</string>
+    <key>CFBundleVersion</key>
+    <string>1</string>
+    
+    <!-- App Transport Security Configuration -->
+    <key>NSAppTransportSecurity</key>
+    <dict>
+        <!-- Require secure connections by default -->
+        <key>NSAllowsArbitraryLoads</key>
+        <false/>
+        
+        <!-- Block local network access unless explicitly needed -->
+        <key>NSAllowsLocalNetworking</key>
+        <false/>
+        
+        <!-- Require certificate transparency -->
+        <key>NSRequiresCertificateTransparency</key>
+        <true/>
+        
+        <!-- Exception domains for specific API endpoints (if needed) -->
+        <key>NSExceptionDomains</key>
+        <dict>
+            <!-- Example: API domain with specific security requirements -->
+            <key>api.lopan.app</key>
+            <dict>
+                <key>NSIncludesSubdomains</key>
+                <true/>
+                <key>NSExceptionAllowsInsecureHTTPLoads</key>
+                <false/>
+                <key>NSExceptionMinimumTLSVersion</key>
+                <string>TLSv1.3</string>
+                <key>NSRequiresCertificateTransparency</key>
+                <true/>
+            </dict>
+        </dict>
+    </dict>
+    
+    <!-- Privacy Permissions -->
+    <key>NSCameraUsageDescription</key>
+    <string>洛盘生产管理需要访问相机来拍摄产品照片和客户缺货记录。</string>
+    
+    <key>NSPhotoLibraryUsageDescription</key>
+    <string>洛盘生产管理需要访问照片库来选择和保存产品图片。</string>
+    
+    <key>NSLocalNetworkUsageDescription</key>
+    <string>洛盘生产管理需要访问本地网络来连接生产设备和服务器。</string>
+    
+    <key>NSContactsUsageDescription</key>
+    <string>洛盘生产管理需要访问通讯录来快速添加客户联系信息。</string>
+    
+    <key>NSLocationWhenInUseUsageDescription</key>
+    <string>洛盘生产管理需要访问位置信息来记录客户地址和配送信息。</string>
+    
+    <key>NSMicrophoneUsageDescription</key>
+    <string>洛盘生产管理需要访问麦克风来录制语音备注。</string>
+    
+    <key>NSCalendarsUsageDescription</key>
+    <string>洛盘生产管理需要访问日历来安排生产计划和提醒事项。</string>
+    
+    <key>NSRemindersUsageDescription</key>
+    <string>洛盘生产管理需要访问提醒事项来创建任务提醒。</string>
+    
+    <!-- Face ID / Touch ID Permission -->
+    <key>NSFaceIDUsageDescription</key>
+    <string>洛盘生产管理使用Face ID来保护敏感数据和快速登录。</string>
+    
+    <!-- UI Configuration -->
+    <key>LSRequiresIPhoneOS</key>
+    <true/>
+    
+    <key>UIApplicationSceneManifest</key>
+    <dict>
+        <key>UIApplicationSupportsMultipleScenes</key>
+        <false/>
+        <key>UISceneConfigurations</key>
+        <dict>
+            <key>UIWindowSceneSessionRoleApplication</key>
+            <array>
+                <dict>
+                    <key>UISceneConfigurationName</key>
+                    <string>Default Configuration</string>
+                    <key>UISceneDelegateClassName</key>
+                    <string>$(PRODUCT_MODULE_NAME).SceneDelegate</string>
+                </dict>
+            </array>
+        </dict>
+    </dict>
+    
+    <!-- Supported Device Orientations -->
+    <key>UISupportedInterfaceOrientations</key>
+    <array>
+        <string>UIInterfaceOrientationPortrait</string>
+        <string>UIInterfaceOrientationLandscapeLeft</string>
+        <string>UIInterfaceOrientationLandscapeRight</string>
+    </array>
+    
+    <key>UISupportedInterfaceOrientations~ipad</key>
+    <array>
+        <string>UIInterfaceOrientationPortrait</string>
+        <string>UIInterfaceOrientationPortraitUpsideDown</string>
+        <string>UIInterfaceOrientationLandscapeLeft</string>
+        <string>UIInterfaceOrientationLandscapeRight</string>
+    </array>
+    
+    <!-- Security Features -->
+    <key>UIApplicationSupportsIndirectInputEvents</key>
+    <true/>
+    
+    <!-- Minimum iOS Version -->
+    <key>MinimumOSVersion</key>
+    <string>17.0</string>
+    
+    <!-- URL Schemes (if needed for authentication) -->
+    <key>CFBundleURLTypes</key>
+    <array>
+        <dict>
+            <key>CFBundleURLName</key>
+            <string>$(PRODUCT_BUNDLE_IDENTIFIER)</string>
+            <key>CFBundleURLSchemes</key>
+            <array>
+                <string>lopan</string>
+            </array>
+        </dict>
+    </array>
+    
+    <!-- Export Compliance -->
+    <key>ITSAppUsesNonExemptEncryption</key>
+    <false/>
+    
+    <!-- Background Modes (if needed) -->
+    <key>UIBackgroundModes</key>
+    <array>
+        <string>background-fetch</string>
+        <string>background-processing</string>
+    </array>
+    
+    <!-- Launch Screen -->
+    <key>UILaunchScreen</key>
+    <dict>
+        <key>UIImageName</key>
+        <string>LaunchImage</string>
+    </dict>
+</dict>
+</plist>

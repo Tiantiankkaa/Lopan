@@ -9,8 +9,8 @@ import Foundation
 import SwiftData
 
 @Model
-final class Product {
-    var id: String
+public final class Product {
+    public var id: String
     var name: String
     var colors: [String] // Changed from single color to array of colors
     var imageData: Data? // Store image as Data
@@ -52,7 +52,7 @@ final class Product {
 
 @Model
 final class ProductSize {
-    var id: String
+    public var id: String
     var size: String
     var product: Product?
     var createdAt: Date

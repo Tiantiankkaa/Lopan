@@ -8,7 +8,7 @@
 import Foundation
 
 // MARK: - Pagination Result
-struct OutOfStockPaginationResult {
+public struct OutOfStockPaginationResult {
     let items: [CustomerOutOfStock]
     let totalCount: Int
     let hasMoreData: Bool
@@ -16,7 +16,7 @@ struct OutOfStockPaginationResult {
     let pageSize: Int
 }
 
-protocol CustomerOutOfStockRepository {
+public protocol CustomerOutOfStockRepository {
     // Legacy methods (maintained for backward compatibility)
     func fetchOutOfStockRecords() async throws -> [CustomerOutOfStock]
     func fetchOutOfStockRecord(by id: String) async throws -> CustomerOutOfStock?

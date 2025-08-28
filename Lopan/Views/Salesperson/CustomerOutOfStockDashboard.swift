@@ -237,7 +237,7 @@ struct OutOfStockFilters {
 struct CustomerOutOfStockDashboard: View {
     @StateObject private var dashboardState = CustomerOutOfStockDashboardState()
     @StateObject private var animationState = CommonAnimationState()
-    @EnvironmentObject private var serviceFactory: ServiceFactory
+    @Environment(\.appDependencies) private var appDependencies
     @Environment(\.dismiss) private var dismiss
     @FocusState private var isSearchFocused: Bool
     
@@ -245,7 +245,7 @@ struct CustomerOutOfStockDashboard: View {
     @State private var refreshTrigger = false
     
     private var customerOutOfStockService: CustomerOutOfStockService {
-        serviceFactory.customerOutOfStockService
+        appDependencies.serviceFactory.customerOutOfStockService
     }
     
     var body: some View {
@@ -482,13 +482,13 @@ struct CustomerOutOfStockDashboard: View {
             
             QuickStatCard(
                 title: "已退货",
-                value: "\(dashboardState.statusCounts[.cancelled] ?? 0)",
+                value: "\(dashboardState.statusCounts[.returned] ?? 0)",
                 icon: "arrow.uturn.left",
                 color: .red,
-                trend: (dashboardState.statusCounts[.cancelled] ?? 0) > 0 ? .up : nil,
-                associatedStatus: .cancelled,
-                isSelected: dashboardState.selectedStatusTab == .cancelled,
-                onTap: { handleStatusTabTap(.cancelled) }
+                trend: (dashboardState.statusCounts[.returned] ?? 0) > 0 ? .up : nil,
+                associatedStatus: .returned,
+                isSelected: dashboardState.selectedStatusTab == .returned,
+                onTap: { handleStatusTabTap(.returned) }
             )
             .disabled(dashboardState.isProcessingStatusChange)
         }
@@ -683,8 +683,8 @@ struct CustomerOutOfStockDashboard: View {
         Task {
             // Load customers and products first
             print("👥 Loading customers and products...")
-            await serviceFactory.customerService.loadCustomers()
-            await serviceFactory.productService.loadProducts()
+            await appDependencies.serviceFactory.customerService.loadCustomers()
+            await appDependencies.serviceFactory.productService.loadProducts()
             
             // Create criteria with status filter
             let criteria = OutOfStockFilterCriteria(
@@ -705,8 +705,8 @@ struct CustomerOutOfStockDashboard: View {
             await MainActor.run {
                 dashboardState.items = customerOutOfStockService.items
                 dashboardState.totalCount = customerOutOfStockService.totalRecordsCount
-                dashboardState.customers = serviceFactory.customerService.customers
-                dashboardState.products = serviceFactory.productService.products
+                dashboardState.customers = appDependencies.serviceFactory.customerService.customers
+                dashboardState.products = appDependencies.serviceFactory.productService.products
                 
                 print("📋 Loaded \(dashboardState.items.count) out of stock items")
                 print("👥 Loaded \(dashboardState.customers.count) customers")
@@ -1162,8 +1162,8 @@ struct CustomerOutOfStockDashboard: View {
                 let testProduct = Product(name: "测试产品", colors: ["红色"], imageData: nil)
                 
                 // Add test data to repositories first
-                try await serviceFactory.repositoryFactory.customerRepository.addCustomer(testCustomer)
-                try await serviceFactory.repositoryFactory.productRepository.addProduct(testProduct)
+                try await appDependencies.serviceFactory.repositoryFactory.customerRepository.addCustomer(testCustomer)
+                try await appDependencies.serviceFactory.repositoryFactory.productRepository.addProduct(testProduct)
                 
                 // Create test out-of-stock records
                 let requests = [
@@ -1654,7 +1654,7 @@ private struct OutOfStockItemCard: View {
                 }
                 
                 // Return information (if applicable)
-                if item.status == .cancelled && item.returnQuantity > 0 {
+                if item.status == .returned && item.returnQuantity > 0 {
                     HStack(spacing: 8) {
                         Image(systemName: "return.left")
                             .foregroundColor(.orange)
@@ -1708,7 +1708,7 @@ private struct OutOfStockItemCard: View {
             return .orange
         case .completed:
             return .green
-        case .cancelled:
+        case .returned:
             return .red
         }
     }

@@ -198,6 +198,9 @@ class CustomerOutOfStockNavigationState: ObservableObject {
         dateFilterMode = option
         
         switch option {
+        case .today:
+            customDateRange = nil // For today, we don't need a custom range
+            
         case .thisWeek:
             let (start, end) = getCurrentWeekRange()
             customDateRange = (start: start, end: end)
@@ -299,7 +302,7 @@ extension CustomerOutOfStockNavigationState {
             switch self {
             case .pending: return .pending
             case .completed: return .completed
-            case .returned: return .cancelled
+            case .returned: return .returned
             default: return nil
             }
         }

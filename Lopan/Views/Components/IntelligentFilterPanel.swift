@@ -94,7 +94,7 @@ enum DateRangeOption: CaseIterable {
 struct IntelligentFilterPanel: View {
     @StateObject private var filterState = IntelligentFilterState()
     @Environment(\.dismiss) private var dismiss
-    @EnvironmentObject private var serviceFactory: ServiceFactory
+    @Environment(\.appDependencies) private var appDependencies
     
     @Binding var filters: OutOfStockFilters
     @Binding var searchText: String
@@ -376,7 +376,7 @@ struct IntelligentFilterPanel: View {
         let count: Int
         if isClearAll {
             // Use optimized clear all method with special caching
-            count = await serviceFactory.customerOutOfStockService.getClearAllFilteredCount()
+            count = await appDependencies.serviceFactory.customerOutOfStockService.getClearAllFilteredCount()
         } else {
             // Create criteria based on current filter state
             let dateRange: (start: Date, end: Date)?
@@ -404,7 +404,7 @@ struct IntelligentFilterPanel: View {
                 pageSize: 1
             )
             
-            count = await serviceFactory.customerOutOfStockService.getFilteredCount(criteria: criteria)
+            count = await appDependencies.serviceFactory.customerOutOfStockService.getFilteredCount(criteria: criteria)
         }
         
         await MainActor.run {
@@ -559,7 +559,7 @@ private struct StatusFilterButton: View {
         switch status {
         case .pending: return .orange
         case .completed: return .green
-        case .cancelled: return .red
+        case .returned: return .red
         }
     }
 }

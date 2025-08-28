@@ -124,7 +124,7 @@ struct RoleElevationRequest: Identifiable, Codable {
 /// Advanced role management with hierarchy, inheritance, and temporary assignments
 /// 具有层次结构、继承和临时分配的高级角色管理
 @MainActor
-class RoleManagementService: ObservableObject {
+public class RoleManagementService: ObservableObject {
     
     // MARK: - Dependencies
     private let authService: AuthenticationService

@@ -105,12 +105,8 @@ class DefaultCustomerOutOfStockBusinessService: CustomerOutOfStockBusinessServic
         item.returnNotes = combineNotes(existing: item.returnNotes, new: notes)
         item.updatedAt = Date()
         
-        // Update status based on return progress
-        if item.returnQuantity >= item.quantity {
-            item.status = .completed
-        } else if item.returnQuantity > 0 {
-            item.status = .pending
-        }
+        // Update status to returned when processing returns
+        item.status = .returned
         
         // Save the updated item
         try await dataService.updateRecord(item)
@@ -146,8 +142,10 @@ class DefaultCustomerOutOfStockBusinessService: CustomerOutOfStockBusinessServic
                         fullyReturnedCount += 1
                         completedItemsCount += 1
                         totalProcessingTime += record.updatedAt.timeIntervalSince(record.requestDate)
-                    case .cancelled:
-                        break // Don't count cancelled items in statistics
+                    case .returned:
+                        fullyReturnedCount += 1
+                        completedItemsCount += 1
+                        totalProcessingTime += record.updatedAt.timeIntervalSince(record.requestDate)
                     }
                     
                     // Check for partial returns
@@ -209,7 +207,7 @@ class DefaultCustomerOutOfStockBusinessService: CustomerOutOfStockBusinessServic
         logger.safeInfo("Status counts calculated", [
             "pending": String(statusCounts[.pending] ?? 0),
             "completed": String(statusCounts[.completed] ?? 0),
-            "cancelled": String(statusCounts[.cancelled] ?? 0)
+            "returned": String(statusCounts[.returned] ?? 0)
         ])
         
         return statusCounts

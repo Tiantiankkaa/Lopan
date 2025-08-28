@@ -200,7 +200,7 @@ struct ConsistencySystemMetrics {
 /// Comprehensive system consistency monitoring and automatic repair service
 /// 综合系统一致性监控和自动修复服务
 @MainActor
-class SystemConsistencyMonitoringService: ObservableObject {
+public class SystemConsistencyMonitoringService: ObservableObject {
     
     // MARK: - Dependencies
     private let machineRepository: MachineRepository

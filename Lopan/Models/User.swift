@@ -44,8 +44,8 @@ enum AuthenticationMethod: String, CaseIterable, Codable {
 }
 
 @Model
-final class User: @unchecked Sendable {
-    var id: String
+public final class User: @unchecked Sendable {
+    public var id: String
     var wechatId: String?
     var appleUserId: String?
     var name: String

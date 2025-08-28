@@ -24,7 +24,7 @@ enum AuditOperation: String, CaseIterable {
 }
 
 @MainActor
-class AuditingService {
+public class AuditingService {
     private let auditRepository: AuditRepository
     private let logger = Logger(subsystem: "com.lopan.app", category: "AuditingService")
     

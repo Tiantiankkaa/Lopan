@@ -9,7 +9,7 @@ import Foundation
 import SwiftUI
 
 @MainActor
-class WorkbenchNavigationService: ObservableObject {
+public class WorkbenchNavigationService: ObservableObject {
     @Published var showingWorkbenchSelector = false
     @Published var currentWorkbenchContext: UserRole?
     

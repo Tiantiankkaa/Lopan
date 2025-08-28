@@ -97,8 +97,8 @@ struct AdaptiveColors {
             return Color(.systemOrange)
         case .completed:
             return Color(.systemGreen)
-        case .cancelled:
-            return Color(.systemRed)
+        case .returned:
+            return Color(.systemPurple)
         }
     }
     

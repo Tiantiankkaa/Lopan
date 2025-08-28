@@ -7,11 +7,12 @@
 
 import Foundation
 import SwiftData
+import SwiftUI
 
-enum OutOfStockStatus: String, CaseIterable, Codable {
+public enum OutOfStockStatus: String, CaseIterable, Codable {
     case pending = "pending"
     case completed = "completed"
-    case cancelled = "cancelled"
+    case returned = "returned"
     
     var displayName: String {
         switch self {
@@ -19,15 +20,26 @@ enum OutOfStockStatus: String, CaseIterable, Codable {
             return "待处理"
         case .completed:
             return "已完成"
-        case .cancelled:
+        case .returned:
             return "已退货"
+        }
+    }
+    
+    var color: Color {
+        switch self {
+        case .pending:
+            return .orange
+        case .completed:
+            return .green
+        case .returned:
+            return .red
         }
     }
 }
 
 @Model
-final class CustomerOutOfStock {
-    var id: String
+public final class CustomerOutOfStock {
+    public var id: String
     var customer: Customer?
     var product: Product?
     var productSize: ProductSize? // Specific size for this out-of-stock item
@@ -37,6 +49,7 @@ final class CustomerOutOfStock {
     var actualCompletionDate: Date?
     var notes: String?
     var createdBy: String // User ID
+    var updatedBy: String? // User ID of last updater
     var createdAt: Date
     var updatedAt: Date
     
@@ -55,6 +68,7 @@ final class CustomerOutOfStock {
         self.requestDate = Date()
         self.notes = notes
         self.createdBy = createdBy
+        self.updatedBy = nil
         self.createdAt = Date()
         self.updatedAt = Date()
         
@@ -209,31 +223,29 @@ final class CustomerOutOfStock {
         self.returnNotes = notes
         self.updatedAt = Date()
         
-        // Update status based on remaining quantity
-        if self.returnQuantity >= self.quantity {
-            self.status = .completed
-            self.actualCompletionDate = Date()
-        }
+        // Update status to returned when processing returns
+        self.status = .returned
+        self.actualCompletionDate = Date()
         
         return true
     }
 }
 
 extension CustomerOutOfStock: Equatable {
-    static func == (lhs: CustomerOutOfStock, rhs: CustomerOutOfStock) -> Bool {
+    public static func == (lhs: CustomerOutOfStock, rhs: CustomerOutOfStock) -> Bool {
         return lhs.id == rhs.id
     }
 }
 
 extension CustomerOutOfStock: Codable {
     enum CodingKeys: String, CodingKey {
-        case id, quantity, status, requestDate, actualCompletionDate, notes, createdBy, createdAt, updatedAt
+        case id, quantity, status, requestDate, actualCompletionDate, notes, createdBy, updatedBy, createdAt, updatedAt
         case returnQuantity, returnDate, returnNotes
         case customerName, customerAddress, customerPhone
         case productName, productSize
     }
     
-    convenience init(from decoder: Decoder) throws {
+    public convenience init(from decoder: Decoder) throws {
         let container = try decoder.container(keyedBy: CodingKeys.self)
         let id = try container.decode(String.self, forKey: .id)
         let quantity = try container.decode(Int.self, forKey: .quantity)
@@ -246,6 +258,7 @@ extension CustomerOutOfStock: Codable {
         self.requestDate = try container.decode(Date.self, forKey: .requestDate)
         self.actualCompletionDate = try container.decodeIfPresent(Date.self, forKey: .actualCompletionDate)
         self.notes = try container.decodeIfPresent(String.self, forKey: .notes)
+        self.updatedBy = try container.decodeIfPresent(String.self, forKey: .updatedBy)
         self.createdAt = try container.decode(Date.self, forKey: .createdAt)
         self.updatedAt = try container.decode(Date.self, forKey: .updatedAt)
         
@@ -254,7 +267,7 @@ extension CustomerOutOfStock: Codable {
         self.returnNotes = try container.decodeIfPresent(String.self, forKey: .returnNotes)
     }
     
-    func encode(to encoder: Encoder) throws {
+    public func encode(to encoder: Encoder) throws {
         var container = encoder.container(keyedBy: CodingKeys.self)
         try container.encode(id, forKey: .id)
         try container.encode(quantity, forKey: .quantity)
@@ -263,6 +276,7 @@ extension CustomerOutOfStock: Codable {
         try container.encodeIfPresent(actualCompletionDate, forKey: .actualCompletionDate)
         try container.encodeIfPresent(notes, forKey: .notes)
         try container.encode(createdBy, forKey: .createdBy)
+        try container.encodeIfPresent(updatedBy, forKey: .updatedBy)
         try container.encode(createdAt, forKey: .createdAt)
         try container.encode(updatedAt, forKey: .updatedAt)
         

@@ -391,6 +391,8 @@ struct OutOfStockFilterSheet: View {
     private var dateFilterDisplayText: String {
         if let mode = tempDateFilterMode {
             switch mode {
+            case .today:
+                return "今天"
             case .thisWeek:
                 return "本周"
             case .thisMonth:

@@ -9,7 +9,7 @@ import Foundation
 import SwiftUI
 
 @MainActor
-class MachineService: ObservableObject, ServiceCleanupProtocol {
+public class MachineService: ObservableObject, ServiceCleanupProtocol {
     // MARK: - Published Properties
     @Published var machines: [WorkshopMachine] = []
     @Published var selectedMachine: WorkshopMachine?

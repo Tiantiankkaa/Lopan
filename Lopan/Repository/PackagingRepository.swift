@@ -7,7 +7,7 @@
 
 import Foundation
 
-protocol PackagingRepository {
+public protocol PackagingRepository {
     // PackagingRecord operations
     func fetchPackagingRecords() async throws -> [PackagingRecord]
     func fetchPackagingRecord(by id: String) async throws -> PackagingRecord?

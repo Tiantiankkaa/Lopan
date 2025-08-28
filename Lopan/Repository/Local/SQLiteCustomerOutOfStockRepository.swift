@@ -675,7 +675,7 @@ private class SQLiteQueryBuilder {
         return [
             .pending: 24,
             .completed: 22,
-            .cancelled: 4
+            .returned: 4
         ]
     }
 }

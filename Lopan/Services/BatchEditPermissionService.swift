@@ -53,7 +53,7 @@ enum BatchEditValidationResult {
 
 // MARK: - Standard Batch Edit Permission Service (标准批次编辑权限服务)
 @MainActor
-class StandardBatchEditPermissionService: ObservableObject, BatchEditPermission {
+public class StandardBatchEditPermissionService: ObservableObject, BatchEditPermission {
     
     private let authService: AuthenticationService
     
@@ -294,7 +294,7 @@ enum BatchEditPermissionError: LocalizedError {
 }
 
 // MARK: - Mock Edit Permission Service (for testing) (测试用模拟服务)
-class MockBatchEditPermissionService: BatchEditPermission {
+public class MockBatchEditPermissionService: BatchEditPermission {
     
     var allowProductEdit = true
     var allowColorEdit = true

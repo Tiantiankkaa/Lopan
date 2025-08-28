@@ -24,32 +24,35 @@ struct OutOfStockSearchBar: View {
                     .foregroundColor(.secondary)
                     .accessibilityHidden(true) // Decorative icon
                 
-                TextField(placeholder, text: $searchText)
-                    .focused($isTextFieldFocused)
-                    .textFieldStyle(.plain)
-                    .font(.system(size: 16, design: .default))
-                    .onSubmit {
-                        onSearch(searchText)
-                    }
-                    .onChange(of: searchText) { _, newValue in
-                        onSearch(newValue)
-                    }
-                    .accessibilityLabel("搜索缺货记录")
-                    .accessibilityHint("输入客户姓名、产品名称或备注来搜索")
-                    .accessibilityValue(searchText.isEmpty ? "无内容" : searchText)
+                AccessibleTextField(
+                    placeholder,
+                    text: $searchText,
+                    accessibilityLabel: "搜索缺货记录",
+                    accessibilityHint: "输入客户姓名、产品名称或备注来搜索"
+                )
+                .focused($isTextFieldFocused)
+                .textFieldStyle(.plain)
+                .font(.system(size: 16, design: .default))
+                .onSubmit {
+                    onSearch(searchText)
+                }
+                .onChange(of: searchText) { _, newValue in
+                    onSearch(newValue)
+                }
                 
                 if !searchText.isEmpty {
-                    Button(action: {
-                        searchText = ""
-                        onSearch("")
-                    }) {
+                    AccessibleButton(
+                        action: {
+                            searchText = ""
+                            onSearch("")
+                        },
+                        accessibilityLabel: "清除搜索内容",
+                        accessibilityHint: "清空搜索框并重置搜索结果"
+                    ) {
                         Image(systemName: "xmark.circle.fill")
                             .font(.system(size: 16))
                             .foregroundColor(.secondary)
-                            .frame(minWidth: 44, minHeight: 44) // HIG compliant touch target
                     }
-                    .accessibilityLabel("清除搜索内容")
-                    .accessibilityHint("清空搜索框并重置搜索结果")
                 }
             }
             .padding(.horizontal, 12)
@@ -64,17 +67,17 @@ struct OutOfStockSearchBar: View {
             )
             
             // Filter button - HIG compliant 44pt touch target
-            Button(action: onFilterTap) {
+            AccessibleButton(
+                action: onFilterTap,
+                accessibilityLabel: "筛选条件",
+                accessibilityHint: "打开筛选面板设置搜索条件"
+            ) {
                 Image(systemName: "line.3.horizontal")
                     .font(.system(size: 16, weight: .medium))
                     .foregroundColor(.primary)
-                    .frame(minWidth: 44, minHeight: 44) // HIG compliant touch target
                     .background(Color(.systemGray6))
                     .cornerRadius(8)
             }
-            .accessibilityLabel("筛选条件")
-            .accessibilityHint("打开筛选面板设置搜索条件")
-            .accessibilityAddTraits(.isButton)
         }
     }
 }

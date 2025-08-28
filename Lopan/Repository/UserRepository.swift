@@ -7,7 +7,7 @@
 
 import Foundation
 
-protocol UserRepository {
+public protocol UserRepository {
     func fetchUsers() async throws -> [User]
     func fetchUser(byId id: String) async throws -> User?
     func fetchUser(byWechatId wechatId: String) async throws -> User?

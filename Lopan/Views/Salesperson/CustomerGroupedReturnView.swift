@@ -32,11 +32,11 @@ struct CustomerReturnGroup: Identifiable, Hashable {
 }
 
 struct CustomerGroupedReturnView: View {
-    @EnvironmentObject private var serviceFactory: ServiceFactory
+    @Environment(\.appDependencies) private var appDependencies
     @Environment(\.dismiss) private var dismiss
     
     private var salespersonService: SalespersonServiceProvider {
-        serviceFactory.salespersonServiceProvider
+        appDependencies.serviceFactory.salespersonServiceProvider
     }
     
     @State private var customerGroups: [CustomerReturnGroup] = []
@@ -537,11 +537,11 @@ struct StatisticItem: View {
 
 struct CustomerReturnDetailView: View {
     let customerGroup: CustomerReturnGroup
-    @EnvironmentObject private var serviceFactory: ServiceFactory
+    @Environment(\.appDependencies) private var appDependencies
     @Environment(\.dismiss) private var dismiss
     
     private var salespersonService: SalespersonServiceProvider {
-        serviceFactory.salespersonServiceProvider
+        appDependencies.serviceFactory.salespersonServiceProvider
     }
     
     @State private var returnQuantities: [String: String] = [:]

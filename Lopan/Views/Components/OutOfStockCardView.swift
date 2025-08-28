@@ -189,7 +189,7 @@ struct OutOfStockCardView: View {
         switch item.status {
         case .pending: return .orange
         case .completed: return .green
-        case .cancelled: return .red
+        case .returned: return .green
         }
     }
     

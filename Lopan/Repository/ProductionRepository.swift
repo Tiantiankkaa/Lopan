@@ -7,7 +7,7 @@
 
 import Foundation
 
-protocol ProductionRepository {
+public protocol ProductionRepository {
     // ProductionStyle operations
     func fetchProductionStyles() async throws -> [ProductionStyle]
     func fetchProductionStyle(by id: String) async throws -> ProductionStyle?

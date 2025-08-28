@@ -318,6 +318,8 @@ class CustomerOutOfStockViewModel: ObservableObject {
         navigationState.applyDateFilter(option)
         
         switch option {
+        case .today:
+            customDateRange = getCurrentDayRange()
         case .thisWeek:
             customDateRange = getCurrentWeekRange()
         case .thisMonth:
@@ -476,6 +478,16 @@ class CustomerOutOfStockViewModel: ObservableObject {
     }
     
     // MARK: - Utility Methods
+    
+    private func getCurrentDayRange() -> (Date, Date) {
+        let calendar = Calendar.current
+        let today = Date()
+        
+        let dayStart = calendar.startOfDay(for: today)
+        let dayEnd = calendar.date(byAdding: .day, value: 1, to: dayStart) ?? dayStart
+        
+        return (dayStart, dayEnd)
+    }
     
     private func getCurrentWeekRange() -> (Date, Date) {
         let calendar = Calendar.current

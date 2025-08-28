@@ -13,11 +13,11 @@ enum CustomerDeletionError: Error {
 }
 
 struct CustomerManagementView: View {
-    @EnvironmentObject private var serviceFactory: ServiceFactory
+    @Environment(\.appDependencies) private var appDependencies
     @Environment(\.modelContext) private var modelContext
     
     private var customerRepository: CustomerRepository {
-        serviceFactory.repositoryFactory.customerRepository
+        appDependencies.serviceFactory.repositoryFactory.customerRepository
     }
     
     @State private var customers: [Customer] = []

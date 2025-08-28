@@ -8,7 +8,7 @@
 import Foundation
 
 // MARK: - Workshop Shift Enumeration
-enum Shift: String, CaseIterable, Codable {
+public enum Shift: String, CaseIterable, Codable {
     case morning = "morning"
     case evening = "evening"
     

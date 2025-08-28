@@ -9,7 +9,7 @@ import SwiftUI
 import UIKit
 import UniformTypeIdentifiers
 
-class FileShareService {
+public class FileShareService {
     static let shared = FileShareService()
     
     private var currentDelegate: DocumentPickerDelegate?

@@ -125,12 +125,14 @@ struct LoginView: View {
                     }
                 }
                 
-                // Demo Login Button
+                // Demo Login Button - Only available in DEBUG builds
+                #if DEBUG
                 Button("演示登录") {
                     showingDemoLogin = true
                 }
                 .font(.caption)
                 .foregroundColor(.blue)
+                #endif
                 
                 Spacer()
                 
@@ -141,9 +143,11 @@ struct LoginView: View {
             }
             .padding()
         }
+        #if DEBUG
         .sheet(isPresented: $showingDemoLogin) {
             DemoLoginView(authService: authService)
         }
+        #endif
         .sheet(isPresented: $showingSMSLogin) {
             SMSLoginView(authService: authService)
         }
@@ -157,6 +161,8 @@ struct DemoLoginView: View {
     @ObservedObject var authService: AuthenticationService
     @Environment(\.dismiss) private var dismiss
     @State private var selectedRole: UserRole = .salesperson
+    @State private var isLoggingIn = false
+    @State private var loginError: String?
     
     var body: some View {
         NavigationView {
@@ -164,6 +170,11 @@ struct DemoLoginView: View {
                 Text("演示登录")
                     .font(.title2)
                     .fontWeight(.bold)
+                
+                Text("⚠️ 仅限开发环境使用")
+                    .font(.caption)
+                    .foregroundColor(.red)
+                    .padding(.horizontal)
                 
                 Text("选择角色进行演示")
                     .font(.subheadline)
@@ -192,23 +203,68 @@ struct DemoLoginView: View {
                 .padding(.horizontal)
                 
                 Button("开始演示") {
-                    Task {
-                        await authService.loginWithWeChat(
-                            wechatId: "demo_\(selectedRole.rawValue)",
-                            name: "演示用户 - \(selectedRole.displayName)"
-                        )
-                        await MainActor.run {
-                            authService.updateUserRoles([selectedRole], primaryRole: selectedRole)
-                            dismiss()
+                    Task { @MainActor in
+                        do {
+                            isLoggingIn = true
+                            loginError = nil
+                            
+                            // 演示登录 - 仅开发环境
+                            await authService.loginWithWeChat(
+                                wechatId: "demo_\(selectedRole.rawValue)",
+                                name: "演示用户 - \(selectedRole.displayName)",
+                                phone: nil
+                            )
+                            
+                            // TODO: In demo mode, manually set role after login for testing purposes only
+                            // In production, role assignment requires proper authorization
+                            #if DEBUG
+                            if let user = authService.currentUser {
+                                await MainActor.run {
+                                    authService.updateUserRoles([selectedRole], primaryRole: selectedRole)
+                                }
+                            }
+                            #endif
+                            
+                            // 检查登录是否成功
+                            if authService.isAuthenticated {
+                                // 登录完成后关闭视图
+                                dismiss()
+                            } else {
+                                loginError = "登录失败，请重试"
+                            }
+                        } catch {
+                            loginError = "登录出错: \(error.localizedDescription)"
                         }
+                        isLoggingIn = false
                     }
                 }
                 .frame(maxWidth: .infinity)
                 .padding()
-                .background(Color.blue)
+                .background((isLoggingIn || authService.isLoading) ? Color.gray : Color.blue)
                 .foregroundColor(.white)
                 .cornerRadius(10)
+                .disabled(isLoggingIn || authService.isLoading)
                 .padding(.horizontal)
+                
+                // Loading indicator
+                if isLoggingIn || authService.isLoading {
+                    HStack {
+                        ProgressView()
+                            .scaleEffect(0.8)
+                        Text("正在登录...")
+                            .font(.caption)
+                    }
+                    .foregroundColor(.secondary)
+                }
+                
+                // Error message
+                if let errorMessage = loginError {
+                    Text(errorMessage)
+                        .font(.caption)
+                        .foregroundColor(.red)
+                        .padding(.horizontal)
+                        .multilineTextAlignment(.center)
+                }
                 
                 Spacer()
             }

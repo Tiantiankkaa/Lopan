@@ -8,7 +8,7 @@
 import Foundation
 
 @MainActor
-class NewDataInitializationService {
+public class NewDataInitializationService {
     private let repositoryFactory: RepositoryFactory
     
     init(repositoryFactory: RepositoryFactory) {

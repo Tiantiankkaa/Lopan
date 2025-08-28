@@ -9,7 +9,7 @@ import Foundation
 import SwiftData
 
 @MainActor
-class NewAuditingService {
+public class NewAuditingService {
     private let auditRepository: AuditRepository?
     private let modelContext: ModelContext?
     
@@ -290,6 +290,43 @@ class NewAuditingService {
             operatorUserId: userId,
             operatorUserName: userName,
             operationDetails: details
+        )
+    }
+    
+    // MARK: - Generic Event Logging
+    
+    /// Log a generic event with action, entityId, and details
+    func logEvent(
+        action: String,
+        entityId: String,
+        details: String
+    ) async {
+        // Map action string to OperationType
+        let operationType: OperationType
+        switch action.uppercased() {
+        case let str where str.contains("CREATE"):
+            operationType = .create
+        case let str where str.contains("UPDATE"):
+            operationType = .update
+        case let str where str.contains("DELETE"):
+            operationType = .delete
+        default:
+            operationType = .read // Default fallback
+        }
+        
+        // Create and save audit log
+        await logOperation(
+            operationType: operationType,
+            entityType: .customerOutOfStock, // Default to customerOutOfStock for this ViewModel
+            entityId: entityId,
+            entityDescription: details,
+            operatorUserId: "system", // Could be enhanced to get current user
+            operatorUserName: "System",
+            operationDetails: [
+                "action": action,
+                "details": details,
+                "timestamp": Date().timeIntervalSince1970
+            ]
         )
     }
 }

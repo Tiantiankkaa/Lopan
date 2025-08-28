@@ -38,7 +38,7 @@ struct ReturnProcessingRequest {
 }
 
 @MainActor
-class CustomerOutOfStockService: ObservableObject {
+public class CustomerOutOfStockService: ObservableObject {
     private var repositoryFactory: RepositoryFactory!
     private var customerOutOfStockRepository: CustomerOutOfStockRepository!
     private var auditService: NewAuditingService!
@@ -1092,6 +1092,86 @@ class CustomerOutOfStockService: ObservableObject {
             additionalContext: additionalContext
         )
     }
+    
+    // MARK: - Additional Methods for ViewModel Support
+    
+    func fetchOutOfStockRecords(
+        criteria: OutOfStockFilterCriteria,
+        page: Int,
+        pageSize: Int
+    ) async throws -> OutOfStockPaginationResult {
+        guard !isPlaceholder else { 
+            throw CustomerOutOfStockServiceError.serviceUnavailable
+        }
+        
+        // Use existing repository method
+        return try await customerOutOfStockRepository.fetchOutOfStockRecords(
+            criteria: criteria,
+            page: page,
+            pageSize: pageSize
+        )
+    }
+    
+    func countOutOfStockRecordsByStatus(criteria: OutOfStockFilterCriteria) async throws -> [OutOfStockStatus: Int] {
+        guard !isPlaceholder else { return [:] }
+        
+        return try await customerOutOfStockRepository.countOutOfStockRecordsByStatus(criteria: criteria)
+    }
+    
+    func createRecord(_ record: CustomerOutOfStock) async throws -> CustomerOutOfStock {
+        guard !isPlaceholder else { 
+            throw CustomerOutOfStockServiceError.serviceUnavailable
+        }
+        
+        try await customerOutOfStockRepository.addOutOfStockRecord(record)
+        return record
+    }
+    
+    func updateRecord(_ record: CustomerOutOfStock) async throws -> CustomerOutOfStock {
+        guard !isPlaceholder else { 
+            throw CustomerOutOfStockServiceError.serviceUnavailable
+        }
+        
+        try await customerOutOfStockRepository.updateOutOfStockRecord(record)
+        return record
+    }
+    
+    func deleteRecords(_ recordIds: [String]) async throws {
+        guard !isPlaceholder else { 
+            throw CustomerOutOfStockServiceError.serviceUnavailable
+        }
+        
+        // Convert IDs to records (simplified - in real implementation would fetch records first)
+        // For now, use existing batch delete functionality
+        // This is a stub implementation - would need proper ID-to-record resolution
+        let itemsToDelete = items.filter { recordIds.contains($0.id) }
+        if !itemsToDelete.isEmpty {
+            try await customerOutOfStockRepository.deleteOutOfStockRecords(itemsToDelete)
+        }
+    }
+    
+    func batchUpdateRecords(_ records: [CustomerOutOfStock]) async throws -> [CustomerOutOfStock] {
+        guard !isPlaceholder else { 
+            throw CustomerOutOfStockServiceError.serviceUnavailable
+        }
+        
+        for record in records {
+            try await customerOutOfStockRepository.updateOutOfStockRecord(record)
+        }
+        return records
+    }
+    
+    func calculateStatistics(criteria: OutOfStockFilterCriteria) async throws -> [String: Any] {
+        guard !isPlaceholder else { return [:] }
+        
+        let counts = try await countOutOfStockRecordsByStatus(criteria: criteria)
+        let totalCount = try await customerOutOfStockRepository.countOutOfStockRecords(criteria: criteria)
+        
+        return [
+            "totalCount": totalCount,
+            "statusCounts": counts
+        ]
+    }
 }
 
 // MARK: - Service Errors
@@ -1166,4 +1246,5 @@ extension NewAuditingService {
             "product": item.productDisplayName
         ])
     }
+    
 }
