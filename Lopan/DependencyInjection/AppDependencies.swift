@@ -61,7 +61,7 @@ public final class AppDependencies: HasAppDependencies, ObservableObject {
 
 @MainActor
 public final class CustomerOutOfStockDependencies: HasCustomerOutOfStockDependencies, ObservableObject {
-    private let appDependencies: AppDependencies
+    private let appDependencies: HasAppDependencies
     
     public var customerOutOfStockRepository: CustomerOutOfStockRepository { appDependencies.customerOutOfStockRepository }
     public var customerRepository: CustomerRepository { appDependencies.customerRepository }
@@ -70,14 +70,14 @@ public final class CustomerOutOfStockDependencies: HasCustomerOutOfStockDependen
     public var authenticationService: AuthenticationService { appDependencies.authenticationService }
     public var customerOutOfStockService: CustomerOutOfStockService { appDependencies.customerOutOfStockService }
     
-    public init(appDependencies: AppDependencies) {
+    public init(appDependencies: HasAppDependencies) {
         self.appDependencies = appDependencies
     }
 }
 
 @MainActor
 public final class ProductionDependencies: HasProductionDependencies, ObservableObject {
-    private let appDependencies: AppDependencies
+    private let appDependencies: HasAppDependencies
     
     public var machineRepository: MachineRepository { appDependencies.machineRepository }
     public var colorRepository: ColorRepository { appDependencies.colorRepository }
@@ -86,21 +86,21 @@ public final class ProductionDependencies: HasProductionDependencies, Observable
     public var machineService: MachineService { appDependencies.machineService }
     public var colorService: ColorService { appDependencies.colorService }
     
-    public init(appDependencies: AppDependencies) {
+    public init(appDependencies: HasAppDependencies) {
         self.appDependencies = appDependencies
     }
 }
 
 @MainActor
 public final class UserManagementDependencies: HasUserManagementDependencies, ObservableObject {
-    private let appDependencies: AppDependencies
+    private let appDependencies: HasAppDependencies
     
     public var userRepository: UserRepository { appDependencies.userRepository }
     public var userService: UserService { appDependencies.userService }
     public var authenticationService: AuthenticationService { appDependencies.authenticationService }
     public var auditingService: NewAuditingService { appDependencies.auditingService }
     
-    public init(appDependencies: AppDependencies) {
+    public init(appDependencies: HasAppDependencies) {
         self.appDependencies = appDependencies
     }
 }

@@ -77,6 +77,9 @@ class CustomerOutOfStockDashboardState: ObservableObject {
     @Published var products: [Product] = []
     @Published var isLoading = false
     @Published var isLoadingMore = false
+    @Published var isRefreshing = false // Skeleton loading state for date switching
+    @Published var previousItems: [CustomerOutOfStock] = [] // Cache for smooth transitions
+    @Published var skeletonItemCount = 6 // Number of skeleton items to show
     @Published var totalCount = 0
     @Published var unfilteredTotalCount = 0 // [rule:§2.1 Layering] Separate unfiltered total from filtered results
     @Published var statusCounts: [OutOfStockStatus: Int] = [:]
@@ -347,10 +350,15 @@ struct CustomerOutOfStockDashboard: View {
             loadInitialData()
         }
         .onChange(of: dashboardState.selectedDate) { oldValue, newValue in
-            print("📅 [Date Change] Date changed from \(oldValue) to \(newValue), clearing UI and refreshing data...")
+            print("📅 [Date Change] Date changed from \(oldValue) to \(newValue), showing skeleton and refreshing data...")
             
-            // Set loading state but keep previous data for better UX
-            dashboardState.isLoading = true
+            // Store previous items for caching and set skeleton count
+            dashboardState.previousItems = dashboardState.items
+            dashboardState.skeletonItemCount = max(6, min(dashboardState.items.count, 8)) // 6-8 skeleton items
+            
+            // Set skeleton loading state but keep previous data visible
+            dashboardState.isRefreshing = true
+            dashboardState.isLoading = false
             
             Task {
                 await refreshData()
@@ -359,6 +367,7 @@ struct CustomerOutOfStockDashboard: View {
         .refreshable {
             await refreshData()
         }
+        .allowsHitTesting(!dashboardState.isRefreshing) // Disable interactions during skeleton loading
         .sheet(item: $dashboardState.selectedDetailItem) { selectedItem in
             NavigationView {
                 CustomerOutOfStockDetailView(item: selectedItem)
@@ -452,63 +461,76 @@ struct CustomerOutOfStockDashboard: View {
     // MARK: - Quick Stats Section
     
     private var quickStatsSection: some View {
-        LazyVGrid(columns: [
-            GridItem(.flexible()),
-            GridItem(.flexible()),
-            GridItem(.flexible()),
-            GridItem(.flexible())
-        ], spacing: 12) {
-            QuickStatCard(
-                title: "总计",
-                value: "\(getTotalCount())", // Show filtered total when filters are active
-                icon: "list.bullet.rectangle.fill",
-                color: .blue,
-                trend: nil,
-                associatedStatus: nil,
-                isSelected: dashboardState.selectedStatusTab == nil,
-                onTap: { handleStatusTabTap(nil) }
-            )
-            .disabled(dashboardState.isProcessingStatusChange)
-            
-            QuickStatCard(
-                title: "待处理",
-                value: "\(dashboardState.statusCounts[.pending] ?? 0)",
-                icon: "clock.fill",
-                color: .orange,
-                trend: .stable,
-                associatedStatus: .pending,
-                isSelected: dashboardState.selectedStatusTab == .pending,
-                onTap: { handleStatusTabTap(.pending) }
-            )
-            .disabled(dashboardState.isProcessingStatusChange)
-            
-            QuickStatCard(
-                title: "已完成",
-                value: "\(dashboardState.statusCounts[.completed] ?? 0)",
-                icon: "checkmark.circle.fill",
-                color: .green,
-                trend: .up,
-                associatedStatus: .completed,
-                isSelected: dashboardState.selectedStatusTab == .completed,
-                onTap: { handleStatusTabTap(.completed) }
-            )
-            .disabled(dashboardState.isProcessingStatusChange)
-            
-            QuickStatCard(
-                title: "已退货",
-                value: "\(dashboardState.statusCounts[.returned] ?? 0)",
-                icon: "arrow.uturn.left",
-                color: .red,
-                trend: (dashboardState.statusCounts[.returned] ?? 0) > 0 ? .up : nil,
-                associatedStatus: .returned,
-                isSelected: dashboardState.selectedStatusTab == .returned,
-                onTap: { handleStatusTabTap(.returned) }
-            )
-            .disabled(dashboardState.isProcessingStatusChange)
+        ZStack {
+            if dashboardState.isRefreshing {
+                // Show skeleton stats during date switching
+                EnhancedSkeletonStatsCards()
+                    .padding(.vertical, 16)
+                    .transition(.opacity.combined(with: .scale(scale: 0.95)))
+            } else {
+                // Show real stats cards
+                LazyVGrid(columns: [
+                    GridItem(.flexible()),
+                    GridItem(.flexible()),
+                    GridItem(.flexible()),
+                    GridItem(.flexible())
+                ], spacing: 12) {
+                    QuickStatCard(
+                        title: "总计",
+                        value: "\(getTotalCount())", // Show filtered total when filters are active
+                        icon: "list.bullet.rectangle.fill",
+                        color: .blue,
+                        trend: nil,
+                        associatedStatus: nil,
+                        isSelected: dashboardState.selectedStatusTab == nil,
+                        onTap: { handleStatusTabTap(nil) }
+                    )
+                    .disabled(dashboardState.isProcessingStatusChange || dashboardState.isRefreshing)
+                    
+                    QuickStatCard(
+                        title: "待处理",
+                        value: "\(dashboardState.statusCounts[.pending] ?? 0)",
+                        icon: "clock.fill",
+                        color: .orange,
+                        trend: .stable,
+                        associatedStatus: .pending,
+                        isSelected: dashboardState.selectedStatusTab == .pending,
+                        onTap: { handleStatusTabTap(.pending) }
+                    )
+                    .disabled(dashboardState.isProcessingStatusChange || dashboardState.isRefreshing)
+                    
+                    QuickStatCard(
+                        title: "已完成",
+                        value: "\(dashboardState.statusCounts[.completed] ?? 0)",
+                        icon: "checkmark.circle.fill",
+                        color: .green,
+                        trend: .up,
+                        associatedStatus: .completed,
+                        isSelected: dashboardState.selectedStatusTab == .completed,
+                        onTap: { handleStatusTabTap(.completed) }
+                    )
+                    .disabled(dashboardState.isProcessingStatusChange || dashboardState.isRefreshing)
+                    
+                    QuickStatCard(
+                        title: "已退货",
+                        value: "\(dashboardState.statusCounts[.returned] ?? 0)",
+                        icon: "arrow.uturn.left",
+                        color: .red,
+                        trend: (dashboardState.statusCounts[.returned] ?? 0) > 0 ? .up : nil,
+                        associatedStatus: .returned,
+                        isSelected: dashboardState.selectedStatusTab == .returned,
+                        onTap: { handleStatusTabTap(.returned) }
+                    )
+                    .disabled(dashboardState.isProcessingStatusChange || dashboardState.isRefreshing)
+                }
+                .padding(.horizontal, 20)
+                .padding(.vertical, 16)
+                .commonScaleAnimation(delay: 0.3)
+                .opacity(dashboardState.isRefreshing ? 0.3 : 1.0)
+                .transition(.opacity.combined(with: .scale(scale: 1.05)))
+            }
         }
-        .padding(.horizontal, 20)
-        .padding(.vertical, 16)
-        .commonScaleAnimation(delay: 0.3)
+        .animation(.easeInOut(duration: 0.4), value: dashboardState.isRefreshing)
     }
     
     // MARK: - Filter Section
@@ -586,7 +608,14 @@ struct CustomerOutOfStockDashboard: View {
         ZStack {
             // Content with keyboard dismissal on empty area taps
             ZStack {
-                if dashboardState.isLoading && dashboardState.items.isEmpty {
+                if dashboardState.isRefreshing {
+                    // Show skeleton loading during date switching
+                    skeletonLoadingSection
+                        .transition(.asymmetric(
+                            insertion: .opacity.combined(with: .scale(scale: 0.95)),
+                            removal: .opacity.combined(with: .scale(scale: 1.05))
+                        ))
+                } else if dashboardState.isLoading && dashboardState.items.isEmpty {
                     LoadingStateView("正在加载缺货数据...")
                 } else if let error = dashboardState.error {
                     ErrorStateView(
@@ -597,7 +626,7 @@ struct CustomerOutOfStockDashboard: View {
                             loadInitialData()
                         }
                     )
-                } else if dashboardState.items.isEmpty {
+                } else if dashboardState.items.isEmpty && !dashboardState.isRefreshing {
                     CustomEmptyStateView(
                         title: dashboardState.hasActiveFilters ? "没有匹配的记录" : "暂无缺货记录",
                         message: dashboardState.hasActiveFilters ? "尝试调整筛选条件" : "点击下方按钮添加测试数据或开始添加第一条缺货记录",
@@ -609,6 +638,8 @@ struct CustomerOutOfStockDashboard: View {
                     )
                 } else {
                     virtualListSection
+                        .opacity(dashboardState.isRefreshing ? 0.3 : 1.0)
+                        .animation(.easeInOut(duration: 0.3), value: dashboardState.isRefreshing)
                 }
             }
             .contentShape(Rectangle()) // Ensure the entire area responds to gestures
@@ -622,6 +653,22 @@ struct CustomerOutOfStockDashboard: View {
             }
         }
         .frame(maxWidth: .infinity, maxHeight: .infinity)
+    }
+    
+    // MARK: - Skeleton Loading Section
+    
+    private var skeletonLoadingSection: some View {
+        ScrollView {
+            VStack(spacing: 0) {
+                // Show skeleton list only (stats are handled by quickStatsSection)
+                EnhancedSkeletonList(itemCount: dashboardState.skeletonItemCount)
+                    .padding(.top, 16)
+            }
+        }
+        .scrollDisabled(true) // Prevent scrolling during skeleton loading
+        .accessibilityElement(children: .ignore)
+        .accessibilityLabel("正在切换日期并加载数据")
+        .accessibilityValue("请稍候，数据正在加载中")
     }
     
     // MARK: - Virtual List Section
@@ -773,6 +820,7 @@ struct CustomerOutOfStockDashboard: View {
     private func refreshData() async {
         lastRefreshTime = Date()
         refreshTrigger.toggle()
+        let refreshStartTime = Date()
         
         print("🔄 Refreshing data for date: \(dashboardState.selectedDate)")
         
@@ -836,11 +884,25 @@ struct CustomerOutOfStockDashboard: View {
             print("📊 [Data] Showing all \(displayCount) items (总计)")
         }
         
+        // Ensure minimum skeleton display time for smooth UX
+        let elapsedTime = Date().timeIntervalSince(refreshStartTime)
+        let minimumSkeletonTime: TimeInterval = 0.8 // Show skeleton for at least 800ms
+        let additionalDelay = max(0, minimumSkeletonTime - elapsedTime)
+        
+        if additionalDelay > 0 {
+            print("⏱️ Adding \(Int(additionalDelay * 1000))ms delay for smooth skeleton transition")
+            try? await Task.sleep(nanoseconds: UInt64(additionalDelay * 1_000_000_000))
+        }
+        
         await MainActor.run {
-            dashboardState.items = displayItems
-            dashboardState.totalCount = displayCount
-            dashboardState.statusCounts = statusCounts
-            dashboardState.isLoading = false
+            // Smooth transition with animation
+            withAnimation(.easeInOut(duration: 0.4)) {
+                dashboardState.items = displayItems
+                dashboardState.totalCount = displayCount
+                dashboardState.statusCounts = statusCounts
+                dashboardState.isLoading = false
+                dashboardState.isRefreshing = false // Clear skeleton loading state
+            }
             
             print("✅ Refresh completed: \(dashboardState.items.count) display items for date \(dashboardState.selectedDate)")
             

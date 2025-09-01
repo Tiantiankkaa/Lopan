@@ -388,93 +388,25 @@ Lopan/
 
 ---
 
-## 14. Appendices (Samples & Templates)
+## 14. Code Templates & Examples
 
-### 14.1 Repository Local/Cloud Skeletons
-```swift
-public final class LocalUserRepository: UserRepository {
-    public init() {}
-    public func fetch() async throws -> [User] { /* SwiftData read */ [] }
-    public func create(_ user: User) async throws { /* SwiftData write */ }
-    public func update(_ user: User) async throws { }
-    public func remove(id: User.ID) async throws { }
-}
+> **Complete Examples Available**: Detailed implementation templates, patterns, and examples are available in [CLAUDE-EXAMPLES.md](./CLAUDE-EXAMPLES.md)
 
-public final class CloudUserRepository: UserRepository {
-    let http = HTTPClient()
-    public func fetch() async throws -> [User] {
-        try await withRetry { try await http.get(URL(string: "https://api.lopan/users")!) }
-    }
-    public func create(_ user: User) async throws { /* call cloud API */ }
-    public func update(_ user: User) async throws { /* call cloud API */ }
-    public func remove(id: User.ID) async throws { /* call cloud API */ }
-}
-```
+### Quick Reference Templates:
+- **Repository Patterns**: Local/Cloud/Mock implementations with comprehensive testing
+- **Service Layer**: Business logic orchestration with authorization and audit logging  
+- **Security & Authorization**: Role-based access control, secure keychain, audit events
+- **Networking**: Production-ready HTTP client with retry logic and background tasks
+- **Testing**: Unit/Integration/UI test templates with mock infrastructure
+- **CI/CD**: Complete GitHub Actions workflow and SwiftLint configuration
+- **Task Packs**: Claude prompt templates for different development scenarios
 
-### 14.2 Authorization (Sample)
-```swift
-enum Role { case admin, salesperson, keeper, manager }
-enum Action { case createOrder, adjustInventory, planBatch, exportData }
-
-struct AuthorizationService {
-    func authorize(_ action: Action, for role: Role) -> Bool {
-        switch (role, action) {
-        case (.admin, _): true
-        case (.salesperson, .createOrder), (.salesperson, .exportData): true
-        case (.keeper, .adjustInventory): true
-        case (.manager, .planBatch): true
-        default: false
-        }
-    }
-}
-```
-
-### 14.3 Audit Event Model (Sample)
-```swift
-struct AuditEvent: Codable {
-    enum Kind: String { case login, write, export, configChange }
-    let id: UUID
-    let kind: Kind
-    let actorId: String
-    let occurredAt: Date
-    let target: String
-    let redactedContext: String
-}
-```
-
-### 14.4 Info.plist / ATS Snippet (Illustrative)
-```xml
-<key>NSAppTransportSecurity</key>
-<dict>
-  <key>NSAllowsArbitraryLoads</key><false/>
-  <key>NSExceptionDomains</key>
-  <dict>
-    <key>api.example.com</key>
-    <dict>
-      <key>NSIncludesSubdomains</key><true/>
-      <key>NSTemporaryExceptionAllowsInsecureHTTPLoads</key><false/>
-      <key>NSRequiresCertificateTransparency</key><true/>
-    </dict>
-  </dict>
-</dict>
-```
-
-### 14.5 Task Pack (Claude Prompt) Template
-```markdown
-# Task
-Module: <name> · Context: <business> · Goal: <measurable deliverable> · Constraints: <concurrency/security/perf> · References: <paths/APIs/PRs>
-
-# Acceptance (DoD)
-- [ ] Tests cover target scenarios; CI green; privacy/security checks passed; docs updated
-
-# Output Format
-- Minimal reviewable diff + affected files list
-- Test cases and run instructions
-- Risks & rollback plan
-
-# Tests
-- <unit/integration/UI cases>
-```
+### Key Implementation Patterns:
+- **Safe Mock Repositories**: No `fatalError()` calls, realistic test data
+- **Structured Concurrency**: TaskGroup patterns for batch operations
+- **Error Handling**: Comprehensive error types with retry strategies
+- **Performance Monitoring**: Real-time metrics collection and alerting
+- **Memory Management**: iOS memory pressure handling and cache optimization
 
 ---
 
@@ -650,10 +582,10 @@ class Debouncer {
 ### 15.6 Usage Guidelines
 
 1. **Security Components**: Use `SecureKeychain` and `DataRedaction` for all sensitive data handling
-2. **Caching**: Implement `LRUMemoryCache` for simple caching, `SmartCacheManager` for complex scenarios
-3. **Performance**: Apply concurrent batch processing and single-pass patterns for heavy operations
+2. **Caching**: Implement `LRUMemoryCache` for simple caching, `SmartCacheManager` for complex scenarios with three-tier architecture
+3. **Performance**: Apply `BatchProcessor` for concurrent operations >10 items, use `PerformanceMonitor` for metrics collection
 4. **Architecture**: Extend base coordinator and repository patterns for new feature modules
-5. **Memory Management**: Monitor memory usage and implement proper cleanup in all cache implementations
+5. **Memory Management**: Implement `MemoryOptimizer` patterns, monitor with performance gates from Section 18.6
 
 ### 15.7 Integration Examples
 
@@ -661,12 +593,318 @@ class Debouncer {
 // Example: Integrating reusable components in a new feature module
 class ProductManagementCoordinator: BaseCoordinator<ProductDataService, ProductBusinessService, ProductCacheService> {
     private let smartCache = SmartCacheManager<Product>()
+    private let performanceMonitor = PerformanceMonitor()
+    private let batchProcessor = BatchProcessor<Product>()
     private let debouncer = Debouncer()
     
     func searchProducts(_ query: String) {
         debouncer.debounce { [weak self] in
-            // Use smart cache for search results
-            await self?.loadProductsWithSmartCache(query)
+            await self?.performanceMonitor.measureOperation("product_search") {
+                let results = await self?.smartCache.getCachedData(for: query)
+                return results ?? await self?.loadProductsWithSmartCache(query)
+            }
+        }
+    }
+    
+    func processBulkProducts(_ products: [Product]) async {
+        await batchProcessor.processBatchConcurrently(products) { product in
+            await self.processIndividualProduct(product)
         }
     }
 }
+```
+
+---
+
+## 18. System Performance Optimization Standards
+
+> **Reference**: Performance standards derived from Customer Out-of-Stock optimization experience and iOS 17+ best practices.
+
+### 18.1 Three-Tier Caching Architecture
+
+**Implementation Requirements:**
+- **Hot Cache**: Frequently accessed data, 5-minute TTL, 5MB limit
+- **Warm Cache**: Recently accessed data, 15-minute TTL, 15MB limit  
+- **Predictive Cache**: Anticipated data based on patterns, 1-hour TTL, 30MB limit
+
+**Memory Budget Allocation:**
+- Total application memory: 150MB max
+- Cache subsystem: 50MB (Hot: 5MB, Warm: 15MB, Predictive: 30MB)
+- Business operations: 25MB
+- UI rendering: 75MB
+
+**Cache Promotion Rules:**
+```swift
+// Cache access triggers automatic promotion
+if accessCount > 3 && age < 300 { // Hot cache criteria
+    promoteToHotCache(key: key, data: data)
+} else if accessCount > 1 && age < 900 { // Warm cache criteria
+    promoteToWarmCache(key: key, data: data)
+}
+```
+
+### 18.2 Performance Benchmarks
+
+**Critical Operation Targets:**
+- Repository fetch operations: P95 < 100ms
+- Cache hit operations: P95 < 10ms
+- State updates: P95 < 50ms
+- Background sync: Complete within 30s
+- Memory pressure response: Clear 50% cache within 100ms
+
+**Response Time Requirements:**
+- UI state changes: < 16ms (60 FPS target)
+- Search operations: < 200ms (perceived instant)
+- Data loading: < 1s initial, < 300ms subsequent
+- Export operations: < 5s for typical datasets
+
+### 18.3 Swift Concurrency Optimization
+
+**Structured Concurrency Patterns:**
+```swift
+// Use TaskGroup for batch operations >10 items
+func processBatchConcurrently<T>(_ items: [T], processor: @escaping (T) async throws -> Void) async throws {
+    try await withThrowingTaskGroup(of: Void.self) { group in
+        for item in items {
+            group.addTask { try await processor(item) }
+        }
+        try await group.waitForAll()
+    }
+}
+
+// Actor isolation for cache and state management
+@MainActor
+class PerformanceOptimizedCache<T: Codable> {
+    private var hotCache: [String: CachedData<T>] = [:]
+    private var warmCache: [String: CachedData<T>] = [:]
+}
+```
+
+**Async/Await Best Practices:**
+- Use `@MainActor` for UI state management classes
+- Implement proper cancellation with `Task.checkCancellation()`
+- Leverage `AsyncSequence` for data streams
+- Apply structured concurrency patterns consistently
+
+### 18.4 Background Processing
+
+**BGTaskScheduler Integration:**
+```swift
+// Register background tasks for performance optimization
+BGTaskScheduler.shared.register(forTaskWithIdentifier: "com.lopan.cache-optimization", using: nil) { task in
+    Task {
+        defer { task.setTaskCompleted(success: true) }
+        await optimizeCacheInBackground()
+    }
+}
+```
+
+**Background Task Types:**
+- **Cache Warming**: Predictive cache population every 15 minutes
+- **Data Synchronization**: Sync operations every 30 minutes
+- **Cleanup Operations**: Memory optimization during low usage periods
+- **Performance Analysis**: Metrics collection and optimization
+
+### 18.5 Memory Management
+
+**Pressure Handling Strategy:**
+```swift
+enum MemoryPressureLevel {
+    case warning    // Clear predictive cache
+    case critical   // Clear warm cache, reduce hot cache by 50%
+    case urgent     // Keep only essential hot cache entries
+}
+
+func handleMemoryPressure(_ level: MemoryPressureLevel) async {
+    switch level {
+    case .warning:
+        await clearPredictiveCache()
+    case .critical:
+        await clearWarmCache()
+        await reduceHotCache(by: 0.5)
+    case .urgent:
+        await keepOnlyEssentialCache()
+    }
+}
+```
+
+**Memory Monitoring:**
+- Continuous monitoring with `PerformanceMonitor`
+- Automatic cache eviction based on system memory warnings
+- Proactive cleanup before reaching system limits
+- Recovery strategy with gradual cache rebuilding
+
+### 18.6 Performance Validation Gates
+
+**Mandatory Performance Checks:**
+- [ ] **Memory Usage**: Peak usage < 150MB total application memory
+- [ ] **Cache Efficiency**: Hit rate > 80% for frequently accessed data
+- [ ] **Response Time**: P95 < 100ms for critical user operations
+- [ ] **Background Tasks**: Complete within allocated time windows
+- [ ] **Memory Pressure**: Recovery within 100ms of pressure detection
+
+**Performance Regression Triggers:**
+- Memory usage increase > 20% from baseline
+- Cache hit rate drop > 10% from target
+- Response time degradation > 50% from benchmark  
+- Background task timeout > 2x expected duration
+
+### 18.7 Monitoring and Observability
+
+**Key Performance Indicators:**
+```swift
+struct PerformanceMetrics {
+    let cacheHitRate: Double
+    let averageResponseTime: TimeInterval
+    let peakMemoryUsage: Int64
+    let backgroundTaskCompletionRate: Double
+}
+```
+
+**Monitoring Implementation:**
+- Real-time performance metrics collection
+- Automated alerting for performance degradation
+- Historical performance trending
+- Integration with development and production monitoring
+
+---
+
+## 19. Enhanced Code Organization Standards
+
+> **Reference**: Performance-optimized directory structure integrating Core components from Customer Out-of-Stock optimization.
+
+### 19.1 Core Directory Structure
+
+**Mandatory Organization:**
+```
+Lopan/
+├── Core/                          # System-wide reusable components
+│   ├── Cache/                     # Caching infrastructure  
+│   │   ├── SmartCacheManager.swift       # Three-tier intelligent cache
+│   │   ├── LRUMemoryCache.swift          # Generic LRU implementation
+│   │   └── CacheProtocols.swift          # Cache interfaces
+│   ├── Performance/               # Performance optimization
+│   │   ├── PerformanceMonitor.swift      # Metrics collection
+│   │   ├── BatchProcessor.swift          # Concurrent processing
+│   │   └── PerformanceGates.swift        # Validation checkpoints
+│   ├── Concurrency/              # Swift Concurrency utilities
+│   │   ├── ActorPatterns.swift           # Actor-based patterns
+│   │   ├── TaskGroupHelpers.swift        # TaskGroup utilities
+│   │   └── CancellationSupport.swift     # Cancellation handling
+│   ├── Memory/                   # Memory management
+│   │   ├── MemoryOptimizer.swift         # Memory pressure handling
+│   │   ├── MemoryMonitor.swift           # Usage tracking
+│   │   └── MemoryPressureHandler.swift   # System integration
+│   └── Security/                 # Security & privacy
+│       ├── SecureKeychain.swift          # Enhanced keychain wrapper
+│       ├── DataRedaction.swift           # PII protection
+│       └── SecurityValidator.swift       # Validation utilities
+├── Features/                     # Feature-specific modules
+│   └── CustomerOutOfStock/       # Example optimized feature
+│       ├── Domain/               # Business models & rules
+│       ├── Data/                 # Repository implementations
+│       ├── Presentation/         # ViewModels & coordinators
+│       └── UI/                   # Views (split by complexity)
+├── Models/                       # Domain models (SwiftData/DTO)
+├── Repository/                   # Data access protocols
+├── Services/                     # Business orchestration
+├── Views/                        # SwiftUI (by role, <800 lines each)
+├── Utils/                        # Extensions, Logger, FeatureFlags
+└── Tests/                        # Unit & UI tests
+```
+
+### 19.2 File Size Enforcement
+
+**Hard Limits (CI-enforced):**
+- **800 lines max per file** (excluding imports/comments)
+- **10 files max per directory** (excluding subdirectories)
+- **50 lines max per function**
+- **5 levels max nesting depth**
+
+**Violation Handling:**
+```swift
+// CI Script validation
+if fileLines > 800 {
+    print("❌ File size violation: \(fileName) has \(fileLines) lines (limit: 800)")
+    exit(1)
+}
+```
+
+### 19.3 Component Extraction Guidelines
+
+**When to Extract to Core/:**
+- Component used by >2 feature modules
+- Performance-critical functionality (caching, concurrency)
+- Cross-cutting concerns (security, monitoring, memory management)
+- Foundation patterns for architecture (coordinators, repositories)
+
+**When to Keep in Features/:**
+- Feature-specific business logic
+- UI components specific to one workflow
+- Domain models unique to the feature
+
+### 19.4 Migration Strategy
+
+**Phase 1: Foundation (Week 1)**
+- Create Core/ directory structure
+- Extract SmartCacheManager from Customer Out-of-Stock
+- Move security utilities to Core/Security/
+
+**Phase 2: Performance Infrastructure (Week 2)**
+- Extract performance monitoring components
+- Implement batch processing utilities
+- Add memory management patterns
+
+**Phase 3: Feature Restructuring (Week 3)**
+- Reorganize large feature modules
+- Split oversized files (>800 lines)
+- Apply consistent directory patterns
+
+**Phase 4: Testing & Documentation (Week 4)**
+- Add comprehensive tests for Core components
+- Update documentation and examples
+- Validate performance improvements
+
+### 19.5 Dependency Rules
+
+**Allowed Dependencies:**
+- Core/ → Foundation, Swift Standard Library only
+- Features/ → Core/, Models/, Repository/
+- Views/ → Services/, Utils/, Core/ (NO direct Repository access)
+- Services/ → Repository/, Core/, Models/
+
+**Forbidden Dependencies:**
+- Core/ → Features/ (circular dependency)
+- Views/ → Repository/ (architecture violation)
+- Repository/ → Services/ (layering violation)
+
+---
+
+## Documentation Navigation
+
+This document is part of a modular documentation system:
+
+### Core Architecture
+- **[CLAUDE.md](./CLAUDE.md)** *(this document)* - Core architecture guidelines and patterns
+  - Platform setup, dependency injection, data layer, security, testing
+  - Role boundaries, coding conventions, CI/CD, collaboration protocols
+
+### Performance Optimization  
+- **[CLAUDE-PERFORMANCE.md](./CLAUDE-PERFORMANCE.md)** - System performance standards
+  - Three-tier caching, iOS 17+ patterns, memory management
+  - Background processing, monitoring, code organization
+
+### Implementation Examples
+- **[CLAUDE-EXAMPLES.md](./CLAUDE-EXAMPLES.md)** - Code templates and patterns
+  - Repository/Service templates, security implementations
+  - Testing frameworks, CI/CD configurations, task pack templates
+
+### Implementation Plans
+- **[CustomerOutOfStockOptimization_Implementation.md](./CustomerOutOfStockOptimization_Implementation.md)** - Specific optimization roadmap
+  - 4-week implementation plan, performance targets, risk assessment
+
+---
+
+*Document Version: 2.0*  
+*Last Updated: 2025-08-31*  
+*Architecture: iOS 17+, SwiftUI, SwiftData → Cloud migration*

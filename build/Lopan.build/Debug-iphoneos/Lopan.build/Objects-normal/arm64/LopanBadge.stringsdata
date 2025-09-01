@@ -1,0 +1,40 @@
+{
+  "source": "/Users/bobo/Desktop/Lopan/Lopan/DesignSystem/Components/Foundation/LopanBadge.swift",
+  "tables": {
+    "Localizable": [
+      {
+        "comment": "",
+        "key": "Badge Styles",
+        "location": {
+          "startingColumn": 1,
+          "startingLine": 314
+        }
+      },
+      {
+        "comment": "",
+        "key": "Badge Sizes",
+        "location": {
+          "startingColumn": 1,
+          "startingLine": 314
+        }
+      },
+      {
+        "comment": "",
+        "key": "Status Badges",
+        "location": {
+          "startingColumn": 1,
+          "startingLine": 314
+        }
+      },
+      {
+        "comment": "",
+        "key": "Count Badges",
+        "location": {
+          "startingColumn": 1,
+          "startingLine": 314
+        }
+      }
+    ]
+  },
+  "version": 1
+}

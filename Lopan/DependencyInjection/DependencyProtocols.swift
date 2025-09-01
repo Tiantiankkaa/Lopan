@@ -51,6 +51,7 @@ public protocol HasProductionBatchRepository {
 
 // MARK: - Service Dependencies
 
+@MainActor
 public protocol HasAuthenticationService {
     var authenticationService: AuthenticationService { get }
 }
@@ -107,7 +108,8 @@ public protocol HasCustomerOutOfStockDependencies: HasCustomerOutOfStockReposito
                                            HasCustomerRepository, 
                                            HasProductRepository,
                                            HasAuditingService,
-                                           HasAuthenticationService {
+                                           HasAuthenticationService,
+                                           HasCustomerOutOfStockService {
 }
 
 public protocol HasProductionDependencies: HasMachineRepository,
@@ -129,6 +131,9 @@ public protocol HasUserManagementDependencies: HasUserRepository,
 public protocol HasAppDependencies: HasRepositoryFactory,
                             HasServiceFactory,
                             HasAuthenticationService,
+                            HasCustomerService,
+                            HasProductService,
+                            HasDataInitializationService,
                             HasCustomerOutOfStockDependencies,
                             HasProductionDependencies,
                             HasUserManagementDependencies {

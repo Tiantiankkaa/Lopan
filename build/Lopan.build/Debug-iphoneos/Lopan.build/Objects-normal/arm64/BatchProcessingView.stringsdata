@@ -1,0 +1,288 @@
+{
+  "source": "/Users/bobo/Desktop/Lopan/Lopan/Views/WorkshopManager/BatchProcessingView.swift",
+  "tables": {
+    "Localizable": [
+      {
+        "comment": "",
+        "key": "批次处理",
+        "location": {
+          "startingColumn": 34,
+          "startingLine": 100
+        }
+      },
+      {
+        "comment": "",
+        "key": "错误",
+        "location": {
+          "startingColumn": 24,
+          "startingLine": 110
+        }
+      },
+      {
+        "comment": "",
+        "key": "刷新数据",
+        "location": {
+          "startingColumn": 29,
+          "startingLine": 658
+        }
+      },
+      {
+        "comment": "",
+        "key": "确定",
+        "location": {
+          "startingColumn": 28,
+          "startingLine": 111
+        }
+      },
+      {
+        "comment": "",
+        "key": "班次批次管理",
+        "location": {
+          "startingColumn": 26,
+          "startingLine": 172
+        }
+      },
+      {
+        "comment": "",
+        "key": "按班次安排生产批次，精准控制生产节奏",
+        "location": {
+          "startingColumn": 30,
+          "startingLine": 178
+        }
+      },
+      {
+        "comment": "",
+        "key": "%lld",
+        "location": {
+          "startingColumn": 18,
+          "startingLine": 202
+        }
+      },
+      {
+        "comment": "",
+        "key": "当前批次",
+        "location": {
+          "startingColumn": 18,
+          "startingLine": 207
+        }
+      },
+      {
+        "comment": "",
+        "key": "取消全选",
+        "location": {
+          "startingColumn": 76,
+          "startingLine": 308
+        }
+      },
+      {
+        "comment": "",
+        "key": "全选",
+        "location": {
+          "startingColumn": 93,
+          "startingLine": 308
+        }
+      },
+      {
+        "comment": "",
+        "key": "暂无可用设备",
+        "location": {
+          "startingColumn": 18,
+          "startingLine": 321
+        }
+      },
+      {
+        "comment": "",
+        "key": "请先在设备管理中添加生产设备",
+        "location": {
+          "startingColumn": 18,
+          "startingLine": 325
+        }
+      },
+      {
+        "comment": "",
+        "key": "机器 %@",
+        "location": {
+          "startingColumn": 29,
+          "startingLine": 399
+        }
+      },
+      {
+        "comment": "",
+        "key": "点击选择此机器创建批次",
+        "location": {
+          "startingColumn": 28,
+          "startingLine": 401
+        }
+      },
+      {
+        "comment": "",
+        "key": "编号: %lld",
+        "location": {
+          "startingColumn": 26,
+          "startingLine": 377
+        }
+      },
+      {
+        "comment": "",
+        "key": "运行正常",
+        "location": {
+          "startingColumn": 50,
+          "startingLine": 382
+        }
+      },
+      {
+        "comment": "",
+        "key": "需要维护",
+        "location": {
+          "startingColumn": 67,
+          "startingLine": 382
+        }
+      },
+      {
+        "comment": "",
+        "key": "查看全部",
+        "location": {
+          "startingColumn": 28,
+          "startingLine": 414
+        }
+      },
+      {
+        "comment": "",
+        "key": "正在加载批次...",
+        "location": {
+          "startingColumn": 18,
+          "startingLine": 442
+        }
+      },
+      {
+        "comment": "",
+        "key": "当前时段暂无批次",
+        "location": {
+          "startingColumn": 18,
+          "startingLine": 456
+        }
+      },
+      {
+        "comment": "",
+        "key": "选择设备后可创建新的生产批次",
+        "location": {
+          "startingColumn": 18,
+          "startingLine": 460
+        }
+      },
+      {
+        "comment": "",
+        "key": "%@ - %@",
+        "location": {
+          "startingColumn": 34,
+          "startingLine": 501
+        }
+      },
+      {
+        "comment": "",
+        "key": "机器: %@",
+        "location": {
+          "startingColumn": 34,
+          "startingLine": 513
+        }
+      },
+      {
+        "comment": "",
+        "key": "颜色模式",
+        "location": {
+          "startingColumn": 38,
+          "startingLine": 524
+        }
+      },
+      {
+        "comment": "",
+        "key": "创建生产批次",
+        "location": {
+          "startingColumn": 29,
+          "startingLine": 643
+        }
+      },
+      {
+        "comment": "",
+        "key": "点击为所选设备创建批次",
+        "location": {
+          "startingColumn": 50,
+          "startingLine": 644
+        }
+      },
+      {
+        "comment": "",
+        "key": "请先选择设备",
+        "location": {
+          "startingColumn": 88,
+          "startingLine": 644
+        }
+      },
+      {
+        "comment": "",
+        "key": "创建批次处理",
+        "location": {
+          "startingColumn": 26,
+          "startingLine": 609
+        }
+      },
+      {
+        "comment": "",
+        "key": "请先选择设备",
+        "location": {
+          "startingColumn": 30,
+          "startingLine": 615
+        }
+      },
+      {
+        "comment": "",
+        "key": "为%lld个设备创建批次处理 (BP)",
+        "location": {
+          "startingColumn": 30,
+          "startingLine": 619
+        }
+      },
+      {
+        "comment": "",
+        "key": "创建批次",
+        "location": {
+          "startingColumn": 34,
+          "startingLine": 703
+        }
+      },
+      {
+        "comment": "",
+        "key": "未选择设备",
+        "location": {
+          "startingColumn": 26,
+          "startingLine": 696
+        }
+      },
+      {
+        "comment": "",
+        "key": "请先选择生产设备",
+        "location": {
+          "startingColumn": 26,
+          "startingLine": 699
+        }
+      },
+      {
+        "comment": "",
+        "key": "批次列表",
+        "location": {
+          "startingColumn": 30,
+          "startingLine": 718
+        }
+      },
+      {
+        "comment": "",
+        "key": "关闭",
+        "location": {
+          "startingColumn": 28,
+          "startingLine": 722
+        }
+      }
+    ]
+  },
+  "version": 1
+}

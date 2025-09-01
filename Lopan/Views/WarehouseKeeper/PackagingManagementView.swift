@@ -80,80 +80,125 @@ struct PackagingManagementView: View {
     }
     
     var body: some View {
-        NavigationView {
-            VStack(spacing: 0) {
-                // Date picker and statistics header
-                VStack(spacing: 16) {
-                    DatePicker("选择日期", selection: $selectedDate, displayedComponents: .date)
-                        .datePickerStyle(CompactDatePickerStyle())
-                        .frame(maxWidth: .infinity)
+        VStack(spacing: 0) {
+            // Modern header with glass morphism effect
+            VStack(spacing: LopanSpacing.md) {
+                // Date selection with modern styling
+                HStack(spacing: LopanSpacing.md) {
+                    Image(systemName: "calendar")
+                        .font(.system(size: 18, weight: .medium))
+                        .foregroundStyle(LopanColors.roleWarehouseKeeper)
                     
-                    // Daily statistics cards
-                    HStack(spacing: 16) {
-                        PackagingStatCard(title: "总包装数", value: "\(dailyStats.totalPackages)", color: .blue)
-                        PackagingStatCard(title: "总产品数", value: "\(dailyStats.totalItems)", color: .green)
-                        PackagingStatCard(title: "团队数", value: "\(dailyStats.teamStats.count)", color: .purple)
-                        PackagingStatCard(title: "款式数", value: "\(dailyStats.styleStats.count)", color: .orange)
-                    }
-                }
-                .padding()
-                .background(Color(.systemGroupedBackground))
-                
-                // Search bar
-                HStack {
-                    HStack {
-                        Image(systemName: "magnifyingglass")
-                            .foregroundColor(.secondary)
-                        TextField("搜索款式或团队", text: $searchText)
-                    }
-                    .padding(.horizontal)
-                    .padding(.vertical, 8)
-                    .background(Color(.systemGray6))
-                    .cornerRadius(10)
+                    DatePicker("", selection: $selectedDate, displayedComponents: .date)
+                        .datePickerStyle(.compact)
+                        .frame(maxWidth: .infinity, alignment: .leading)
+                        .accentColor(LopanColors.roleWarehouseKeeper)
                     
-                    Button(action: { showingAddRecord = true }) {
-                        Image(systemName: "plus")
-                            .font(.title2)
-                            .foregroundColor(.white)
-                            .frame(width: 40, height: 40)
-                            .background(Color.blue)
-                            .cornerRadius(10)
-                    }
+                    Spacer()
                 }
-                .padding()
                 
-                // Records list
-                if filteredRecords.isEmpty {
-                    Spacer()
-                    VStack(spacing: 16) {
-                        Image(systemName: "cube.box")
-                            .font(.system(size: 50))
-                            .foregroundColor(.gray)
-                        Text(searchText.isEmpty ? "今日暂无包装记录" : "未找到匹配的记录")
-                            .font(.headline)
-                            .foregroundColor(.secondary)
-                        if searchText.isEmpty {
-                            Text("点击右上角 + 按钮添加包装记录")
-                                .font(.subheadline)
-                                .foregroundColor(.secondary)
-                        }
-                    }
-                    Spacer()
-                } else {
-                    List {
-                        ForEach(filteredRecords, id: \.id) { record in
-                            PackagingRecordRow(record: record) {
-                                showingEditRecord = record
-                            }
-                        }
-                        .onDelete(perform: confirmDelete)
-                    }
-                    .listStyle(PlainListStyle())
+                // Modern statistics grid
+                LazyVGrid(columns: Array(repeating: GridItem(.flexible()), count: 2), spacing: LopanSpacing.sm) {
+                    ModernStatCard(
+                        title: "总包装数", 
+                        value: "\(dailyStats.totalPackages)",
+                        subtitle: "今日完成",
+                        icon: "cube.box.fill",
+                        color: LopanColors.roleWarehouseKeeper
+                    )
+                    
+                    ModernStatCard(
+                        title: "总产品数", 
+                        value: "\(dailyStats.totalItems)",
+                        subtitle: "产品件数",
+                        icon: "shippingbox.fill",
+                        color: LopanColors.success
+                    )
+                    
+                    ModernStatCard(
+                        title: "活跃团队", 
+                        value: "\(dailyStats.teamStats.count)",
+                        subtitle: "参与团队",
+                        icon: "person.2.fill",
+                        color: LopanColors.info
+                    )
+                    
+                    ModernStatCard(
+                        title: "款式种类", 
+                        value: "\(dailyStats.styleStats.count)",
+                        subtitle: "产品款式",
+                        icon: "tag.fill",
+                        color: LopanColors.warning
+                    )
                 }
             }
-            .navigationTitle("包装管理")
-            .navigationBarTitleDisplayMode(.inline)
+            .padding(LopanSpacing.lg)
+            .background(
+                LinearGradient(
+                    colors: [
+                        LopanColors.roleWarehouseKeeper.opacity(0.03),
+                        LopanColors.surface
+                    ],
+                    startPoint: .top,
+                    endPoint: .bottom
+                )
+            )
+            
+            // Modern search bar with floating design
+            VStack(spacing: LopanSpacing.md) {
+                HStack(spacing: LopanSpacing.md) {
+                    // Enhanced search field
+                    HStack(spacing: LopanSpacing.sm) {
+                        Image(systemName: "magnifyingglass")
+                            .font(.system(size: 16, weight: .medium))
+                            .foregroundStyle(LopanColors.textSecondary)
+                        
+                        TextField("搜索款式、团队或编号", text: $searchText)
+                            .textFieldStyle(.plain)
+                            .font(LopanTypography.bodyMedium)
+                    }
+                    .padding(LopanSpacing.md)
+                    .background(
+                        RoundedRectangle(cornerRadius: LopanCornerRadius.button)
+                            .fill(LopanColors.surfaceElevated)
+                            .shadow(color: .black.opacity(0.05), radius: 2, x: 0, y: 1)
+                    )
+                    
+                    // Modern add button with floating design
+                    Button(action: { showingAddRecord = true }) {
+                        Image(systemName: "plus")
+                            .font(.system(size: 18, weight: .semibold))
+                            .foregroundStyle(.white)
+                    }
+                    .frame(width: 48, height: 48)
+                    .background(
+                        Circle()
+                            .fill(
+                                LinearGradient(
+                                    colors: [
+                                        LopanColors.roleWarehouseKeeper,
+                                        LopanColors.roleWarehouseKeeper.opacity(0.8)
+                                    ],
+                                    startPoint: .topLeading,
+                                    endPoint: .bottomTrailing
+                                )
+                            )
+                    )
+                    .lopanShadow(LopanShadows.button)
+                }
+            }
+            .padding(.horizontal, LopanSpacing.lg)
+            .padding(.bottom, LopanSpacing.sm)
+            
+            // Content area with modern list or empty state
+            if filteredRecords.isEmpty {
+                emptyStateView
+            } else {
+                modernRecordsList
+            }
         }
+        .navigationTitle("包装管理")
+        .navigationBarTitleDisplayMode(.large)
         .sheet(isPresented: $showingAddRecord) {
             AddPackagingRecordView(selectedDate: selectedDate)
         }
@@ -186,6 +231,88 @@ struct PackagingManagementView: View {
                 modelContext.delete(filteredRecords[index])
             }
         }
+    }
+    
+    // MARK: - Modern UI Components
+    
+    private var emptyStateView: some View {
+        VStack(spacing: LopanSpacing.lg) {
+            Spacer()
+            
+            // Animated empty state illustration
+            VStack(spacing: LopanSpacing.md) {
+                ZStack {
+                    Circle()
+                        .fill(LopanColors.roleWarehouseKeeper.opacity(0.1))
+                        .frame(width: 120, height: 120)
+                    
+                    Image(systemName: searchText.isEmpty ? "cube.box" : "magnifyingglass")
+                        .font(.system(size: 48, weight: .light))
+                        .foregroundStyle(LopanColors.roleWarehouseKeeper.opacity(0.6))
+                        .symbolEffect(.pulse.byLayer.wholeSymbol, options: .repeating)
+                }
+                
+                VStack(spacing: LopanSpacing.sm) {
+                    Text(searchText.isEmpty ? "今日暂无包装记录" : "未找到匹配的记录")
+                        .font(LopanTypography.titleMedium)
+                        .fontWeight(.semibold)
+                        .foregroundStyle(LopanColors.textPrimary)
+                    
+                    Text(searchText.isEmpty 
+                         ? "开始添加今日的包装记录，追踪团队的工作进展" 
+                         : "尝试使用其他关键词搜索，或检查搜索条件")
+                        .font(LopanTypography.bodyMedium)
+                        .foregroundStyle(LopanColors.textSecondary)
+                        .multilineTextAlignment(.center)
+                        .lineLimit(2)
+                }
+                
+                if searchText.isEmpty {
+                    Button(action: { showingAddRecord = true }) {
+                        HStack(spacing: LopanSpacing.sm) {
+                            Image(systemName: "plus.circle.fill")
+                                .font(.system(size: 16, weight: .medium))
+                            Text("添加包装记录")
+                                .font(LopanTypography.bodyMedium)
+                                .fontWeight(.medium)
+                        }
+                        .foregroundStyle(.white)
+                        .padding(.horizontal, LopanSpacing.lg)
+                        .padding(.vertical, LopanSpacing.md)
+                        .background(
+                            Capsule()
+                                .fill(LopanColors.roleWarehouseKeeper)
+                        )
+                    }
+                    .lopanShadow(LopanShadows.button)
+                    .padding(.top, LopanSpacing.sm)
+                }
+            }
+            
+            Spacer()
+        }
+        .padding(LopanSpacing.lg)
+    }
+    
+    private var modernRecordsList: some View {
+        List {
+            ForEach(filteredRecords, id: \.id) { record in
+                ModernPackagingRecordRow(record: record) {
+                    showingEditRecord = record
+                }
+                .listRowInsets(EdgeInsets(
+                    top: LopanSpacing.xs,
+                    leading: LopanSpacing.lg,
+                    bottom: LopanSpacing.xs,
+                    trailing: LopanSpacing.lg
+                ))
+                .listRowBackground(Color.clear)
+            }
+            .onDelete(perform: confirmDelete)
+        }
+        .listStyle(.plain)
+        .scrollContentBackground(.hidden)
+        .background(LopanColors.backgroundSecondary)
     }
 }
 

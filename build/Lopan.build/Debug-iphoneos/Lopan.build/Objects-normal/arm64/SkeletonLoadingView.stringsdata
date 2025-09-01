@@ -1,0 +1,88 @@
+{
+  "source": "/Users/bobo/Desktop/Lopan/Lopan/Views/Components/Common/SkeletonLoadingView.swift",
+  "tables": {
+    "Localizable": [
+      {
+        "comment": "",
+        "key": "加载中",
+        "location": {
+          "startingColumn": 33,
+          "startingLine": 43
+        }
+      },
+      {
+        "comment": "",
+        "key": "内容正在加载，请稍候",
+        "location": {
+          "startingColumn": 33,
+          "startingLine": 44
+        }
+      },
+      {
+        "comment": "",
+        "key": "正在加载缺货记录",
+        "location": {
+          "startingColumn": 29,
+          "startingLine": 110
+        }
+      },
+      {
+        "comment": "",
+        "key": "正在加载列表数据",
+        "location": {
+          "startingColumn": 29,
+          "startingLine": 131
+        }
+      },
+      {
+        "comment": "",
+        "key": "共%lld项内容正在加载",
+        "location": {
+          "startingColumn": 29,
+          "startingLine": 132
+        }
+      },
+      {
+        "comment": "",
+        "key": "搜索功能正在加载",
+        "location": {
+          "startingColumn": 29,
+          "startingLine": 160
+        }
+      },
+      {
+        "comment": "",
+        "key": "统计数据正在加载",
+        "location": {
+          "startingColumn": 29,
+          "startingLine": 183
+        }
+      },
+      {
+        "comment": "",
+        "key": "搜索栏骨架",
+        "location": {
+          "startingColumn": 1,
+          "startingLine": 191
+        }
+      },
+      {
+        "comment": "",
+        "key": "统计卡片骨架",
+        "location": {
+          "startingColumn": 1,
+          "startingLine": 191
+        }
+      },
+      {
+        "comment": "",
+        "key": "列表骨架",
+        "location": {
+          "startingColumn": 1,
+          "startingLine": 191
+        }
+      }
+    ]
+  },
+  "version": 1
+}

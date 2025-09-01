@@ -1,0 +1,200 @@
+{
+  "source": "/Users/bobo/Desktop/Lopan/Lopan/Views/Salesperson/GiveBackManagementView.swift",
+  "tables": {
+    "Localizable": [
+      {
+        "comment": "",
+        "key": "还货管理界面",
+        "location": {
+          "startingColumn": 29,
+          "startingLine": 79
+        }
+      },
+      {
+        "comment": "",
+        "key": "包含过滤器、统计信息和还货记录列表",
+        "location": {
+          "startingColumn": 28,
+          "startingLine": 80
+        }
+      },
+      {
+        "comment": "",
+        "key": "导出",
+        "location": {
+          "startingColumn": 31,
+          "startingLine": 86
+        }
+      },
+      {
+        "comment": "",
+        "key": "批量操作",
+        "location": {
+          "startingColumn": 31,
+          "startingLine": 91
+        }
+      },
+      {
+        "comment": "",
+        "key": "更多选项",
+        "location": {
+          "startingColumn": 45,
+          "startingLine": 96
+        }
+      },
+      {
+        "comment": "",
+        "key": "确定要处理选中的 %lld 个还货记录吗？",
+        "location": {
+          "startingColumn": 18,
+          "startingLine": 135
+        }
+      },
+      {
+        "comment": "",
+        "key": "隐藏过滤器",
+        "location": {
+          "startingColumn": 58,
+          "startingLine": 227
+        }
+      },
+      {
+        "comment": "",
+        "key": "显示过滤器",
+        "location": {
+          "startingColumn": 78,
+          "startingLine": 227
+        }
+      },
+      {
+        "comment": "",
+        "key": "点击可切换过滤器的显示状态",
+        "location": {
+          "startingColumn": 32,
+          "startingLine": 228
+        }
+      },
+      {
+        "comment": "",
+        "key": "筛选选项",
+        "location": {
+          "startingColumn": 26,
+          "startingLine": 209
+        }
+      },
+      {
+        "comment": "",
+        "key": "%lld 个筛选",
+        "location": {
+          "startingColumn": 30,
+          "startingLine": 215
+        }
+      },
+      {
+        "comment": "",
+        "key": "选择还货状态",
+        "location": {
+          "startingColumn": 29,
+          "startingLine": 277
+        }
+      },
+      {
+        "comment": "",
+        "key": "选择客户",
+        "location": {
+          "startingColumn": 29,
+          "startingLine": 313
+        }
+      },
+      {
+        "comment": "",
+        "key": "选择地址",
+        "location": {
+          "startingColumn": 29,
+          "startingLine": 349
+        }
+      },
+      {
+        "comment": "",
+        "key": "全部状态",
+        "location": {
+          "startingColumn": 23,
+          "startingLine": 250
+        }
+      },
+      {
+        "comment": "",
+        "key": "全部客户",
+        "location": {
+          "startingColumn": 20,
+          "startingLine": 283
+        }
+      },
+      {
+        "comment": "",
+        "key": "全部地址",
+        "location": {
+          "startingColumn": 20,
+          "startingLine": 319
+        }
+      },
+      {
+        "comment": "",
+        "key": "选择日期",
+        "location": {
+          "startingColumn": 21,
+          "startingLine": 367
+        }
+      },
+      {
+        "comment": "",
+        "key": "按日期筛选",
+        "location": {
+          "startingColumn": 24,
+          "startingLine": 356
+        }
+      },
+      {
+        "comment": "",
+        "key": "还货状态：%@",
+        "location": {
+          "startingColumn": 45,
+          "startingLine": 641
+        }
+      },
+      {
+        "comment": "",
+        "key": "原始数量: %lld",
+        "location": {
+          "startingColumn": 30,
+          "startingLine": 650
+        }
+      },
+      {
+        "comment": "",
+        "key": "已还数量: %lld",
+        "location": {
+          "startingColumn": 30,
+          "startingLine": 652
+        }
+      },
+      {
+        "comment": "",
+        "key": "剩余数量: %lld",
+        "location": {
+          "startingColumn": 30,
+          "startingLine": 655
+        }
+      },
+      {
+        "comment": "",
+        "key": "还货日期:",
+        "location": {
+          "startingColumn": 34,
+          "startingLine": 664
+        }
+      }
+    ]
+  },
+  "version": 1
+}

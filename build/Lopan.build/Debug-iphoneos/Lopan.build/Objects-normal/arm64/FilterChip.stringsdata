@@ -1,0 +1,32 @@
+{
+  "source": "/Users/bobo/Desktop/Lopan/Lopan/Views/Components/FilterChip.swift",
+  "tables": {
+    "Localizable": [
+      {
+        "comment": "",
+        "key": "筛选条件：%@",
+        "location": {
+          "startingColumn": 29,
+          "startingLine": 56
+        }
+      },
+      {
+        "comment": "",
+        "key": "点击移除此筛选条件",
+        "location": {
+          "startingColumn": 28,
+          "startingLine": 57
+        }
+      },
+      {
+        "comment": "",
+        "key": "移除筛选条件：%@",
+        "location": {
+          "startingColumn": 33,
+          "startingLine": 38
+        }
+      }
+    ]
+  },
+  "version": 1
+}

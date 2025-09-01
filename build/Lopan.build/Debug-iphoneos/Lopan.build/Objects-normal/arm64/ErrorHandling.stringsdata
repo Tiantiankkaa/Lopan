@@ -1,0 +1,56 @@
+{
+  "source": "/Users/bobo/Desktop/Lopan/Lopan/Utils/ErrorHandling.swift",
+  "tables": {
+    "Localizable": [
+      {
+        "comment": "",
+        "key": "错误",
+        "location": {
+          "startingColumn": 20,
+          "startingLine": 243
+        }
+      },
+      {
+        "comment": "",
+        "key": "确定",
+        "location": {
+          "startingColumn": 24,
+          "startingLine": 244
+        }
+      },
+      {
+        "comment": "",
+        "key": "重试",
+        "location": {
+          "startingColumn": 28,
+          "startingLine": 249
+        }
+      },
+      {
+        "comment": "",
+        "key": "错误",
+        "location": {
+          "startingColumn": 22,
+          "startingLine": 279
+        }
+      },
+      {
+        "comment": "",
+        "key": "重试",
+        "location": {
+          "startingColumn": 28,
+          "startingLine": 301
+        }
+      },
+      {
+        "comment": "",
+        "key": "关闭",
+        "location": {
+          "startingColumn": 24,
+          "startingLine": 309
+        }
+      }
+    ]
+  },
+  "version": 1
+}

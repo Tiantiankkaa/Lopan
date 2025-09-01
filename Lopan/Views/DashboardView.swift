@@ -350,79 +350,20 @@ struct WarehouseKeeperDashboardView: View {
     @ObservedObject var navigationService: WorkbenchNavigationService
     
     var body: some View {
-        NavigationView {
-            VStack(spacing: 20) {
-                Text("warehouse_keeper_dashboard".localized)
-                    .font(.title)
-                    .fontWeight(.bold)
-                
-                LazyVGrid(columns: [
-                    GridItem(.flexible()),
-                    GridItem(.flexible())
-                ], spacing: 20) {
-                    NavigationLink(destination: PackagingManagementView()) {
-                        DashboardCard(
-                            title: "包装管理",
-                            subtitle: "管理日常产品包装数量和记录",
-                            icon: "cube.box",
-                            color: .blue
-                        )
+        WarehouseKeeperTabView(
+            authService: authService,
+            navigationService: navigationService
+        )
+        .toolbar {
+            ToolbarItem(placement: .navigationBarTrailing) {
+                Button(action: {
+                    navigationService.showWorkbenchSelector()
+                }) {
+                    HStack(spacing: 4) {
+                        Image(systemName: "gearshape.arrow.triangle.2.circlepath")
+                        Text("工作台操作")
                     }
-                    
-                    NavigationLink(destination: PackagingReminderView()) {
-                        DashboardCard(
-                            title: "任务提醒",
-                            subtitle: "管理包装任务和截止日期提醒",
-                            icon: "bell",
-                            color: .red
-                        )
-                    }
-                    
-                    NavigationLink(destination: PackagingTeamManagementView()) {
-                        DashboardCard(
-                            title: "团队管理",
-                            subtitle: "管理包装团队和专业分工",
-                            icon: "person.2",
-                            color: .green
-                        )
-                    }
-                    
-                    NavigationLink(destination: PackagingStatisticsView()) {
-                        DashboardCard(
-                            title: "包装统计",
-                            subtitle: "查看包装数据统计和分析",
-                            icon: "chart.bar",
-                            color: .purple
-                        )
-                    }
-                    
-                    NavigationLink(destination: ProductionStyleListView()) {
-                        DashboardCard(
-                            title: "产品信息",
-                            subtitle: "查看产品信息（来自销售部门）",
-                            icon: "shirt",
-                            color: .orange
-                        )
-                    }
-                }
-                .padding(.horizontal)
-                
-                Spacer()
-            }
-            .padding()
-            .navigationTitle("warehouse_keeper_dashboard".localized)
-            .navigationBarTitleDisplayMode(.inline)
-            .toolbar {
-                ToolbarItem(placement: .navigationBarTrailing) {
-                    Button(action: {
-                        navigationService.showWorkbenchSelector()
-                    }) {
-                        HStack(spacing: 4) {
-                            Image(systemName: "gearshape.arrow.triangle.2.circlepath")
-                            Text("工作台操作")
-                        }
-                        .font(.caption)
-                    }
+                    .font(.caption)
                 }
             }
         }

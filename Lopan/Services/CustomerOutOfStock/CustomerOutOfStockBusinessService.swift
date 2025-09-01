@@ -67,11 +67,11 @@ class DefaultCustomerOutOfStockBusinessService: CustomerOutOfStockBusinessServic
             throw BusinessError.invalidQuantity("Quantity must be greater than 0")
         }
         
-        guard !request.customer.name.isEmpty else {
+        guard let customer = request.customer, !customer.name.isEmpty else {
             throw BusinessError.missingCustomer("Customer name cannot be empty")
         }
         
-        guard !request.product.name.isEmpty else {
+        guard let product = request.product, !product.name.isEmpty else {
             throw BusinessError.missingProduct("Product name cannot be empty")
         }
         
@@ -79,8 +79,8 @@ class DefaultCustomerOutOfStockBusinessService: CustomerOutOfStockBusinessServic
         // TODO: Implement duplicate checking logic
         
         logger.safeInfo("Creation request validation passed", [
-            "customer": request.customer.name,
-            "product": request.product.name,
+            "customer": customer.name,
+            "product": product.name,
             "quantity": String(request.quantity)
         ])
     }

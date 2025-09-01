@@ -1,0 +1,104 @@
+{
+  "source": "/Users/bobo/Desktop/Lopan/Lopan/Views/Components/IntelligentFilterPanel.swift",
+  "tables": {
+    "Localizable": [
+      {
+        "comment": "",
+        "key": "取消",
+        "location": {
+          "startingColumn": 20,
+          "startingLine": 170
+        }
+      },
+      {
+        "comment": "",
+        "key": "筛选",
+        "location": {
+          "startingColumn": 22,
+          "startingLine": 157
+        }
+      },
+      {
+        "comment": "",
+        "key": "%lld 个活跃筛选",
+        "location": {
+          "startingColumn": 26,
+          "startingLine": 162
+        }
+      },
+      {
+        "comment": "",
+        "key": "精细筛选",
+        "location": {
+          "startingColumn": 22,
+          "startingLine": 189
+        }
+      },
+      {
+        "comment": "",
+        "key": "筛选预览",
+        "location": {
+          "startingColumn": 22,
+          "startingLine": 281
+        }
+      },
+      {
+        "comment": "",
+        "key": "%lld 条记录",
+        "location": {
+          "startingColumn": 26,
+          "startingLine": 291
+        }
+      },
+      {
+        "comment": "",
+        "key": "清除全部",
+        "location": {
+          "startingColumn": 24,
+          "startingLine": 304
+        }
+      },
+      {
+        "comment": "",
+        "key": "应用筛选 (%lld)",
+        "location": {
+          "startingColumn": 24,
+          "startingLine": 310
+        }
+      },
+      {
+        "comment": "",
+        "key": "开始日期",
+        "location": {
+          "startingColumn": 26,
+          "startingLine": 597
+        }
+      },
+      {
+        "comment": "",
+        "key": "",
+        "location": {
+          "startingColumn": 32,
+          "startingLine": 601
+        }
+      },
+      {
+        "comment": "",
+        "key": "结束日期",
+        "location": {
+          "startingColumn": 26,
+          "startingLine": 609
+        }
+      },
+      {
+        "comment": "",
+        "key": "",
+        "location": {
+          "startingColumn": 32,
+          "startingLine": 613
+        }
+      }
+    ]
+  },
+  "version": 1
+}

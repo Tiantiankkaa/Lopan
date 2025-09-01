@@ -1,0 +1,112 @@
+{
+  "source": "/Users/bobo/Desktop/Lopan/Lopan/Views/Components/Common/AdaptiveDateNavigationBar.swift",
+  "tables": {
+    "Localizable": [
+      {
+        "comment": "",
+        "key": "切换排序方式",
+        "location": {
+          "startingColumn": 49,
+          "startingLine": 90
+        }
+      },
+      {
+        "comment": "",
+        "key": "点击在正序和倒序之间切换",
+        "location": {
+          "startingColumn": 48,
+          "startingLine": 91
+        }
+      },
+      {
+        "comment": "",
+        "key": "清除筛选条件",
+        "location": {
+          "startingColumn": 45,
+          "startingLine": 124
+        }
+      },
+      {
+        "comment": "",
+        "key": "点击返回日期导航模式",
+        "location": {
+          "startingColumn": 44,
+          "startingLine": 125
+        }
+      },
+      {
+        "comment": "",
+        "key": "倒序",
+        "location": {
+          "startingColumn": 70,
+          "startingLine": 74
+        }
+      },
+      {
+        "comment": "",
+        "key": "正序",
+        "location": {
+          "startingColumn": 81,
+          "startingLine": 74
+        }
+      },
+      {
+        "comment": "",
+        "key": "清除筛选",
+        "location": {
+          "startingColumn": 38,
+          "startingLine": 108
+        }
+      },
+      {
+        "comment": "",
+        "key": "选择日期",
+        "location": {
+          "startingColumn": 29,
+          "startingLine": 215
+        }
+      },
+      {
+        "comment": "",
+        "key": "点击打开日期选择器",
+        "location": {
+          "startingColumn": 28,
+          "startingLine": 217
+        }
+      },
+      {
+        "comment": "",
+        "key": "当前筛选条件",
+        "location": {
+          "startingColumn": 29,
+          "startingLine": 299
+        }
+      },
+      {
+        "comment": "",
+        "key": "点击查看详细筛选条件",
+        "location": {
+          "startingColumn": 46,
+          "startingLine": 301
+        }
+      },
+      {
+        "comment": "",
+        "key": "",
+        "location": {
+          "startingColumn": 81,
+          "startingLine": 301
+        }
+      },
+      {
+        "comment": "",
+        "key": "%lld",
+        "location": {
+          "startingColumn": 26,
+          "startingLine": 261
+        }
+      }
+    ]
+  },
+  "version": 1
+}

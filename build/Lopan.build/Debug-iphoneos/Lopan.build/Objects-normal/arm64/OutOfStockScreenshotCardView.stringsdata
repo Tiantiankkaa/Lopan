@@ -1,0 +1,32 @@
+{
+  "source": "/Users/bobo/Desktop/Lopan/Lopan/Views/Components/OutOfStock/OutOfStockScreenshotCardView.swift",
+  "tables": {
+    "Localizable": [
+      {
+        "comment": "",
+        "key": "缺货数量: %lld",
+        "location": {
+          "startingColumn": 22,
+          "startingLine": 83
+        }
+      },
+      {
+        "comment": "",
+        "key": "录入时间: %@",
+        "location": {
+          "startingColumn": 26,
+          "startingLine": 98
+        }
+      },
+      {
+        "comment": "",
+        "key": "完成: %@",
+        "location": {
+          "startingColumn": 30,
+          "startingLine": 112
+        }
+      }
+    ]
+  },
+  "version": 1
+}

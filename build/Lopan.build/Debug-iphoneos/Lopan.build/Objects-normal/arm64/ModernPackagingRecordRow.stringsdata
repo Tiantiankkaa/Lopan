@@ -1,0 +1,24 @@
+{
+  "source": "/Users/bobo/Desktop/Lopan/Lopan/Views/WarehouseKeeper/Components/ModernPackagingRecordRow.swift",
+  "tables": {
+    "Localizable": [
+      {
+        "comment": "",
+        "key": "点击查看详情",
+        "location": {
+          "startingColumn": 28,
+          "startingLine": 108
+        }
+      },
+      {
+        "comment": "",
+        "key": "%lld包/%lld件",
+        "location": {
+          "startingColumn": 30,
+          "startingLine": 69
+        }
+      }
+    ]
+  },
+  "version": 1
+}

@@ -1,0 +1,80 @@
+{
+  "source": "/Users/bobo/Desktop/Lopan/Lopan/Views/Components/PermissionAwareComponents.swift",
+  "tables": {
+    "Localizable": [
+      {
+        "comment": "",
+        "key": "检查权限中...",
+        "location": {
+          "startingColumn": 30,
+          "startingLine": 288
+        }
+      },
+      {
+        "comment": "",
+        "key": "有权限",
+        "location": {
+          "startingColumn": 49,
+          "startingLine": 300
+        }
+      },
+      {
+        "comment": "",
+        "key": "无权限",
+        "location": {
+          "startingColumn": 63,
+          "startingLine": 300
+        }
+      },
+      {
+        "comment": "",
+        "key": "权限概览",
+        "location": {
+          "startingColumn": 18,
+          "startingLine": 331
+        }
+      },
+      {
+        "comment": "",
+        "key": "当前用户没有任何权限",
+        "location": {
+          "startingColumn": 26,
+          "startingLine": 351
+        }
+      },
+      {
+        "comment": "",
+        "key": "加载权限信息...",
+        "location": {
+          "startingColumn": 26,
+          "startingLine": 339
+        }
+      },
+      {
+        "comment": "",
+        "key": "(%lld)",
+        "location": {
+          "startingColumn": 26,
+          "startingLine": 391
+        }
+      },
+      {
+        "comment": "",
+        "key": "•",
+        "location": {
+          "startingColumn": 34,
+          "startingLine": 408
+        }
+      },
+      {
+        "comment": "",
+        "key": "权限不足",
+        "location": {
+          "startingColumn": 26,
+          "startingLine": 450
+        }
+      }
+    ]
+  },
+  "version": 1
+}

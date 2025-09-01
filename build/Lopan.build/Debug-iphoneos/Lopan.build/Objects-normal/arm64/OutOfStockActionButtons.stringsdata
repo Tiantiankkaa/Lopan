@@ -1,0 +1,16 @@
+{
+  "source": "/Users/bobo/Desktop/Lopan/Lopan/Views/Components/OutOfStock/OutOfStockActionButtons.swift",
+  "tables": {
+    "Localizable": [
+      {
+        "comment": "",
+        "key": "取消",
+        "location": {
+          "startingColumn": 22,
+          "startingLine": 50
+        }
+      }
+    ]
+  },
+  "version": 1
+}

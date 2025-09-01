@@ -1,0 +1,144 @@
+{
+  "source": "/Users/bobo/Desktop/Lopan/Lopan/Views/Components/ReturnManagement/SelectionSummaryBar.swift",
+  "tables": {
+    "Localizable": [
+      {
+        "comment": "",
+        "key": "选择摘要",
+        "location": {
+          "startingColumn": 29,
+          "startingLine": 125
+        }
+      },
+      {
+        "comment": "",
+        "key": "处理还货",
+        "location": {
+          "startingColumn": 75,
+          "startingLine": 85
+        }
+      },
+      {
+        "comment": "",
+        "key": "删除选择",
+        "location": {
+          "startingColumn": 92,
+          "startingLine": 85
+        }
+      },
+      {
+        "comment": "",
+        "key": "处理选中的还货项目",
+        "location": {
+          "startingColumn": 74,
+          "startingLine": 86
+        }
+      },
+      {
+        "comment": "",
+        "key": "清除所有已选择的项目",
+        "location": {
+          "startingColumn": 106,
+          "startingLine": 86
+        }
+      },
+      {
+        "comment": "",
+        "key": "取消",
+        "location": {
+          "startingColumn": 57,
+          "startingLine": 108
+        }
+      },
+      {
+        "comment": "",
+        "key": "全选",
+        "location": {
+          "startingColumn": 68,
+          "startingLine": 108
+        }
+      },
+      {
+        "comment": "",
+        "key": "取消选择所有项目",
+        "location": {
+          "startingColumn": 56,
+          "startingLine": 109
+        }
+      },
+      {
+        "comment": "",
+        "key": "选择所有项目",
+        "location": {
+          "startingColumn": 85,
+          "startingLine": 109
+        }
+      },
+      {
+        "comment": "",
+        "key": "取消",
+        "location": {
+          "startingColumn": 50,
+          "startingLine": 98
+        }
+      },
+      {
+        "comment": "",
+        "key": "全选",
+        "location": {
+          "startingColumn": 61,
+          "startingLine": 98
+        }
+      },
+      {
+        "comment": "",
+        "key": "批量操作工具栏",
+        "location": {
+          "startingColumn": 29,
+          "startingLine": 244
+        }
+      },
+      {
+        "comment": "",
+        "key": "批量操作模式",
+        "location": {
+          "startingColumn": 22,
+          "startingLine": 188
+        }
+      },
+      {
+        "comment": "",
+        "key": "取消批量操作",
+        "location": {
+          "startingColumn": 37,
+          "startingLine": 183
+        }
+      },
+      {
+        "comment": "",
+        "key": "退出批量选择模式",
+        "location": {
+          "startingColumn": 36,
+          "startingLine": 184
+        }
+      },
+      {
+        "comment": "",
+        "key": "处理选中项目",
+        "location": {
+          "startingColumn": 41,
+          "startingLine": 211
+        }
+      },
+      {
+        "comment": "",
+        "key": "取消",
+        "location": {
+          "startingColumn": 30,
+          "startingLine": 177
+        }
+      }
+    ]
+  },
+  "version": 1
+}

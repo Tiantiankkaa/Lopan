@@ -1,0 +1,96 @@
+{
+  "source": "/Users/bobo/Desktop/Lopan/Lopan/DesignSystem/Components/Foundation/LopanSearchBar.swift",
+  "tables": {
+    "Localizable": [
+      {
+        "comment": "",
+        "key": "语音输入不可用",
+        "location": {
+          "startingColumn": 16,
+          "startingLine": 77
+        }
+      },
+      {
+        "comment": "",
+        "key": "确定",
+        "location": {
+          "startingColumn": 20,
+          "startingLine": 78
+        }
+      },
+      {
+        "comment": "",
+        "key": "语音输入功能在模拟器中不可用，请在真机上使用此功能。",
+        "location": {
+          "startingColumn": 17,
+          "startingLine": 81
+        }
+      },
+      {
+        "comment": "",
+        "key": "语音输入功能当前不可用，请检查麦克风权限设置。",
+        "location": {
+          "startingColumn": 17,
+          "startingLine": 82
+        }
+      },
+      {
+        "comment": "",
+        "key": "清除搜索",
+        "location": {
+          "startingColumn": 29,
+          "startingLine": 151
+        }
+      },
+      {
+        "comment": "",
+        "key": "停止语音搜索",
+        "location": {
+          "startingColumn": 48,
+          "startingLine": 167
+        }
+      },
+      {
+        "comment": "",
+        "key": "开始语音搜索",
+        "location": {
+          "startingColumn": 34,
+          "startingLine": 168
+        }
+      },
+      {
+        "comment": "",
+        "key": "语音搜索不可用",
+        "location": {
+          "startingColumn": 57,
+          "startingLine": 168
+        }
+      },
+      {
+        "comment": "",
+        "key": "Prominent Style with Voice Search",
+        "location": {
+          "startingColumn": 1,
+          "startingLine": 465
+        }
+      },
+      {
+        "comment": "",
+        "key": "Standard Style",
+        "location": {
+          "startingColumn": 1,
+          "startingLine": 465
+        }
+      },
+      {
+        "comment": "",
+        "key": "Compact Style",
+        "location": {
+          "startingColumn": 1,
+          "startingLine": 465
+        }
+      }
+    ]
+  },
+  "version": 1
+}

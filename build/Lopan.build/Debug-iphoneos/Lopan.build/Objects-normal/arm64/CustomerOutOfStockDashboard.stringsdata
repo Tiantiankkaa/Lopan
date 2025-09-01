@@ -1,0 +1,152 @@
+{
+  "source": "/Users/bobo/Desktop/Lopan/Lopan/Views/Salesperson/CustomerOutOfStockDashboard.swift",
+  "tables": {
+    "Localizable": [
+      {
+        "comment": "",
+        "key": "客户缺货管理",
+        "location": {
+          "startingColumn": 18,
+          "startingLine": 426
+        }
+      },
+      {
+        "comment": "",
+        "key": "工作台",
+        "location": {
+          "startingColumn": 30,
+          "startingLine": 385
+        }
+      },
+      {
+        "comment": "",
+        "key": "数据分析",
+        "location": {
+          "startingColumn": 31,
+          "startingLine": 399
+        }
+      },
+      {
+        "comment": "",
+        "key": "导出数据",
+        "location": {
+          "startingColumn": 31,
+          "startingLine": 403
+        }
+      },
+      {
+        "comment": "",
+        "key": "刷新数据",
+        "location": {
+          "startingColumn": 31,
+          "startingLine": 407
+        }
+      },
+      {
+        "comment": "",
+        "key": "取消选择",
+        "location": {
+          "startingColumn": 62,
+          "startingLine": 414
+        }
+      },
+      {
+        "comment": "",
+        "key": "批量操作",
+        "location": {
+          "startingColumn": 79,
+          "startingLine": 414
+        }
+      },
+      {
+        "comment": "",
+        "key": "搜索客户、产品、备注...",
+        "location": {
+          "startingColumn": 31,
+          "startingLine": 528
+        }
+      },
+      {
+        "comment": "",
+        "key": "选择日期",
+        "location": {
+          "startingColumn": 30,
+          "startingLine": 1899
+        }
+      },
+      {
+        "comment": "",
+        "key": "取消",
+        "location": {
+          "startingColumn": 33,
+          "startingLine": 1902
+        }
+      },
+      {
+        "comment": "",
+        "key": "完成",
+        "location": {
+          "startingColumn": 34,
+          "startingLine": 1905
+        }
+      },
+      {
+        "comment": "",
+        "key": "选择日期",
+        "location": {
+          "startingColumn": 28,
+          "startingLine": 1891
+        }
+      },
+      {
+        "comment": "",
+        "key": "清除筛选",
+        "location": {
+          "startingColumn": 20,
+          "startingLine": 1995
+        }
+      },
+      {
+        "comment": "",
+        "key": "倒序",
+        "location": {
+          "startingColumn": 54,
+          "startingLine": 1981
+        }
+      },
+      {
+        "comment": "",
+        "key": "正序",
+        "location": {
+          "startingColumn": 65,
+          "startingLine": 1981
+        }
+      },
+      {
+        "comment": "",
+        "key": "Analytics Sheet - To be implemented",
+        "location": {
+          "startingColumn": 14,
+          "startingLine": 2023
+        }
+      },
+      {
+        "comment": "",
+        "key": "数量: %lld",
+        "location": {
+          "startingColumn": 30,
+          "startingLine": 2092
+        }
+      },
+      {
+        "comment": "",
+        "key": "退货数量: %lld",
+        "location": {
+          "startingColumn": 30,
+          "startingLine": 2127
+        }
+      }
+    ]
+  },
+  "version": 1
+}

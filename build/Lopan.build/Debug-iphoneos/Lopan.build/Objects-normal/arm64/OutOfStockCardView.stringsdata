@@ -1,0 +1,32 @@
+{
+  "source": "/Users/bobo/Desktop/Lopan/Lopan/Views/Components/OutOfStockCardView.swift",
+  "tables": {
+    "Localizable": [
+      {
+        "comment": "",
+        "key": "产品信息",
+        "location": {
+          "startingColumn": 22,
+          "startingLine": 223
+        }
+      },
+      {
+        "comment": "",
+        "key": "数量信息",
+        "location": {
+          "startingColumn": 22,
+          "startingLine": 245
+        }
+      },
+      {
+        "comment": "",
+        "key": "备注",
+        "location": {
+          "startingColumn": 22,
+          "startingLine": 292
+        }
+      }
+    ]
+  },
+  "version": 1
+}

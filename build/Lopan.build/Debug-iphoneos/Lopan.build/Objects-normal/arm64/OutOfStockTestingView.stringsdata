@@ -1,0 +1,88 @@
+{
+  "source": "/Users/bobo/Desktop/Lopan/Lopan/Views/Components/OutOfStockTestingView.swift",
+  "tables": {
+    "Localizable": [
+      {
+        "comment": "",
+        "key": "缺货管理测试",
+        "location": {
+          "startingColumn": 30,
+          "startingLine": 26
+        }
+      },
+      {
+        "comment": "",
+        "key": "缺货管理界面测试套件",
+        "location": {
+          "startingColumn": 18,
+          "startingLine": 42
+        }
+      },
+      {
+        "comment": "",
+        "key": "测试各种边界情况和用户体验场景",
+        "location": {
+          "startingColumn": 18,
+          "startingLine": 47
+        }
+      },
+      {
+        "comment": "",
+        "key": "启动缺货管理界面",
+        "location": {
+          "startingColumn": 26,
+          "startingLine": 187
+        }
+      },
+      {
+        "comment": "",
+        "key": "运行所有测试",
+        "location": {
+          "startingColumn": 26,
+          "startingLine": 206
+        }
+      },
+      {
+        "comment": "",
+        "key": "生成测试报告",
+        "location": {
+          "startingColumn": 26,
+          "startingLine": 221
+        }
+      },
+      {
+        "comment": "",
+        "key": "未测试",
+        "location": {
+          "startingColumn": 26,
+          "startingLine": 325
+        }
+      },
+      {
+        "comment": "",
+        "key": "%.1fms",
+        "location": {
+          "startingColumn": 26,
+          "startingLine": 320
+        }
+      },
+      {
+        "comment": "",
+        "key": "测试",
+        "location": {
+          "startingColumn": 24,
+          "startingLine": 330
+        }
+      },
+      {
+        "comment": "",
+        "key": "测试",
+        "location": {
+          "startingColumn": 24,
+          "startingLine": 378
+        }
+      }
+    ]
+  },
+  "version": 1
+}

@@ -1,0 +1,248 @@
+{
+  "source": "/Users/bobo/Desktop/Lopan/Lopan/Views/Components/EnhancedProductDetailView.swift",
+  "tables": {
+    "Localizable": [
+      {
+        "comment": "",
+        "key": "产品详情",
+        "location": {
+          "startingColumn": 26,
+          "startingLine": 72
+        }
+      },
+      {
+        "comment": "",
+        "key": "确认删除",
+        "location": {
+          "startingColumn": 16,
+          "startingLine": 85
+        }
+      },
+      {
+        "comment": "",
+        "key": "取消",
+        "location": {
+          "startingColumn": 20,
+          "startingLine": 86
+        }
+      },
+      {
+        "comment": "",
+        "key": "删除",
+        "location": {
+          "startingColumn": 20,
+          "startingLine": 87
+        }
+      },
+      {
+        "comment": "",
+        "key": "确定要删除产品 \"%@\" 吗？此操作不可撤销。",
+        "location": {
+          "startingColumn": 18,
+          "startingLine": 91
+        }
+      },
+      {
+        "comment": "",
+        "key": "分享功能",
+        "location": {
+          "startingColumn": 14,
+          "startingLine": 656
+        }
+      },
+      {
+        "comment": "",
+        "key": "查看大图",
+        "location": {
+          "startingColumn": 28,
+          "startingLine": 210
+        }
+      },
+      {
+        "comment": "",
+        "key": "分享图片",
+        "location": {
+          "startingColumn": 28,
+          "startingLine": 216
+        }
+      },
+      {
+        "comment": "",
+        "key": "暂无产品图片",
+        "location": {
+          "startingColumn": 30,
+          "startingLine": 239
+        }
+      },
+      {
+        "comment": "",
+        "key": "点击编辑按钮添加图片",
+        "location": {
+          "startingColumn": 30,
+          "startingLine": 243
+        }
+      },
+      {
+        "comment": "",
+        "key": "库存状态：有库存",
+        "location": {
+          "startingColumn": 29,
+          "startingLine": 310
+        }
+      },
+      {
+        "comment": "",
+        "key": "有库存",
+        "location": {
+          "startingColumn": 18,
+          "startingLine": 304
+        }
+      },
+      {
+        "comment": "",
+        "key": "产品描述",
+        "location": {
+          "startingColumn": 18,
+          "startingLine": 315
+        }
+      },
+      {
+        "comment": "",
+        "key": "这是一款高质量的产品，采用优质材料制造，具有出色的耐用性和美观的外观设计。",
+        "location": {
+          "startingColumn": 18,
+          "startingLine": 320
+        }
+      },
+      {
+        "comment": "",
+        "key": "编辑产品",
+        "location": {
+          "startingColumn": 24,
+          "startingLine": 481
+        }
+      },
+      {
+        "comment": "",
+        "key": "编辑产品信息",
+        "location": {
+          "startingColumn": 36,
+          "startingLine": 489
+        }
+      },
+      {
+        "comment": "",
+        "key": "更多操作",
+        "location": {
+          "startingColumn": 24,
+          "startingLine": 491
+        }
+      },
+      {
+        "comment": "",
+        "key": "复制产品",
+        "location": {
+          "startingColumn": 28,
+          "startingLine": 500
+        }
+      },
+      {
+        "comment": "",
+        "key": "分享产品",
+        "location": {
+          "startingColumn": 28,
+          "startingLine": 506
+        }
+      },
+      {
+        "comment": "",
+        "key": "编辑产品",
+        "location": {
+          "startingColumn": 23,
+          "startingLine": 571
+        }
+      },
+      {
+        "comment": "",
+        "key": "复制产品",
+        "location": {
+          "startingColumn": 23,
+          "startingLine": 575
+        }
+      },
+      {
+        "comment": "",
+        "key": "分享产品",
+        "location": {
+          "startingColumn": 23,
+          "startingLine": 579
+        }
+      },
+      {
+        "comment": "",
+        "key": "删除产品",
+        "location": {
+          "startingColumn": 23,
+          "startingLine": 585
+        }
+      },
+      {
+        "comment": "",
+        "key": "完成",
+        "location": {
+          "startingColumn": 28,
+          "startingLine": 644
+        }
+      },
+      {
+        "comment": "",
+        "key": "产品操作",
+        "location": {
+          "startingColumn": 30,
+          "startingLine": 682
+        }
+      },
+      {
+        "comment": "",
+        "key": "复制产品",
+        "location": {
+          "startingColumn": 27,
+          "startingLine": 664
+        }
+      },
+      {
+        "comment": "",
+        "key": "分享产品",
+        "location": {
+          "startingColumn": 27,
+          "startingLine": 668
+        }
+      },
+      {
+        "comment": "",
+        "key": "导出产品",
+        "location": {
+          "startingColumn": 27,
+          "startingLine": 672
+        }
+      },
+      {
+        "comment": "",
+        "key": "删除产品",
+        "location": {
+          "startingColumn": 31,
+          "startingLine": 677
+        }
+      },
+      {
+        "comment": "",
+        "key": "取消",
+        "location": {
+          "startingColumn": 28,
+          "startingLine": 686
+        }
+      }
+    ]
+  },
+  "version": 1
+}

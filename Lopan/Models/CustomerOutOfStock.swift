@@ -229,12 +229,43 @@ public final class CustomerOutOfStock {
         
         return true
     }
+    
+    // MARK: - Mock Data Creation (Production Safe)
+    
+    /// Create a mock record from creation request - used for safe placeholder behavior
+    static func createMockRecord(from request: OutOfStockCreationRequest) -> CustomerOutOfStock {
+        let mockRecord = CustomerOutOfStock(
+            customer: nil, // Placeholder mode - no real customer
+            product: nil,  // Placeholder mode - no real product
+            quantity: request.quantity,
+            notes: "MOCK_RECORD: \(request.notes ?? "")",
+            createdBy: request.createdBy
+        )
+        
+        // Add display info for testing
+        if let customerName = request.customerName,
+           let productName = request.productName {
+            mockRecord.notes = "DISPLAY_INFO:{Mock Customer|\(customerName)|Mock Phone|\(productName)} \(request.notes ?? "")"
+        }
+        
+        return mockRecord
+    }
 }
 
 extension CustomerOutOfStock: Equatable {
     public static func == (lhs: CustomerOutOfStock, rhs: CustomerOutOfStock) -> Bool {
         return lhs.id == rhs.id
     }
+}
+
+extension CustomerOutOfStock: Hashable {
+    public func hash(into hasher: inout Hasher) {
+        hasher.combine(id)
+    }
+}
+
+extension CustomerOutOfStock: Identifiable {
+    // id property already exists in the class
 }
 
 extension CustomerOutOfStock: Codable {

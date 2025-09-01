@@ -1,0 +1,32 @@
+{
+  "source": "/Users/bobo/Desktop/Lopan/Lopan/Views/Components/Accessibility/AccessibilityComponents.swift",
+  "tables": {
+    "Localizable": [
+      {
+        "comment": "",
+        "key": "开启",
+        "location": {
+          "startingColumn": 40,
+          "startingLine": 227
+        }
+      },
+      {
+        "comment": "",
+        "key": "关闭",
+        "location": {
+          "startingColumn": 51,
+          "startingLine": 227
+        }
+      },
+      {
+        "comment": "",
+        "key": "状态: %@",
+        "location": {
+          "startingColumn": 29,
+          "startingLine": 298
+        }
+      }
+    ]
+  },
+  "version": 1
+}

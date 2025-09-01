@@ -1,0 +1,56 @@
+{
+  "source": "/Users/bobo/Desktop/Lopan/Lopan/Views/Core/SmartNavigationView.swift",
+  "tables": {
+    "Localizable": [
+      {
+        "comment": "",
+        "key": "Navigation Monitor",
+        "location": {
+          "startingColumn": 30,
+          "startingLine": 485
+        }
+      },
+      {
+        "comment": "",
+        "key": "Navigation Performance",
+        "location": {
+          "startingColumn": 25,
+          "startingLine": 436
+        }
+      },
+      {
+        "comment": "",
+        "key": "Actions",
+        "location": {
+          "startingColumn": 25,
+          "startingLine": 467
+        }
+      },
+      {
+        "comment": "",
+        "key": "Start Predictive Preloading",
+        "location": {
+          "startingColumn": 28,
+          "startingLine": 468
+        }
+      },
+      {
+        "comment": "",
+        "key": "Preload Common Views",
+        "location": {
+          "startingColumn": 28,
+          "startingLine": 474
+        }
+      },
+      {
+        "comment": "",
+        "key": "Refresh Metrics",
+        "location": {
+          "startingColumn": 28,
+          "startingLine": 480
+        }
+      }
+    ]
+  },
+  "version": 1
+}

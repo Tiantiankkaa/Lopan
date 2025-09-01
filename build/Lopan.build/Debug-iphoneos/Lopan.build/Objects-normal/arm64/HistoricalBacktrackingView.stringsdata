@@ -1,0 +1,120 @@
+{
+  "source": "/Users/bobo/Desktop/Lopan/Lopan/Views/Salesperson/HistoricalBacktrackingView.swift",
+  "tables": {
+    "Localizable": [
+      {
+        "comment": "",
+        "key": "历史回溯",
+        "location": {
+          "startingColumn": 30,
+          "startingLine": 126
+        }
+      },
+      {
+        "comment": "",
+        "key": "历史操作记录回溯界面",
+        "location": {
+          "startingColumn": 33,
+          "startingLine": 130
+        }
+      },
+      {
+        "comment": "",
+        "key": "包含搜索过滤、统计信息和操作记录列表",
+        "location": {
+          "startingColumn": 32,
+          "startingLine": 131
+        }
+      },
+      {
+        "comment": "",
+        "key": "过滤器",
+        "location": {
+          "startingColumn": 35,
+          "startingLine": 136
+        }
+      },
+      {
+        "comment": "",
+        "key": "更多选项",
+        "location": {
+          "startingColumn": 49,
+          "startingLine": 141
+        }
+      },
+      {
+        "comment": "",
+        "key": "搜索操作记录、用户或详情",
+        "location": {
+          "startingColumn": 31,
+          "startingLine": 171
+        }
+      },
+      {
+        "comment": "",
+        "key": "搜索框",
+        "location": {
+          "startingColumn": 45,
+          "startingLine": 172
+        }
+      },
+      {
+        "comment": "",
+        "key": "输入关键词搜索操作记录、用户名或操作详情",
+        "location": {
+          "startingColumn": 44,
+          "startingLine": 173
+        }
+      },
+      {
+        "comment": "",
+        "key": "暂无操作记录",
+        "location": {
+          "startingColumn": 18,
+          "startingLine": 260
+        }
+      },
+      {
+        "comment": "",
+        "key": "在选定的时间范围内没有找到匹配的操作记录",
+        "location": {
+          "startingColumn": 18,
+          "startingLine": 266
+        }
+      },
+      {
+        "comment": "",
+        "key": "重置筛选条件",
+        "location": {
+          "startingColumn": 20,
+          "startingLine": 273
+        }
+      },
+      {
+        "comment": "",
+        "key": "重置筛选条件",
+        "location": {
+          "startingColumn": 33,
+          "startingLine": 281
+        }
+      },
+      {
+        "comment": "",
+        "key": "清除所有过滤条件，显示所有操作记录",
+        "location": {
+          "startingColumn": 32,
+          "startingLine": 282
+        }
+      },
+      {
+        "comment": "",
+        "key": "%@: %@",
+        "location": {
+          "startingColumn": 29,
+          "startingLine": 426
+        }
+      }
+    ]
+  },
+  "version": 1
+}

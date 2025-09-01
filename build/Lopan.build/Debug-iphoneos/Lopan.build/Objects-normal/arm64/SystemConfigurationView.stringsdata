@@ -1,0 +1,1096 @@
+{
+  "source": "/Users/bobo/Desktop/Lopan/Lopan/Views/Administrator/SystemConfigurationView.swift",
+  "tables": {
+    "Localizable": [
+      {
+        "comment": "",
+        "key": "系统配置",
+        "location": {
+          "startingColumn": 30,
+          "startingLine": 90
+        }
+      },
+      {
+        "comment": "",
+        "key": "系统设置",
+        "location": {
+          "startingColumn": 31,
+          "startingLine": 45
+        }
+      },
+      {
+        "comment": "",
+        "key": "安全设置",
+        "location": {
+          "startingColumn": 31,
+          "startingLine": 55
+        }
+      },
+      {
+        "comment": "",
+        "key": "生产设置",
+        "location": {
+          "startingColumn": 31,
+          "startingLine": 65
+        }
+      },
+      {
+        "comment": "",
+        "key": "通知设置",
+        "location": {
+          "startingColumn": 31,
+          "startingLine": 75
+        }
+      },
+      {
+        "comment": "",
+        "key": "性能设置",
+        "location": {
+          "startingColumn": 31,
+          "startingLine": 85
+        }
+      },
+      {
+        "comment": "",
+        "key": "变更请求",
+        "location": {
+          "startingColumn": 32,
+          "startingLine": 94
+        }
+      },
+      {
+        "comment": "",
+        "key": "历史记录",
+        "location": {
+          "startingColumn": 32,
+          "startingLine": 98
+        }
+      },
+      {
+        "comment": "",
+        "key": "安全设置",
+        "location": {
+          "startingColumn": 36,
+          "startingLine": 103
+        }
+      },
+      {
+        "comment": "",
+        "key": "导出配置",
+        "location": {
+          "startingColumn": 36,
+          "startingLine": 107
+        }
+      },
+      {
+        "comment": "",
+        "key": "导入配置",
+        "location": {
+          "startingColumn": 36,
+          "startingLine": 111
+        }
+      },
+      {
+        "comment": "",
+        "key": "安全扫描",
+        "location": {
+          "startingColumn": 36,
+          "startingLine": 115
+        }
+      },
+      {
+        "comment": "",
+        "key": "系统配置管理",
+        "location": {
+          "startingColumn": 26,
+          "startingLine": 143
+        }
+      },
+      {
+        "comment": "",
+        "key": "管理和配置系统设置",
+        "location": {
+          "startingColumn": 26,
+          "startingLine": 147
+        }
+      },
+      {
+        "comment": "",
+        "key": "%lld 个待审核请求",
+        "location": {
+          "startingColumn": 30,
+          "startingLine": 166
+        }
+      },
+      {
+        "comment": "",
+        "key": "加密启用",
+        "location": {
+          "startingColumn": 75,
+          "startingLine": 160
+        }
+      },
+      {
+        "comment": "",
+        "key": "加密禁用",
+        "location": {
+          "startingColumn": 92,
+          "startingLine": 160
+        }
+      },
+      {
+        "comment": "",
+        "key": "高级选项",
+        "location": {
+          "startingColumn": 24,
+          "startingLine": 269
+        }
+      },
+      {
+        "comment": "",
+        "key": "搜索配置项...",
+        "location": {
+          "startingColumn": 23,
+          "startingLine": 293
+        }
+      },
+      {
+        "comment": "",
+        "key": "没有找到配置项",
+        "location": {
+          "startingColumn": 18,
+          "startingLine": 313
+        }
+      },
+      {
+        "comment": "",
+        "key": "尝试调整搜索条件或检查其他分类",
+        "location": {
+          "startingColumn": 18,
+          "startingLine": 318
+        }
+      },
+      {
+        "comment": "",
+        "key": "*",
+        "location": {
+          "startingColumn": 34,
+          "startingLine": 360
+        }
+      },
+      {
+        "comment": "",
+        "key": "重启",
+        "location": {
+          "startingColumn": 34,
+          "startingLine": 366
+        }
+      },
+      {
+        "comment": "",
+        "key": "当前值:",
+        "location": {
+          "startingColumn": 30,
+          "startingLine": 390
+        }
+      },
+      {
+        "comment": "",
+        "key": "编辑",
+        "location": {
+          "startingColumn": 28,
+          "startingLine": 412
+        }
+      },
+      {
+        "comment": "",
+        "key": "详情",
+        "location": {
+          "startingColumn": 28,
+          "startingLine": 419
+        }
+      },
+      {
+        "comment": "",
+        "key": "配置信息",
+        "location": {
+          "startingColumn": 22,
+          "startingLine": 466
+        }
+      },
+      {
+        "comment": "",
+        "key": "标签",
+        "location": {
+          "startingColumn": 26,
+          "startingLine": 489
+        }
+      },
+      {
+        "comment": "",
+        "key": "验证规则",
+        "location": {
+          "startingColumn": 26,
+          "startingLine": 510
+        }
+      },
+      {
+        "comment": "",
+        "key": "• %@",
+        "location": {
+          "startingColumn": 34,
+          "startingLine": 518
+        }
+      },
+      {
+        "comment": "",
+        "key": "更新错误",
+        "location": {
+          "startingColumn": 16,
+          "startingLine": 640
+        }
+      },
+      {
+        "comment": "",
+        "key": "编辑配置",
+        "location": {
+          "startingColumn": 30,
+          "startingLine": 623
+        }
+      },
+      {
+        "comment": "",
+        "key": "配置信息",
+        "location": {
+          "startingColumn": 25,
+          "startingLine": 553
+        }
+      },
+      {
+        "comment": "",
+        "key": "当前值",
+        "location": {
+          "startingColumn": 25,
+          "startingLine": 587
+        }
+      },
+      {
+        "comment": "",
+        "key": "新值",
+        "location": {
+          "startingColumn": 25,
+          "startingLine": 593
+        }
+      },
+      {
+        "comment": "",
+        "key": "变更原因",
+        "location": {
+          "startingColumn": 25,
+          "startingLine": 601
+        }
+      },
+      {
+        "comment": "",
+        "key": "验证规则",
+        "location": {
+          "startingColumn": 29,
+          "startingLine": 607
+        }
+      },
+      {
+        "comment": "",
+        "key": "类型:",
+        "location": {
+          "startingColumn": 34,
+          "startingLine": 564
+        }
+      },
+      {
+        "comment": "",
+        "key": "需要重启",
+        "location": {
+          "startingColumn": 38,
+          "startingLine": 575
+        }
+      },
+      {
+        "comment": "",
+        "key": "请描述变更原因...",
+        "location": {
+          "startingColumn": 31,
+          "startingLine": 602
+        }
+      },
+      {
+        "comment": "",
+        "key": "取消",
+        "location": {
+          "startingColumn": 28,
+          "startingLine": 627
+        }
+      },
+      {
+        "comment": "",
+        "key": "保存",
+        "location": {
+          "startingColumn": 28,
+          "startingLine": 633
+        }
+      },
+      {
+        "comment": "",
+        "key": "确定",
+        "location": {
+          "startingColumn": 20,
+          "startingLine": 644
+        }
+      },
+      {
+        "comment": "",
+        "key": "复杂类型编辑暂不支持",
+        "location": {
+          "startingColumn": 18,
+          "startingLine": 768
+        }
+      },
+      {
+        "comment": "",
+        "key": "输入%@",
+        "location": {
+          "startingColumn": 23,
+          "startingLine": 726
+        }
+      },
+      {
+        "comment": "",
+        "key": "启用",
+        "location": {
+          "startingColumn": 22,
+          "startingLine": 739
+        }
+      },
+      {
+        "comment": "",
+        "key": "秒",
+        "location": {
+          "startingColumn": 22,
+          "startingLine": 755
+        }
+      },
+      {
+        "comment": "",
+        "key": "输入秒数",
+        "location": {
+          "startingColumn": 27,
+          "startingLine": 752
+        }
+      },
+      {
+        "comment": "",
+        "key": "输入密码",
+        "location": {
+          "startingColumn": 33,
+          "startingLine": 692
+        }
+      },
+      {
+        "comment": "",
+        "key": "输入%@",
+        "location": {
+          "startingColumn": 31,
+          "startingLine": 694
+        }
+      },
+      {
+        "comment": "",
+        "key": "%",
+        "location": {
+          "startingColumn": 26,
+          "startingLine": 712
+        }
+      },
+      {
+        "comment": "",
+        "key": "输入%@",
+        "location": {
+          "startingColumn": 27,
+          "startingLine": 708
+        }
+      },
+      {
+        "comment": "",
+        "key": "重置确认",
+        "location": {
+          "startingColumn": 16,
+          "startingLine": 873
+        }
+      },
+      {
+        "comment": "",
+        "key": "配置详情",
+        "location": {
+          "startingColumn": 30,
+          "startingLine": 863
+        }
+      },
+      {
+        "comment": "",
+        "key": "基本信息",
+        "location": {
+          "startingColumn": 25,
+          "startingLine": 788
+        }
+      },
+      {
+        "comment": "",
+        "key": "当前设置",
+        "location": {
+          "startingColumn": 25,
+          "startingLine": 796
+        }
+      },
+      {
+        "comment": "",
+        "key": "属性",
+        "location": {
+          "startingColumn": 25,
+          "startingLine": 808
+        }
+      },
+      {
+        "comment": "",
+        "key": "权限",
+        "location": {
+          "startingColumn": 25,
+          "startingLine": 815
+        }
+      },
+      {
+        "comment": "",
+        "key": "标签",
+        "location": {
+          "startingColumn": 29,
+          "startingLine": 820
+        }
+      },
+      {
+        "comment": "",
+        "key": "验证规则",
+        "location": {
+          "startingColumn": 29,
+          "startingLine": 839
+        }
+      },
+      {
+        "comment": "",
+        "key": "操作",
+        "location": {
+          "startingColumn": 25,
+          "startingLine": 855
+        }
+      },
+      {
+        "comment": "",
+        "key": "使用默认值",
+        "location": {
+          "startingColumn": 30,
+          "startingLine": 803
+        }
+      },
+      {
+        "comment": "",
+        "key": "重置为默认值",
+        "location": {
+          "startingColumn": 28,
+          "startingLine": 856
+        }
+      },
+      {
+        "comment": "",
+        "key": "完成",
+        "location": {
+          "startingColumn": 28,
+          "startingLine": 867
+        }
+      },
+      {
+        "comment": "",
+        "key": "取消",
+        "location": {
+          "startingColumn": 20,
+          "startingLine": 874
+        }
+      },
+      {
+        "comment": "",
+        "key": "重置",
+        "location": {
+          "startingColumn": 20,
+          "startingLine": 875
+        }
+      },
+      {
+        "comment": "",
+        "key": "确定要将此配置重置为默认值吗？此操作无法撤销。",
+        "location": {
+          "startingColumn": 18,
+          "startingLine": 879
+        }
+      },
+      {
+        "comment": "",
+        "key": "%@ 选项",
+        "location": {
+          "startingColumn": 30,
+          "startingLine": 1011
+        }
+      },
+      {
+        "comment": "",
+        "key": "批量操作",
+        "location": {
+          "startingColumn": 25,
+          "startingLine": 987
+        }
+      },
+      {
+        "comment": "",
+        "key": "统计信息",
+        "location": {
+          "startingColumn": 25,
+          "startingLine": 1002
+        }
+      },
+      {
+        "comment": "",
+        "key": "批量编辑",
+        "location": {
+          "startingColumn": 28,
+          "startingLine": 988
+        }
+      },
+      {
+        "comment": "",
+        "key": "批量重置",
+        "location": {
+          "startingColumn": 28,
+          "startingLine": 992
+        }
+      },
+      {
+        "comment": "",
+        "key": "导出分类配置",
+        "location": {
+          "startingColumn": 28,
+          "startingLine": 997
+        }
+      },
+      {
+        "comment": "",
+        "key": "完成",
+        "location": {
+          "startingColumn": 28,
+          "startingLine": 1015
+        }
+      },
+      {
+        "comment": "",
+        "key": "安全设置",
+        "location": {
+          "startingColumn": 30,
+          "startingLine": 1098
+        }
+      },
+      {
+        "comment": "",
+        "key": "加密状态",
+        "location": {
+          "startingColumn": 25,
+          "startingLine": 1040
+        }
+      },
+      {
+        "comment": "",
+        "key": "安全扫描",
+        "location": {
+          "startingColumn": 25,
+          "startingLine": 1059
+        }
+      },
+      {
+        "comment": "",
+        "key": "安全事件",
+        "location": {
+          "startingColumn": 25,
+          "startingLine": 1086
+        }
+      },
+      {
+        "comment": "",
+        "key": "配置加密已启用",
+        "location": {
+          "startingColumn": 75,
+          "startingLine": 1046
+        }
+      },
+      {
+        "comment": "",
+        "key": "配置加密已禁用",
+        "location": {
+          "startingColumn": 101,
+          "startingLine": 1046
+        }
+      },
+      {
+        "comment": "",
+        "key": "管理",
+        "location": {
+          "startingColumn": 77,
+          "startingLine": 1051
+        }
+      },
+      {
+        "comment": "",
+        "key": "启用",
+        "location": {
+          "startingColumn": 88,
+          "startingLine": 1051
+        }
+      },
+      {
+        "comment": "",
+        "key": "执行扫描",
+        "location": {
+          "startingColumn": 32,
+          "startingLine": 1078
+        }
+      },
+      {
+        "comment": "",
+        "key": "上次扫描",
+        "location": {
+          "startingColumn": 34,
+          "startingLine": 1062
+        }
+      },
+      {
+        "comment": "",
+        "key": "从未扫描",
+        "location": {
+          "startingColumn": 38,
+          "startingLine": 1070
+        }
+      },
+      {
+        "comment": "",
+        "key": "暂无安全事件",
+        "location": {
+          "startingColumn": 30,
+          "startingLine": 1088
+        }
+      },
+      {
+        "comment": "",
+        "key": "完成",
+        "location": {
+          "startingColumn": 28,
+          "startingLine": 1102
+        }
+      },
+      {
+        "comment": "",
+        "key": "变更请求",
+        "location": {
+          "startingColumn": 30,
+          "startingLine": 1145
+        }
+      },
+      {
+        "comment": "",
+        "key": "暂无待审核请求",
+        "location": {
+          "startingColumn": 30,
+          "startingLine": 1136
+        }
+      },
+      {
+        "comment": "",
+        "key": "完成",
+        "location": {
+          "startingColumn": 28,
+          "startingLine": 1149
+        }
+      },
+      {
+        "comment": "",
+        "key": "配置历史",
+        "location": {
+          "startingColumn": 30,
+          "startingLine": 1186
+        }
+      },
+      {
+        "comment": "",
+        "key": "暂无历史记录",
+        "location": {
+          "startingColumn": 30,
+          "startingLine": 1177
+        }
+      },
+      {
+        "comment": "",
+        "key": "完成",
+        "location": {
+          "startingColumn": 28,
+          "startingLine": 1190
+        }
+      },
+      {
+        "comment": "",
+        "key": "查看",
+        "location": {
+          "startingColumn": 20,
+          "startingLine": 1260
+        }
+      },
+      {
+        "comment": "",
+        "key": "旧值:",
+        "location": {
+          "startingColumn": 22,
+          "startingLine": 1290
+        }
+      },
+      {
+        "comment": "",
+        "key": "→",
+        "location": {
+          "startingColumn": 22,
+          "startingLine": 1298
+        }
+      },
+      {
+        "comment": "",
+        "key": "变更请求详情",
+        "location": {
+          "startingColumn": 30,
+          "startingLine": 1395
+        }
+      },
+      {
+        "comment": "",
+        "key": "请求信息",
+        "location": {
+          "startingColumn": 25,
+          "startingLine": 1328
+        }
+      },
+      {
+        "comment": "",
+        "key": "变更内容",
+        "location": {
+          "startingColumn": 25,
+          "startingLine": 1336
+        }
+      },
+      {
+        "comment": "",
+        "key": "变更理由",
+        "location": {
+          "startingColumn": 25,
+          "startingLine": 1361
+        }
+      },
+      {
+        "comment": "",
+        "key": "预期影响",
+        "location": {
+          "startingColumn": 29,
+          "startingLine": 1367
+        }
+      },
+      {
+        "comment": "",
+        "key": "审核",
+        "location": {
+          "startingColumn": 29,
+          "startingLine": 1374
+        }
+      },
+      {
+        "comment": "",
+        "key": "当前值:",
+        "location": {
+          "startingColumn": 34,
+          "startingLine": 1339
+        }
+      },
+      {
+        "comment": "",
+        "key": "建议值:",
+        "location": {
+          "startingColumn": 34,
+          "startingLine": 1349
+        }
+      },
+      {
+        "comment": "",
+        "key": "审核备注",
+        "location": {
+          "startingColumn": 35,
+          "startingLine": 1375
+        }
+      },
+      {
+        "comment": "",
+        "key": "批准",
+        "location": {
+          "startingColumn": 36,
+          "startingLine": 1379
+        }
+      },
+      {
+        "comment": "",
+        "key": "拒绝",
+        "location": {
+          "startingColumn": 36,
+          "startingLine": 1385
+        }
+      },
+      {
+        "comment": "",
+        "key": "完成",
+        "location": {
+          "startingColumn": 28,
+          "startingLine": 1399
+        }
+      },
+      {
+        "comment": "",
+        "key": "操作错误",
+        "location": {
+          "startingColumn": 16,
+          "startingLine": 1477
+        }
+      },
+      {
+        "comment": "",
+        "key": "加密设置",
+        "location": {
+          "startingColumn": 30,
+          "startingLine": 1467
+        }
+      },
+      {
+        "comment": "",
+        "key": "加密设置",
+        "location": {
+          "startingColumn": 25,
+          "startingLine": 1442
+        }
+      },
+      {
+        "comment": "",
+        "key": "配置加密当前已启用",
+        "location": {
+          "startingColumn": 30,
+          "startingLine": 1444
+        }
+      },
+      {
+        "comment": "",
+        "key": "主密码用于加密敏感配置数据，请务必妥善保管。",
+        "location": {
+          "startingColumn": 30,
+          "startingLine": 1456
+        }
+      },
+      {
+        "comment": "",
+        "key": "禁用加密",
+        "location": {
+          "startingColumn": 32,
+          "startingLine": 1447
+        }
+      },
+      {
+        "comment": "",
+        "key": "主密码",
+        "location": {
+          "startingColumn": 37,
+          "startingLine": 1453
+        }
+      },
+      {
+        "comment": "",
+        "key": "确认密码",
+        "location": {
+          "startingColumn": 37,
+          "startingLine": 1454
+        }
+      },
+      {
+        "comment": "",
+        "key": "启用加密",
+        "location": {
+          "startingColumn": 32,
+          "startingLine": 1460
+        }
+      },
+      {
+        "comment": "",
+        "key": "完成",
+        "location": {
+          "startingColumn": 28,
+          "startingLine": 1471
+        }
+      },
+      {
+        "comment": "",
+        "key": "确定",
+        "location": {
+          "startingColumn": 20,
+          "startingLine": 1481
+        }
+      },
+      {
+        "comment": "",
+        "key": "扫描错误",
+        "location": {
+          "startingColumn": 16,
+          "startingLine": 1584
+        }
+      },
+      {
+        "comment": "",
+        "key": "安全扫描",
+        "location": {
+          "startingColumn": 30,
+          "startingLine": 1574
+        }
+      },
+      {
+        "comment": "",
+        "key": "正在执行安全扫描...",
+        "location": {
+          "startingColumn": 30,
+          "startingLine": 1540
+        }
+      },
+      {
+        "comment": "",
+        "key": "扫描系统配置中的安全问题",
+        "location": {
+          "startingColumn": 30,
+          "startingLine": 1543
+        }
+      },
+      {
+        "comment": "",
+        "key": "配置安全扫描",
+        "location": {
+          "startingColumn": 30,
+          "startingLine": 1556
+        }
+      },
+      {
+        "comment": "",
+        "key": "扫描系统配置以发现潜在的安全问题",
+        "location": {
+          "startingColumn": 30,
+          "startingLine": 1560
+        }
+      },
+      {
+        "comment": "",
+        "key": "开始扫描",
+        "location": {
+          "startingColumn": 32,
+          "startingLine": 1565
+        }
+      },
+      {
+        "comment": "",
+        "key": "完成",
+        "location": {
+          "startingColumn": 28,
+          "startingLine": 1578
+        }
+      },
+      {
+        "comment": "",
+        "key": "确定",
+        "location": {
+          "startingColumn": 20,
+          "startingLine": 1588
+        }
+      },
+      {
+        "comment": "",
+        "key": "扫描结果",
+        "location": {
+          "startingColumn": 21,
+          "startingLine": 1618
+        }
+      },
+      {
+        "comment": "",
+        "key": "发现的问题 (%lld)",
+        "location": {
+          "startingColumn": 21,
+          "startingLine": 1646
+        }
+      },
+      {
+        "comment": "",
+        "key": "建议",
+        "location": {
+          "startingColumn": 21,
+          "startingLine": 1658
+        }
+      },
+      {
+        "comment": "",
+        "key": "安全评分",
+        "location": {
+          "startingColumn": 30,
+          "startingLine": 1621
+        }
+      },
+      {
+        "comment": "",
+        "key": "%lld/100",
+        "location": {
+          "startingColumn": 30,
+          "startingLine": 1625
+        }
+      },
+      {
+        "comment": "",
+        "key": "风险等级",
+        "location": {
+          "startingColumn": 30,
+          "startingLine": 1634
+        }
+      },
+      {
+        "comment": "",
+        "key": "未发现安全问题",
+        "location": {
+          "startingColumn": 26,
+          "startingLine": 1648
+        }
+      },
+      {
+        "comment": "",
+        "key": "影响配置: %@",
+        "location": {
+          "startingColumn": 26,
+          "startingLine": 1693
+        }
+      }
+    ]
+  },
+  "version": 1
+}

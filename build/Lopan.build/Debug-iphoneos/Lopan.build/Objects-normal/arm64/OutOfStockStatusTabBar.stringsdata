@@ -1,0 +1,32 @@
+{
+  "source": "/Users/bobo/Desktop/Lopan/Lopan/Views/Components/OutOfStock/OutOfStockStatusTabBar.swift",
+  "tables": {
+    "Localizable": [
+      {
+        "comment": "",
+        "key": "已加载 %lld / %lld",
+        "location": {
+          "startingColumn": 18,
+          "startingLine": 52
+        }
+      },
+      {
+        "comment": "",
+        "key": "%lld",
+        "location": {
+          "startingColumn": 30,
+          "startingLine": 100
+        }
+      },
+      {
+        "comment": "",
+        "key": "1...",
+        "location": {
+          "startingColumn": 30,
+          "startingLine": 110
+        }
+      }
+    ]
+  },
+  "version": 1
+}

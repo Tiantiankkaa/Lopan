@@ -203,8 +203,10 @@ class LocalCustomerOutOfStockRepository: CustomerOutOfStockRepository {
         // Ensure we're on the main thread for ModelContext operations
         print("📊 [Repository] Fetching with database pagination - Page: \(page), Status: \(criteria.status?.displayName ?? "All")")
         
-        // If status, customer, or product filtering is needed, use memory-based approach to avoid SwiftData predicate issues
-        if criteria.status != nil || criteria.customer != nil || criteria.product != nil {
+        // Use optimized database filtering for better performance
+        // Fall back to memory filtering for complex relationships OR status filtering
+        // SwiftData doesn't support enum predicates, so status filtering must use memory
+        if criteria.customer != nil || criteria.product != nil || criteria.status != nil {
             return try await fetchWithMemoryFiltering(criteria: criteria, page: page, pageSize: pageSize)
         }
         
@@ -640,17 +642,26 @@ class LocalCustomerOutOfStockRepository: CustomerOutOfStockRepository {
     // MARK: - Private Helper Methods
     
     private func buildPredicate(from criteria: OutOfStockFilterCriteria) -> Predicate<CustomerOutOfStock>? {
-        // Safe predicate builder - only include date filtering, status filtering done in memory
-        print("📊 [Repository] Building predicate - Status: \(criteria.status?.displayName ?? "none") (will filter in memory), Date: \(criteria.dateRange != nil)")
+        print("📊 [Repository] Building predicate - Status: \(criteria.status?.displayName ?? "none"), Date: \(criteria.dateRange != nil)")
         
-        // Only create date-based predicates as they are safe in SwiftData
-        if let dateRange = criteria.dateRange {
+        let hasDateFilter = criteria.dateRange != nil
+        let hasStatusFilter = criteria.status != nil
+        
+        // IMPORTANT: SwiftData doesn't support enum predicates, so we NEVER include status in database predicates
+        // Status filtering is always handled in memory after fetching data
+        if hasStatusFilter {
+            print("🔄 [Repository] Status filtering detected - will use memory filtering, skipping database predicate for status")
+        }
+        
+        // Build predicate based on available filters (EXCLUDING status)
+        if hasDateFilter {
+            let dateRange = criteria.dateRange!
             let formatter = DateFormatter()
             formatter.dateStyle = .short
             formatter.timeStyle = .short
             print("📅 [Repository] Date range: \(formatter.string(from: dateRange.start)) to \(formatter.string(from: dateRange.end))")
             
-            // Validate that the date range makes sense
+            // Validate date range
             if dateRange.start >= dateRange.end {
                 print("⚠️ [Repository] Invalid date range: start date is not before end date")
                 return nil
@@ -666,7 +677,7 @@ class LocalCustomerOutOfStockRepository: CustomerOutOfStockRepository {
             }
         }
         
-        print("📊 [Repository] No date filter - will fetch all records and filter by status in memory")
+        print("📊 [Repository] No date filter - will fetch all records and filter in memory if needed")
         return nil
     }
     

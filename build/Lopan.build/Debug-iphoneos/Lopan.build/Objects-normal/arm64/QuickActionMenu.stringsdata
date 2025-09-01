@@ -1,0 +1,40 @@
+{
+  "source": "/Users/bobo/Desktop/Lopan/Lopan/Views/WarehouseKeeper/Components/QuickActionMenu.swift",
+  "tables": {
+    "Localizable": [
+      {
+        "comment": "",
+        "key": "快捷操作",
+        "location": {
+          "startingColumn": 30,
+          "startingLine": 51
+        }
+      },
+      {
+        "comment": "",
+        "key": "完成",
+        "location": {
+          "startingColumn": 28,
+          "startingLine": 55
+        }
+      },
+      {
+        "comment": "",
+        "key": "·",
+        "location": {
+          "startingColumn": 26,
+          "startingLine": 101
+        }
+      },
+      {
+        "comment": "",
+        "key": "仓库管理员",
+        "location": {
+          "startingColumn": 26,
+          "startingLine": 105
+        }
+      }
+    ]
+  },
+  "version": 1
+}

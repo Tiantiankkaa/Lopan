@@ -1,0 +1,288 @@
+{
+  "source": "/Users/bobo/Desktop/Lopan/Lopan/Views/Administrator/AdministratorDashboardView.swift",
+  "tables": {
+    "Localizable": [
+      {
+        "comment": "",
+        "key": "管理员控制台",
+        "location": {
+          "startingColumn": 30,
+          "startingLine": 82
+        }
+      },
+      {
+        "comment": "",
+        "key": "系统健康检查",
+        "location": {
+          "startingColumn": 36,
+          "startingLine": 104
+        }
+      },
+      {
+        "comment": "",
+        "key": "生成系统报告",
+        "location": {
+          "startingColumn": 36,
+          "startingLine": 108
+        }
+      },
+      {
+        "comment": "",
+        "key": "数据分析",
+        "location": {
+          "startingColumn": 36,
+          "startingLine": 112
+        }
+      },
+      {
+        "comment": "",
+        "key": "权限管理",
+        "location": {
+          "startingColumn": 36,
+          "startingLine": 116
+        }
+      },
+      {
+        "comment": "",
+        "key": "数据管理",
+        "location": {
+          "startingColumn": 36,
+          "startingLine": 120
+        }
+      },
+      {
+        "comment": "",
+        "key": "系统配置",
+        "location": {
+          "startingColumn": 36,
+          "startingLine": 124
+        }
+      },
+      {
+        "comment": "",
+        "key": "工作台选择器",
+        "location": {
+          "startingColumn": 36,
+          "startingLine": 130
+        }
+      },
+      {
+        "comment": "",
+        "key": "注销",
+        "location": {
+          "startingColumn": 36,
+          "startingLine": 134
+        }
+      },
+      {
+        "comment": "",
+        "key": "欢迎，%@",
+        "location": {
+          "startingColumn": 26,
+          "startingLine": 180
+        }
+      },
+      {
+        "comment": "",
+        "key": "系统管理控制台",
+        "location": {
+          "startingColumn": 26,
+          "startingLine": 185
+        }
+      },
+      {
+        "comment": "",
+        "key": "系统正常",
+        "location": {
+          "startingColumn": 30,
+          "startingLine": 202
+        }
+      },
+      {
+        "comment": "",
+        "key": "打开完整分析仪表板",
+        "location": {
+          "startingColumn": 20,
+          "startingLine": 295
+        }
+      },
+      {
+        "comment": "",
+        "key": "打开报告生成器",
+        "location": {
+          "startingColumn": 20,
+          "startingLine": 315
+        }
+      },
+      {
+        "comment": "",
+        "key": "用户管理功能",
+        "location": {
+          "startingColumn": 18,
+          "startingLine": 340
+        }
+      },
+      {
+        "comment": "",
+        "key": "打开用户管理界面",
+        "location": {
+          "startingColumn": 20,
+          "startingLine": 344
+        }
+      },
+      {
+        "comment": "",
+        "key": "打开系统健康仪表板",
+        "location": {
+          "startingColumn": 20,
+          "startingLine": 374
+        }
+      },
+      {
+        "comment": "",
+        "key": "系统指标",
+        "location": {
+          "startingColumn": 18,
+          "startingLine": 524
+        }
+      },
+      {
+        "comment": "",
+        "key": "系统运行正常",
+        "location": {
+          "startingColumn": 22,
+          "startingLine": 530
+        }
+      },
+      {
+        "comment": "",
+        "key": "99.9% 可用性",
+        "location": {
+          "startingColumn": 22,
+          "startingLine": 536
+        }
+      },
+      {
+        "comment": "",
+        "key": "最近活动",
+        "location": {
+          "startingColumn": 18,
+          "startingLine": 557
+        }
+      },
+      {
+        "comment": "",
+        "key": "系统活动 %lld",
+        "location": {
+          "startingColumn": 30,
+          "startingLine": 568
+        }
+      },
+      {
+        "comment": "",
+        "key": "刚刚",
+        "location": {
+          "startingColumn": 30,
+          "startingLine": 574
+        }
+      },
+      {
+        "comment": "",
+        "key": "系统运行正常，无警报。",
+        "location": {
+          "startingColumn": 22,
+          "startingLine": 615
+        }
+      },
+      {
+        "comment": "",
+        "key": "系统警报",
+        "location": {
+          "startingColumn": 22,
+          "startingLine": 597
+        }
+      },
+      {
+        "comment": "",
+        "key": "无警报",
+        "location": {
+          "startingColumn": 26,
+          "startingLine": 604
+        }
+      },
+      {
+        "comment": "",
+        "key": "%lld 个警报",
+        "location": {
+          "startingColumn": 26,
+          "startingLine": 608
+        }
+      },
+      {
+        "comment": "",
+        "key": "快速操作",
+        "location": {
+          "startingColumn": 18,
+          "startingLine": 665
+        }
+      },
+      {
+        "comment": "",
+        "key": "数据分析预览",
+        "location": {
+          "startingColumn": 18,
+          "startingLine": 746
+        }
+      },
+      {
+        "comment": "",
+        "key": "暂无分析数据",
+        "location": {
+          "startingColumn": 22,
+          "startingLine": 753
+        }
+      },
+      {
+        "comment": "",
+        "key": "最近报告",
+        "location": {
+          "startingColumn": 18,
+          "startingLine": 778
+        }
+      },
+      {
+        "comment": "",
+        "key": "暂无报告",
+        "location": {
+          "startingColumn": 22,
+          "startingLine": 783
+        }
+      },
+      {
+        "comment": "",
+        "key": "系统健康状态",
+        "location": {
+          "startingColumn": 18,
+          "startingLine": 835
+        }
+      },
+      {
+        "comment": "",
+        "key": "正在检查系统健康状态...",
+        "location": {
+          "startingColumn": 22,
+          "startingLine": 865
+        }
+      },
+      {
+        "comment": "",
+        "key": "严重问题: %lld 个",
+        "location": {
+          "startingColumn": 30,
+          "startingLine": 857
+        }
+      }
+    ]
+  },
+  "version": 1
+}

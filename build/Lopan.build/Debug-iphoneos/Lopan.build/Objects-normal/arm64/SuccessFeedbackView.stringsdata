@@ -1,0 +1,16 @@
+{
+  "source": "/Users/bobo/Desktop/Lopan/Lopan/Views/Components/SuccessFeedbackView.swift",
+  "tables": {
+    "Localizable": [
+      {
+        "comment": "",
+        "key": "操作成功",
+        "location": {
+          "startingColumn": 22,
+          "startingLine": 256
+        }
+      }
+    ]
+  },
+  "version": 1
+}

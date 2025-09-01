@@ -1,0 +1,288 @@
+{
+  "source": "/Users/bobo/Desktop/Lopan/Lopan/Views/Salesperson/CustomerGroupedReturnView.swift",
+  "tables": {
+    "Localizable": [
+      {
+        "comment": "",
+        "key": "按客户分组还货",
+        "location": {
+          "startingColumn": 26,
+          "startingLine": 87
+        }
+      },
+      {
+        "comment": "",
+        "key": "返回",
+        "location": {
+          "startingColumn": 24,
+          "startingLine": 93
+        }
+      },
+      {
+        "comment": "",
+        "key": "选择",
+        "location": {
+          "startingColumn": 28,
+          "startingLine": 99
+        }
+      },
+      {
+        "comment": "",
+        "key": "完成",
+        "location": {
+          "startingColumn": 28,
+          "startingLine": 103
+        }
+      },
+      {
+        "comment": "",
+        "key": "正在加载...",
+        "location": {
+          "startingColumn": 30,
+          "startingLine": 131
+        }
+      },
+      {
+        "comment": "",
+        "key": "清除搜索",
+        "location": {
+          "startingColumn": 41,
+          "startingLine": 168
+        }
+      },
+      {
+        "comment": "",
+        "key": "搜索客户姓名或地址",
+        "location": {
+          "startingColumn": 31,
+          "startingLine": 149
+        }
+      },
+      {
+        "comment": "",
+        "key": "搜索结果：%lld 个客户",
+        "location": {
+          "startingColumn": 26,
+          "startingLine": 174
+        }
+      },
+      {
+        "comment": "",
+        "key": "选择客户",
+        "location": {
+          "startingColumn": 22,
+          "startingLine": 202
+        }
+      },
+      {
+        "comment": "",
+        "key": "取消",
+        "location": {
+          "startingColumn": 24,
+          "startingLine": 192
+        }
+      },
+      {
+        "comment": "",
+        "key": "处理",
+        "location": {
+          "startingColumn": 24,
+          "startingLine": 208
+        }
+      },
+      {
+        "comment": "",
+        "key": "%@的还货信息",
+        "location": {
+          "startingColumn": 29,
+          "startingLine": 509
+        }
+      },
+      {
+        "comment": "",
+        "key": "共%lld个商品，可还货%lld件",
+        "location": {
+          "startingColumn": 29,
+          "startingLine": 510
+        }
+      },
+      {
+        "comment": "",
+        "key": "可选择进行批量操作",
+        "location": {
+          "startingColumn": 46,
+          "startingLine": 511
+        }
+      },
+      {
+        "comment": "",
+        "key": "双击查看详情",
+        "location": {
+          "startingColumn": 78,
+          "startingLine": 511
+        }
+      },
+      {
+        "comment": "",
+        "key": "可还货",
+        "location": {
+          "startingColumn": 38,
+          "startingLine": 423
+        }
+      },
+      {
+        "comment": "",
+        "key": "已完成",
+        "location": {
+          "startingColumn": 38,
+          "startingLine": 436
+        }
+      },
+      {
+        "comment": "",
+        "key": "%@：%@",
+        "location": {
+          "startingColumn": 29,
+          "startingLine": 534
+        }
+      },
+      {
+        "comment": "",
+        "key": "确认处理还货",
+        "location": {
+          "startingColumn": 16,
+          "startingLine": 588
+        }
+      },
+      {
+        "comment": "",
+        "key": "取消",
+        "location": {
+          "startingColumn": 20,
+          "startingLine": 589
+        }
+      },
+      {
+        "comment": "",
+        "key": "确认",
+        "location": {
+          "startingColumn": 20,
+          "startingLine": 590
+        }
+      },
+      {
+        "comment": "",
+        "key": "确定要处理选中的 %lld 项还货吗？",
+        "location": {
+          "startingColumn": 18,
+          "startingLine": 594
+        }
+      },
+      {
+        "comment": "",
+        "key": "正在处理还货...",
+        "location": {
+          "startingColumn": 30,
+          "startingLine": 598
+        }
+      },
+      {
+        "comment": "",
+        "key": "处理还货 (%lld)",
+        "location": {
+          "startingColumn": 18,
+          "startingLine": 632
+        }
+      },
+      {
+        "comment": "",
+        "key": "总数量: %lld",
+        "location": {
+          "startingColumn": 30,
+          "startingLine": 705
+        }
+      },
+      {
+        "comment": "",
+        "key": "已还: %lld",
+        "location": {
+          "startingColumn": 34,
+          "startingLine": 710
+        }
+      },
+      {
+        "comment": "",
+        "key": "可还: %lld",
+        "location": {
+          "startingColumn": 30,
+          "startingLine": 715
+        }
+      },
+      {
+        "comment": "",
+        "key": "还货数量:",
+        "location": {
+          "startingColumn": 30,
+          "startingLine": 728
+        }
+      },
+      {
+        "comment": "",
+        "key": "数量",
+        "location": {
+          "startingColumn": 35,
+          "startingLine": 732
+        }
+      },
+      {
+        "comment": "",
+        "key": "最大值",
+        "location": {
+          "startingColumn": 32,
+          "startingLine": 737
+        }
+      },
+      {
+        "comment": "",
+        "key": "备注:",
+        "location": {
+          "startingColumn": 30,
+          "startingLine": 747
+        }
+      },
+      {
+        "comment": "",
+        "key": "备注（可选）",
+        "location": {
+          "startingColumn": 35,
+          "startingLine": 751
+        }
+      },
+      {
+        "comment": "",
+        "key": "批量处理",
+        "location": {
+          "startingColumn": 30,
+          "startingLine": 777
+        }
+      },
+      {
+        "comment": "",
+        "key": "批量还货处理功能开发中...",
+        "location": {
+          "startingColumn": 22,
+          "startingLine": 770
+        }
+      },
+      {
+        "comment": "",
+        "key": "取消",
+        "location": {
+          "startingColumn": 28,
+          "startingLine": 781
+        }
+      }
+    ]
+  },
+  "version": 1
+}

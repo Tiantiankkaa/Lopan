@@ -80,8 +80,8 @@ class DefaultCustomerOutOfStockDataService: CustomerOutOfStockDataService {
     func createRecord(_ request: OutOfStockCreationRequest) async throws -> CustomerOutOfStock {
         do {
             logger.safeInfo("Creating new record", [
-                "customer": request.customer.name,
-                "product": request.product.name,
+                "customer": request.customer?.name ?? "unknown",
+                "product": request.product?.name ?? "unknown",
                 "quantity": String(request.quantity)
             ])
             

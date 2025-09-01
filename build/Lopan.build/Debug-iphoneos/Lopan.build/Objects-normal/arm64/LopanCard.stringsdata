@@ -1,0 +1,40 @@
+{
+  "source": "/Users/bobo/Desktop/Lopan/Lopan/DesignSystem/Components/Foundation/LopanCard.swift",
+  "tables": {
+    "Localizable": [
+      {
+        "comment": "",
+        "key": "Elevated Card",
+        "location": {
+          "startingColumn": 1,
+          "startingLine": 257
+        }
+      },
+      {
+        "comment": "",
+        "key": "Flat Card",
+        "location": {
+          "startingColumn": 1,
+          "startingLine": 257
+        }
+      },
+      {
+        "comment": "",
+        "key": "Outline Card",
+        "location": {
+          "startingColumn": 1,
+          "startingLine": 257
+        }
+      },
+      {
+        "comment": "",
+        "key": "Glass Card",
+        "location": {
+          "startingColumn": 1,
+          "startingLine": 257
+        }
+      }
+    ]
+  },
+  "version": 1
+}

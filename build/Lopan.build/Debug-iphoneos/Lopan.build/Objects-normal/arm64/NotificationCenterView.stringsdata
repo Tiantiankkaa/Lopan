@@ -1,0 +1,632 @@
+{
+  "source": "/Users/bobo/Desktop/Lopan/Lopan/Views/Administrator/NotificationCenterView.swift",
+  "tables": {
+    "Localizable": [
+      {
+        "comment": "",
+        "key": "通知中心",
+        "location": {
+          "startingColumn": 30,
+          "startingLine": 54
+        }
+      },
+      {
+        "comment": "",
+        "key": "通知服务不可用",
+        "location": {
+          "startingColumn": 22,
+          "startingLine": 132
+        }
+      },
+      {
+        "comment": "",
+        "key": "警报服务不可用",
+        "location": {
+          "startingColumn": 22,
+          "startingLine": 139
+        }
+      },
+      {
+        "comment": "",
+        "key": "通知规则",
+        "location": {
+          "startingColumn": 22,
+          "startingLine": 174
+        }
+      },
+      {
+        "comment": "",
+        "key": "新建规则",
+        "location": {
+          "startingColumn": 24,
+          "startingLine": 180
+        }
+      },
+      {
+        "comment": "",
+        "key": "",
+        "location": {
+          "startingColumn": 28,
+          "startingLine": 291
+        }
+      },
+      {
+        "comment": "",
+        "key": "最后触发: %@",
+        "location": {
+          "startingColumn": 30,
+          "startingLine": 334
+        }
+      },
+      {
+        "comment": "",
+        "key": "编辑",
+        "location": {
+          "startingColumn": 24,
+          "startingLine": 343
+        }
+      },
+      {
+        "comment": "",
+        "key": "删除",
+        "location": {
+          "startingColumn": 24,
+          "startingLine": 347
+        }
+      },
+      {
+        "comment": "",
+        "key": "新建规则",
+        "location": {
+          "startingColumn": 30,
+          "startingLine": 414
+        }
+      },
+      {
+        "comment": "",
+        "key": "基本信息",
+        "location": {
+          "startingColumn": 25,
+          "startingLine": 374
+        }
+      },
+      {
+        "comment": "",
+        "key": "警报配置",
+        "location": {
+          "startingColumn": 25,
+          "startingLine": 380
+        }
+      },
+      {
+        "comment": "",
+        "key": "触发条件",
+        "location": {
+          "startingColumn": 25,
+          "startingLine": 404
+        }
+      },
+      {
+        "comment": "",
+        "key": "规则名称",
+        "location": {
+          "startingColumn": 31,
+          "startingLine": 375
+        }
+      },
+      {
+        "comment": "",
+        "key": "描述",
+        "location": {
+          "startingColumn": 31,
+          "startingLine": 376
+        }
+      },
+      {
+        "comment": "",
+        "key": "警报源",
+        "location": {
+          "startingColumn": 28,
+          "startingLine": 381
+        }
+      },
+      {
+        "comment": "",
+        "key": "严重程度",
+        "location": {
+          "startingColumn": 28,
+          "startingLine": 391
+        }
+      },
+      {
+        "comment": "",
+        "key": "添加条件",
+        "location": {
+          "startingColumn": 28,
+          "startingLine": 409
+        }
+      },
+      {
+        "comment": "",
+        "key": "取消",
+        "location": {
+          "startingColumn": 28,
+          "startingLine": 418
+        }
+      },
+      {
+        "comment": "",
+        "key": "保存",
+        "location": {
+          "startingColumn": 28,
+          "startingLine": 424
+        }
+      },
+      {
+        "comment": "",
+        "key": "类型: %@",
+        "location": {
+          "startingColumn": 18,
+          "startingLine": 483
+        }
+      },
+      {
+        "comment": "",
+        "key": "编辑规则",
+        "location": {
+          "startingColumn": 30,
+          "startingLine": 548
+        }
+      },
+      {
+        "comment": "",
+        "key": "基本信息",
+        "location": {
+          "startingColumn": 25,
+          "startingLine": 515
+        }
+      },
+      {
+        "comment": "",
+        "key": "规则统计",
+        "location": {
+          "startingColumn": 25,
+          "startingLine": 523
+        }
+      },
+      {
+        "comment": "",
+        "key": "规则名称",
+        "location": {
+          "startingColumn": 31,
+          "startingLine": 516
+        }
+      },
+      {
+        "comment": "",
+        "key": "描述",
+        "location": {
+          "startingColumn": 31,
+          "startingLine": 517
+        }
+      },
+      {
+        "comment": "",
+        "key": "启用规则",
+        "location": {
+          "startingColumn": 28,
+          "startingLine": 520
+        }
+      },
+      {
+        "comment": "",
+        "key": "触发次数",
+        "location": {
+          "startingColumn": 30,
+          "startingLine": 525
+        }
+      },
+      {
+        "comment": "",
+        "key": "%lld",
+        "location": {
+          "startingColumn": 30,
+          "startingLine": 527
+        }
+      },
+      {
+        "comment": "",
+        "key": "最后触发",
+        "location": {
+          "startingColumn": 34,
+          "startingLine": 533
+        }
+      },
+      {
+        "comment": "",
+        "key": "创建时间",
+        "location": {
+          "startingColumn": 30,
+          "startingLine": 541
+        }
+      },
+      {
+        "comment": "",
+        "key": "取消",
+        "location": {
+          "startingColumn": 28,
+          "startingLine": 552
+        }
+      },
+      {
+        "comment": "",
+        "key": "保存",
+        "location": {
+          "startingColumn": 28,
+          "startingLine": 558
+        }
+      },
+      {
+        "comment": "",
+        "key": "时间范围",
+        "location": {
+          "startingColumn": 18,
+          "startingLine": 631
+        }
+      },
+      {
+        "comment": "",
+        "key": "时间范围",
+        "location": {
+          "startingColumn": 20,
+          "startingLine": 636
+        }
+      },
+      {
+        "comment": "",
+        "key": "传递成功率",
+        "location": {
+          "startingColumn": 18,
+          "startingLine": 680
+        }
+      },
+      {
+        "comment": "",
+        "key": "传递成功率图表",
+        "location": {
+          "startingColumn": 26,
+          "startingLine": 688
+        }
+      },
+      {
+        "comment": "",
+        "key": "警报频次",
+        "location": {
+          "startingColumn": 18,
+          "startingLine": 696
+        }
+      },
+      {
+        "comment": "",
+        "key": "警报频次图表",
+        "location": {
+          "startingColumn": 26,
+          "startingLine": 704
+        }
+      },
+      {
+        "comment": "",
+        "key": "响应时间分析",
+        "location": {
+          "startingColumn": 18,
+          "startingLine": 712
+        }
+      },
+      {
+        "comment": "",
+        "key": "%.1f分钟",
+        "location": {
+          "startingColumn": 22,
+          "startingLine": 787
+        }
+      },
+      {
+        "comment": "",
+        "key": "目标: %.0f分钟",
+        "location": {
+          "startingColumn": 22,
+          "startingLine": 792
+        }
+      },
+      {
+        "comment": "",
+        "key": "通知设置",
+        "location": {
+          "startingColumn": 30,
+          "startingLine": 859
+        }
+      },
+      {
+        "comment": "",
+        "key": "通知渠道",
+        "location": {
+          "startingColumn": 25,
+          "startingLine": 820
+        }
+      },
+      {
+        "comment": "",
+        "key": "免打扰时间",
+        "location": {
+          "startingColumn": 25,
+          "startingLine": 826
+        }
+      },
+      {
+        "comment": "",
+        "key": "声音设置",
+        "location": {
+          "startingColumn": 25,
+          "startingLine": 835
+        }
+      },
+      {
+        "comment": "",
+        "key": "高级设置",
+        "location": {
+          "startingColumn": 25,
+          "startingLine": 844
+        }
+      },
+      {
+        "comment": "",
+        "key": "推送通知",
+        "location": {
+          "startingColumn": 28,
+          "startingLine": 821
+        }
+      },
+      {
+        "comment": "",
+        "key": "邮件通知",
+        "location": {
+          "startingColumn": 28,
+          "startingLine": 822
+        }
+      },
+      {
+        "comment": "",
+        "key": "短信通知",
+        "location": {
+          "startingColumn": 28,
+          "startingLine": 823
+        }
+      },
+      {
+        "comment": "",
+        "key": "启用免打扰",
+        "location": {
+          "startingColumn": 28,
+          "startingLine": 827
+        }
+      },
+      {
+        "comment": "",
+        "key": "开始时间",
+        "location": {
+          "startingColumn": 36,
+          "startingLine": 830
+        }
+      },
+      {
+        "comment": "",
+        "key": "结束时间",
+        "location": {
+          "startingColumn": 36,
+          "startingLine": 831
+        }
+      },
+      {
+        "comment": "",
+        "key": "通知声音",
+        "location": {
+          "startingColumn": 28,
+          "startingLine": 836
+        }
+      },
+      {
+        "comment": "",
+        "key": "默认",
+        "location": {
+          "startingColumn": 30,
+          "startingLine": 837
+        }
+      },
+      {
+        "comment": "",
+        "key": "警报",
+        "location": {
+          "startingColumn": 30,
+          "startingLine": 838
+        }
+      },
+      {
+        "comment": "",
+        "key": "铃声",
+        "location": {
+          "startingColumn": 30,
+          "startingLine": 839
+        }
+      },
+      {
+        "comment": "",
+        "key": "静音",
+        "location": {
+          "startingColumn": 30,
+          "startingLine": 840
+        }
+      },
+      {
+        "comment": "",
+        "key": "通知优先级设置",
+        "location": {
+          "startingColumn": 36,
+          "startingLine": 845
+        }
+      },
+      {
+        "comment": "",
+        "key": "渠道配置",
+        "location": {
+          "startingColumn": 36,
+          "startingLine": 849
+        }
+      },
+      {
+        "comment": "",
+        "key": "重置为默认设置",
+        "location": {
+          "startingColumn": 28,
+          "startingLine": 853
+        }
+      },
+      {
+        "comment": "",
+        "key": "完成",
+        "location": {
+          "startingColumn": 28,
+          "startingLine": 863
+        }
+      },
+      {
+        "comment": "",
+        "key": "优先级设置",
+        "location": {
+          "startingColumn": 26,
+          "startingLine": 907
+        }
+      },
+      {
+        "comment": "",
+        "key": "渠道配置",
+        "location": {
+          "startingColumn": 26,
+          "startingLine": 963
+        }
+      },
+      {
+        "comment": "",
+        "key": "推送通知",
+        "location": {
+          "startingColumn": 21,
+          "startingLine": 940
+        }
+      },
+      {
+        "comment": "",
+        "key": "邮件通知",
+        "location": {
+          "startingColumn": 21,
+          "startingLine": 946
+        }
+      },
+      {
+        "comment": "",
+        "key": "短信通知",
+        "location": {
+          "startingColumn": 21,
+          "startingLine": 956
+        }
+      },
+      {
+        "comment": "",
+        "key": "显示预览",
+        "location": {
+          "startingColumn": 24,
+          "startingLine": 941
+        }
+      },
+      {
+        "comment": "",
+        "key": "声音提醒",
+        "location": {
+          "startingColumn": 24,
+          "startingLine": 942
+        }
+      },
+      {
+        "comment": "",
+        "key": "震动提醒",
+        "location": {
+          "startingColumn": 24,
+          "startingLine": 943
+        }
+      },
+      {
+        "comment": "",
+        "key": "邮件地址",
+        "location": {
+          "startingColumn": 27,
+          "startingLine": 947
+        }
+      },
+      {
+        "comment": "",
+        "key": "HTML格式",
+        "location": {
+          "startingColumn": 24,
+          "startingLine": 948
+        }
+      },
+      {
+        "comment": "",
+        "key": "发送频率",
+        "location": {
+          "startingColumn": 24,
+          "startingLine": 949
+        }
+      },
+      {
+        "comment": "",
+        "key": "立即",
+        "location": {
+          "startingColumn": 26,
+          "startingLine": 950
+        }
+      },
+      {
+        "comment": "",
+        "key": "每小时汇总",
+        "location": {
+          "startingColumn": 26,
+          "startingLine": 951
+        }
+      },
+      {
+        "comment": "",
+        "key": "每日汇总",
+        "location": {
+          "startingColumn": 26,
+          "startingLine": 952
+        }
+      },
+      {
+        "comment": "",
+        "key": "仅紧急和严重警报会发送短信",
+        "location": {
+          "startingColumn": 22,
+          "startingLine": 958
+        }
+      },
+      {
+        "comment": "",
+        "key": "手机号码",
+        "location": {
+          "startingColumn": 27,
+          "startingLine": 957
+        }
+      }
+    ]
+  },
+  "version": 1
+}

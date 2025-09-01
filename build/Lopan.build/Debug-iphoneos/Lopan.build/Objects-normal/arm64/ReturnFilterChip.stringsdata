@@ -1,0 +1,64 @@
+{
+  "source": "/Users/bobo/Desktop/Lopan/Lopan/Views/Components/ReturnManagement/ReturnFilterChip.swift",
+  "tables": {
+    "Localizable": [
+      {
+        "comment": "",
+        "key": "活动筛选条件：%@",
+        "location": {
+          "startingColumn": 29,
+          "startingLine": 43
+        }
+      },
+      {
+        "comment": "",
+        "key": "双击右侧按钮可移除此筛选条件",
+        "location": {
+          "startingColumn": 28,
+          "startingLine": 44
+        }
+      },
+      {
+        "comment": "",
+        "key": "移除筛选条件：%@",
+        "location": {
+          "startingColumn": 33,
+          "startingLine": 30
+        }
+      },
+      {
+        "comment": "",
+        "key": "双击移除此筛选条件",
+        "location": {
+          "startingColumn": 32,
+          "startingLine": 31
+        }
+      },
+      {
+        "comment": "",
+        "key": "当前筛选条件",
+        "location": {
+          "startingColumn": 26,
+          "startingLine": 72
+        }
+      },
+      {
+        "comment": "",
+        "key": "清除全部",
+        "location": {
+          "startingColumn": 28,
+          "startingLine": 79
+        }
+      },
+      {
+        "comment": "",
+        "key": "清除所有筛选条件",
+        "location": {
+          "startingColumn": 41,
+          "startingLine": 86
+        }
+      }
+    ]
+  },
+  "version": 1
+}

@@ -1,0 +1,32 @@
+{
+  "source": "/Users/bobo/Desktop/Lopan/Lopan/Views/Components/Common/CommonAnimationHelpers.swift",
+  "tables": {
+    "Localizable": [
+      {
+        "comment": "",
+        "key": "Header",
+        "location": {
+          "startingColumn": 1,
+          "startingLine": 134
+        }
+      },
+      {
+        "comment": "",
+        "key": "Search Bar",
+        "location": {
+          "startingColumn": 1,
+          "startingLine": 134
+        }
+      },
+      {
+        "comment": "",
+        "key": "Item %lld",
+        "location": {
+          "startingColumn": 1,
+          "startingLine": 134
+        }
+      }
+    ]
+  },
+  "version": 1
+}

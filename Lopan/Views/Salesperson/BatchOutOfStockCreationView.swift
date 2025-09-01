@@ -272,7 +272,8 @@ struct BatchOutOfStockCreationView: View {
                         product: product,
                         productSize: item.productSize,
                         quantity: quantity,
-                        notes: item.notes.isEmpty ? nil : item.notes
+                        notes: item.notes.isEmpty ? nil : item.notes,
+                        createdBy: appDependencies.authenticationService.currentUser?.id ?? "unknown_user"
                     )
                 }
                 

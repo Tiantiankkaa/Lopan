@@ -1,0 +1,312 @@
+{
+  "source": "/Users/bobo/Desktop/Lopan/Lopan/Views/Administrator/AnalyticsDashboardView.swift",
+  "tables": {
+    "Localizable": [
+      {
+        "comment": "",
+        "key": "数据分析",
+        "location": {
+          "startingColumn": 30,
+          "startingLine": 113
+        }
+      },
+      {
+        "comment": "",
+        "key": "错误",
+        "location": {
+          "startingColumn": 20,
+          "startingLine": 159
+        }
+      },
+      {
+        "comment": "",
+        "key": "生成报告",
+        "location": {
+          "startingColumn": 32,
+          "startingLine": 118
+        }
+      },
+      {
+        "comment": "",
+        "key": "刷新数据",
+        "location": {
+          "startingColumn": 32,
+          "startingLine": 122
+        }
+      },
+      {
+        "comment": "",
+        "key": "导出数据",
+        "location": {
+          "startingColumn": 32,
+          "startingLine": 128
+        }
+      },
+      {
+        "comment": "",
+        "key": "详细视图",
+        "location": {
+          "startingColumn": 28,
+          "startingLine": 139
+        }
+      },
+      {
+        "comment": "",
+        "key": "确定",
+        "location": {
+          "startingColumn": 24,
+          "startingLine": 160
+        }
+      },
+      {
+        "comment": "",
+        "key": "分析仪表板",
+        "location": {
+          "startingColumn": 22,
+          "startingLine": 179
+        }
+      },
+      {
+        "comment": "",
+        "key": "对比分析",
+        "location": {
+          "startingColumn": 22,
+          "startingLine": 218
+        }
+      },
+      {
+        "comment": "",
+        "key": "洞察建议",
+        "location": {
+          "startingColumn": 18,
+          "startingLine": 279
+        }
+      },
+      {
+        "comment": "",
+        "key": "快速操作",
+        "location": {
+          "startingColumn": 18,
+          "startingLine": 312
+        }
+      },
+      {
+        "comment": "",
+        "key": "暂无报告",
+        "location": {
+          "startingColumn": 22,
+          "startingLine": 355
+        }
+      },
+      {
+        "comment": "",
+        "key": "最近报告",
+        "location": {
+          "startingColumn": 22,
+          "startingLine": 341
+        }
+      },
+      {
+        "comment": "",
+        "key": "查看全部",
+        "location": {
+          "startingColumn": 24,
+          "startingLine": 347
+        }
+      },
+      {
+        "comment": "",
+        "key": "系统状态",
+        "location": {
+          "startingColumn": 18,
+          "startingLine": 382
+        }
+      },
+      {
+        "comment": "",
+        "key": "%@%%",
+        "location": {
+          "startingColumn": 22,
+          "startingLine": 594
+        }
+      },
+      {
+        "comment": "",
+        "key": "查看",
+        "location": {
+          "startingColumn": 20,
+          "startingLine": 690
+        }
+      },
+      {
+        "comment": "",
+        "key": "详细分析",
+        "location": {
+          "startingColumn": 30,
+          "startingLine": 794
+        }
+      },
+      {
+        "comment": "",
+        "key": "详细分析",
+        "location": {
+          "startingColumn": 29,
+          "startingLine": 757
+        }
+      },
+      {
+        "comment": "",
+        "key": "数据导出",
+        "location": {
+          "startingColumn": 29,
+          "startingLine": 779
+        }
+      },
+      {
+        "comment": "",
+        "key": "生产性能详情",
+        "location": {
+          "startingColumn": 40,
+          "startingLine": 758
+        }
+      },
+      {
+        "comment": "",
+        "key": "机台效率分析",
+        "location": {
+          "startingColumn": 40,
+          "startingLine": 762
+        }
+      },
+      {
+        "comment": "",
+        "key": "质量指标详情",
+        "location": {
+          "startingColumn": 40,
+          "startingLine": 766
+        }
+      },
+      {
+        "comment": "",
+        "key": "班次对比分析",
+        "location": {
+          "startingColumn": 40,
+          "startingLine": 770
+        }
+      },
+      {
+        "comment": "",
+        "key": "趋势预测分析",
+        "location": {
+          "startingColumn": 40,
+          "startingLine": 774
+        }
+      },
+      {
+        "comment": "",
+        "key": "导出为Excel",
+        "location": {
+          "startingColumn": 32,
+          "startingLine": 780
+        }
+      },
+      {
+        "comment": "",
+        "key": "导出为PDF",
+        "location": {
+          "startingColumn": 32,
+          "startingLine": 784
+        }
+      },
+      {
+        "comment": "",
+        "key": "导出为CSV",
+        "location": {
+          "startingColumn": 32,
+          "startingLine": 788
+        }
+      },
+      {
+        "comment": "",
+        "key": "生产性能",
+        "location": {
+          "startingColumn": 26,
+          "startingLine": 820
+        }
+      },
+      {
+        "comment": "",
+        "key": "生产性能详细分析",
+        "location": {
+          "startingColumn": 22,
+          "startingLine": 808
+        }
+      },
+      {
+        "comment": "",
+        "key": "机台效率",
+        "location": {
+          "startingColumn": 26,
+          "startingLine": 839
+        }
+      },
+      {
+        "comment": "",
+        "key": "机台效率详细分析",
+        "location": {
+          "startingColumn": 22,
+          "startingLine": 831
+        }
+      },
+      {
+        "comment": "",
+        "key": "质量指标",
+        "location": {
+          "startingColumn": 26,
+          "startingLine": 858
+        }
+      },
+      {
+        "comment": "",
+        "key": "质量指标详细分析",
+        "location": {
+          "startingColumn": 22,
+          "startingLine": 850
+        }
+      },
+      {
+        "comment": "",
+        "key": "班次对比",
+        "location": {
+          "startingColumn": 26,
+          "startingLine": 877
+        }
+      },
+      {
+        "comment": "",
+        "key": "班次对比详细分析",
+        "location": {
+          "startingColumn": 22,
+          "startingLine": 869
+        }
+      },
+      {
+        "comment": "",
+        "key": "趋势预测",
+        "location": {
+          "startingColumn": 26,
+          "startingLine": 896
+        }
+      },
+      {
+        "comment": "",
+        "key": "趋势预测详细分析",
+        "location": {
+          "startingColumn": 22,
+          "startingLine": 888
+        }
+      }
+    ]
+  },
+  "version": 1
+}

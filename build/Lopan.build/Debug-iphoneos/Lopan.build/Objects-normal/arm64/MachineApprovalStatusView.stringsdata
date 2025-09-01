@@ -1,0 +1,48 @@
+{
+  "source": "/Users/bobo/Desktop/Lopan/Lopan/Views/Components/MachineApprovalStatusView.swift",
+  "tables": {
+    "Localizable": [
+      {
+        "comment": "",
+        "key": "加载审批状态...",
+        "location": {
+          "startingColumn": 26,
+          "startingLine": 27
+        }
+      },
+      {
+        "comment": "",
+        "key": "暂无待审批批次",
+        "location": {
+          "startingColumn": 30,
+          "startingLine": 49
+        }
+      },
+      {
+        "comment": "",
+        "key": "此设备当前没有需要审批的生产配置",
+        "location": {
+          "startingColumn": 30,
+          "startingLine": 52
+        }
+      },
+      {
+        "comment": "",
+        "key": "查看全部 %lld 个批次",
+        "location": {
+          "startingColumn": 32,
+          "startingLine": 71
+        }
+      },
+      {
+        "comment": "",
+        "key": "%lld产品",
+        "location": {
+          "startingColumn": 34,
+          "startingLine": 239
+        }
+      }
+    ]
+  },
+  "version": 1
+}

@@ -1,0 +1,192 @@
+{
+  "source": "/Users/bobo/Desktop/Lopan/Lopan/Views/Components/OutOfStockFilterSheet.swift",
+  "tables": {
+    "Localizable": [
+      {
+        "comment": "",
+        "key": "高级筛选",
+        "location": {
+          "startingColumn": 22,
+          "startingLine": 110
+        }
+      },
+      {
+        "comment": "",
+        "key": "清空",
+        "location": {
+          "startingColumn": 26,
+          "startingLine": 118
+        }
+      },
+      {
+        "comment": "",
+        "key": "已应用 %lld 个筛选条件",
+        "location": {
+          "startingColumn": 26,
+          "startingLine": 130
+        }
+      },
+      {
+        "comment": "",
+        "key": "产品尺寸",
+        "location": {
+          "startingColumn": 30,
+          "startingLine": 188
+        }
+      },
+      {
+        "comment": "",
+        "key": "从: %@",
+        "location": {
+          "startingColumn": 30,
+          "startingLine": 262
+        }
+      },
+      {
+        "comment": "",
+        "key": "到: %@",
+        "location": {
+          "startingColumn": 30,
+          "startingLine": 268
+        }
+      },
+      {
+        "comment": "",
+        "key": "应用筛选",
+        "location": {
+          "startingColumn": 26,
+          "startingLine": 292
+        }
+      },
+      {
+        "comment": "",
+        "key": "取消",
+        "location": {
+          "startingColumn": 22,
+          "startingLine": 309
+        }
+      },
+      {
+        "comment": "",
+        "key": "选择客户",
+        "location": {
+          "startingColumn": 30,
+          "startingLine": 626
+        }
+      },
+      {
+        "comment": "",
+        "key": "全部客户",
+        "location": {
+          "startingColumn": 24,
+          "startingLine": 612
+        }
+      },
+      {
+        "comment": "",
+        "key": "取消",
+        "location": {
+          "startingColumn": 28,
+          "startingLine": 630
+        }
+      },
+      {
+        "comment": "",
+        "key": "选择产品",
+        "location": {
+          "startingColumn": 30,
+          "startingLine": 662
+        }
+      },
+      {
+        "comment": "",
+        "key": "全部产品",
+        "location": {
+          "startingColumn": 24,
+          "startingLine": 646
+        }
+      },
+      {
+        "comment": "",
+        "key": "取消",
+        "location": {
+          "startingColumn": 28,
+          "startingLine": 666
+        }
+      },
+      {
+        "comment": "",
+        "key": "选择地址",
+        "location": {
+          "startingColumn": 30,
+          "startingLine": 695
+        }
+      },
+      {
+        "comment": "",
+        "key": "全部地址",
+        "location": {
+          "startingColumn": 24,
+          "startingLine": 681
+        }
+      },
+      {
+        "comment": "",
+        "key": "取消",
+        "location": {
+          "startingColumn": 28,
+          "startingLine": 699
+        }
+      },
+      {
+        "comment": "",
+        "key": "选择日期范围",
+        "location": {
+          "startingColumn": 30,
+          "startingLine": 733
+        }
+      },
+      {
+        "comment": "",
+        "key": "快速选择",
+        "location": {
+          "startingColumn": 25,
+          "startingLine": 714
+        }
+      },
+      {
+        "comment": "",
+        "key": "本周",
+        "location": {
+          "startingColumn": 28,
+          "startingLine": 715
+        }
+      },
+      {
+        "comment": "",
+        "key": "本月",
+        "location": {
+          "startingColumn": 28,
+          "startingLine": 720
+        }
+      },
+      {
+        "comment": "",
+        "key": "清除日期筛选",
+        "location": {
+          "startingColumn": 28,
+          "startingLine": 725
+        }
+      },
+      {
+        "comment": "",
+        "key": "取消",
+        "location": {
+          "startingColumn": 28,
+          "startingLine": 737
+        }
+      }
+    ]
+  },
+  "version": 1
+}

@@ -1,0 +1,80 @@
+{
+  "source": "/Users/bobo/Desktop/Lopan/Lopan/Views/Components/AdaptiveProductCard.swift",
+  "tables": {
+    "Localizable": [
+      {
+        "comment": "",
+        "key": "取消选择",
+        "location": {
+          "startingColumn": 46,
+          "startingLine": 121
+        }
+      },
+      {
+        "comment": "",
+        "key": "选择此产品",
+        "location": {
+          "startingColumn": 63,
+          "startingLine": 121
+        }
+      },
+      {
+        "comment": "",
+        "key": "暂无图片",
+        "location": {
+          "startingColumn": 38,
+          "startingLine": 172
+        }
+      },
+      {
+        "comment": "",
+        "key": "+%lld",
+        "location": {
+          "startingColumn": 22,
+          "startingLine": 261
+        }
+      },
+      {
+        "comment": "",
+        "key": "创建于 %@",
+        "location": {
+          "startingColumn": 22,
+          "startingLine": 308
+        }
+      },
+      {
+        "comment": "",
+        "key": "更新于 %@",
+        "location": {
+          "startingColumn": 26,
+          "startingLine": 319
+        }
+      },
+      {
+        "comment": "",
+        "key": "Detailed Mode",
+        "location": {
+          "startingColumn": 1,
+          "startingLine": 515
+        }
+      },
+      {
+        "comment": "",
+        "key": "Standard Mode",
+        "location": {
+          "startingColumn": 1,
+          "startingLine": 515
+        }
+      },
+      {
+        "comment": "",
+        "key": "Compact Mode",
+        "location": {
+          "startingColumn": 1,
+          "startingLine": 515
+        }
+      }
+    ]
+  },
+  "version": 1
+}

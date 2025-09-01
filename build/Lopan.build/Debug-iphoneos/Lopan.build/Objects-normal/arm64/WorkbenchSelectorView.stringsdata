@@ -1,0 +1,112 @@
+{
+  "source": "/Users/bobo/Desktop/Lopan/Lopan/Views/Components/WorkbenchSelectorView.swift",
+  "tables": {
+    "Localizable": [
+      {
+        "comment": "",
+        "key": "工作台选择",
+        "location": {
+          "startingColumn": 30,
+          "startingLine": 144
+        }
+      },
+      {
+        "comment": "",
+        "key": "工作台操作",
+        "location": {
+          "startingColumn": 22,
+          "startingLine": 19
+        }
+      },
+      {
+        "comment": "",
+        "key": "当前用户：%@",
+        "location": {
+          "startingColumn": 30,
+          "startingLine": 25
+        }
+      },
+      {
+        "comment": "",
+        "key": "当前工作台：%@",
+        "location": {
+          "startingColumn": 34,
+          "startingLine": 30
+        }
+      },
+      {
+        "comment": "",
+        "key": "主工作台",
+        "location": {
+          "startingColumn": 42,
+          "startingLine": 49
+        }
+      },
+      {
+        "comment": "",
+        "key": "授权工作台",
+        "location": {
+          "startingColumn": 46,
+          "startingLine": 68
+        }
+      },
+      {
+        "comment": "",
+        "key": "(%lld)",
+        "location": {
+          "startingColumn": 46,
+          "startingLine": 71
+        }
+      },
+      {
+        "comment": "",
+        "key": "系统操作",
+        "location": {
+          "startingColumn": 42,
+          "startingLine": 97
+        }
+      },
+      {
+        "comment": "",
+        "key": "退出工作台",
+        "location": {
+          "startingColumn": 44,
+          "startingLine": 105
+        }
+      },
+      {
+        "comment": "",
+        "key": "退出登录",
+        "location": {
+          "startingColumn": 44,
+          "startingLine": 115
+        }
+      },
+      {
+        "comment": "",
+        "key": "未登录",
+        "location": {
+          "startingColumn": 30,
+          "startingLine": 135
+        }
+      },
+      {
+        "comment": "",
+        "key": "取消",
+        "location": {
+          "startingColumn": 28,
+          "startingLine": 148
+        }
+      },
+      {
+        "comment": "",
+        "key": "当前工作台",
+        "location": {
+          "startingColumn": 26,
+          "startingLine": 201
+        }
+      }
+    ]
+  },
+  "version": 1
+}

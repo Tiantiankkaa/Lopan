@@ -1,0 +1,168 @@
+{
+  "source": "/Users/bobo/Desktop/Lopan/Lopan/Views/Core/ViewPreloadPerformanceDashboard.swift",
+  "tables": {
+    "Localizable": [
+      {
+        "comment": "",
+        "key": "视图预载性能仪表板",
+        "location": {
+          "startingColumn": 30,
+          "startingLine": 72
+        }
+      },
+      {
+        "comment": "",
+        "key": "概览",
+        "location": {
+          "startingColumn": 31,
+          "startingLine": 34
+        }
+      },
+      {
+        "comment": "",
+        "key": "缓存",
+        "location": {
+          "startingColumn": 27,
+          "startingLine": 44
+        }
+      },
+      {
+        "comment": "",
+        "key": "导航",
+        "location": {
+          "startingColumn": 31,
+          "startingLine": 51
+        }
+      },
+      {
+        "comment": "",
+        "key": "系统",
+        "location": {
+          "startingColumn": 31,
+          "startingLine": 58
+        }
+      },
+      {
+        "comment": "",
+        "key": "测试",
+        "location": {
+          "startingColumn": 27,
+          "startingLine": 68
+        }
+      },
+      {
+        "comment": "",
+        "key": "停止监控",
+        "location": {
+          "startingColumn": 56,
+          "startingLine": 79
+        }
+      },
+      {
+        "comment": "",
+        "key": "开始监控",
+        "location": {
+          "startingColumn": 73,
+          "startingLine": 79
+        }
+      },
+      {
+        "comment": "",
+        "key": "刷新",
+        "location": {
+          "startingColumn": 28,
+          "startingLine": 81
+        }
+      },
+      {
+        "comment": "",
+        "key": "Test View",
+        "location": {
+          "startingColumn": 14,
+          "startingLine": 365
+        }
+      },
+      {
+        "comment": "",
+        "key": "性能概览",
+        "location": {
+          "startingColumn": 26,
+          "startingLine": 444
+        }
+      },
+      {
+        "comment": "",
+        "key": "优化建议",
+        "location": {
+          "startingColumn": 26,
+          "startingLine": 427
+        }
+      },
+      {
+        "comment": "",
+        "key": "缓存性能",
+        "location": {
+          "startingColumn": 30,
+          "startingLine": 454
+        }
+      },
+      {
+        "comment": "",
+        "key": "导航性能",
+        "location": {
+          "startingColumn": 30,
+          "startingLine": 463
+        }
+      },
+      {
+        "comment": "",
+        "key": "系统健康",
+        "location": {
+          "startingColumn": 26,
+          "startingLine": 498
+        }
+      },
+      {
+        "comment": "",
+        "key": "系统状态",
+        "location": {
+          "startingColumn": 21,
+          "startingLine": 472
+        }
+      },
+      {
+        "comment": "",
+        "key": "性能测试",
+        "location": {
+          "startingColumn": 26,
+          "startingLine": 531
+        }
+      },
+      {
+        "comment": "",
+        "key": "测试中...",
+        "location": {
+          "startingColumn": 43,
+          "startingLine": 516
+        }
+      },
+      {
+        "comment": "",
+        "key": "运行性能测试",
+        "location": {
+          "startingColumn": 60,
+          "startingLine": 516
+        }
+      },
+      {
+        "comment": "",
+        "key": "%@ms",
+        "location": {
+          "startingColumn": 22,
+          "startingLine": 633
+        }
+      }
+    ]
+  },
+  "version": 1
+}

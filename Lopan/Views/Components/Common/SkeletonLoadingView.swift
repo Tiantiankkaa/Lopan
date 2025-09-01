@@ -186,6 +186,10 @@ struct StatisticsCardsSkeleton: View {
 
 // MARK: - Loading states now handled by SmartLoadingController
 
+// Export enhanced skeleton components
+typealias EnhancedDateSwitchingSkeleton = EnhancedSkeletonList
+typealias EnhancedStatsSkeleton = EnhancedSkeletonStatsCards
+
 // MARK: - Preview Helpers
 
 #Preview("Skeleton Components") {

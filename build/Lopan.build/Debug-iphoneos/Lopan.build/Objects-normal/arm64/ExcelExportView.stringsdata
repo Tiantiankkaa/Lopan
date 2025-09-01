@@ -1,0 +1,144 @@
+{
+  "source": "/Users/bobo/Desktop/Lopan/Lopan/Views/Components/ExcelExportView.swift",
+  "tables": {
+    "Localizable": [
+      {
+        "comment": "",
+        "key": "Excel 导出",
+        "location": {
+          "startingColumn": 30,
+          "startingLine": 136
+        }
+      },
+      {
+        "comment": "",
+        "key": "Excel 导出",
+        "location": {
+          "startingColumn": 26,
+          "startingLine": 33
+        }
+      },
+      {
+        "comment": "",
+        "key": "导出客户数据",
+        "location": {
+          "startingColumn": 51,
+          "startingLine": 37
+        }
+      },
+      {
+        "comment": "",
+        "key": "导出产品数据",
+        "location": {
+          "startingColumn": 74,
+          "startingLine": 37
+        }
+      },
+      {
+        "comment": "",
+        "key": "数据概览",
+        "location": {
+          "startingColumn": 26,
+          "startingLine": 44
+        }
+      },
+      {
+        "comment": "",
+        "key": "总数量:",
+        "location": {
+          "startingColumn": 34,
+          "startingLine": 49
+        }
+      },
+      {
+        "comment": "",
+        "key": "%lld",
+        "location": {
+          "startingColumn": 34,
+          "startingLine": 52
+        }
+      },
+      {
+        "comment": "",
+        "key": "导出格式:",
+        "location": {
+          "startingColumn": 34,
+          "startingLine": 61
+        }
+      },
+      {
+        "comment": "",
+        "key": "CSV",
+        "location": {
+          "startingColumn": 34,
+          "startingLine": 64
+        }
+      },
+      {
+        "comment": "",
+        "key": "导出选项",
+        "location": {
+          "startingColumn": 26,
+          "startingLine": 77
+        }
+      },
+      {
+        "comment": "",
+        "key": "• 导出为 CSV 格式文件",
+        "location": {
+          "startingColumn": 30,
+          "startingLine": 81
+        }
+      },
+      {
+        "comment": "",
+        "key": "• 包含所有字段信息",
+        "location": {
+          "startingColumn": 30,
+          "startingLine": 82
+        }
+      },
+      {
+        "comment": "",
+        "key": "• 自动生成文件名",
+        "location": {
+          "startingColumn": 30,
+          "startingLine": 83
+        }
+      },
+      {
+        "comment": "",
+        "key": "• 支持分享和保存",
+        "location": {
+          "startingColumn": 30,
+          "startingLine": 84
+        }
+      },
+      {
+        "comment": "",
+        "key": "导出中...",
+        "location": {
+          "startingColumn": 44,
+          "startingLine": 103
+        }
+      },
+      {
+        "comment": "",
+        "key": "开始导出",
+        "location": {
+          "startingColumn": 61,
+          "startingLine": 103
+        }
+      },
+      {
+        "comment": "",
+        "key": "取消",
+        "location": {
+          "startingColumn": 28,
+          "startingLine": 140
+        }
+      }
+    ]
+  },
+  "version": 1
+}

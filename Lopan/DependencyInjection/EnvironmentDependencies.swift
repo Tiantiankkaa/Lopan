@@ -12,9 +12,8 @@ import SwiftData
 
 private struct AppDependenciesKey: EnvironmentKey {
     @MainActor
-    static let defaultValue = AppDependencies.create(
-        for: .development,
-        modelContext: ModelContext(try! ModelContainer(for: 
+    static let defaultValue: HasAppDependencies = {
+        let modelContainer = try! ModelContainer(for: 
             User.self,
             Customer.self,
             Product.self,
@@ -24,8 +23,14 @@ private struct AppDependenciesKey: EnvironmentKey {
             WorkshopMachine.self,
             ColorCard.self,
             ProductionBatch.self
-        ))
-    )
+        )
+        
+        // Use LazyAppDependencies for better performance
+        return LazyAppDependencies.create(
+            for: .development,
+            modelContext: modelContainer.mainContext
+        )
+    }()
 }
 
 private struct CustomerOutOfStockDependenciesKey: EnvironmentKey {
@@ -53,8 +58,8 @@ private struct UserManagementDependenciesKey: EnvironmentKey {
 
 extension EnvironmentValues {
     
-    /// Main app dependencies container
-    public var appDependencies: AppDependencies {
+    /// Main app dependencies container (supports both AppDependencies and LazyAppDependencies)
+    public var appDependencies: HasAppDependencies {
         get { self[AppDependenciesKey.self] }
         set { self[AppDependenciesKey.self] = newValue }
     }
@@ -83,7 +88,7 @@ extension EnvironmentValues {
 extension View {
     
     /// Injects the main app dependencies into the environment
-    public func withAppDependencies(_ dependencies: AppDependencies) -> some View {
+    public func withAppDependencies(_ dependencies: HasAppDependencies) -> some View {
         self
             .environment(\.appDependencies, dependencies)
             .environment(\.customerOutOfStockDependencies, CustomerOutOfStockDependencies(appDependencies: dependencies))

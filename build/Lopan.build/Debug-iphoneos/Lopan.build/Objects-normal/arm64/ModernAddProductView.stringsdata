@@ -1,0 +1,248 @@
+{
+  "source": "/Users/bobo/Desktop/Lopan/Lopan/Views/Components/ModernAddProductView.swift",
+  "tables": {
+    "Localizable": [
+      {
+        "comment": "",
+        "key": "创建产品",
+        "location": {
+          "startingColumn": 30,
+          "startingLine": 97
+        }
+      },
+      {
+        "comment": "",
+        "key": "验证错误",
+        "location": {
+          "startingColumn": 20,
+          "startingLine": 124
+        }
+      },
+      {
+        "comment": "",
+        "key": "取消",
+        "location": {
+          "startingColumn": 28,
+          "startingLine": 101
+        }
+      },
+      {
+        "comment": "",
+        "key": "确定",
+        "location": {
+          "startingColumn": 24,
+          "startingLine": 125
+        }
+      },
+      {
+        "comment": "",
+        "key": "%lld",
+        "location": {
+          "startingColumn": 18,
+          "startingLine": 193
+        }
+      },
+      {
+        "comment": "",
+        "key": "重复检查",
+        "location": {
+          "startingColumn": 26,
+          "startingLine": 287
+        }
+      },
+      {
+        "comment": "",
+        "key": "我们发现可能存在相似的产品名称，请确认这是一个新产品",
+        "location": {
+          "startingColumn": 26,
+          "startingLine": 292
+        }
+      },
+      {
+        "comment": "",
+        "key": "移除图片",
+        "location": {
+          "startingColumn": 32,
+          "startingLine": 349
+        }
+      },
+      {
+        "comment": "",
+        "key": "更换图片",
+        "location": {
+          "startingColumn": 35,
+          "startingLine": 345
+        }
+      },
+      {
+        "comment": "",
+        "key": "添加产品图片",
+        "location": {
+          "startingColumn": 34,
+          "startingLine": 367
+        }
+      },
+      {
+        "comment": "",
+        "key": "支持 JPG、PNG 格式，建议分辨率 1080x1080",
+        "location": {
+          "startingColumn": 34,
+          "startingLine": 371
+        }
+      },
+      {
+        "comment": "",
+        "key": "选择图片",
+        "location": {
+          "startingColumn": 31,
+          "startingLine": 387
+        }
+      },
+      {
+        "comment": "",
+        "key": "输入颜色名称",
+        "location": {
+          "startingColumn": 27,
+          "startingLine": 398
+        }
+      },
+      {
+        "comment": "",
+        "key": "添加",
+        "location": {
+          "startingColumn": 24,
+          "startingLine": 409
+        }
+      },
+      {
+        "comment": "",
+        "key": "常用颜色",
+        "location": {
+          "startingColumn": 18,
+          "startingLine": 429
+        }
+      },
+      {
+        "comment": "",
+        "key": "已选颜色",
+        "location": {
+          "startingColumn": 26,
+          "startingLine": 478
+        }
+      },
+      {
+        "comment": "",
+        "key": "输入尺寸",
+        "location": {
+          "startingColumn": 23,
+          "startingLine": 542
+        }
+      },
+      {
+        "comment": "",
+        "key": "添加",
+        "location": {
+          "startingColumn": 20,
+          "startingLine": 553
+        }
+      },
+      {
+        "comment": "",
+        "key": "推荐尺寸",
+        "location": {
+          "startingColumn": 18,
+          "startingLine": 563
+        }
+      },
+      {
+        "comment": "",
+        "key": "已选尺寸",
+        "location": {
+          "startingColumn": 26,
+          "startingLine": 612
+        }
+      },
+      {
+        "comment": "",
+        "key": "上一步",
+        "location": {
+          "startingColumn": 24,
+          "startingLine": 711
+        }
+      },
+      {
+        "comment": "",
+        "key": "创建产品",
+        "location": {
+          "startingColumn": 45,
+          "startingLine": 720
+        }
+      },
+      {
+        "comment": "",
+        "key": "下一步",
+        "location": {
+          "startingColumn": 62,
+          "startingLine": 720
+        }
+      },
+      {
+        "comment": "",
+        "key": "自定义颜色",
+        "location": {
+          "startingColumn": 30,
+          "startingLine": 763
+        }
+      },
+      {
+        "comment": "",
+        "key": "选择颜色",
+        "location": {
+          "startingColumn": 29,
+          "startingLine": 746
+        }
+      },
+      {
+        "comment": "",
+        "key": "添加颜色",
+        "location": {
+          "startingColumn": 24,
+          "startingLine": 751
+        }
+      },
+      {
+        "comment": "",
+        "key": "取消",
+        "location": {
+          "startingColumn": 28,
+          "startingLine": 767
+        }
+      },
+      {
+        "comment": "",
+        "key": "颜色:",
+        "location": {
+          "startingColumn": 34,
+          "startingLine": 938
+        }
+      },
+      {
+        "comment": "",
+        "key": "尺寸:",
+        "location": {
+          "startingColumn": 34,
+          "startingLine": 949
+        }
+      },
+      {
+        "comment": "",
+        "key": "描述",
+        "location": {
+          "startingColumn": 26,
+          "startingLine": 964
+        }
+      }
+    ]
+  },
+  "version": 1
+}

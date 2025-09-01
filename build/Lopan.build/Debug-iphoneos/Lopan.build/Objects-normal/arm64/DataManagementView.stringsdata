@@ -1,0 +1,1224 @@
+{
+  "source": "/Users/bobo/Desktop/Lopan/Lopan/Views/Administrator/DataManagementView.swift",
+  "tables": {
+    "Localizable": [
+      {
+        "comment": "",
+        "key": "数据管理",
+        "location": {
+          "startingColumn": 30,
+          "startingLine": 50
+        }
+      },
+      {
+        "comment": "",
+        "key": "数据导出",
+        "location": {
+          "startingColumn": 31,
+          "startingLine": 25
+        }
+      },
+      {
+        "comment": "",
+        "key": "数据导入",
+        "location": {
+          "startingColumn": 31,
+          "startingLine": 32
+        }
+      },
+      {
+        "comment": "",
+        "key": "数据备份",
+        "location": {
+          "startingColumn": 31,
+          "startingLine": 39
+        }
+      },
+      {
+        "comment": "",
+        "key": "数据恢复",
+        "location": {
+          "startingColumn": 31,
+          "startingLine": 46
+        }
+      },
+      {
+        "comment": "",
+        "key": "数据导出",
+        "location": {
+          "startingColumn": 22,
+          "startingLine": 87
+        }
+      },
+      {
+        "comment": "",
+        "key": "活动导出",
+        "location": {
+          "startingColumn": 24,
+          "startingLine": 93
+        }
+      },
+      {
+        "comment": "",
+        "key": "新建导出",
+        "location": {
+          "startingColumn": 24,
+          "startingLine": 100
+        }
+      },
+      {
+        "comment": "",
+        "key": "暂无导出记录",
+        "location": {
+          "startingColumn": 34,
+          "startingLine": 121
+        }
+      },
+      {
+        "comment": "",
+        "key": "点击\"新建导出\"开始导出数据",
+        "location": {
+          "startingColumn": 34,
+          "startingLine": 124
+        }
+      },
+      {
+        "comment": "",
+        "key": "导出错误",
+        "location": {
+          "startingColumn": 16,
+          "startingLine": 255
+        }
+      },
+      {
+        "comment": "",
+        "key": "配置导出",
+        "location": {
+          "startingColumn": 30,
+          "startingLine": 238
+        }
+      },
+      {
+        "comment": "",
+        "key": "导出内容",
+        "location": {
+          "startingColumn": 25,
+          "startingLine": 177
+        }
+      },
+      {
+        "comment": "",
+        "key": "导出格式",
+        "location": {
+          "startingColumn": 25,
+          "startingLine": 197
+        }
+      },
+      {
+        "comment": "",
+        "key": "时间范围",
+        "location": {
+          "startingColumn": 25,
+          "startingLine": 208
+        }
+      },
+      {
+        "comment": "",
+        "key": "压缩与加密",
+        "location": {
+          "startingColumn": 25,
+          "startingLine": 217
+        }
+      },
+      {
+        "comment": "",
+        "key": "导出信息",
+        "location": {
+          "startingColumn": 25,
+          "startingLine": 232
+        }
+      },
+      {
+        "comment": "",
+        "key": "格式",
+        "location": {
+          "startingColumn": 28,
+          "startingLine": 198
+        }
+      },
+      {
+        "comment": "",
+        "key": "包含敏感数据",
+        "location": {
+          "startingColumn": 28,
+          "startingLine": 204
+        }
+      },
+      {
+        "comment": "",
+        "key": "包含用户认证信息、联系方式等敏感数据",
+        "location": {
+          "startingColumn": 31,
+          "startingLine": 205
+        }
+      },
+      {
+        "comment": "",
+        "key": "使用时间范围",
+        "location": {
+          "startingColumn": 28,
+          "startingLine": 209
+        }
+      },
+      {
+        "comment": "",
+        "key": "开始日期",
+        "location": {
+          "startingColumn": 36,
+          "startingLine": 212
+        }
+      },
+      {
+        "comment": "",
+        "key": "结束日期",
+        "location": {
+          "startingColumn": 36,
+          "startingLine": 213
+        }
+      },
+      {
+        "comment": "",
+        "key": "压缩类型",
+        "location": {
+          "startingColumn": 28,
+          "startingLine": 218
+        }
+      },
+      {
+        "comment": "",
+        "key": "启用加密",
+        "location": {
+          "startingColumn": 28,
+          "startingLine": 224
+        }
+      },
+      {
+        "comment": "",
+        "key": "加密密码",
+        "location": {
+          "startingColumn": 37,
+          "startingLine": 227
+        }
+      },
+      {
+        "comment": "",
+        "key": "导出标题",
+        "location": {
+          "startingColumn": 31,
+          "startingLine": 233
+        }
+      },
+      {
+        "comment": "",
+        "key": "描述",
+        "location": {
+          "startingColumn": 31,
+          "startingLine": 234
+        }
+      },
+      {
+        "comment": "",
+        "key": "取消",
+        "location": {
+          "startingColumn": 28,
+          "startingLine": 242
+        }
+      },
+      {
+        "comment": "",
+        "key": "开始导出",
+        "location": {
+          "startingColumn": 28,
+          "startingLine": 248
+        }
+      },
+      {
+        "comment": "",
+        "key": "确定",
+        "location": {
+          "startingColumn": 20,
+          "startingLine": 259
+        }
+      },
+      {
+        "comment": "",
+        "key": "%lld 条记录",
+        "location": {
+          "startingColumn": 26,
+          "startingLine": 325
+        }
+      },
+      {
+        "comment": "",
+        "key": "•",
+        "location": {
+          "startingColumn": 26,
+          "startingLine": 326
+        }
+      },
+      {
+        "comment": "",
+        "key": "•",
+        "location": {
+          "startingColumn": 26,
+          "startingLine": 328
+        }
+      },
+      {
+        "comment": "",
+        "key": "下载",
+        "location": {
+          "startingColumn": 28,
+          "startingLine": 357
+        }
+      },
+      {
+        "comment": "",
+        "key": "成功",
+        "location": {
+          "startingColumn": 30,
+          "startingLine": 342
+        }
+      },
+      {
+        "comment": "",
+        "key": "失败",
+        "location": {
+          "startingColumn": 30,
+          "startingLine": 350
+        }
+      },
+      {
+        "comment": "",
+        "key": "活动导出",
+        "location": {
+          "startingColumn": 30,
+          "startingLine": 411
+        }
+      },
+      {
+        "comment": "",
+        "key": "暂无活动导出",
+        "location": {
+          "startingColumn": 30,
+          "startingLine": 403
+        }
+      },
+      {
+        "comment": "",
+        "key": "完成",
+        "location": {
+          "startingColumn": 28,
+          "startingLine": 415
+        }
+      },
+      {
+        "comment": "",
+        "key": "取消",
+        "location": {
+          "startingColumn": 28,
+          "startingLine": 440
+        }
+      },
+      {
+        "comment": "",
+        "key": "%lld%%",
+        "location": {
+          "startingColumn": 22,
+          "startingLine": 459
+        }
+      },
+      {
+        "comment": "",
+        "key": "步骤 %lld/%lld",
+        "location": {
+          "startingColumn": 22,
+          "startingLine": 465
+        }
+      },
+      {
+        "comment": "",
+        "key": "数据导入",
+        "location": {
+          "startingColumn": 22,
+          "startingLine": 489
+        }
+      },
+      {
+        "comment": "",
+        "key": "活动导入",
+        "location": {
+          "startingColumn": 24,
+          "startingLine": 495
+        }
+      },
+      {
+        "comment": "",
+        "key": "新建导入",
+        "location": {
+          "startingColumn": 24,
+          "startingLine": 502
+        }
+      },
+      {
+        "comment": "",
+        "key": "暂无导入记录",
+        "location": {
+          "startingColumn": 34,
+          "startingLine": 523
+        }
+      },
+      {
+        "comment": "",
+        "key": "点击\"新建导入\"开始导入数据",
+        "location": {
+          "startingColumn": 34,
+          "startingLine": 526
+        }
+      },
+      {
+        "comment": "",
+        "key": "导入错误",
+        "location": {
+          "startingColumn": 16,
+          "startingLine": 649
+        }
+      },
+      {
+        "comment": "",
+        "key": "配置导入",
+        "location": {
+          "startingColumn": 30,
+          "startingLine": 620
+        }
+      },
+      {
+        "comment": "",
+        "key": "导入文件",
+        "location": {
+          "startingColumn": 25,
+          "startingLine": 562
+        }
+      },
+      {
+        "comment": "",
+        "key": "导入配置",
+        "location": {
+          "startingColumn": 25,
+          "startingLine": 583
+        }
+      },
+      {
+        "comment": "",
+        "key": "安全设置",
+        "location": {
+          "startingColumn": 25,
+          "startingLine": 606
+        }
+      },
+      {
+        "comment": "",
+        "key": "验证规则",
+        "location": {
+          "startingColumn": 25,
+          "startingLine": 614
+        }
+      },
+      {
+        "comment": "",
+        "key": "选择文件",
+        "location": {
+          "startingColumn": 32,
+          "startingLine": 577
+        }
+      },
+      {
+        "comment": "",
+        "key": "源格式",
+        "location": {
+          "startingColumn": 28,
+          "startingLine": 584
+        }
+      },
+      {
+        "comment": "",
+        "key": "目标数据类型",
+        "location": {
+          "startingColumn": 28,
+          "startingLine": 590
+        }
+      },
+      {
+        "comment": "",
+        "key": "冲突处理",
+        "location": {
+          "startingColumn": 28,
+          "startingLine": 599
+        }
+      },
+      {
+        "comment": "",
+        "key": "试运行",
+        "location": {
+          "startingColumn": 28,
+          "startingLine": 607
+        }
+      },
+      {
+        "comment": "",
+        "key": "仅验证数据而不实际导入",
+        "location": {
+          "startingColumn": 31,
+          "startingLine": 608
+        }
+      },
+      {
+        "comment": "",
+        "key": "导入前创建备份",
+        "location": {
+          "startingColumn": 28,
+          "startingLine": 610
+        }
+      },
+      {
+        "comment": "",
+        "key": "在导入前自动创建现有数据的备份",
+        "location": {
+          "startingColumn": 31,
+          "startingLine": 611
+        }
+      },
+      {
+        "comment": "",
+        "key": "将使用 %@ 的默认验证规则",
+        "location": {
+          "startingColumn": 26,
+          "startingLine": 615
+        }
+      },
+      {
+        "comment": "",
+        "key": "取消",
+        "location": {
+          "startingColumn": 28,
+          "startingLine": 624
+        }
+      },
+      {
+        "comment": "",
+        "key": "开始导入",
+        "location": {
+          "startingColumn": 28,
+          "startingLine": 630
+        }
+      },
+      {
+        "comment": "",
+        "key": "确定",
+        "location": {
+          "startingColumn": 20,
+          "startingLine": 653
+        }
+      },
+      {
+        "comment": "",
+        "key": "%lld 总计",
+        "location": {
+          "startingColumn": 26,
+          "startingLine": 712
+        }
+      },
+      {
+        "comment": "",
+        "key": "•",
+        "location": {
+          "startingColumn": 26,
+          "startingLine": 713
+        }
+      },
+      {
+        "comment": "",
+        "key": "%lld 成功",
+        "location": {
+          "startingColumn": 26,
+          "startingLine": 714
+        }
+      },
+      {
+        "comment": "",
+        "key": "•",
+        "location": {
+          "startingColumn": 30,
+          "startingLine": 717
+        }
+      },
+      {
+        "comment": "",
+        "key": "%lld 失败",
+        "location": {
+          "startingColumn": 30,
+          "startingLine": 718
+        }
+      },
+      {
+        "comment": "",
+        "key": "%lld%%",
+        "location": {
+          "startingColumn": 22,
+          "startingLine": 750
+        }
+      },
+      {
+        "comment": "",
+        "key": "成功",
+        "location": {
+          "startingColumn": 30,
+          "startingLine": 736
+        }
+      },
+      {
+        "comment": "",
+        "key": "失败",
+        "location": {
+          "startingColumn": 30,
+          "startingLine": 744
+        }
+      },
+      {
+        "comment": "",
+        "key": "活动导入",
+        "location": {
+          "startingColumn": 30,
+          "startingLine": 790
+        }
+      },
+      {
+        "comment": "",
+        "key": "暂无活动导入",
+        "location": {
+          "startingColumn": 30,
+          "startingLine": 782
+        }
+      },
+      {
+        "comment": "",
+        "key": "完成",
+        "location": {
+          "startingColumn": 28,
+          "startingLine": 794
+        }
+      },
+      {
+        "comment": "",
+        "key": "取消",
+        "location": {
+          "startingColumn": 28,
+          "startingLine": 819
+        }
+      },
+      {
+        "comment": "",
+        "key": "%lld%%",
+        "location": {
+          "startingColumn": 22,
+          "startingLine": 838
+        }
+      },
+      {
+        "comment": "",
+        "key": "%lld 有效",
+        "location": {
+          "startingColumn": 26,
+          "startingLine": 845
+        }
+      },
+      {
+        "comment": "",
+        "key": "•",
+        "location": {
+          "startingColumn": 26,
+          "startingLine": 847
+        }
+      },
+      {
+        "comment": "",
+        "key": "%lld 无效",
+        "location": {
+          "startingColumn": 26,
+          "startingLine": 848
+        }
+      },
+      {
+        "comment": "",
+        "key": "数据备份",
+        "location": {
+          "startingColumn": 22,
+          "startingLine": 875
+        }
+      },
+      {
+        "comment": "",
+        "key": "活动备份",
+        "location": {
+          "startingColumn": 24,
+          "startingLine": 881
+        }
+      },
+      {
+        "comment": "",
+        "key": "计划备份",
+        "location": {
+          "startingColumn": 24,
+          "startingLine": 888
+        }
+      },
+      {
+        "comment": "",
+        "key": "立即备份",
+        "location": {
+          "startingColumn": 24,
+          "startingLine": 895
+        }
+      },
+      {
+        "comment": "",
+        "key": "暂无备份记录",
+        "location": {
+          "startingColumn": 34,
+          "startingLine": 916
+        }
+      },
+      {
+        "comment": "",
+        "key": "点击\"立即备份\"创建第一个备份",
+        "location": {
+          "startingColumn": 34,
+          "startingLine": 919
+        }
+      },
+      {
+        "comment": "",
+        "key": "备份错误",
+        "location": {
+          "startingColumn": 16,
+          "startingLine": 1025
+        }
+      },
+      {
+        "comment": "",
+        "key": "配置备份",
+        "location": {
+          "startingColumn": 30,
+          "startingLine": 1008
+        }
+      },
+      {
+        "comment": "",
+        "key": "备份内容",
+        "location": {
+          "startingColumn": 25,
+          "startingLine": 957
+        }
+      },
+      {
+        "comment": "",
+        "key": "备份设置",
+        "location": {
+          "startingColumn": 25,
+          "startingLine": 977
+        }
+      },
+      {
+        "comment": "",
+        "key": "安全设置",
+        "location": {
+          "startingColumn": 25,
+          "startingLine": 989
+        }
+      },
+      {
+        "comment": "",
+        "key": "高级选项",
+        "location": {
+          "startingColumn": 25,
+          "startingLine": 998
+        }
+      },
+      {
+        "comment": "",
+        "key": "备份名称",
+        "location": {
+          "startingColumn": 31,
+          "startingLine": 978
+        }
+      },
+      {
+        "comment": "",
+        "key": "描述",
+        "location": {
+          "startingColumn": 31,
+          "startingLine": 979
+        }
+      },
+      {
+        "comment": "",
+        "key": "压缩级别",
+        "location": {
+          "startingColumn": 28,
+          "startingLine": 982
+        }
+      },
+      {
+        "comment": "",
+        "key": "启用加密",
+        "location": {
+          "startingColumn": 28,
+          "startingLine": 990
+        }
+      },
+      {
+        "comment": "",
+        "key": "加密密码",
+        "location": {
+          "startingColumn": 37,
+          "startingLine": 993
+        }
+      },
+      {
+        "comment": "",
+        "key": "增量备份",
+        "location": {
+          "startingColumn": 28,
+          "startingLine": 999
+        }
+      },
+      {
+        "comment": "",
+        "key": "仅备份自上次备份以来的更改",
+        "location": {
+          "startingColumn": 31,
+          "startingLine": 1000
+        }
+      },
+      {
+        "comment": "",
+        "key": "验证备份",
+        "location": {
+          "startingColumn": 28,
+          "startingLine": 1002
+        }
+      },
+      {
+        "comment": "",
+        "key": "备份完成后验证文件完整性",
+        "location": {
+          "startingColumn": 31,
+          "startingLine": 1003
+        }
+      },
+      {
+        "comment": "",
+        "key": "完成时通知",
+        "location": {
+          "startingColumn": 28,
+          "startingLine": 1005
+        }
+      },
+      {
+        "comment": "",
+        "key": "取消",
+        "location": {
+          "startingColumn": 28,
+          "startingLine": 1012
+        }
+      },
+      {
+        "comment": "",
+        "key": "开始备份",
+        "location": {
+          "startingColumn": 28,
+          "startingLine": 1018
+        }
+      },
+      {
+        "comment": "",
+        "key": "确定",
+        "location": {
+          "startingColumn": 20,
+          "startingLine": 1029
+        }
+      },
+      {
+        "comment": "",
+        "key": "•",
+        "location": {
+          "startingColumn": 26,
+          "startingLine": 1088
+        }
+      },
+      {
+        "comment": "",
+        "key": "•",
+        "location": {
+          "startingColumn": 30,
+          "startingLine": 1091
+        }
+      },
+      {
+        "comment": "",
+        "key": "详情",
+        "location": {
+          "startingColumn": 24,
+          "startingLine": 1103
+        }
+      },
+      {
+        "comment": "",
+        "key": "删除",
+        "location": {
+          "startingColumn": 24,
+          "startingLine": 1109
+        }
+      },
+      {
+        "comment": "",
+        "key": "备份详情",
+        "location": {
+          "startingColumn": 30,
+          "startingLine": 1185
+        }
+      },
+      {
+        "comment": "",
+        "key": "基本信息",
+        "location": {
+          "startingColumn": 25,
+          "startingLine": 1151
+        }
+      },
+      {
+        "comment": "",
+        "key": "数据类型",
+        "location": {
+          "startingColumn": 25,
+          "startingLine": 1158
+        }
+      },
+      {
+        "comment": "",
+        "key": "文件信息",
+        "location": {
+          "startingColumn": 25,
+          "startingLine": 1174
+        }
+      },
+      {
+        "comment": "",
+        "key": "%lld 条记录",
+        "location": {
+          "startingColumn": 38,
+          "startingLine": 1166
+        }
+      },
+      {
+        "comment": "",
+        "key": "完成",
+        "location": {
+          "startingColumn": 28,
+          "startingLine": 1189
+        }
+      },
+      {
+        "comment": "",
+        "key": "活动备份",
+        "location": {
+          "startingColumn": 30,
+          "startingLine": 1260
+        }
+      },
+      {
+        "comment": "",
+        "key": "暂无活动备份",
+        "location": {
+          "startingColumn": 30,
+          "startingLine": 1252
+        }
+      },
+      {
+        "comment": "",
+        "key": "完成",
+        "location": {
+          "startingColumn": 28,
+          "startingLine": 1264
+        }
+      },
+      {
+        "comment": "",
+        "key": "取消",
+        "location": {
+          "startingColumn": 28,
+          "startingLine": 1289
+        }
+      },
+      {
+        "comment": "",
+        "key": "%lld%%",
+        "location": {
+          "startingColumn": 22,
+          "startingLine": 1308
+        }
+      },
+      {
+        "comment": "",
+        "key": "%lld/%lld 类型",
+        "location": {
+          "startingColumn": 22,
+          "startingLine": 1314
+        }
+      },
+      {
+        "comment": "",
+        "key": "备份调度",
+        "location": {
+          "startingColumn": 30,
+          "startingLine": 1344
+        }
+      },
+      {
+        "comment": "",
+        "key": "备份调度",
+        "location": {
+          "startingColumn": 22,
+          "startingLine": 1332
+        }
+      },
+      {
+        "comment": "",
+        "key": "自动备份调度功能正在开发中",
+        "location": {
+          "startingColumn": 22,
+          "startingLine": 1337
+        }
+      },
+      {
+        "comment": "",
+        "key": "完成",
+        "location": {
+          "startingColumn": 28,
+          "startingLine": 1348
+        }
+      },
+      {
+        "comment": "",
+        "key": "数据恢复",
+        "location": {
+          "startingColumn": 22,
+          "startingLine": 1372
+        }
+      },
+      {
+        "comment": "",
+        "key": "配置恢复",
+        "location": {
+          "startingColumn": 28,
+          "startingLine": 1379
+        }
+      },
+      {
+        "comment": "",
+        "key": "暂无可用备份",
+        "location": {
+          "startingColumn": 34,
+          "startingLine": 1405
+        }
+      },
+      {
+        "comment": "",
+        "key": "请先创建备份后再进行恢复操作",
+        "location": {
+          "startingColumn": 34,
+          "startingLine": 1408
+        }
+      },
+      {
+        "comment": "",
+        "key": "已选择",
+        "location": {
+          "startingColumn": 33,
+          "startingLine": 1467
+        }
+      },
+      {
+        "comment": "",
+        "key": "选择",
+        "location": {
+          "startingColumn": 47,
+          "startingLine": 1467
+        }
+      },
+      {
+        "comment": "",
+        "key": "•",
+        "location": {
+          "startingColumn": 26,
+          "startingLine": 1453
+        }
+      },
+      {
+        "comment": "",
+        "key": "•",
+        "location": {
+          "startingColumn": 30,
+          "startingLine": 1456
+        }
+      },
+      {
+        "comment": "",
+        "key": "恢复错误",
+        "location": {
+          "startingColumn": 16,
+          "startingLine": 1592
+        }
+      },
+      {
+        "comment": "",
+        "key": "配置恢复",
+        "location": {
+          "startingColumn": 30,
+          "startingLine": 1575
+        }
+      },
+      {
+        "comment": "",
+        "key": "恢复来源",
+        "location": {
+          "startingColumn": 25,
+          "startingLine": 1506
+        }
+      },
+      {
+        "comment": "",
+        "key": "恢复内容",
+        "location": {
+          "startingColumn": 25,
+          "startingLine": 1524
+        }
+      },
+      {
+        "comment": "",
+        "key": "恢复模式",
+        "location": {
+          "startingColumn": 25,
+          "startingLine": 1544
+        }
+      },
+      {
+        "comment": "",
+        "key": "安全设置",
+        "location": {
+          "startingColumn": 25,
+          "startingLine": 1564
+        }
+      },
+      {
+        "comment": "",
+        "key": "模式",
+        "location": {
+          "startingColumn": 28,
+          "startingLine": 1545
+        }
+      },
+      {
+        "comment": "",
+        "key": "冲突处理",
+        "location": {
+          "startingColumn": 28,
+          "startingLine": 1554
+        }
+      },
+      {
+        "comment": "",
+        "key": "恢复前创建备份",
+        "location": {
+          "startingColumn": 28,
+          "startingLine": 1565
+        }
+      },
+      {
+        "comment": "",
+        "key": "在恢复前自动创建当前数据的备份",
+        "location": {
+          "startingColumn": 31,
+          "startingLine": 1566
+        }
+      },
+      {
+        "comment": "",
+        "key": "验证备份完整性",
+        "location": {
+          "startingColumn": 28,
+          "startingLine": 1568
+        }
+      },
+      {
+        "comment": "",
+        "key": "恢复前验证备份文件的完整性",
+        "location": {
+          "startingColumn": 31,
+          "startingLine": 1569
+        }
+      },
+      {
+        "comment": "",
+        "key": "失败时回滚",
+        "location": {
+          "startingColumn": 28,
+          "startingLine": 1571
+        }
+      },
+      {
+        "comment": "",
+        "key": "如果恢复失败，自动回滚到恢复前状态",
+        "location": {
+          "startingColumn": 31,
+          "startingLine": 1572
+        }
+      },
+      {
+        "comment": "",
+        "key": "取消",
+        "location": {
+          "startingColumn": 28,
+          "startingLine": 1579
+        }
+      },
+      {
+        "comment": "",
+        "key": "开始恢复",
+        "location": {
+          "startingColumn": 28,
+          "startingLine": 1585
+        }
+      },
+      {
+        "comment": "",
+        "key": "确定",
+        "location": {
+          "startingColumn": 20,
+          "startingLine": 1596
+        }
+      }
+    ]
+  },
+  "version": 1
+}

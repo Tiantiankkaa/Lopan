@@ -1,0 +1,72 @@
+{
+  "source": "/Users/bobo/Desktop/Lopan/Lopan/Views/Components/LoadingStates/UnifiedLoadingView.swift",
+  "tables": {
+    "Localizable": [
+      {
+        "comment": "",
+        "key": "进度 %lld%%",
+        "location": {
+          "startingColumn": 41,
+          "startingLine": 134
+        }
+      },
+      {
+        "comment": "",
+        "key": "正在加载内容",
+        "location": {
+          "startingColumn": 29,
+          "startingLine": 171
+        }
+      },
+      {
+        "comment": "",
+        "key": "内容加载完成后将显示实际数据",
+        "location": {
+          "startingColumn": 28,
+          "startingLine": 172
+        }
+      },
+      {
+        "comment": "",
+        "key": "正在刷新数据",
+        "location": {
+          "startingColumn": 43,
+          "startingLine": 297
+        }
+      },
+      {
+        "comment": "",
+        "key": "下拉刷新控件",
+        "location": {
+          "startingColumn": 66,
+          "startingLine": 297
+        }
+      },
+      {
+        "comment": "",
+        "key": "",
+        "location": {
+          "startingColumn": 42,
+          "startingLine": 298
+        }
+      },
+      {
+        "comment": "",
+        "key": "向下拖拽以刷新数据",
+        "location": {
+          "startingColumn": 47,
+          "startingLine": 298
+        }
+      },
+      {
+        "comment": "",
+        "key": "正在刷新",
+        "location": {
+          "startingColumn": 41,
+          "startingLine": 278
+        }
+      }
+    ]
+  },
+  "version": 1
+}

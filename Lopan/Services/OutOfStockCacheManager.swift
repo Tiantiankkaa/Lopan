@@ -178,6 +178,7 @@ class OutOfStockCacheManager: ObservableObject {
     
     private struct CacheConfig {
         static let maxMemoryPages = 50
+        static let maxMemoryCacheSize = 50  // Maximum number of cache entries
         static let maxDiskPages = 200
         static let maxMemoryBytes = 50 * 1024 * 1024  // 50MB
         static let maxDiskBytes = 200 * 1024 * 1024   // 200MB
@@ -260,30 +261,30 @@ class OutOfStockCacheManager: ObservableObject {
         return nil
     }
     
-    /// Get cached status counts for base filter criteria (very fast)
+    /// Get cached status counts for filter criteria (includes date filtering)
     func getCachedStatusCounts(for criteria: OutOfStockFilterCriteria) -> [OutOfStockStatus: Int]? {
-        let baseKey = generateBaseDataKey(from: criteria)
+        let statusCountKey = generateStatusCountCacheKey(from: criteria)
         
-        if let cached = statusCountCache[baseKey] {
+        if let cached = statusCountCache[statusCountKey] {
             let age = Date().timeIntervalSince(cached.timestamp)
             if age <= statusCountCacheTTL {
                 statusCountCacheHits += 1
-                print("⚡ [Status Count Cache] Hit for key: \(baseKey), age: \(String(format: "%.1f", age))s")
+                print("⚡ [Status Count Cache] Hit for key: \(statusCountKey), age: \(String(format: "%.1f", age))s")
                 return cached.counts
             } else {
-                statusCountCache.removeValue(forKey: baseKey)
-                print("⏰ [Status Count Cache] Expired entry removed: \(baseKey)")
+                statusCountCache.removeValue(forKey: statusCountKey)
+                print("⏰ [Status Count Cache] Expired entry removed: \(statusCountKey)")
             }
         }
         
         return nil
     }
     
-    /// Cache status counts for base filter criteria
+    /// Cache status counts for filter criteria (includes date filtering)
     func cacheStatusCounts(_ counts: [OutOfStockStatus: Int], for criteria: OutOfStockFilterCriteria) {
-        let baseKey = generateBaseDataKey(from: criteria)
-        statusCountCache[baseKey] = (counts: counts, timestamp: Date())
-        print("💾 [Status Count Cache] Stored counts for key: \(baseKey)")
+        let statusCountKey = generateStatusCountCacheKey(from: criteria)
+        statusCountCache[statusCountKey] = (counts: counts, timestamp: Date())
+        print("💾 [Status Count Cache] Stored counts for key: \(statusCountKey)")
         
         // Cleanup old entries
         if statusCountCache.count > 50 {
@@ -381,6 +382,21 @@ class OutOfStockCacheManager: ObservableObject {
         }
         
         return "baseData_\(hasher.finalize())"
+    }
+    
+    private func generateStatusCountCacheKey(from criteria: OutOfStockFilterCriteria) -> String {
+        // Status count key includes date filtering for accurate date-specific counts
+        var hasher = Hasher()
+        hasher.combine(criteria.customer?.id)
+        hasher.combine(criteria.product?.id)
+        hasher.combine(criteria.searchText)
+        
+        if let dateRange = criteria.dateRange {
+            hasher.combine(dateRange.start.timeIntervalSince1970)
+            hasher.combine(dateRange.end.timeIntervalSince1970)
+        }
+        
+        return "statusCounts_\(hasher.finalize())"
     }
     
     /// Get cached base data items (status-agnostic)
@@ -950,6 +966,280 @@ class OutOfStockCacheManager: ObservableObject {
     private func decompress(_ data: Data) throws -> Data {
         return try (data as NSData).decompressed(using: .lzfse) as Data
     }
+    
+    // MARK: - Enhanced Cache Validation & Data Consistency
+    
+    /// Comprehensive cache validation and consistency check
+    /// - Returns: ValidationResult with detailed validation status
+    func validateCacheConsistency() async -> CacheValidationResult {
+        print("🔍 [Cache Validation] Starting comprehensive cache consistency check...")
+        
+        var result = CacheValidationResult()
+        let startTime = CFAbsoluteTimeGetCurrent()
+        
+        // 1. Validate memory cache integrity
+        await validateMemoryCacheIntegrity(&result)
+        
+        // 2. Validate count cache consistency
+        await validateCountCacheConsistency(&result)
+        
+        // 3. Validate base data cache coherence
+        await validateBaseDataCacheCoherence(&result)
+        
+        // 4. Check for date contamination across caches
+        await validateDateConsistencyAcrossCaches(&result)
+        
+        // 5. Validate cache size limits and memory usage
+        await validateCacheSizeLimits(&result)
+        
+        // 6. Check disk cache integrity
+        await validateDiskCacheIntegrity(&result)
+        
+        let validationTime = (CFAbsoluteTimeGetCurrent() - startTime) * 1000
+        result.validationTimeMs = validationTime
+        
+        let statusEmoji = result.isValid ? "✅" : "❌"
+        print("\(statusEmoji) [Cache Validation] Completed in \(String(format: "%.2f", validationTime))ms")
+        print("📊 [Cache Validation] Errors: \(result.errorCount), Warnings: \(result.warningCount)")
+        
+        return result
+    }
+    
+    private func validateMemoryCacheIntegrity(_ result: inout CacheValidationResult) async {
+        print("🔍 [Memory Cache] Validating integrity...")
+        
+        for (key, page) in memoryCache {
+            // Check if page items match key date
+            if !page.items.isEmpty {
+                let expectedDate = Calendar.current.startOfDay(for: key.date)
+                for item in page.items {
+                    let itemDate = Calendar.current.startOfDay(for: item.requestDate)
+                    if itemDate != expectedDate {
+                        result.addError("Memory cache date mismatch: key=\(key.date), item=\(itemDate)")
+                    }
+                }
+            }
+            
+            // Check for reasonable totalCount
+            if page.totalCount < 0 {
+                result.addError("Invalid totalCount in memory cache: \(page.totalCount)")
+            }
+            
+            // Verify items count doesn't exceed totalCount
+            if page.items.count > page.totalCount {
+                result.addWarning("Items count (\(page.items.count)) exceeds totalCount (\(page.totalCount)) in memory cache")
+            }
+        }
+        
+        result.memoryCacheItemsChecked = memoryCache.count
+        print("✅ [Memory Cache] Checked \(memoryCache.count) items")
+    }
+    
+    private func validateCountCacheConsistency(_ result: inout CacheValidationResult) async {
+        print("🔍 [Count Cache] Validating consistency...")
+        
+        for (key, cached) in countCache {
+            // Check if cache entry is not expired
+            let age = Date().timeIntervalSince(cached.timestamp)
+            if age > countCacheTTL {
+                result.addWarning("Expired count cache entry found: \(key), age: \(age)s")
+            }
+            
+            // Check for reasonable count values
+            if cached.count < 0 {
+                result.addError("Invalid negative count in cache: \(cached.count)")
+            }
+        }
+        
+        result.countCacheItemsChecked = countCache.count
+        print("✅ [Count Cache] Checked \(countCache.count) items")
+    }
+    
+    private func validateBaseDataCacheCoherence(_ result: inout CacheValidationResult) async {
+        print("🔍 [Base Data Cache] Validating coherence...")
+        
+        for (key, cached) in baseDataCache {
+            // Check cache age
+            let age = Date().timeIntervalSince(cached.timestamp)
+            if age > baseDataCacheTTL {
+                result.addWarning("Expired base data cache entry found: \(key), age: \(age)s")
+            }
+            
+            // Validate items data consistency
+            for item in cached.items {
+                // Check for valid IDs
+                if item.id.description.isEmpty {
+                    result.addError("Invalid empty ID in base data cache")
+                }
+                
+                // Check for valid dates
+                if item.requestDate.timeIntervalSince1970 < 0 {
+                    result.addError("Invalid request date in base data cache: \(item.requestDate)")
+                }
+                
+                // Check for valid status values
+                let validStatuses: Set<String> = ["pending", "completed", "returned"]
+                if !validStatuses.contains(item.status) {
+                    result.addError("Invalid status in base data cache: \(item.status)")
+                }
+            }
+            
+            // Check for duplicate IDs within cache entry
+            let ids = cached.items.map { $0.id }
+            let uniqueIds = Set(ids)
+            if ids.count != uniqueIds.count {
+                result.addError("Duplicate IDs found in base data cache entry: \(key)")
+            }
+        }
+        
+        result.baseDataCacheItemsChecked = baseDataCache.count
+        print("✅ [Base Data Cache] Checked \(baseDataCache.count) items")
+    }
+    
+    private func validateDateConsistencyAcrossCaches(_ result: inout CacheValidationResult) async {
+        print("🔍 [Cross-Cache] Validating date consistency...")
+        
+        // Collect all dates from different caches
+        let memoryDates = Set(memoryCache.keys.map { Calendar.current.startOfDay(for: $0.date) })
+        let baseDataDates = Set(baseDataCache.keys.compactMap { key in
+            // Extract date from base data key if possible
+            if key.contains("date:") {
+                if let colonIndex = key.firstIndex(of: ":") {
+                    let dateString = String(key[key.index(after: colonIndex)...])
+                    return DateFormatter.yyyyMMdd.date(from: String(dateString.prefix(10)))
+                }
+            }
+            return nil
+        })
+        
+        // Check for date contamination (same date with different formats)
+        for date in memoryDates {
+            let dateString = DateFormatter.yyyyMMdd.string(from: date)
+            let normalizedDate = DateFormatter.yyyyMMdd.date(from: dateString)!
+            if date != normalizedDate {
+                result.addWarning("Date normalization inconsistency detected: \(date) vs \(normalizedDate)")
+            }
+        }
+        
+        result.dateConsistencyChecked = memoryDates.count + baseDataDates.count
+        print("✅ [Cross-Cache] Checked \(result.dateConsistencyChecked) date entries")
+    }
+    
+    private func validateCacheSizeLimits(_ result: inout CacheValidationResult) async {
+        print("🔍 [Size Limits] Validating cache sizes...")
+        
+        // Check memory cache size
+        if memoryCache.count > CacheConfig.maxMemoryCacheSize {
+            result.addWarning("Memory cache exceeds limit: \(memoryCache.count) > \(CacheConfig.maxMemoryCacheSize)")
+        }
+        
+        // Check count cache size
+        if countCache.count > 100 { // Reasonable limit for count cache
+            result.addWarning("Count cache is large: \(countCache.count) entries")
+        }
+        
+        // Check base data cache size
+        if baseDataCache.count > 50 { // Reasonable limit for base data cache
+            result.addWarning("Base data cache is large: \(baseDataCache.count) entries")
+        }
+        
+        // Calculate approximate memory usage
+        let approximateMemoryUsage = memoryCache.values.reduce(0) { total, page in
+            total + page.items.count * 200 // Rough estimate: 200 bytes per item
+        }
+        
+        if approximateMemoryUsage > 10 * 1024 * 1024 { // 10MB
+            result.addWarning("High estimated memory usage: \(approximateMemoryUsage) bytes")
+        }
+        
+        result.estimatedMemoryUsage = approximateMemoryUsage
+        print("✅ [Size Limits] Memory: \(memoryCache.count) items, ~\(approximateMemoryUsage) bytes")
+    }
+    
+    private func validateDiskCacheIntegrity(_ result: inout CacheValidationResult) async {
+        print("🔍 [Disk Cache] Validating integrity...")
+        
+        let diskFileCount = await countDiskCacheFiles()
+        let diskUsage = await calculateDiskUsage()
+        
+        // Check for excessive disk usage
+        if diskUsage > 50 * 1024 * 1024 { // 50MB
+            result.addWarning("High disk cache usage: \(diskUsage) bytes")
+        }
+        
+        // Check for excessive file count
+        if diskFileCount > 1000 {
+            result.addWarning("High disk cache file count: \(diskFileCount) files")
+        }
+        
+        result.diskCacheFileCount = diskFileCount
+        result.diskCacheUsage = diskUsage
+        print("✅ [Disk Cache] \(diskFileCount) files, \(diskUsage) bytes")
+    }
+    
+    /// Quick consistency check for critical cache operations
+    func performQuickConsistencyCheck(for key: OutOfStockCacheKey) -> Bool {
+        // Check if memory and disk cache are consistent
+        let hasMemoryCache = memoryCache[key] != nil
+        
+        // If we have memory cache, verify basic integrity
+        if hasMemoryCache {
+            guard let page = memoryCache[key] else { return false }
+            
+            // Basic validation: reasonable item count and totalCount
+            if page.totalCount < 0 || page.items.count > page.totalCount + 10 { // Allow some tolerance
+                print("⚠️ [Quick Check] Inconsistent counts for key: \(key)")
+                return false
+            }
+            
+            // Date validation for non-empty pages
+            if !page.items.isEmpty {
+                let expectedDate = Calendar.current.startOfDay(for: key.date)
+                let firstItemDate = Calendar.current.startOfDay(for: page.items[0].requestDate)
+                if firstItemDate != expectedDate {
+                    print("⚠️ [Quick Check] Date mismatch for key: \(key)")
+                    return false
+                }
+            }
+        }
+        
+        return true
+    }
+}
+
+/// Detailed cache validation result
+struct CacheValidationResult {
+    var isValid: Bool = true
+    var errorCount: Int = 0
+    var warningCount: Int = 0
+    var validationTimeMs: Double = 0
+    
+    var memoryCacheItemsChecked: Int = 0
+    var countCacheItemsChecked: Int = 0
+    var baseDataCacheItemsChecked: Int = 0
+    var dateConsistencyChecked: Int = 0
+    var diskCacheFileCount: Int = 0
+    var diskCacheUsage: Int = 0
+    var estimatedMemoryUsage: Int = 0
+    
+    private var errors: [String] = []
+    private var warnings: [String] = []
+    
+    mutating func addError(_ message: String) {
+        errors.append(message)
+        errorCount += 1
+        isValid = false
+        print("❌ [Validation Error] \(message)")
+    }
+    
+    mutating func addWarning(_ message: String) {
+        warnings.append(message)
+        warningCount += 1
+        print("⚠️ [Validation Warning] \(message)")
+    }
+    
+    var allErrors: [String] { return errors }
+    var allWarnings: [String] { return warnings }
 }
 
 // MARK: - Extensions

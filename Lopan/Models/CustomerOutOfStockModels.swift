@@ -10,11 +10,16 @@ import Foundation
 // MARK: - Request Models
 
 public struct OutOfStockCreationRequest {
-    let customer: Customer
-    let product: Product
+    let customer: Customer?
+    let product: Product?
     let productSize: ProductSize?
     let quantity: Int
     let notes: String?
+    let createdBy: String
+    
+    // Helper properties for placeholder mode
+    var customerName: String? { customer?.name }
+    var productName: String? { product?.name }
 }
 
 // MARK: - Filter Models

@@ -1,0 +1,16 @@
+{
+  "source": "/Users/bobo/Desktop/Lopan/Lopan/Services/AdvancedPermissionSystem.swift",
+  "tables": {
+    "Localizable": [
+      {
+        "comment": "",
+        "key": "权限不足",
+        "location": {
+          "startingColumn": 22,
+          "startingLine": 808
+        }
+      }
+    ]
+  },
+  "version": 1
+}

@@ -1,0 +1,104 @@
+{
+  "source": "/Users/bobo/Desktop/Lopan/Lopan/Views/Components/TimeRestrictionBanner.swift",
+  "tables": {
+    "Localizable": [
+      {
+        "comment": "",
+        "key": "时间限制提醒",
+        "location": {
+          "startingColumn": 29,
+          "startingLine": 97
+        }
+      },
+      {
+        "comment": "",
+        "key": "时间限制提醒",
+        "location": {
+          "startingColumn": 18,
+          "startingLine": 114
+        }
+      },
+      {
+        "comment": "",
+        "key": "截止时间: %@",
+        "location": {
+          "startingColumn": 18,
+          "startingLine": 136
+        }
+      },
+      {
+        "comment": "",
+        "key": "查看详细信息",
+        "location": {
+          "startingColumn": 33,
+          "startingLine": 153
+        }
+      },
+      {
+        "comment": "",
+        "key": "机器状态检查",
+        "location": {
+          "startingColumn": 29,
+          "startingLine": 202
+        }
+      },
+      {
+        "comment": "",
+        "key": "刷新机器状态",
+        "location": {
+          "startingColumn": 29,
+          "startingLine": 246
+        }
+      },
+      {
+        "comment": "",
+        "key": "机器状态检查",
+        "location": {
+          "startingColumn": 18,
+          "startingLine": 224
+        }
+      },
+      {
+        "comment": "",
+        "key": "建议操作:",
+        "location": {
+          "startingColumn": 22,
+          "startingLine": 255
+        }
+      },
+      {
+        "comment": "",
+        "key": "前往设备管理",
+        "location": {
+          "startingColumn": 24,
+          "startingLine": 261
+        }
+      },
+      {
+        "comment": "",
+        "key": "设备管理",
+        "location": {
+          "startingColumn": 22,
+          "startingLine": 273
+        }
+      },
+      {
+        "comment": "",
+        "key": "设备管理",
+        "location": {
+          "startingColumn": 38,
+          "startingLine": 274
+        }
+      },
+      {
+        "comment": "",
+        "key": "关闭",
+        "location": {
+          "startingColumn": 36,
+          "startingLine": 278
+        }
+      }
+    ]
+  },
+  "version": 1
+}

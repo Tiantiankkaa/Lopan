@@ -1,0 +1,176 @@
+{
+  "source": "/Users/bobo/Desktop/Lopan/Lopan/Views/Components/SmartFormSystem.swift",
+  "tables": {
+    "Localizable": [
+      {
+        "comment": "",
+        "key": "Field: %@",
+        "location": {
+          "startingColumn": 34,
+          "startingLine": 188
+        }
+      },
+      {
+        "comment": "",
+        "key": "上一步",
+        "location": {
+          "startingColumn": 30,
+          "startingLine": 214
+        }
+      },
+      {
+        "comment": "",
+        "key": "完成",
+        "location": {
+          "startingColumn": 39,
+          "startingLine": 232
+        }
+      },
+      {
+        "comment": "",
+        "key": "下一步",
+        "location": {
+          "startingColumn": 50,
+          "startingLine": 232
+        }
+      },
+      {
+        "comment": "",
+        "key": "取消",
+        "location": {
+          "startingColumn": 20,
+          "startingLine": 264
+        }
+      },
+      {
+        "comment": "",
+        "key": "提交中...",
+        "location": {
+          "startingColumn": 45,
+          "startingLine": 281
+        }
+      },
+      {
+        "comment": "",
+        "key": "提交",
+        "location": {
+          "startingColumn": 62,
+          "startingLine": 281
+        }
+      },
+      {
+        "comment": "",
+        "key": "取消",
+        "location": {
+          "startingColumn": 20,
+          "startingLine": 308
+        }
+      },
+      {
+        "comment": "",
+        "key": "验证摘要",
+        "location": {
+          "startingColumn": 27,
+          "startingLine": 316
+        }
+      },
+      {
+        "comment": "",
+        "key": "智能建议",
+        "location": {
+          "startingColumn": 27,
+          "startingLine": 320
+        }
+      },
+      {
+        "comment": "",
+        "key": "保存草稿",
+        "location": {
+          "startingColumn": 31,
+          "startingLine": 325
+        }
+      },
+      {
+        "comment": "",
+        "key": "正在提交表单...",
+        "location": {
+          "startingColumn": 22,
+          "startingLine": 373
+        }
+      },
+      {
+        "comment": "",
+        "key": "请稍候，系统正在处理您的信息",
+        "location": {
+          "startingColumn": 22,
+          "startingLine": 377
+        }
+      },
+      {
+        "comment": "",
+        "key": "表单验证",
+        "location": {
+          "startingColumn": 30,
+          "startingLine": 401
+        }
+      },
+      {
+        "comment": "",
+        "key": "完成",
+        "location": {
+          "startingColumn": 28,
+          "startingLine": 404
+        }
+      },
+      {
+        "comment": "",
+        "key": "第 %lld 步，共 %lld 步",
+        "location": {
+          "startingColumn": 22,
+          "startingLine": 608
+        }
+      },
+      {
+        "comment": "",
+        "key": "完成进度",
+        "location": {
+          "startingColumn": 22,
+          "startingLine": 623
+        }
+      },
+      {
+        "comment": "",
+        "key": "*",
+        "location": {
+          "startingColumn": 22,
+          "startingLine": 676
+        }
+      },
+      {
+        "comment": "",
+        "key": "暂无建议",
+        "location": {
+          "startingColumn": 22,
+          "startingLine": 1090
+        }
+      },
+      {
+        "comment": "",
+        "key": "智能建议",
+        "location": {
+          "startingColumn": 22,
+          "startingLine": 1076
+        }
+      },
+      {
+        "comment": "",
+        "key": "所有字段都已通过验证",
+        "location": {
+          "startingColumn": 22,
+          "startingLine": 1133
+        }
+      }
+    ]
+  },
+  "version": 1
+}
