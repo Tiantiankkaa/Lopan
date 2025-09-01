@@ -320,37 +320,33 @@ public class CustomerOutOfStockService: ObservableObject {
             )
             
             // Convert to thread-safe DTOs and create cached page (must be on main thread)
-            await MainActor.run {
-                do {
-                    let cachedPage = cacheManager.createCachedPage(
+            let cachedPage: CachedOutOfStockPage
+            do {
+                cachedPage = await MainActor.run {
+                    cacheManager.createCachedPage(
                         from: result.items,
                         totalCount: result.totalCount,
                         hasMoreData: result.hasMoreData
                     )
-                    
-                    // Cache the result asynchronously
-                    Task {
-                        await cacheManager.cachePage(cachedPage, for: cacheKey)
-                        
-                        // Also cache base data (without status filter) for fast status switching
-                        if !append && criteria.page == 0 {
-                            await self.cacheBaseDataIfApplicable(cachedPage, criteria: criteria)
-                        }
-                    }
-                    
-                    // Update UI immediately with the data
-                    Task { @MainActor in
-                        await self.updateUIWithData(cachedPage, append: append)
-                    }
-                } catch {
-                    // If caching fails, still update UI with data
-                    logger.safeError("Cache conversion failed", error: error)
-                    let simpleCachedPage = self.createFallbackCachedPage(from: result)
-                    Task { @MainActor in
-                        await self.updateUIWithData(simpleCachedPage, append: append)
-                    }
+                }
+            } catch {
+                // If caching fails, create fallback cached page
+                logger.safeError("Cache conversion failed", error: error)
+                cachedPage = createFallbackCachedPage(from: result)
+            }
+            
+            // Cache the result asynchronously
+            Task {
+                await cacheManager.cachePage(cachedPage, for: cacheKey)
+                
+                // Also cache base data (without status filter) for fast status switching
+                if !append && criteria.page == 0 {
+                    await self.cacheBaseDataIfApplicable(cachedPage, criteria: criteria)
                 }
             }
+            
+            // Update UI immediately with the data
+            await updateUIWithData(cachedPage, append: append)
             
         } catch {
             await MainActor.run {
@@ -576,6 +572,87 @@ public class CustomerOutOfStockService: ObservableObject {
         }
     }
     
+    /// Get cached base data (status-agnostic) for fast status filtering
+    func getCachedBaseData(for criteria: OutOfStockFilterCriteria) async -> [CustomerOutOfStock]? {
+        guard !isPlaceholder else { return nil }
+        
+        // Create base criteria without status filtering
+        let baseCriteria = OutOfStockFilterCriteria(
+            customer: criteria.customer,
+            product: criteria.product,
+            status: nil, // No status filter for base data
+            dateRange: criteria.dateRange,
+            searchText: criteria.searchText,
+            page: criteria.page,
+            pageSize: criteria.pageSize,
+            sortOrder: criteria.sortOrder
+        )
+        
+        // Check cache for base data
+        if let cachedDTOs = cacheManager.getCachedBaseData(for: baseCriteria) {
+            // Convert DTOs to domain models
+            let domainModels = cachedDTOs.compactMap { dto in
+                convertDTOToDomainModel(dto)
+            }
+            
+            logger.info("Found cached base data with \(domainModels.count) items")
+            return domainModels
+        }
+        
+        return nil
+    }
+    
+    /// Convert DTO to domain model (simplified version for cached data)
+    private func convertDTOToDomainModel(_ dto: CustomerOutOfStockDTO) -> CustomerOutOfStock? {
+        // Get customer and product from repositories based on DTO relationships
+        var customer: Customer? = nil
+        var product: Product? = nil
+        
+        // Try to get customer from repository if customerId exists
+        if !dto.customerId.isEmpty {
+            // In a real implementation, you'd fetch from customer repository
+            // For now, create a minimal customer object with cached display info
+            customer = createMinimalCustomer(id: dto.customerId, name: dto.customerName)
+        }
+        
+        // Try to get product from repository if productId exists  
+        if !dto.productId.isEmpty {
+            // In a real implementation, you'd fetch from product repository
+            // For now, create a minimal product object with cached display info
+            product = createMinimalProduct(id: dto.productId, name: dto.productName)
+        }
+        
+        let item = CustomerOutOfStock(
+            customer: customer,
+            product: product,
+            quantity: dto.quantity,
+            notes: dto.notes,
+            createdBy: dto.createdBy
+        )
+        
+        // Set additional properties
+        item.id = dto.id
+        item.requestDate = dto.requestDate
+        item.updatedAt = dto.updatedAt
+        item.status = OutOfStockStatus(rawValue: dto.status) ?? .pending
+        item.returnQuantity = dto.returnQuantity
+        item.returnNotes = dto.returnNotes
+        
+        return item
+    }
+    
+    private func createMinimalCustomer(id: String, name: String) -> Customer {
+        let customer = Customer(name: name, address: "", phone: "")
+        customer.id = id
+        return customer
+    }
+    
+    private func createMinimalProduct(id: String, name: String) -> Product {
+        let product = Product(name: name, colors: [])
+        product.id = id
+        return product
+    }
+
     /// Fast path for "clear all" counts - uses dedicated caching
     func getClearAllFilteredCount() async -> Int {
         guard !isPlaceholder else { return 0 }
@@ -1172,6 +1249,73 @@ public class CustomerOutOfStockService: ObservableObject {
             "statusCounts": counts
         ]
     }
+    
+    // MARK: - Cache Validation & Consistency
+    
+    /// Perform comprehensive cache validation and consistency check
+    /// - Returns: Validation result with detailed status information
+    func validateCacheConsistency() async -> CacheValidationResult {
+        let logger = Logger(subsystem: "com.lopan.app", category: "CacheValidation")
+        logger.info("Starting cache consistency validation")
+        
+        let result = await cacheManager.validateCacheConsistency()
+        
+        if !result.isValid {
+            logger.error("Cache validation failed with \(result.errorCount) errors and \(result.warningCount) warnings")
+            
+            // If validation fails, consider clearing cache to prevent data corruption
+            if result.errorCount > 0 {
+                logger.info("Clearing cache due to validation errors")
+                await cacheManager.clearAllCaches()
+            }
+        } else {
+            logger.info("Cache validation passed successfully")
+        }
+        
+        return result
+    }
+    
+    /// Perform quick consistency check before critical operations
+    /// - Parameter key: Cache key to validate
+    /// - Returns: True if cache is consistent, false otherwise
+    func performQuickConsistencyCheck(for key: OutOfStockCacheKey) -> Bool {
+        let isConsistent = cacheManager.performQuickConsistencyCheck(for: key)
+        
+        if !isConsistent {
+            let logger = Logger(subsystem: "com.lopan.app", category: "CacheValidation")
+            logger.warning("Quick consistency check failed for key: \(String(describing: key))")
+        }
+        
+        return isConsistent
+    }
+    
+    /// Enhanced cache retrieval with validation
+    /// - Parameter key: Cache key to retrieve
+    /// - Returns: Cached page if valid, nil otherwise
+    func getValidatedCachedPage(for key: OutOfStockCacheKey) async -> CachedOutOfStockPage? {
+        // Quick consistency check first
+        guard performQuickConsistencyCheck(for: key) else {
+            let logger = Logger(subsystem: "com.lopan.app", category: "CacheValidation")
+            logger.warning("Quick consistency check failed, skipping cached data")
+            return nil
+        }
+        
+        // Get cached page
+        let cachedPage = await cacheManager.getCachedPage(for: key)
+        
+        // Additional validation for retrieved page
+        if let page = cachedPage {
+            // Validate that page data makes sense
+            if page.totalCount < 0 || (page.totalCount > 0 && page.items.isEmpty && page.hasMoreData == false) {
+                let logger = Logger(subsystem: "com.lopan.app", category: "CacheValidation")
+                logger.warning("Retrieved cached page has inconsistent data, invalidating")
+                await cacheManager.invalidateCache(for: key.date)
+                return nil
+            }
+        }
+        
+        return cachedPage
+    }
 }
 
 // MARK: - Service Errors
@@ -1246,5 +1390,4 @@ extension NewAuditingService {
             "product": item.productDisplayName
         ])
     }
-    
 }
