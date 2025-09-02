@@ -36,6 +36,7 @@ struct AdaptiveDateNavigationBar: View {
     let onFilterSummaryTapped: (() -> Void)?
     let sortOrder: CustomerOutOfStockNavigationState.SortOrder?
     let onToggleSort: (() -> Void)?
+    let isEnabled: Bool // New parameter to control if navigation is enabled
     
     @State private var isAnimating = false
     
@@ -46,7 +47,7 @@ struct AdaptiveDateNavigationBar: View {
                     // Date navigation mode: previous button - date - next button
                     navigationButton(
                         direction: .previous,
-                        enabled: true,
+                        enabled: isEnabled,
                         action: onPreviousDay
                     )
                     
@@ -54,12 +55,13 @@ struct AdaptiveDateNavigationBar: View {
                     
                     centerContent
                         .animation(.easeInOut(duration: 0.3), value: mode)
+                        .disabled(!isEnabled) // Disable date picker when not enabled
                     
                     Spacer()
                     
                     navigationButton(
                         direction: .next,
-                        enabled: true,
+                        enabled: isEnabled,
                         action: onNextDay
                     )
                 } else {
@@ -188,33 +190,36 @@ struct AdaptiveDateNavigationBar: View {
 private struct DateDisplayView: View {
     let date: Date
     let onTapped: () -> Void
+    @Environment(\.isEnabled) private var isEnabled
     
     var body: some View {
         Button(action: onTapped) {
             VStack(spacing: 1) {
                 Text(date, style: .date)
                     .font(.system(size: 14, weight: .semibold))
-                    .foregroundColor(.primary)
+                    .foregroundColor(isEnabled ? .primary : .secondary)
                 
                 Text(dayOfWeekText(date))
                     .font(.system(size: 10, weight: .medium))
-                    .foregroundColor(.secondary)
+                    .foregroundColor(isEnabled ? .secondary : .secondary.opacity(0.6))
             }
             .padding(.horizontal, 12)
             .padding(.vertical, 6)
             .background(
                 RoundedRectangle(cornerRadius: 16)
-                    .fill(Color.blue.opacity(0.08))
+                    .fill(Color.blue.opacity(isEnabled ? 0.08 : 0.04))
                     .overlay(
                         RoundedRectangle(cornerRadius: 16)
-                            .stroke(Color.blue.opacity(0.2), lineWidth: 1)
+                            .stroke(Color.blue.opacity(isEnabled ? 0.2 : 0.1), lineWidth: 1)
                     )
             )
         }
         .buttonStyle(.plain)
+        .disabled(!isEnabled)
+        .opacity(isEnabled ? 1.0 : 0.6)
         .accessibilityLabel("选择日期")
         .accessibilityValue(DateFormatter.accessibilityDate.string(from: date))
-        .accessibilityHint("点击打开日期选择器")
+        .accessibilityHint(isEnabled ? "点击打开日期选择器" : "数据加载中，日期选择暂时不可用")
     }
     
     private func dayOfWeekText(_ date: Date) -> String {
@@ -351,7 +356,8 @@ private extension DateFormatter {
         onClearFilters: { print("Clear filters") },
         onFilterSummaryTapped: nil,
         sortOrder: nil,
-        onToggleSort: nil
+        onToggleSort: nil,
+        isEnabled: true
     )
     .padding()
     .background(Color(.systemGroupedBackground))
@@ -366,7 +372,8 @@ private extension DateFormatter {
         onClearFilters: { print("Clear filters") },
         onFilterSummaryTapped: { print("Filter summary tapped") },
         sortOrder: .newestFirst,
-        onToggleSort: { print("Toggle sort") }
+        onToggleSort: { print("Toggle sort") },
+        isEnabled: true
     )
     .padding()
     .background(Color(.systemGroupedBackground))

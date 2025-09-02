@@ -65,10 +65,22 @@ class CustomerOutOfStockDashboardState: ObservableObject {
     @Published var statusTabAnimationScale: CGFloat = 1.0
     @Published var isProcessingStatusChange = false
     
+    // Data loading lock state - prevents concurrent operations
+    @Published var isDataOperationLocked = false
+    @Published var lockMessage = ""
+    
     // Debouncing state for performance optimization
     var statusChangeTimer: Timer?
+    var dateChangeTimer: Timer?
     var pendingStatusChange: OutOfStockStatus?
-    let statusChangeDebounceDelay: TimeInterval = 0.3
+    var pendingDateChange: Date?
+    let statusChangeDebounceDelay: TimeInterval = 0.15
+    let dateChangeDebounceDelay: TimeInterval = 0.2
+    
+    // Comprehensive data loading state - prevents concurrent UI operations
+    var isDataLocked: Bool {
+        return isLoading || isRefreshing || isProcessingStatusChange || isDataOperationLocked
+    }
     
     // MARK: - Data State
     
@@ -110,6 +122,48 @@ class CustomerOutOfStockDashboardState: ObservableObject {
     
     var isInFilterMode: Bool {
         currentViewMode.isFilterMode
+    }
+    
+    // MARK: - Debouncing Methods
+    
+    func requestStatusChange(_ status: OutOfStockStatus?) {
+        // Cancel any pending status change
+        statusChangeTimer?.invalidate()
+        pendingStatusChange = status
+        
+        // Set lighter processing state (UI already updated)
+        isProcessingStatusChange = true
+        
+        statusChangeTimer = Timer.scheduledTimer(withTimeInterval: statusChangeDebounceDelay, repeats: false) { _ in
+            Task { @MainActor in
+                // No need to update selectedStatusTab again - already done in UI
+                self.isProcessingStatusChange = false
+                self.pendingStatusChange = nil
+            }
+        }
+    }
+    
+    func requestDateChange(_ date: Date) {
+        // Cancel any pending date change
+        dateChangeTimer?.invalidate()
+        pendingDateChange = date
+        
+        // Set operation lock to prevent UI interactions (no message - rely on skeleton)
+        isDataOperationLocked = true
+        
+        dateChangeTimer = Timer.scheduledTimer(withTimeInterval: dateChangeDebounceDelay, repeats: false) { _ in
+            Task { @MainActor in
+                self.selectedDate = self.pendingDateChange ?? date
+                self.updateDateInNavigationMode(self.selectedDate)
+                self.isDataOperationLocked = false
+                self.pendingDateChange = nil
+            }
+        }
+    }
+    
+    func setDataOperationLock(_ locked: Bool, message: String = "") {
+        isDataOperationLocked = locked
+        lockMessage = message
     }
 }
 
@@ -375,6 +429,7 @@ struct CustomerOutOfStockDashboard: View {
         }
     }
     
+    
     // MARK: - Header Section
     
     private var headerSection: some View {
@@ -451,7 +506,8 @@ struct CustomerOutOfStockDashboard: View {
                 onClearFilters: clearFilters,
                 onFilterSummaryTapped: { dashboardState.showingFilterPanel = true },
                 sortOrder: dashboardState.sortOrder,
-                onToggleSort: toggleSortOrder
+                onToggleSort: toggleSortOrder,
+                isEnabled: !dashboardState.isDataLocked
             )
             
         }
@@ -485,7 +541,7 @@ struct CustomerOutOfStockDashboard: View {
                         isSelected: dashboardState.selectedStatusTab == nil,
                         onTap: { handleStatusTabTap(nil) }
                     )
-                    .disabled(dashboardState.isProcessingStatusChange || dashboardState.isRefreshing)
+                    .disabled(dashboardState.isDataLocked)
                     
                     QuickStatCard(
                         title: "待处理",
@@ -497,7 +553,7 @@ struct CustomerOutOfStockDashboard: View {
                         isSelected: dashboardState.selectedStatusTab == .pending,
                         onTap: { handleStatusTabTap(.pending) }
                     )
-                    .disabled(dashboardState.isProcessingStatusChange || dashboardState.isRefreshing)
+                    .disabled(dashboardState.isDataLocked)
                     
                     QuickStatCard(
                         title: "已完成",
@@ -509,7 +565,7 @@ struct CustomerOutOfStockDashboard: View {
                         isSelected: dashboardState.selectedStatusTab == .completed,
                         onTap: { handleStatusTabTap(.completed) }
                     )
-                    .disabled(dashboardState.isProcessingStatusChange || dashboardState.isRefreshing)
+                    .disabled(dashboardState.isDataLocked)
                     
                     QuickStatCard(
                         title: "已退货",
@@ -521,7 +577,7 @@ struct CustomerOutOfStockDashboard: View {
                         isSelected: dashboardState.selectedStatusTab == .returned,
                         onTap: { handleStatusTabTap(.returned) }
                     )
-                    .disabled(dashboardState.isProcessingStatusChange || dashboardState.isRefreshing)
+                    .disabled(dashboardState.isDataLocked)
                 }
                 .padding(.horizontal, 20)
                 .padding(.vertical, 16)
@@ -1126,6 +1182,13 @@ struct CustomerOutOfStockDashboard: View {
     }
     
     private func adaptiveNextDay() {
+        // Prevent operation if data is currently locked
+        guard !dashboardState.isDataLocked else {
+            print("🚫 [Adaptive Navigation] Operation blocked - data is currently loading")
+            showDataLockedFeedback()
+            return
+        }
+        
         if case .dateNavigation = dashboardState.currentViewMode {
             let nextDate = Calendar.current.date(byAdding: .day, value: 1, to: dashboardState.selectedDate) ?? dashboardState.selectedDate
             
@@ -1137,12 +1200,16 @@ struct CustomerOutOfStockDashboard: View {
                 return
             }
             
-            dashboardState.selectedDate = nextDate
-            // 重置状态选择，回到"总计"
-            dashboardState.selectedStatusTab = nil
-            dashboardState.updateDateInNavigationMode(nextDate)
+            // Use debounced date change
+            dashboardState.requestDateChange(nextDate)
+            
+            // Reset status selection to "总计"
+            withAnimation(.easeInOut(duration: 0.3)) {
+                dashboardState.selectedStatusTab = nil
+            }
             
             Task {
+                try? await Task.sleep(nanoseconds: UInt64(dashboardState.dateChangeDebounceDelay * 1_000_000_000))
                 print("🔄 [Adaptive Navigation] Loading data for next date...")
                 await refreshData()
                 print("✅ [Adaptive Navigation] Data refresh completed")
@@ -1186,6 +1253,13 @@ struct CustomerOutOfStockDashboard: View {
     }
     
     private func previousDay() {
+        // Prevent operation if data is currently locked
+        guard !dashboardState.isDataLocked else {
+            print("🚫 [日期切换] Operation blocked - data is currently loading")
+            showDataLockedFeedback()
+            return
+        }
+        
         print("📅 [日期切换] 点击上一天按钮")
         
         let currentDate = dashboardState.selectedDate
@@ -1196,14 +1270,16 @@ struct CustomerOutOfStockDashboard: View {
         
         print("📅 [日期切换] 从 \(currentDate) 切换到 \(newDate)")
         
+        // Use debounced date change
+        dashboardState.requestDateChange(newDate)
+        
+        // Reset status selection to "总计"
         withAnimation(.easeInOut(duration: 0.3)) {
-            dashboardState.selectedDate = newDate
-            // 重置状态选择，回到"总计"
             dashboardState.selectedStatusTab = nil
         }
-        dashboardState.updateDateInNavigationMode(newDate)
         
         Task {
+            try? await Task.sleep(nanoseconds: UInt64(dashboardState.dateChangeDebounceDelay * 1_000_000_000))
             print("🔄 [日期切换] 开始刷新数据...")
             await refreshData()
             print("✅ [日期切换] 数据刷新完成")
@@ -1316,24 +1392,61 @@ struct CustomerOutOfStockDashboard: View {
     // MARK: - Status Tab Filtering
     
     private func handleStatusTabTap(_ status: OutOfStockStatus?) {
+        // Prevent operation if data is currently locked
+        guard !dashboardState.isDataLocked else {
+            print("🚫 [Status Filter] Operation blocked - data is currently loading")
+            showDataLockedFeedback()
+            return
+        }
+        
         print("📊 [Status Filter] Tapped status tab: \(status?.displayName ?? "总计")")
         
         // If tapping the same status, clear the filter
+        let targetStatus: OutOfStockStatus?
         if dashboardState.selectedStatusTab == status {
-            dashboardState.selectedStatusTab = nil
+            targetStatus = nil
             print("📊 [Status Filter] Cleared filter - showing all items")
         } else {
-            dashboardState.selectedStatusTab = status
+            targetStatus = status
             print("📊 [Status Filter] Applied filter: \(status?.displayName ?? "总计")")
         }
         
-        // Refresh data with new filter
+        // Immediate UI update for better responsiveness
+        withAnimation(.easeInOut(duration: 0.2)) {
+            dashboardState.selectedStatusTab = targetStatus
+        }
+        
+        // Use debounced data refresh to prevent multiple requests
+        dashboardState.requestStatusChange(targetStatus)
+        
+        // Refresh data with new filter after debounce delay
         Task {
+            try? await Task.sleep(nanoseconds: UInt64(dashboardState.statusChangeDebounceDelay * 1_000_000_000))
             await refreshData()
         }
     }
     
-    // Removed performDebouncedStatusChange and related methods - simplified status filtering
+    // MARK: - User Feedback Methods
+    
+    private func showDataLockedFeedback() {
+        // Provide lighter haptic feedback
+        let impactFeedback = UIImpactFeedbackGenerator(style: .light)
+        impactFeedback.impactOccurred()
+        
+        // Show visual feedback - could be enhanced with toast notification
+        print("💬 [User Feedback] 数据正在加载中，请稍候...")
+        
+        // Quicker and lighter animation feedback
+        withAnimation(.easeInOut(duration: 0.15)) {
+            dashboardState.statusTabAnimationScale = 0.97
+        }
+        
+        DispatchQueue.main.asyncAfter(deadline: .now() + 0.15) {
+            withAnimation(.easeInOut(duration: 0.15)) {
+                dashboardState.statusTabAnimationScale = 1.0
+            }
+        }
+    }
 
     // MARK: - Phase 5 View Preloading Methods
     
@@ -1840,6 +1953,7 @@ private struct QuickStatCard: View {
     let onTap: () -> Void
     
     @State private var isPressed = false
+    @Environment(\.isEnabled) private var isEnabled
     
     enum Trend {
         case up, down, stable
@@ -1866,25 +1980,25 @@ private struct QuickStatCard: View {
             HStack {
                 Image(systemName: icon)
                     .font(.system(size: 16))
-                    .foregroundColor(isSelected ? .white : color)
+                    .foregroundColor(isSelected ? .white : (isEnabled ? color : color.opacity(0.5)))
                 
                 Spacer()
                 
                 if let trend = trend {
                     Image(systemName: trend.icon)
                         .font(.system(size: 10))
-                        .foregroundColor(isSelected ? .white.opacity(0.8) : trend.color)
+                        .foregroundColor(isSelected ? .white.opacity(0.8) : (isEnabled ? trend.color : trend.color.opacity(0.5)))
                 }
             }
             
             VStack(spacing: 2) {
                 Text(value)
                     .font(.system(size: 18, weight: .bold))
-                    .foregroundColor(isSelected ? .white : .primary)
+                    .foregroundColor(isSelected ? .white : (isEnabled ? .primary : .secondary))
                 
                 Text(title)
                     .font(.system(size: 10))
-                    .foregroundColor(isSelected ? .white.opacity(0.9) : .secondary)
+                    .foregroundColor(isSelected ? .white.opacity(0.9) : (isEnabled ? .secondary : .secondary.opacity(0.6)))
             }
         }
         .padding(12)
@@ -1892,10 +2006,10 @@ private struct QuickStatCard: View {
             RoundedRectangle(cornerRadius: 12)
                 .fill(isSelected ? color : Color(.systemBackground))
                 .shadow(
-                    color: isSelected ? color.opacity(0.3) : .black.opacity(0.05), 
-                    radius: isSelected ? 8 : 4, 
+                    color: isSelected ? color.opacity(0.3) : .black.opacity(isEnabled ? 0.05 : 0.02), 
+                    radius: isSelected ? 8 : (isEnabled ? 4 : 2), 
                     x: 0, 
-                    y: isSelected ? 4 : 2
+                    y: isSelected ? 4 : (isEnabled ? 2 : 1)
                 )
         )
         .overlay(
@@ -1903,21 +2017,31 @@ private struct QuickStatCard: View {
                 .stroke(isSelected ? color : Color.clear, lineWidth: isSelected ? 2 : 0)
         )
         .scaleEffect(isPressed ? 0.95 : 1.0)
-        .animation(.spring(response: 0.3, dampingFraction: 0.7), value: isSelected)
-        .animation(.easeInOut(duration: 0.1), value: isPressed)
+        .opacity(isEnabled ? 1.0 : 0.8)
+        .animation(.spring(response: 0.2, dampingFraction: 0.8), value: isSelected)
+        .animation(.easeInOut(duration: 0.15), value: isPressed)
+        .animation(.easeInOut(duration: 0.15), value: isEnabled)
         .onTapGesture {
-            // Add haptic feedback
-            let impactFeedback = UIImpactFeedbackGenerator(style: .medium)
+            guard isEnabled else {
+                // Provide lighter disabled feedback
+                let impactFeedback = UIImpactFeedbackGenerator(style: .light)
+                impactFeedback.impactOccurred()
+                print("🚫 [QuickStatCard] Tap blocked - data is currently loading")
+                return
+            }
+            
+            // Add lighter haptic feedback for enabled state
+            let impactFeedback = UIImpactFeedbackGenerator(style: .light)
             impactFeedback.impactOccurred()
             
-            // Trigger press animation
-            withAnimation(.easeInOut(duration: 0.1)) {
+            // Quicker press animation
+            withAnimation(.easeInOut(duration: 0.08)) {
                 isPressed = true
             }
             
             // Reset press animation and call action
-            DispatchQueue.main.asyncAfter(deadline: .now() + 0.1) {
-                withAnimation(.easeInOut(duration: 0.1)) {
+            DispatchQueue.main.asyncAfter(deadline: .now() + 0.08) {
+                withAnimation(.easeInOut(duration: 0.08)) {
                     isPressed = false
                 }
                 onTap()
@@ -2325,3 +2449,4 @@ private struct CustomEmptyStateView: View {
     CustomerOutOfStockDashboard()
         .environmentObject(ServiceFactory(repositoryFactory: LocalRepositoryFactory(modelContext: context)))
 }
+
