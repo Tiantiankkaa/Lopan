@@ -1,10 +1,10 @@
-# CLAUDE.md — iOS Engineering & Claude Code Collaboration Guide (2025 · Professional Edition, EN)
+# CLAUDE.md — iOS Engineering Guide for Lopan
 
-> Purpose: Establish a production‑grade baseline for **Lopan** iOS, aligned with Apple platform best practices and safe AI collaboration. This is the single source of truth for architecture, data, networking, security & privacy, observability, testing/CI, and role module boundaries.
+> Core architecture and development guidelines for the Lopan iOS application.
 
 ---
 
-## 0. Golden Rules (NEVER / ALWAYS)
+## Golden Rules
 
 **NEVER**
 - Skip guardrails: no `--no-verify`, no disabled tests, no red CI merges
@@ -12,51 +12,40 @@
 - Leak sensitive data: never log PII/tokens/keys; avoid screenshots containing secrets
 
 **ALWAYS**
-- Commit in small, reversible increments with clear “why” in commit/PR
+- Commit in small, reversible increments with clear "why" in commit/PR
 - Go through **Service → Repository** for all data and external calls
 - Ship PRs with tests, docs updates, and security/privacy self‑check completed
 
 ---
 
-## 1. Platform & Build
+## Platform & Build
 
-### 1.1 Targets & Dependencies
 - iOS 17+; latest stable Xcode; Swift 5.9+
-- **Swift Package Manager** for dependencies; avoid introducing CocoaPods unless reviewed
-- Environments: Debug / Release (optionally Staging); config values via **.xcconfig** (never commit secrets)
-
-### 1.2 Launch & Tests
-- Open `Lopan.xcodeproj` → select device/simulator → **Run**
-- Clean build: Product → **Clean Build Folder**
-- Test plans: `LopanTests` (unit) / `LopanUITests` (UI); coverage target ≥ 70% overall, ≥ 85% for core services
+- **Swift Package Manager** for dependencies
+- Test coverage target ≥ 70% overall, ≥ 85% for core services
 
 ---
 
-## 2. Architecture & Dependency Injection
+## Architecture
 
-### 2.1 Layering
+### Layering
 ```
-SwiftUI View  (consumes read‑only DTO/VM)
-   │
-   ▼
-Service (business orchestration / validation / authorization)
-   │   (protocol injection)
-   ▼
-Repository (data access protocols) ── Local (SwiftData) / Cloud (Prod)
+SwiftUI View
+   ↓
+Service (business logic)
+   ↓
+Repository (data access) ← Local (SwiftData) / Cloud
 ```
 
-### 2.2 Dependency Injection (sample)
+### Dependency Injection
 ```swift
 public protocol HasUserRepository { var users: UserRepository { get } }
 
 public struct AppDependencies: HasUserRepository {
     public let users: UserRepository
-    public init(users: UserRepository) { self.users = users }
 }
 
-private struct DependenciesKey: EnvironmentKey {
-    static let defaultValue = AppDependencies(users: LocalUserRepository())
-}
+// Environment injection
 extension EnvironmentValues {
     var deps: AppDependencies {
         get { self[DependenciesKey.self] }
@@ -65,846 +54,176 @@ extension EnvironmentValues {
 }
 ```
 
-### 2.3 Concurrency
-- Update UI and mutable state on the main thread: use `@MainActor` on VMs/entrypoints
-- Support cancellation: `try Task.checkCancellation()`; long operations and networking must be cancellable
-- Prefer **structured concurrency** (`async let`, `withTaskGroup`) over ad‑hoc `Task {}` to avoid stray tasks
+### Concurrency
+- Use `@MainActor` for UI state management
+- Support cancellation with `Task.checkCancellation()`
+- Prefer structured concurrency (`withTaskGroup`) over ad-hoc tasks
 
 ---
 
-## 3. Data & Migration (SwiftData → Cloud)
+## Data Layer
 
-### 3.1 Models & DTOs
-- SwiftData is used in development/testing only; production replaces it with a cloud backend
-- Keep **domain models** separate from **DTOs** to avoid exposing persistence internals
-
-### 3.2 Repository Protocol (example)
+### Repository Pattern
 ```swift
-public protocol UserRepository {
+protocol UserRepository {
     func fetch() async throws -> [User]
     func create(_ user: User) async throws
     func update(_ user: User) async throws
-    func remove(id: User.ID) async throws
+    func delete(id: User.ID) async throws
 }
 ```
 
-### 3.3 Migration Steps
-1) Define repository protocols & DTOs per business object  
-2) Provide Local (SwiftData) & Cloud implementations; switch via DI  
-3) Remove any direct `ModelContext` usages from Views/VMs  
-4) Provide data migration scripts and a **gray‑release rollback** plan
+### Migration Strategy (SwiftData → Cloud)
+1. Define repository protocols & DTOs
+2. Implement Local (SwiftData) & Cloud versions
+3. Remove direct `ModelContext` usage from Views
+4. Feature flag rollout with rollback plan
 
----
 
-## 3+. Mandatory Requirements for SwiftData → Cloud Migration
+## Networking
 
-### 3+.1 Schema & Modeling
-- Map each SwiftData `@Model` to a cloud table/collection with normalized fields: `id` (UUID/ULID), `createdAt`, `updatedAt`, optional `tenantId`
-- Add indexes for hot queries (e.g., `customerId + status + updatedAt DESC`)
-- Optional soft delete: `deletedAt`, filtered at the Repository layer by default
-
-### 3+.2 API Contract (Repository must enforce)
-- **Cursor‑based pagination** (`cursor/nextPageToken`) — avoid offset pagination
-- **Server‑driven** filtering/sorting; expose typed filters in repository APIs
-- **Idempotent writes** with `idempotencyKey` to safely retry failures
-- **Partial updates** (PATCH/delta) to prevent clobbering entire records
-
-### 3+.3 Auth & Authorization
-- Enforce role‑based **Row‑Level Security (RLS)** in the cloud (Salesperson/WarehouseKeeper/WorkshopManager/Admin)
-- Double‑gate sensitive writes: Use‑case authorization in Service layer **and** cloud‑side policies
-- **Audit** every write/export via `AuditEvent` with redacted context
-
-### 3+.4 Consistency & Sync
-- Define transaction boundaries for aggregates (e.g., one order/one SKU); use transactions or actor‑based serialization
-- Conflict resolution policy documented (LWW, vector clock, or merge rules)
-- **Offline replay**: local operation queue with `source`, `opId`, `retries`
-
-### 3+.5 Rollout & Rollback
-- Optional **dual‑write shadow** phase: write SwiftData + Cloud until checks pass, then switch to Cloud‑only
-- Feature flag: `FeatureFlags.useCloudRepo` for gradual rollout
-- Keep Local repository available for **instant rollback**
-
-### 3+.6 Quality & SLOs
-- Contract tests against the Cloud implementation (mock server or staging env)
-- Suggested SLOs: P95 read < 300 ms; write < 500 ms (tune per region/network)
-- Observability: record success rate/latency/retries/error codes per API
-
-### 3+.7 Supabase Notes (if chosen)
-- Postgres schema with **RLS enabled**; define fine‑grained POLICIES per role/tenant
-- Authentication via Supabase Auth; clients hold short‑lived tokens
-- Prefer RPC/views for complex reads to avoid chatty multi‑table joins from the client
-- Example (illustrative only):
-```sql
-alter table orders enable row level security;
-
-create policy salesperson_read on orders
-for select using (
-  auth.role() = 'salesperson'
-  and tenant_id = auth.jwt() ->> 'tenant_id'
-);
-
-create policy salesperson_write on orders
-for insert with check (
-  auth.role() = 'salesperson'
-  and tenant_id = auth.jwt() ->> 'tenant_id'
-);
-```
-
-### 3+.8 Execution Order (recommended)
-1) Freeze repository protocols & DTOs  
-2) Implement Cloud repository (read → write → patch → batch)  
-3) Add contract/E2E tests & metrics  
-4) Run dual‑write shadow with reconciliation  
-5) Flip `useCloudRepo` via feature flag, roll out gradually  
-6) Remove dev‑only SwiftData seeding/reset from production builds
-
----
-
-## 4. Networking, Retries & Background
-
-### 4.1 Minimal HTTP Client
+### HTTP Client
 ```swift
-public enum HTTPError: Error { case status(Int), decoding, transport(Error) }
-
-public struct HTTPClient {
-    let session: URLSession = .shared
-    public func get<T: Decodable>(_ url: URL) async throws -> T {
-        var req = URLRequest(url: url)
-        req.timeoutInterval = 20
-        let (data, resp) = try await session.data(for: req)
-        guard let http = resp as? HTTPURLResponse, (200..<300).contains(http.statusCode)
-        else { throw HTTPError.status((resp as? HTTPURLResponse)?.statusCode ?? -1) }
-        do { return try JSONDecoder().decode(T.self, from: data) }
-        catch { throw HTTPError.decoding }
+struct HTTPClient {
+    func get<T: Decodable>(_ url: URL) async throws -> T {
+        let (data, response) = try await URLSession.shared.data(from: url)
+        guard let http = response as? HTTPURLResponse,
+              (200..<300).contains(http.statusCode) else {
+            throw HTTPError.invalidResponse
+        }
+        return try JSONDecoder().decode(T.self, from: data)
     }
 }
 ```
 
-### 4.2 Exponential Backoff (jittered)
+### Retry Logic
 ```swift
-func withRetry<T>(max: Int = 3, op: @escaping () async throws -> T) async throws -> T {
-    var attempt = 0
-    while true {
-        do { return try await op() }
+func withRetry<T>(_ operation: () async throws -> T) async throws -> T {
+    for attempt in 1...3 {
+        do { return try await operation() }
         catch {
-            attempt += 1; if attempt >= max { throw error }
-            let delay = pow(2.0, Double(attempt)) + Double.random(in: 0...0.5)
+            if attempt == 3 { throw error }
+            let delay = pow(2.0, Double(attempt))
             try? await Task.sleep(nanoseconds: UInt64(delay * 1_000_000_000))
         }
     }
+    fatalError() // Should never reach here
 }
 ```
 
-### 4.3 ATS & Certificates
-- **ATS on by default**; any exception must be domain‑scoped, time‑boxed, and justified
-- If you pin certificates/keys, define rotation and fallback strategies
+## Security & Privacy
 
-### 4.4 Background Tasks (BGTaskScheduler)
+### Keychain
 ```swift
-BGTaskScheduler.shared.register(forTaskWithIdentifier: "com.lopan.refresh", using: nil) { task in
-    Task {
-        defer { task.setTaskCompleted(success: true) }
-        // Call refresh service; make it cancellable and time‑bounded
-    }
-}
-
-func scheduleAppRefresh() {
-    let req = BGAppRefreshTaskRequest(identifier: "com.lopan.refresh")
-    req.earliestBeginDate = Date(timeIntervalSinceNow: 15 * 60)
-    try? BGTaskScheduler.shared.submit(req)
-}
-```
-
----
-
-## 5. Security & Privacy
-
-### 5.1 Keychain Wrapper (sample)
-```swift
-import Security
-
 enum Keychain {
     static func save(_ data: Data, account: String, service: String) throws {
-        let q: [String: Any] = [
+        let query: [String: Any] = [
             kSecClass as String: kSecClassGenericPassword,
             kSecAttrService as String: service,
             kSecAttrAccount as String: account,
-            kSecValueData as String: data,
-            kSecAttrAccessible as String: kSecAttrAccessibleAfterFirstUnlock
+            kSecValueData as String: data
         ]
-        SecItemDelete(q as CFDictionary)
-        let status = SecItemAdd(q as CFDictionary, nil)
-        guard status == errSecSuccess else {
-            throw NSError(domain: NSOSStatusErrorDomain, code: Int(status))
-        }
+        SecItemDelete(query as CFDictionary)
+        let status = SecItemAdd(query as CFDictionary, nil)
+        guard status == errSecSuccess else { throw KeychainError.saveFailed }
     }
 }
 ```
 
-### 5.2 Privacy Manifest & Permissions
-- Provide a project‑level `PrivacyInfo.xcprivacy` declaring data collection and **Required Reason APIs**
-- In `Info.plist`, write clear purpose strings: `NSCameraUsageDescription`, `NSPhotoLibraryUsageDescription`, `NSLocalNetworkUsageDescription`, etc.
-- **Account deletion**: include an in‑app self‑service deletion flow (data purge + token revocation)
+### Privacy Requirements
+- `PrivacyInfo.xcprivacy` for data collection declarations
+- Clear purpose strings in `Info.plist`
+- In-app account deletion flow
 
-### 5.3 Logging & Audit
+### Logging
 ```swift
-import os
 extension Logger {
     static let app = Logger(subsystem: "com.lopan.app", category: "general")
 }
-// Use privacy‑aware interpolation and avoid printing secrets
-Logger.app.info("User action: %{public}@", "list_products")
-Logger.app.error("Network error: %{public}@", "\(code)")
+// Use privacy-aware logging
+Logger.app.info("User action: %{public}@", action)
 ```
 
----
-
-## 6. Observability & Quality
-- **MetricKit** for crashes/hangs/energy diagnostics (respect privacy & regulations)
-- Add **signposts** (`os_signpost`) around critical paths for Instruments
-
----
-
-## 7. Directory Structure (Recommended)
+## Directory Structure
 ```
 Lopan/
-├── Configuration/        # .xcconfig, PrivacyInfo.xcprivacy
-├── Models/               # Domain models (SwiftData/DTO)
-├── Repository/           # Protocols & implementations (Local/Cloud/Mock)
-│   ├── Local/
-│   └── Cloud/
-├── Services/             # Business orchestration
-├── Views/                # SwiftUI (by role)
+├── Models/               # Domain models & DTOs
+├── Repository/           # Data access (Local/Cloud)
+├── Services/             # Business logic
+├── Views/                # SwiftUI by role
 │   ├── Administrator/
 │   ├── Salesperson/
 │   ├── WarehouseKeeper/
 │   ├── WorkshopManager/
 │   └── Components/       # Reusable UI
-├── Utils/                # Extensions, Logger, FeatureFlags
+├── Utils/                # Extensions, Logger
 └── Tests/                # Unit & UI tests
 ```
 
----
+### Architecture Rules
+- Views → Services only (no direct Repository access)
+- Services → Repository for data access
+- Keep role-based view separation
 
-## 7+. Directory Structure Enforcement (Executable Rules)
-1) **Path = boundary**: Views may import other Views, `Services`, and shared `Utils`; **must not** import `Repository/Local` or `Repository/Cloud` directly  
-2) **Naming**: role folders split by domain, e.g., `Views/WorkshopManager/Batches/`, `Views/WarehouseKeeper/Inventory/`  
-3) **Ownership (CODEOWNERS suggestion)**:
-```
-# Docs & Standards
-/CLAUDE*.md                    @lopan/arch-reviewers
-/Configuration/**              @lopan/release-engineers
+## Role Boundaries
 
-# Data & Repos
-/Repository/**                 @lopan/data
-/Services/**                   @lopan/serverless @lopan/ios-core
+- **Salesperson**: Customer/product management, out-of-stock tracking
+- **WarehouseKeeper**: Stock management, inventory counting
+- **WorkshopManager**: Production planning, batch scheduling
+- **Administrator**: User management, system configuration
 
-# Roles
-/Views/Administrator/**        @lopan/admin-ui
-/Views/Salesperson/**          @lopan/sales-ui
-/Views/WarehouseKeeper/**      @lopan/warehouse-ui
-/Views/WorkshopManager/**      @lopan/workshop-ui
-/Views/Components/**           @lopan/design-system
-```
-4) **SPM boundaries (optional)**: split `Repository` and `Services` into Swift packages; Views depend on `Services` only  
-5) **Lint**: add AST/custom rules (or SwiftLint custom_rules) forbidding `import SwiftData` or `URLSession` inside `Views/*`
+### Business Modules
 
----
+#### Customer Out-of-Stock Management
+- **Status Model**: `pending` | `completed` | `returned`
+- **Flow**: Request → pending → fulfilled/completed OR refunded/returned
+- **Location**: `Models/CustomerOutOfStock.swift`
 
-## 8. Role Module Boundaries (Responsibility & Data Entry)
+#### Give-Back Management
+- **Purpose**: Handle returns of delivered products
+- **Separate**: Independent from out-of-stock management
+- **Location**: `Views/Salesperson/GiveBackManagementView.swift`
 
-- **Salesperson**: customers/products, OOS tracking; read‑only inventory/production; exports must be redacted and audited  
-- **WarehouseKeeper**: stock in/out, counting; event‑sourced ledger with serialized writes per SKU (actor or transaction)  
-- **WorkshopManager**: plan/schedule, machine sync, auto‑completion; one **state machine** entrypoint for batch transitions  
-- **Administrator**: RBAC & audit, versioned config center (activate/rollback), feature flags
+## Coding Standards
+- Value semantics & immutability preferred
+- SwiftUI: minimize state, avoid long operations in Views
+- Naming: PascalCase for types, camelCase for members
 
-> No cross‑domain access: all writes go through **Service → Repository → Audit**.
+## Testing
+- **Unit**: Business rules, concurrency, mock repositories
+- **UI**: Key user flows, accessibility
+- **Integration**: Network layer with custom URLProtocol
 
-## 8.1 Business Module Clarification (重要业务模块区分)
+## CI/CD
+- Gates: lint → build → tests → privacy checks
+- Conventional commits, protected branches
+- TestFlight releases with proper changelogs
 
-### Customer Out-of-Stock Management (客户缺货管理)
-- **Purpose**: Track customer out-of-stock requests lifecycle
-- **Status Model**: THREE states only
-  - `pending`: Request registered, awaiting fulfillment (待处理)
-  - `completed`: Successfully fulfilled and delivered (已完成)
-  - `returned`: Cannot fulfill, refunded to customer (已退货)
-- **IMPORTANT**: Do NOT add extra states like inProgress or cancelled
-- **Location**: `/Models/CustomerOutOfStock.swift`
-- **Business Flow**: 
-  - Customer reports out-of-stock → pending
-  - Stock replenished and delivered → completed
-  - Cannot replenish, refund issued → returned
+## Pre-Commit Checklist
+- [ ] Service/Repository pattern followed
+- [ ] Concurrency safety (@MainActor for UI)
+- [ ] Security: no leaked secrets, proper Keychain usage
+- [ ] Privacy manifest updated
+- [ ] Tests pass, coverage targets met
+- [ ] Documentation updated
 
-### Give-Back Management (还货管理) 
-- **Purpose**: Handle customer-initiated returns of delivered products
-- **Separate Module**: Independent from out-of-stock management
-- **Location**: `/Views/Salesperson/GiveBackManagementView.swift`
-- **Business Flow**: Customer returns delivered products → process return
-- **Note**: This handles returns of already delivered goods, NOT out-of-stock refunds
+## Implementation Notes
 
-> ⚠️ **CRITICAL DISTINCTION**: Never confuse these two modules:
-> - Out-of-stock "returned" status = refund due to inability to fulfill
-> - Give-Back management = processing returns of delivered products
+### Key Patterns
+- Repository: Local/Cloud/Mock implementations
+- Service Layer: Business logic with authorization
+- Security: Role-based access, secure keychain
+- Networking: Retry logic, timeout handling
+- Testing: Mock infrastructure, realistic test data
 
----
+### Best Practices
+- Structured concurrency (TaskGroup for batches)
+- Comprehensive error handling
+- Memory pressure handling
+- Performance monitoring
 
-## 9. Coding Conventions
-- Prefer value semantics & immutability; express errors via `throws`/`Result`
-- SwiftUI: minimize state; avoid long operations directly in Views
-- Naming: types in PascalCase; members/functions in camelCase; async funcs encode side effects/timeouts/cancellation
 
 ---
 
-## 10. Testing Strategy
-- Unit: business rules, edge cases, concurrency/cancellation; inject Mock repositories
-- UI: key flows (login, order, stock, scheduling); add accessibility paths
-- Network: use custom `URLProtocol` for deterministic tests; control timeouts/retries
-
----
-
-## 11. CI/CD
-- **CI gates**: format/lint → build → unit/UI tests → static analysis → privacy checks (manifest/permissions)
-- **Conventional Commits**; protected branches + CODEOWNERS; no hook bypassing
-- **Release**: TestFlight with change log, test focus, test accounts; pre‑submission re‑check ATS/privacy manifest/account deletion
-
----
-
-## 12. Claude Code Collaboration (Hard Requirements)
-- **One task pack at a time** with context, constraints, DoD & tests
-- **Output**: smallest reviewable diff + tests + docs
-- **Safety self‑check**: Claude must answer the pre‑commit checklist (see §13) and self‑score
-
----
-
-## 13. Pre‑Commit Checklist (DoD)
-- [ ] No direct persistence access; only via Service/Repository  
-- [ ] Concurrency safe; UI updates on main; cancellable tasks where needed  
-- [ ] ATS compliant; no global exceptions; cert pinning has rotation plan  
-- [ ] Keychain/file protection configured; no sensitive logs/screenshots  
-- [ ] `PrivacyInfo.xcprivacy` and Info.plist purpose strings complete  
-- [ ] Unit/UI tests pass; coverage at target  
-- [ ] Accessibility & localization basic checks passed  
-- [ ] Change notes, migration impact, and rollback plan in PR
-
----
-
-## 14. Code Templates & Examples
-
-> **Complete Examples Available**: Detailed implementation templates, patterns, and examples are available in [CLAUDE-EXAMPLES.md](./CLAUDE-EXAMPLES.md)
-
-### Quick Reference Templates:
-- **Repository Patterns**: Local/Cloud/Mock implementations with comprehensive testing
-- **Service Layer**: Business logic orchestration with authorization and audit logging  
-- **Security & Authorization**: Role-based access control, secure keychain, audit events
-- **Networking**: Production-ready HTTP client with retry logic and background tasks
-- **Testing**: Unit/Integration/UI test templates with mock infrastructure
-- **CI/CD**: Complete GitHub Actions workflow and SwiftLint configuration
-- **Task Packs**: Claude prompt templates for different development scenarios
-
-### Key Implementation Patterns:
-- **Safe Mock Repositories**: No `fatalError()` calls, realistic test data
-- **Structured Concurrency**: TaskGroup patterns for batch operations
-- **Error Handling**: Comprehensive error types with retry strategies
-- **Performance Monitoring**: Real-time metrics collection and alerting
-- **Memory Management**: iOS memory pressure handling and cache optimization
-
----
-
-## 15. Reusable System Components (Generated from Customer Out-of-Stock Refactoring)
-
-> **Note**: The following components were created during the Customer Out-of-Stock management module refactoring and are designed for system-wide reuse across all Lopan modules.
-
-### 15.1 Security & Privacy Components
-
-#### SecureKeychain Wrapper (`Utils/Security/SecureKeychain.swift`)
-Enhanced Keychain wrapper with secure key derivation and PII protection:
-```swift
-// REUSABLE: Enhanced keychain operations with secure key derivation
-enum SecureKeychain {
-    static func saveSecurely<T: Codable>(_ value: T, forKey key: String) throws {
-        let derivedKey = deriveSecureKey(from: key)
-        let data = try JSONEncoder().encode(value)
-        try save(data, account: derivedKey, service: "com.lopan.secure")
-    }
-    
-    private static func deriveSecureKey(from key: String) -> String {
-        // Implements PBKDF2 key derivation for secure storage keys
-    }
-}
-```
-
-#### DataRedaction Utility (`Utils/Privacy/DataRedaction.swift`)
-PII-aware data redaction for logging and audit trails:
-```swift
-// REUSABLE: Privacy-aware data redaction for all logging
-struct DataRedaction {
-    static func redactPII<T>(_ value: T, fields: [String]) -> [String: Any] {
-        // Safe redaction of sensitive fields in logs and audit events
-        // Usage: DataRedaction.redactPII(user, fields: ["phone", "email"])
-    }
-}
-```
-
-### 15.2 Performance & Caching Components
-
-#### LRU Memory Cache (`Utils/Caching/LRUMemoryCache.swift`)
-Generic LRU cache with memory pressure handling:
-```swift
-// REUSABLE: Memory-efficient LRU cache for any data type
-@MainActor
-class LRUMemoryCache<Key: Hashable, Value> {
-    private var cache: [Key: Value] = [:]
-    private var accessOrder: [Key] = []
-    private let maxSize: Int
-    private let maxMemoryBytes: Int
-    
-    func get(_ key: Key) -> Value? { /* LRU access pattern */ }
-    func set(_ key: Key, value: Value) { /* Memory-aware insertion */ }
-    func handleMemoryPressure() { /* Aggressive cleanup */ }
-}
-```
-
-#### SmartCacheManager (`Utils/Caching/SmartCacheManager.swift`)
-Three-tier intelligent caching with predictive preloading:
-```swift
-// REUSABLE: Advanced caching system for high-performance data access
-@MainActor
-class SmartCacheManager<T: Cacheable> {
-    // Hot cache - frequently accessed (TTL: 5 min)
-    // Warm cache - recently accessed (TTL: 15 min)  
-    // Predictive cache - anticipated data (TTL: 1 hour)
-    
-    func getCachedData(for key: String) -> T? { /* Multi-tier lookup */ }
-    func triggerPredictivePreloading(for key: String) { /* Pattern-based preloading */ }
-}
-```
-
-### 15.3 Concurrency & Performance Patterns
-
-#### Concurrent Batch Processing Pattern
-Optimized TaskGroup pattern for batch operations:
-```swift
-// REUSABLE: Concurrent batch processing with actor safety
-func processConcurrentBatches<T, R>(
-    items: [T], 
-    batchSize: Int = 10,
-    processor: @escaping (T) async throws -> R
-) async throws -> [R] {
-    return try await withThrowingTaskGroup(of: [R].self) { group in
-        for batch in items.batched(into: batchSize) {
-            group.addTask {
-                // Process batch concurrently while maintaining actor safety
-            }
-        }
-        // Collect and flatten results
-    }
-}
-```
-
-#### Single-Pass Algorithm Optimization
-Performance pattern for O(n) complexity algorithms:
-```swift
-// REUSABLE: Single-pass statistics calculation pattern
-func calculateStatistics<T>(_ items: [T]) -> Statistics {
-    return items.reduce(into: Statistics()) { stats, item in
-        // Single iteration: update all counters and aggregates
-        // Reduces O(4n) → O(n) complexity
-    }
-}
-```
-
-### 15.4 Architecture Components
-
-#### Service Layer Base Classes
-Foundation classes for service layer architecture:
-```swift
-// REUSABLE: Base coordinator pattern for all feature modules
-@MainActor
-class BaseCoordinator<DataService, BusinessService, CacheService>: ObservableObject {
-    @Published var isLoading = false
-    @Published var error: Error?
-    
-    // Standardized error handling, loading states, and lifecycle management
-}
-
-// REUSABLE: Business service validation framework
-protocol BusinessServiceValidation {
-    associatedtype Entity
-    func validateRecord(_ record: Entity) throws
-    func validateCreationRequest(_ request: Any) throws
-}
-```
-
-#### Repository Pattern Templates
-```swift
-// REUSABLE: Generic repository with caching integration
-protocol CacheableRepository {
-    associatedtype Entity
-    associatedtype FilterCriteria
-    
-    func fetchWithCache(_ criteria: FilterCriteria) async throws -> [Entity]
-    func invalidateCache(for criteria: FilterCriteria)
-}
-```
-
-### 15.5 UI/UX Utility Components
-
-#### Memory Usage Monitoring
-```swift
-// REUSABLE: Memory usage tracking for performance debugging
-struct CacheMemoryUsage {
-    let recordsCount: Int
-    let approximateMemoryUsage: Int
-    let cacheHitRate: Double
-    let lastEvictionTime: Date?
-    
-    // Usage: let usage = cacheService.getMemoryUsage()
-}
-```
-
-#### Debounced Search Pattern
-```swift
-// REUSABLE: Search input debouncing for performance
-@MainActor
-class Debouncer {
-    private var task: Task<Void, Never>?
-    
-    func debounce(duration: TimeInterval = 0.3, action: @escaping () async -> Void) {
-        task?.cancel()
-        task = Task {
-            try? await Task.sleep(nanoseconds: UInt64(duration * 1_000_000_000))
-            await action()
-        }
-    }
-}
-```
-
-### 15.6 Usage Guidelines
-
-1. **Security Components**: Use `SecureKeychain` and `DataRedaction` for all sensitive data handling
-2. **Caching**: Implement `LRUMemoryCache` for simple caching, `SmartCacheManager` for complex scenarios with three-tier architecture
-3. **Performance**: Apply `BatchProcessor` for concurrent operations >10 items, use `PerformanceMonitor` for metrics collection
-4. **Architecture**: Extend base coordinator and repository patterns for new feature modules
-5. **Memory Management**: Implement `MemoryOptimizer` patterns, monitor with performance gates from Section 18.6
-
-### 15.7 Integration Examples
-
-```swift
-// Example: Integrating reusable components in a new feature module
-class ProductManagementCoordinator: BaseCoordinator<ProductDataService, ProductBusinessService, ProductCacheService> {
-    private let smartCache = SmartCacheManager<Product>()
-    private let performanceMonitor = PerformanceMonitor()
-    private let batchProcessor = BatchProcessor<Product>()
-    private let debouncer = Debouncer()
-    
-    func searchProducts(_ query: String) {
-        debouncer.debounce { [weak self] in
-            await self?.performanceMonitor.measureOperation("product_search") {
-                let results = await self?.smartCache.getCachedData(for: query)
-                return results ?? await self?.loadProductsWithSmartCache(query)
-            }
-        }
-    }
-    
-    func processBulkProducts(_ products: [Product]) async {
-        await batchProcessor.processBatchConcurrently(products) { product in
-            await self.processIndividualProduct(product)
-        }
-    }
-}
-```
-
----
-
-## 18. System Performance Optimization Standards
-
-> **Reference**: Performance standards derived from Customer Out-of-Stock optimization experience and iOS 17+ best practices.
-
-### 18.1 Three-Tier Caching Architecture
-
-**Implementation Requirements:**
-- **Hot Cache**: Frequently accessed data, 5-minute TTL, 5MB limit
-- **Warm Cache**: Recently accessed data, 15-minute TTL, 15MB limit  
-- **Predictive Cache**: Anticipated data based on patterns, 1-hour TTL, 30MB limit
-
-**Memory Budget Allocation:**
-- Total application memory: 150MB max
-- Cache subsystem: 50MB (Hot: 5MB, Warm: 15MB, Predictive: 30MB)
-- Business operations: 25MB
-- UI rendering: 75MB
-
-**Cache Promotion Rules:**
-```swift
-// Cache access triggers automatic promotion
-if accessCount > 3 && age < 300 { // Hot cache criteria
-    promoteToHotCache(key: key, data: data)
-} else if accessCount > 1 && age < 900 { // Warm cache criteria
-    promoteToWarmCache(key: key, data: data)
-}
-```
-
-### 18.2 Performance Benchmarks
-
-**Critical Operation Targets:**
-- Repository fetch operations: P95 < 100ms
-- Cache hit operations: P95 < 10ms
-- State updates: P95 < 50ms
-- Background sync: Complete within 30s
-- Memory pressure response: Clear 50% cache within 100ms
-
-**Response Time Requirements:**
-- UI state changes: < 16ms (60 FPS target)
-- Search operations: < 200ms (perceived instant)
-- Data loading: < 1s initial, < 300ms subsequent
-- Export operations: < 5s for typical datasets
-
-### 18.3 Swift Concurrency Optimization
-
-**Structured Concurrency Patterns:**
-```swift
-// Use TaskGroup for batch operations >10 items
-func processBatchConcurrently<T>(_ items: [T], processor: @escaping (T) async throws -> Void) async throws {
-    try await withThrowingTaskGroup(of: Void.self) { group in
-        for item in items {
-            group.addTask { try await processor(item) }
-        }
-        try await group.waitForAll()
-    }
-}
-
-// Actor isolation for cache and state management
-@MainActor
-class PerformanceOptimizedCache<T: Codable> {
-    private var hotCache: [String: CachedData<T>] = [:]
-    private var warmCache: [String: CachedData<T>] = [:]
-}
-```
-
-**Async/Await Best Practices:**
-- Use `@MainActor` for UI state management classes
-- Implement proper cancellation with `Task.checkCancellation()`
-- Leverage `AsyncSequence` for data streams
-- Apply structured concurrency patterns consistently
-
-### 18.4 Background Processing
-
-**BGTaskScheduler Integration:**
-```swift
-// Register background tasks for performance optimization
-BGTaskScheduler.shared.register(forTaskWithIdentifier: "com.lopan.cache-optimization", using: nil) { task in
-    Task {
-        defer { task.setTaskCompleted(success: true) }
-        await optimizeCacheInBackground()
-    }
-}
-```
-
-**Background Task Types:**
-- **Cache Warming**: Predictive cache population every 15 minutes
-- **Data Synchronization**: Sync operations every 30 minutes
-- **Cleanup Operations**: Memory optimization during low usage periods
-- **Performance Analysis**: Metrics collection and optimization
-
-### 18.5 Memory Management
-
-**Pressure Handling Strategy:**
-```swift
-enum MemoryPressureLevel {
-    case warning    // Clear predictive cache
-    case critical   // Clear warm cache, reduce hot cache by 50%
-    case urgent     // Keep only essential hot cache entries
-}
-
-func handleMemoryPressure(_ level: MemoryPressureLevel) async {
-    switch level {
-    case .warning:
-        await clearPredictiveCache()
-    case .critical:
-        await clearWarmCache()
-        await reduceHotCache(by: 0.5)
-    case .urgent:
-        await keepOnlyEssentialCache()
-    }
-}
-```
-
-**Memory Monitoring:**
-- Continuous monitoring with `PerformanceMonitor`
-- Automatic cache eviction based on system memory warnings
-- Proactive cleanup before reaching system limits
-- Recovery strategy with gradual cache rebuilding
-
-### 18.6 Performance Validation Gates
-
-**Mandatory Performance Checks:**
-- [ ] **Memory Usage**: Peak usage < 150MB total application memory
-- [ ] **Cache Efficiency**: Hit rate > 80% for frequently accessed data
-- [ ] **Response Time**: P95 < 100ms for critical user operations
-- [ ] **Background Tasks**: Complete within allocated time windows
-- [ ] **Memory Pressure**: Recovery within 100ms of pressure detection
-
-**Performance Regression Triggers:**
-- Memory usage increase > 20% from baseline
-- Cache hit rate drop > 10% from target
-- Response time degradation > 50% from benchmark  
-- Background task timeout > 2x expected duration
-
-### 18.7 Monitoring and Observability
-
-**Key Performance Indicators:**
-```swift
-struct PerformanceMetrics {
-    let cacheHitRate: Double
-    let averageResponseTime: TimeInterval
-    let peakMemoryUsage: Int64
-    let backgroundTaskCompletionRate: Double
-}
-```
-
-**Monitoring Implementation:**
-- Real-time performance metrics collection
-- Automated alerting for performance degradation
-- Historical performance trending
-- Integration with development and production monitoring
-
----
-
-## 19. Enhanced Code Organization Standards
-
-> **Reference**: Performance-optimized directory structure integrating Core components from Customer Out-of-Stock optimization.
-
-### 19.1 Core Directory Structure
-
-**Mandatory Organization:**
-```
-Lopan/
-├── Core/                          # System-wide reusable components
-│   ├── Cache/                     # Caching infrastructure  
-│   │   ├── SmartCacheManager.swift       # Three-tier intelligent cache
-│   │   ├── LRUMemoryCache.swift          # Generic LRU implementation
-│   │   └── CacheProtocols.swift          # Cache interfaces
-│   ├── Performance/               # Performance optimization
-│   │   ├── PerformanceMonitor.swift      # Metrics collection
-│   │   ├── BatchProcessor.swift          # Concurrent processing
-│   │   └── PerformanceGates.swift        # Validation checkpoints
-│   ├── Concurrency/              # Swift Concurrency utilities
-│   │   ├── ActorPatterns.swift           # Actor-based patterns
-│   │   ├── TaskGroupHelpers.swift        # TaskGroup utilities
-│   │   └── CancellationSupport.swift     # Cancellation handling
-│   ├── Memory/                   # Memory management
-│   │   ├── MemoryOptimizer.swift         # Memory pressure handling
-│   │   ├── MemoryMonitor.swift           # Usage tracking
-│   │   └── MemoryPressureHandler.swift   # System integration
-│   └── Security/                 # Security & privacy
-│       ├── SecureKeychain.swift          # Enhanced keychain wrapper
-│       ├── DataRedaction.swift           # PII protection
-│       └── SecurityValidator.swift       # Validation utilities
-├── Features/                     # Feature-specific modules
-│   └── CustomerOutOfStock/       # Example optimized feature
-│       ├── Domain/               # Business models & rules
-│       ├── Data/                 # Repository implementations
-│       ├── Presentation/         # ViewModels & coordinators
-│       └── UI/                   # Views (split by complexity)
-├── Models/                       # Domain models (SwiftData/DTO)
-├── Repository/                   # Data access protocols
-├── Services/                     # Business orchestration
-├── Views/                        # SwiftUI (by role, <800 lines each)
-├── Utils/                        # Extensions, Logger, FeatureFlags
-└── Tests/                        # Unit & UI tests
-```
-
-### 19.2 File Size Enforcement
-
-**Hard Limits (CI-enforced):**
-- **800 lines max per file** (excluding imports/comments)
-- **10 files max per directory** (excluding subdirectories)
-- **50 lines max per function**
-- **5 levels max nesting depth**
-
-**Violation Handling:**
-```swift
-// CI Script validation
-if fileLines > 800 {
-    print("❌ File size violation: \(fileName) has \(fileLines) lines (limit: 800)")
-    exit(1)
-}
-```
-
-### 19.3 Component Extraction Guidelines
-
-**When to Extract to Core/:**
-- Component used by >2 feature modules
-- Performance-critical functionality (caching, concurrency)
-- Cross-cutting concerns (security, monitoring, memory management)
-- Foundation patterns for architecture (coordinators, repositories)
-
-**When to Keep in Features/:**
-- Feature-specific business logic
-- UI components specific to one workflow
-- Domain models unique to the feature
-
-### 19.4 Migration Strategy
-
-**Phase 1: Foundation (Week 1)**
-- Create Core/ directory structure
-- Extract SmartCacheManager from Customer Out-of-Stock
-- Move security utilities to Core/Security/
-
-**Phase 2: Performance Infrastructure (Week 2)**
-- Extract performance monitoring components
-- Implement batch processing utilities
-- Add memory management patterns
-
-**Phase 3: Feature Restructuring (Week 3)**
-- Reorganize large feature modules
-- Split oversized files (>800 lines)
-- Apply consistent directory patterns
-
-**Phase 4: Testing & Documentation (Week 4)**
-- Add comprehensive tests for Core components
-- Update documentation and examples
-- Validate performance improvements
-
-### 19.5 Dependency Rules
-
-**Allowed Dependencies:**
-- Core/ → Foundation, Swift Standard Library only
-- Features/ → Core/, Models/, Repository/
-- Views/ → Services/, Utils/, Core/ (NO direct Repository access)
-- Services/ → Repository/, Core/, Models/
-
-**Forbidden Dependencies:**
-- Core/ → Features/ (circular dependency)
-- Views/ → Repository/ (architecture violation)
-- Repository/ → Services/ (layering violation)
-
----
-
-## Documentation Navigation
-
-This document is part of a modular documentation system:
-
-### Core Architecture
-- **[CLAUDE.md](./CLAUDE.md)** *(this document)* - Core architecture guidelines and patterns
-  - Platform setup, dependency injection, data layer, security, testing
-  - Role boundaries, coding conventions, CI/CD, collaboration protocols
-
-### Performance Optimization  
-- **[CLAUDE-PERFORMANCE.md](./CLAUDE-PERFORMANCE.md)** - System performance standards
-  - Three-tier caching, iOS 17+ patterns, memory management
-  - Background processing, monitoring, code organization
-
-### Implementation Examples
-- **[CLAUDE-EXAMPLES.md](./CLAUDE-EXAMPLES.md)** - Code templates and patterns
-  - Repository/Service templates, security implementations
-  - Testing frameworks, CI/CD configurations, task pack templates
-
-### Implementation Plans
-- **[CustomerOutOfStockOptimization_Implementation.md](./CustomerOutOfStockOptimization_Implementation.md)** - Specific optimization roadmap
-  - 4-week implementation plan, performance targets, risk assessment
-
----
-
-*Document Version: 2.0*  
-*Last Updated: 2025-08-31*  
-*Architecture: iOS 17+, SwiftUI, SwiftData → Cloud migration*
+*iOS 17+ SwiftUI Architecture Guide*
+*Last Updated: 2025-09-19*
