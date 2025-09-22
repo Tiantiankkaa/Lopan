@@ -34,42 +34,40 @@ struct UserManagementView: View {
     }
     
     var body: some View {
-        NavigationStack {
-            VStack {
-                // Search and Filter
-                VStack(spacing: 12) {
-                    TextField("搜索用户姓名、账号信息...", text: $searchText)
-                        .textFieldStyle(RoundedBorderTextFieldStyle())
-                    
-                    ScrollView(.horizontal, showsIndicators: false) {
-                        HStack(spacing: 8) {
-                            UserFilterChip(title: "全部", isSelected: selectedRole == nil) {
-                                selectedRole = nil
-                            }
-                            
-                            ForEach(UserRole.allCases.filter { $0 != .unauthorized }, id: \.self) { role in
-                                UserFilterChip(title: role.displayName, isSelected: selectedRole == role) {
-                                    selectedRole = selectedRole == role ? nil : role
-                                }
+        VStack {
+            // Search and Filter
+            VStack(spacing: 12) {
+                TextField("搜索用户姓名、账号信息...", text: $searchText)
+                    .textFieldStyle(RoundedBorderTextFieldStyle())
+
+                ScrollView(.horizontal, showsIndicators: false) {
+                    HStack(spacing: 8) {
+                        UserFilterChip(title: "全部", isSelected: selectedRole == nil) {
+                            selectedRole = nil
+                        }
+
+                        ForEach(UserRole.allCases.filter { $0 != .unauthorized }, id: \.self) { role in
+                            UserFilterChip(title: role.displayName, isSelected: selectedRole == role) {
+                                selectedRole = selectedRole == role ? nil : role
                             }
                         }
-                        .padding(.horizontal)
                     }
-                }
-                .padding()
-                
-                // Users List
-                List {
-                    ForEach(filteredUsers) { user in
-                        UserRowView(user: user, canEditRoles: !user.isAdministrator) { roles, primaryRole in
-                            updateUserRoles(user: user, roles: roles, primaryRole: primaryRole)
-                        }
-                    }
-                    .onDelete(perform: deleteUsers)
+                    .padding(.horizontal)
                 }
             }
-            .navigationTitle("用户管理")
+            .padding()
+
+            // Users List
+            List {
+                ForEach(filteredUsers) { user in
+                    UserRowView(user: user, canEditRoles: !user.isAdministrator) { roles, primaryRole in
+                        updateUserRoles(user: user, roles: roles, primaryRole: primaryRole)
+                    }
+                }
+                .onDelete(perform: deleteUsers)
+            }
         }
+        .navigationTitle("用户管理")
     }
     
     private func updateUserRoles(user: User, roles: [UserRole], primaryRole: UserRole) {

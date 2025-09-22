@@ -38,60 +38,58 @@ struct BatchManagementView: View {
     }
     
     var body: some View {
-        NavigationStack {
-            TabView(selection: $selectedTab) {
-                // Pending Review Tab
-                pendingReviewTab
-                    .tabItem {
-                        Image(systemName: "checkmark.seal")
-                        Text("batch_management_tab_pending".localized)
-                    }
-                    .tag(0)
-                
-                // History & Analytics Tab
-                historyAnalyticsTab
-                    .tabItem {
-                        Image(systemName: "clock.arrow.circlepath")
-                        Text("batch_management_tab_history".localized)
-                    }
-                    .tag(1)
-            }
-            .navigationTitle("batch_management_title".localized)
-            .navigationBarTitleDisplayMode(.large)
-            .refreshable {
-                await loadData()
-            }
-            .alert("batch_management_error_title".localized, isPresented: .constant(batchService.errorMessage != nil)) {
-                Button("common_ok".localized) {
-                    batchService.clearError()
+        TabView(selection: $selectedTab) {
+            // Pending Review Tab
+            pendingReviewTab
+                .tabItem {
+                    Image(systemName: "checkmark.seal")
+                    Text("batch_management_tab_pending".localized)
                 }
-            } message: {
-                if let errorMessage = batchService.errorMessage {
-                    Text(errorMessage)
+                .tag(0)
+
+            // History & Analytics Tab
+            historyAnalyticsTab
+                .tabItem {
+                    Image(systemName: "clock.arrow.circlepath")
+                    Text("batch_management_tab_history".localized)
                 }
+                .tag(1)
+        }
+        .navigationTitle("batch_management_title".localized)
+        .navigationBarTitleDisplayMode(.large)
+        .refreshable {
+            await loadData()
+        }
+        .alert("batch_management_error_title".localized, isPresented: .constant(batchService.errorMessage != nil)) {
+            Button("common_ok".localized) {
+                batchService.clearError()
             }
-            .sheet(isPresented: $showingReviewSheet) {
-                if let batch = selectedBatch {
-                    ReviewSheet(
-                        batch: batch,
-                        action: reviewAction,
-                        notes: $reviewNotes,
-                        batchService: batchService
-                    ) {
-                        selectedBatch = nil
-                        showingReviewSheet = false
-                        reviewNotes = ""
-                    }
+        } message: {
+            if let errorMessage = batchService.errorMessage {
+                Text(errorMessage)
+            }
+        }
+        .sheet(isPresented: $showingReviewSheet) {
+            if let batch = selectedBatch {
+                ReviewSheet(
+                    batch: batch,
+                    action: reviewAction,
+                    notes: $reviewNotes,
+                    batchService: batchService
+                ) {
+                    selectedBatch = nil
+                    showingReviewSheet = false
+                    reviewNotes = ""
                 }
             }
-            .sheet(item: $selectedBatch, onDismiss: {
-                selectedBatch = nil
-            }) { batch in
-                BatchDetailView(batch: batch, batchService: batchService)
-            }
-            .task {
-                await loadData()
-            }
+        }
+        .sheet(item: $selectedBatch, onDismiss: {
+            selectedBatch = nil
+        }) { batch in
+            BatchDetailView(batch: batch, batchService: batchService)
+        }
+        .task {
+            await loadData()
         }
     }
     

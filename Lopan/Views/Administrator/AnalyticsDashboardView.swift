@@ -116,8 +116,7 @@ struct AnalyticsDashboardView: View {
     }
     
     var body: some View {
-        NavigationStack {
-            ScrollView {
+        ScrollView {
                 VStack(spacing: LopanSpacing.contentSpacing) {
                     headerSection
 
@@ -206,7 +205,6 @@ struct AnalyticsDashboardView: View {
             .task {
                 await initializeAnalytics()
             }
-        }
     }
     
     private var navigationTitleKey: LocalizedStringKey { "admin_analytics_navigation_title" }

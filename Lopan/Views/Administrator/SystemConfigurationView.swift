@@ -27,10 +27,9 @@ struct SystemConfigurationView: View {
     private var securityService: ConfigurationSecurityService {
         appDependencies.serviceFactory.configurationSecurityService
     }
-    
+
     var body: some View {
-        NavigationStack {
-            VStack(spacing: 0) {
+        VStack(spacing: 0) {
                 // Header with quick actions
                 headerSection
                 
@@ -121,7 +120,6 @@ struct SystemConfigurationView: View {
                     }
                 }
             }
-        }
         .sheet(isPresented: $showingSecuritySettings) {
             SecuritySettingsView(securityService: securityService)
         }
