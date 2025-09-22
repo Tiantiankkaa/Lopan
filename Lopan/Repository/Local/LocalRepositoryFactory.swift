@@ -9,7 +9,7 @@ import Foundation
 import SwiftData
 
 @MainActor
-final class LocalRepositoryFactory: RepositoryFactory, @unchecked Sendable {
+final class LocalRepositoryFactory: RepositoryFactory {
     private let modelContext: ModelContext
     private lazy var auditingService: NewAuditingService = NewAuditingService(modelContext: modelContext)
     

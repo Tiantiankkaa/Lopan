@@ -133,13 +133,15 @@ struct TabBarIcon: View {
     
     private var accessibilityLabel: String {
         if let badge = badge {
-            return "\(title)，\(badge) 项待处理"
+            return String(format: "warehouse_tab_accessibility_label_with_badge".localized, title, badge)
         }
         return title
     }
     
     private var accessibilityHint: String {
-        isSelected ? "当前选中的标签页" : "点击切换到 \(title)"
+        isSelected
+        ? "warehouse_tab_accessibility_hint_selected".localized
+        : String(format: "warehouse_tab_accessibility_hint_switch".localized, title)
     }
     
     // MARK: - Animations

@@ -34,7 +34,7 @@ struct UserManagementView: View {
     }
     
     var body: some View {
-        NavigationView {
+        NavigationStack {
             VStack {
                 // Search and Filter
                 VStack(spacing: 12) {
@@ -245,7 +245,7 @@ struct MultiRolePickerView: View {
     }
     
     var body: some View {
-        NavigationView {
+        NavigationStack {
             VStack {
                 List {
                     Section("选择用户角色") {

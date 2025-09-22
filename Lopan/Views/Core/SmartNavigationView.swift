@@ -38,7 +38,7 @@ public struct SmartNavigationView<Content: View>: View {
     }
     
     public var body: some View {
-        NavigationView {
+        NavigationStack {
             content()
                 .navigationTitle(navigationTitle ?? "")
                 .environmentObject(navigationController)
@@ -431,7 +431,7 @@ public struct NavigationPerformanceView: View {
     public init() {}
     
     public var body: some View {
-        NavigationView {
+        NavigationStack {
             List {
                 Section("Navigation Performance") {
                     if let metrics = metrics {

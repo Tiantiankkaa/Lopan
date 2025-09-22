@@ -57,7 +57,7 @@ struct ReportGeneratorView: View {
     }
     
     var body: some View {
-        NavigationView {
+        NavigationStack {
             VStack(spacing: 0) {
                 // Tab selector
                 tabSelector
@@ -774,11 +774,11 @@ struct ReportHistoryCard: View {
             HStack(spacing: 8) {
                 Button("查看", action: onView)
                     .font(.caption)
-                    .foregroundColor(.blue)
+                    .foregroundColor(LopanColors.info)
                 
                 Button("删除", action: onDelete)
                     .font(.caption)
-                    .foregroundColor(.red)
+                    .foregroundColor(LopanColors.error)
             }
         }
         .padding()
@@ -805,7 +805,7 @@ struct GeneratedReportView: View {
     @Environment(\.dismiss) private var dismiss
     
     var body: some View {
-        NavigationView {
+        NavigationStack {
             ScrollView {
                 VStack(alignment: .leading, spacing: 20) {
                     // Report info

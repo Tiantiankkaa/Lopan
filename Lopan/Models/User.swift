@@ -8,7 +8,7 @@
 import Foundation
 import SwiftData
 
-enum UserRole: String, CaseIterable, Codable {
+public enum UserRole: String, CaseIterable, Codable {
     case salesperson = "salesperson"
     case warehouseKeeper = "warehouse_keeper"
     case workshopManager = "workshop_manager"

@@ -47,7 +47,7 @@ struct AddPackagingRecordView: View {
     }
     
     var body: some View {
-        NavigationView {
+        NavigationStack {
             Form {
                 Section(header: Text("基本信息")) {
                     DatePicker("包装日期", selection: .constant(selectedDate), displayedComponents: .date)

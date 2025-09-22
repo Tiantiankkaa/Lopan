@@ -26,7 +26,8 @@ struct WarehouseKeeperTabView: View {
     @State private var preloadedTabs: Set<WarehouseTab> = []
     
     var body: some View {
-        TabView(selection: $selectedTab) {
+        NavigationStack {
+            TabView(selection: $selectedTab) {
             // 包装管理 - Primary workflow (Preloaded)
             SmartTabItem(
                 tabKey: "warehouse_packaging",
@@ -42,7 +43,7 @@ struct WarehouseKeeperTabView: View {
             .tabItem {
                 TabBarIcon(
                     icon: "cube.box.fill",
-                    title: "包装管理",
+                    title: WarehouseTab.packaging.title,
                     isSelected: selectedTab == .packaging
                 )
             }
@@ -51,7 +52,7 @@ struct WarehouseKeeperTabView: View {
             // 任务提醒 - Task management (Smart preload)
             SmartTabItem(
                 tabKey: "warehouse_tasks",
-                preloadOnInit: selectedTab == .packaging // Preload if on packaging tab
+                preloadOnInit: selectedTab == .packaging
             ) {
                 TaskReminderView()
                     .preloadable(cacheKey: "warehouse_tasks") {
@@ -61,7 +62,7 @@ struct WarehouseKeeperTabView: View {
             .tabItem {
                 TabBarIcon(
                     icon: "bell.badge.fill",
-                    title: "任务提醒", 
+                    title: WarehouseTab.tasks.title,
                     isSelected: selectedTab == .tasks
                 )
             }
@@ -80,7 +81,7 @@ struct WarehouseKeeperTabView: View {
             .tabItem {
                 TabBarIcon(
                     icon: "person.2.fill",
-                    title: "团队管理",
+                    title: WarehouseTab.team.title,
                     isSelected: selectedTab == .team
                 )
             }
@@ -99,7 +100,7 @@ struct WarehouseKeeperTabView: View {
             .tabItem {
                 TabBarIcon(
                     icon: "chart.bar.fill",
-                    title: "统计分析",
+                    title: WarehouseTab.analytics.title,
                     isSelected: selectedTab == .analytics
                 )
             }
@@ -118,62 +119,61 @@ struct WarehouseKeeperTabView: View {
             .tabItem {
                 TabBarIcon(
                     icon: "info.circle.fill",
-                    title: "产品信息",
+                    title: WarehouseTab.products.title,
                     isSelected: selectedTab == .products
                 )
             }
             .tag(WarehouseTab.products)
         }
-        .tabViewStyle(.automatic)
-        .tint(LopanColors.roleWarehouseKeeper)
-        .onChange(of: selectedTab) { oldTab, newTab in
-            hapticController.selectionChanged()
-            trackTabSelection(newTab)
-            
-            // Intelligent preloading based on tab changes
-            Task {
-                await performSmartPreloading(from: oldTab, to: newTab)
+            .tabViewStyle(.automatic)
+            .tint(LopanColors.roleWarehouseKeeper)
+            .onChange(of: selectedTab) { oldTab, newTab in
+                hapticController.selectionChanged()
+                trackTabSelection(newTab)
+                
+                // Intelligent preloading based on tab changes
+                Task {
+                    await performSmartPreloading(from: oldTab, to: newTab)
+                }
             }
-        }
-        .task {
-            // Initialize preloading system
-            await initializePreloadingSystem()
-        }
-        .navigationTitle(navigationTitle)
-        .navigationBarTitleDisplayMode(.inline)
-        .toolbar {
-            ToolbarItemGroup(placement: .navigationBarTrailing) {
-                // Search button for current tab
-                if selectedTab.supportsSearch {
-                    Button(action: { performSearch() }) {
-                        Image(systemName: "magnifyingglass")
+            .task {
+                // Initialize preloading system
+                await initializePreloadingSystem()
+            }
+            .navigationTitle(navigationTitleKey)
+            .navigationBarTitleDisplayMode(.inline)
+            .toolbar {
+                ToolbarItemGroup(placement: .navigationBarTrailing) {
+                    // Search button for current tab
+                    if selectedTab.supportsSearch {
+                        Button(action: { performSearch() }) {
+                            Image(systemName: "magnifyingglass")
+                                .font(.system(size: 16, weight: .medium))
+                        }
+                        .accessibilityLabel(String(format: "warehouse_search_accessibility_label".localized, selectedTab.localizedTitle))
+                    }
+                    
+                    // Quick actions menu
+                    Button(action: { showingQuickActions = true }) {
+                        Image(systemName: "ellipsis.circle")
                             .font(.system(size: 16, weight: .medium))
                     }
-                    .accessibilityLabel("搜索\(selectedTab.title)")
+                    .accessibilityLabel("warehouse_quick_actions_accessibility_label".localized)
                 }
-                
-                // Quick actions menu
-                Button(action: { showingQuickActions = true }) {
-                    Image(systemName: "ellipsis.circle")
-                        .font(.system(size: 16, weight: .medium))
-                }
-                .accessibilityLabel("快捷操作")
             }
-        }
-        .sheet(isPresented: $showingQuickActions) {
-            QuickActionMenu(
-                selectedTab: selectedTab,
-                authService: authService,
-                navigationService: navigationService
-            )
+            .sheet(isPresented: $showingQuickActions) {
+                QuickActionMenu(
+                    selectedTab: selectedTab,
+                    authService: authService,
+                    navigationService: navigationService
+                )
+            }
         }
     }
     
     // MARK: - Computed Properties
     
-    private var navigationTitle: String {
-        "仓库管理员工作台"
-    }
+    private var navigationTitleKey: LocalizedStringKey { "warehouse_navigation_title" }
     
     // MARK: - Actions
     
@@ -340,15 +340,21 @@ enum WarehouseTab: String, CaseIterable {
     case analytics = "analytics"
     case products = "products"
     
-    var title: String {
+    private var titleKey: String {
         switch self {
-        case .packaging: return "包装管理"
-        case .tasks: return "任务提醒"
-        case .team: return "团队管理"
-        case .analytics: return "统计分析"
-        case .products: return "产品信息"
+        case .packaging: return "warehouse_tab_packaging_title"
+        case .tasks: return "warehouse_tab_tasks_title"
+        case .team: return "warehouse_tab_team_title"
+        case .analytics: return "warehouse_tab_analytics_title"
+        case .products: return "warehouse_tab_products_title"
         }
     }
+
+    var localizedTitleKey: LocalizedStringKey { LocalizedStringKey(titleKey) }
+
+    var localizedTitle: String { titleKey.localized }
+
+    var title: String { localizedTitle }
     
     var icon: String {
         switch self {
@@ -374,7 +380,7 @@ private struct TaskReminderView: View {
     var body: some View {
         NavigationStack {
             PackagingReminderView()
-                .navigationTitle("任务提醒")
+                .navigationTitle("warehouse_tab_tasks_title")
                 .navigationBarTitleDisplayMode(.large)
         }
     }
@@ -384,7 +390,7 @@ private struct TeamManagementView: View {
     var body: some View {
         NavigationStack {
             PackagingTeamManagementView()
-                .navigationTitle("团队管理")
+                .navigationTitle("warehouse_tab_team_title")
                 .navigationBarTitleDisplayMode(.large)
         }
     }
@@ -394,7 +400,7 @@ private struct AnalyticsView: View {
     var body: some View {
         NavigationStack {
             PackagingStatisticsView()
-                .navigationTitle("统计分析")
+                .navigationTitle("warehouse_tab_analytics_title")
                 .navigationBarTitleDisplayMode(.large)
         }
     }
@@ -404,7 +410,7 @@ private struct ProductInfoView: View {
     var body: some View {
         NavigationStack {
             ProductionStyleListView()
-                .navigationTitle("产品信息")
+                .navigationTitle("warehouse_tab_products_title")
                 .navigationBarTitleDisplayMode(.large)
         }
     }
@@ -414,14 +420,19 @@ private struct ProductInfoView: View {
 // Using HapticFeedback from LopanAnimation design system
 
 private class TabHapticController {
-    private let selectionFeedback = UISelectionFeedbackGenerator()
-    
     func selectionChanged() {
-        selectionFeedback.selectionChanged()
+        HapticFeedback.selection()
     }
     
     func impact(_ style: UIImpactFeedbackGenerator.FeedbackStyle = .medium) {
-        HapticFeedback.medium()
+        switch style {
+        case .light:
+            HapticFeedback.light()
+        case .heavy:
+            HapticFeedback.heavy()
+        default:
+            HapticFeedback.medium()
+        }
     }
 }
 

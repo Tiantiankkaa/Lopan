@@ -65,6 +65,47 @@ struct BarChartItem: Identifiable {
     }
 }
 
+// MARK: - Shared Analytics Surface
+
+struct AnalyticsSurface<Content: View>: View {
+    private let content: Content
+
+    init(@ViewBuilder content: () -> Content) {
+        self.content = content()
+    }
+
+    var body: some View {
+        content
+            .padding(LopanSpacing.cardPadding)
+            .frame(maxWidth: .infinity, alignment: .leading)
+            .background(backgroundView)
+            .clipShape(RoundedRectangle(cornerRadius: LopanCornerRadius.card, style: .continuous))
+            .overlay(
+                RoundedRectangle(cornerRadius: LopanCornerRadius.card, style: .continuous)
+                    .stroke(LopanColors.border.opacity(0.08), lineWidth: 1)
+            )
+            .shadow(color: Color.black.opacity(0.05), radius: 12, x: 0, y: 6)
+    }
+
+    @ViewBuilder
+    private var backgroundView: some View {
+        if #available(iOS 26.0, *) {
+            LiquidGlassMaterial(type: .card, cornerRadius: LopanCornerRadius.card)
+        } else if #available(iOS 17.0, *) {
+            RoundedRectangle(cornerRadius: LopanCornerRadius.card, style: .continuous)
+                .fill(.ultraThinMaterial)
+        } else {
+            RoundedRectangle(cornerRadius: LopanCornerRadius.card, style: .continuous)
+                .fill(LopanColors.backgroundSecondary)
+        }
+    }
+}
+
+@inline(__always)
+private func analyticsLocalized(_ key: String) -> String {
+    key.localized
+}
+
 // MARK: - Production Metrics Chart (生产指标图表)
 
 /// Comprehensive production metrics visualization
@@ -72,25 +113,25 @@ struct BarChartItem: Identifiable {
 struct ProductionMetricsChart: View {
     let metrics: ProductionMetrics
     @State private var selectedMetric: MetricType = .batchCompletion
-    @State private var animationProgress: Double = 0
-    
-    enum MetricType: String, CaseIterable {
-        case batchCompletion = "batch_completion"
-        case machineUtilization = "machine_utilization"
-        case productivity = "productivity"
-        case quality = "quality"
-        case shiftComparison = "shift_comparison"
-        
-        var displayName: String {
+    @Environment(\.accessibilityReduceMotion) private var reduceMotion
+
+    private let chartHeight: CGFloat = 320
+
+    enum MetricType: CaseIterable, Identifiable {
+        case batchCompletion, machineUtilization, productivity, quality, shiftComparison
+
+        var id: Self { self }
+
+        var titleKey: LocalizedStringKey {
             switch self {
-            case .batchCompletion: return "批次完成率"
-            case .machineUtilization: return "机台利用率"
-            case .productivity: return "生产效率"
-            case .quality: return "质量指标"
-            case .shiftComparison: return "班次对比"
+            case .batchCompletion: return "analytics_metrics_selector_batch_completion"
+            case .machineUtilization: return "analytics_metrics_selector_machine_utilization"
+            case .productivity: return "analytics_metrics_selector_productivity"
+            case .quality: return "analytics_metrics_selector_quality"
+            case .shiftComparison: return "analytics_metrics_selector_shift"
             }
         }
-        
+
         var icon: String {
             switch self {
             case .batchCompletion: return "list.clipboard"
@@ -101,112 +142,115 @@ struct ProductionMetricsChart: View {
             }
         }
     }
-    
+
     var body: some View {
-        VStack(spacing: 20) {
-            // Metric selector
-            ScrollView(.horizontal, showsIndicators: false) {
-                HStack(spacing: 12) {
-                    ForEach(MetricType.allCases, id: \.self) { metric in
-                        MetricSelectorButton(
-                            metric: metric,
-                            isSelected: selectedMetric == metric,
-                            action: { selectedMetric = metric }
-                        )
+        AnalyticsSurface {
+            VStack(spacing: LopanSpacing.contentSpacing) {
+                ScrollView(.horizontal, showsIndicators: false) {
+                    HStack(spacing: LopanSpacing.sm) {
+                        ForEach(MetricType.allCases) { metric in
+                            MetricSelectorButton(
+                                titleKey: metric.titleKey,
+                                icon: metric.icon,
+                                isSelected: selectedMetric == metric,
+                                action: { selectedMetric = metric }
+                            )
+                        }
                     }
+                    .padding(.vertical, LopanSpacing.xxxs)
                 }
-                .padding(.horizontal)
+                .accessibilityElement(children: .contain)
+                .accessibilityLabel(Text("analytics_metrics_selector_accessibility_label"))
+                .accessibilityHint(Text("analytics_metrics_selector_accessibility_hint"))
+
+                chartContent
+                    .frame(height: chartHeight)
+                    .animation(reduceMotion ? nil : .easeInOut(duration: 0.45), value: selectedMetric)
             }
-            
-            // Chart content
-            Group {
-                switch selectedMetric {
-                case .batchCompletion:
-                    BatchCompletionChart(metrics: metrics)
-                case .machineUtilization:
-                    MachineUtilizationChart(metrics: metrics)
-                case .productivity:
-                    ProductivityChart(metrics: metrics)
-                case .quality:
-                    QualityChart(metrics: metrics)
-                case .shiftComparison:
-                    ShiftComparisonChart(metrics: metrics)
-                }
-            }
-            .frame(height: 300)
-            .animation(.easeInOut(duration: 0.5), value: selectedMetric)
         }
-        .padding()
-        .background(
-            RoundedRectangle(cornerRadius: 12)
-                .fill(Color(.secondarySystemBackground))
-        )
-        .onAppear {
-            withAnimation(.easeInOut(duration: 1.0)) {
-                animationProgress = 1.0
-            }
+    }
+
+    @ViewBuilder
+    private var chartContent: some View {
+        switch selectedMetric {
+        case .batchCompletion:
+            BatchCompletionChart(metrics: metrics)
+        case .machineUtilization:
+            MachineUtilizationChart(metrics: metrics)
+        case .productivity:
+            ProductivityChart(metrics: metrics)
+        case .quality:
+            QualityChart(metrics: metrics)
+        case .shiftComparison:
+            ShiftComparisonChart(metrics: metrics)
         }
     }
 }
 
-// MARK: - Metric Selector Button (指标选择按钮)
-
 struct MetricSelectorButton: View {
-    let metric: ProductionMetricsChart.MetricType
+    let titleKey: LocalizedStringKey
+    let icon: String
     let isSelected: Bool
     let action: () -> Void
-    
+
     var body: some View {
         Button(action: action) {
-            HStack(spacing: 8) {
-                Image(systemName: metric.icon)
+            HStack(spacing: LopanSpacing.xxxs) {
+                Image(systemName: icon)
                     .font(.caption)
-                
-                Text(metric.displayName)
+
+                Text(titleKey)
                     .font(.caption)
                     .fontWeight(.medium)
             }
-            .padding(.horizontal, 12)
-            .padding(.vertical, 8)
+            .padding(.horizontal, LopanSpacing.sm)
+            .padding(.vertical, LopanSpacing.xs)
             .background(
-                RoundedRectangle(cornerRadius: 20)
-                    .fill(isSelected ? Color.blue : Color(.tertiarySystemBackground))
+                Capsule(style: .continuous)
+                    .fill(isSelected ? LopanColors.info : LopanColors.backgroundSecondary)
             )
-            .foregroundColor(isSelected ? .white : .primary)
+            .foregroundColor(isSelected ? LopanColors.textOnPrimary : LopanColors.textPrimary)
         }
-        .buttonStyle(PlainButtonStyle())
+        .buttonStyle(.plain)
+        .accessibilityElement(children: .ignore)
+        .accessibilityLabel(Text(titleKey))
+        .accessibilityValue(Text(isSelected ? "admin_common_selected".localized : "admin_common_not_selected".localized))
     }
 }
 
-// MARK: - Specific Chart Components (具体图表组件)
-
-/// Batch completion rate visualization
-/// 批次完成率可视化
 struct BatchCompletionChart: View {
     let metrics: ProductionMetrics
-    
+
+    private var completionRateText: String {
+        metrics.batchCompletionRate.formatted(.percent.precision(.fractionLength(1)))
+    }
+
+    private var completionDescription: String {
+        String(format: analyticsLocalized("analytics_metrics_batch_completion_value"), completionRateText)
+    }
+
     private var chartData: [BarChartItem] {
         [
-            BarChartItem(category: "已完成", value: Double(metrics.completedBatches), color: .green),
-            BarChartItem(category: "执行中", value: Double(metrics.activeBatches), color: .blue),
-            BarChartItem(category: "已拒绝", value: Double(metrics.rejectedBatches), color: .red)
+            BarChartItem(category: analyticsLocalized("analytics_metrics_status_completed"), value: Double(metrics.completedBatches), color: LopanColors.success),
+            BarChartItem(category: analyticsLocalized("analytics_metrics_status_in_progress"), value: Double(metrics.activeBatches), color: LopanColors.info),
+            BarChartItem(category: analyticsLocalized("analytics_metrics_status_rejected"), value: Double(metrics.rejectedBatches), color: LopanColors.error)
         ]
     }
-    
+
     var body: some View {
-        VStack(alignment: .leading, spacing: 16) {
+        VStack(alignment: .leading, spacing: LopanSpacing.sm) {
             HStack {
-                Text("批次状态分布")
+                Text("analytics_metrics_batch_distribution_title")
                     .font(.headline)
-                    .foregroundColor(.primary)
-                
+                    .foregroundColor(LopanColors.textPrimary)
+
                 Spacer()
-                
-                Text("\(String(format: "%.1f", metrics.batchCompletionRate * 100))% 完成率")
+
+                Text(completionDescription)
                     .font(.subheadline)
-                    .foregroundColor(.secondary)
+                    .foregroundColor(LopanColors.textSecondary)
             }
-            
+
             if #available(iOS 16.0, *) {
                 Chart(chartData) { item in
                     BarMark(
@@ -227,46 +271,53 @@ struct BatchCompletionChart: View {
                     }
                 }
             } else {
-                // Fallback for iOS 15
                 LegacyBarChart(data: chartData)
             }
         }
+        .accessibilityElement(children: .contain)
+        .accessibilityLabel(Text("analytics_metrics_batch_distribution_title"))
+        .accessibilityValue(Text(completionDescription))
     }
 }
 
-/// Machine utilization visualization
-/// 机台利用率可视化
 struct MachineUtilizationChart: View {
     let metrics: ProductionMetrics
-    
+
+    private var utilizationText: String {
+        metrics.machineUtilizationRate.formatted(.percent.precision(.fractionLength(1)))
+    }
+
+    private var utilizationDescription: String {
+        String(format: analyticsLocalized("analytics_metrics_machine_utilization_value"), utilizationText)
+    }
+
     private var utilizationData: [PieChartSegment] {
-        let runningMachines = Double(metrics.activeMachines) * metrics.machineUtilizationRate
-        let idleMachines = Double(metrics.activeMachines) - runningMachines
-        let inactiveMachines = Double(metrics.totalMachines - metrics.activeMachines)
-        
+        let running = max(0, Double(metrics.activeMachines) * metrics.machineUtilizationRate)
+        let idle = max(0, Double(metrics.activeMachines) - running)
+        let inactive = max(0, Double(metrics.totalMachines - metrics.activeMachines))
+
         return [
-            PieChartSegment(value: runningMachines, label: "运行中", color: .green),
-            PieChartSegment(value: idleMachines, label: "空闲", color: .orange),
-            PieChartSegment(value: inactiveMachines, label: "非活跃", color: .red)
+            PieChartSegment(value: running, label: analyticsLocalized("analytics_metrics_machine_state_running"), color: LopanColors.success),
+            PieChartSegment(value: idle, label: analyticsLocalized("analytics_metrics_machine_state_idle"), color: LopanColors.warning),
+            PieChartSegment(value: inactive, label: analyticsLocalized("analytics_metrics_machine_state_inactive"), color: LopanColors.error)
         ]
     }
-    
+
     var body: some View {
-        VStack(alignment: .leading, spacing: 16) {
+        VStack(alignment: .leading, spacing: LopanSpacing.sm) {
             HStack {
-                Text("机台利用状况")
+                Text("analytics_metrics_machine_overview_title")
                     .font(.headline)
-                    .foregroundColor(.primary)
-                
+                    .foregroundColor(LopanColors.textPrimary)
+
                 Spacer()
-                
-                Text("\(String(format: "%.1f", metrics.machineUtilizationRate * 100))% 利用率")
+
+                Text(utilizationDescription)
                     .font(.subheadline)
-                    .foregroundColor(.secondary)
+                    .foregroundColor(LopanColors.textSecondary)
             }
-            
-            HStack(spacing: 20) {
-                // Pie chart
+
+            HStack(spacing: LopanSpacing.xl) {
                 if #available(iOS 16.0, *) {
                     Chart(utilizationData) { segment in
                         SectorMark(
@@ -281,83 +332,89 @@ struct MachineUtilizationChart: View {
                     LegacyPieChart(data: utilizationData)
                         .frame(width: 150, height: 150)
                 }
-                
-                // Legend
-                VStack(alignment: .leading, spacing: 8) {
+
+                VStack(alignment: .leading, spacing: LopanSpacing.xs) {
                     ForEach(utilizationData) { segment in
-                        HStack(spacing: 8) {
+                        HStack(spacing: LopanSpacing.xxxs) {
                             Circle()
                                 .fill(segment.color)
                                 .frame(width: 12, height: 12)
-                            
+
                             Text(segment.label)
                                 .font(.caption)
-                                .foregroundColor(.primary)
-                            
+                                .foregroundColor(LopanColors.textPrimary)
+
                             Spacer()
-                            
-                            Text("\(Int(segment.value))")
+
+                            Text(Int(segment.value).formatted())
                                 .font(.caption)
                                 .fontWeight(.medium)
-                                .foregroundColor(.secondary)
+                                .foregroundColor(LopanColors.textSecondary)
                         }
                     }
                 }
             }
         }
+        .accessibilityElement(children: .contain)
+        .accessibilityLabel(Text("analytics_metrics_machine_overview_title"))
+        .accessibilityValue(Text(utilizationDescription))
     }
 }
 
-/// Productivity trends visualization
-/// 生产效率趋势可视化
 struct ProductivityChart: View {
     let metrics: ProductionMetrics
-    
+
+    private var productivityText: String {
+        metrics.productivityIndex.formatted(.percent.precision(.fractionLength(1)))
+    }
+
+    private var productivityDescription: String {
+        String(format: analyticsLocalized("analytics_metrics_productivity_value"), productivityText)
+    }
+
     private var trendData: [ChartDataPoint] {
-        guard !metrics.trendData.isEmpty else {
-            return []
-        }
-        
+        guard !metrics.trendData.isEmpty else { return [] }
+
         return metrics.trendData.enumerated().map { index, point in
             ChartDataPoint(
                 x: Double(index),
                 y: point.value,
                 label: DateFormatter.shortDate.string(from: point.date),
                 category: "productivity",
-                color: .blue,
+                color: LopanColors.info,
                 date: point.date
             )
         }
     }
-    
+
     var body: some View {
-        VStack(alignment: .leading, spacing: 16) {
+        VStack(alignment: .leading, spacing: LopanSpacing.sm) {
             HStack {
-                Text("生产效率趋势")
+                Text("analytics_metrics_productivity_title")
                     .font(.headline)
-                    .foregroundColor(.primary)
-                
+                    .foregroundColor(LopanColors.textPrimary)
+
                 Spacer()
-                
-                Text("效率指数: \(String(format: "%.1f", metrics.productivityIndex * 100))%")
+
+                Text(productivityDescription)
                     .font(.subheadline)
-                    .foregroundColor(.secondary)
+                    .foregroundColor(LopanColors.textSecondary)
             }
-            
+
             if #available(iOS 16.0, *), !trendData.isEmpty {
                 Chart(trendData) { point in
                     LineMark(
                         x: .value("Time", point.x),
                         y: .value("Productivity", point.y)
                     )
-                    .foregroundStyle(.blue)
+                    .foregroundStyle(LopanColors.info)
                     .lineStyle(StrokeStyle(lineWidth: 2))
-                    
+
                     AreaMark(
                         x: .value("Time", point.x),
                         y: .value("Productivity", point.y)
                     )
-                    .foregroundStyle(.blue.opacity(0.1))
+                    .foregroundStyle(LopanColors.info.opacity(0.1))
                 }
                 .chartYAxis {
                     AxisMarks(position: .leading)
@@ -374,93 +431,107 @@ struct ProductivityChart: View {
                     }
                 }
             } else {
-                LegacyLineChart(data: trendData)
+                Text("analytics_metrics_productivity_no_data")
+                    .font(.footnote)
+                    .foregroundColor(LopanColors.textSecondary)
             }
         }
+        .accessibilityElement(children: .contain)
+        .accessibilityLabel(Text("analytics_metrics_productivity_title"))
+        .accessibilityValue(Text(productivityDescription))
     }
 }
 
-/// Quality metrics visualization
-/// 质量指标可视化
 struct QualityChart: View {
     let metrics: ProductionMetrics
-    
+
+    private var qualityScoreText: String {
+        metrics.qualityScore.formatted(.percent.precision(.fractionLength(1)))
+    }
+
+    private var qualityScoreDescription: String {
+        String(format: analyticsLocalized("analytics_metrics_quality_score_value"), qualityScoreText)
+    }
+
     private var qualityData: [BarChartItem] {
         let qualityPercentage = metrics.qualityScore * 100
-        let defectPercentage = 100 - qualityPercentage
-        
+        let defectPercentage = max(0, 100 - qualityPercentage)
+
         return [
-            BarChartItem(category: "合格", value: qualityPercentage, color: .green),
-            BarChartItem(category: "缺陷", value: defectPercentage, color: .red)
+            BarChartItem(category: analyticsLocalized("analytics_metrics_quality_passed"), value: qualityPercentage, color: LopanColors.success),
+            BarChartItem(category: analyticsLocalized("analytics_metrics_quality_defects"), value: defectPercentage, color: LopanColors.error)
         ]
     }
-    
+
     var body: some View {
-        VStack(alignment: .leading, spacing: 16) {
+        VStack(alignment: .leading, spacing: LopanSpacing.sm) {
             HStack {
-                Text("质量指标")
+                Text("analytics_metrics_quality_title")
                     .font(.headline)
-                    .foregroundColor(.primary)
-                
+                    .foregroundColor(LopanColors.textPrimary)
+
                 Spacer()
-                
-                HStack(spacing: 4) {
-                    Text("质量评分:")
-                        .font(.subheadline)
-                        .foregroundColor(.secondary)
-                    
-                    Text("\(String(format: "%.1f", metrics.qualityScore * 100))")
-                        .font(.subheadline)
-                        .fontWeight(.bold)
-                        .foregroundColor(metrics.qualityScore >= 0.9 ? .green : metrics.qualityScore >= 0.7 ? .orange : .red)
-                }
+
+                Text(qualityScoreDescription)
+                    .font(.subheadline)
+                    .foregroundColor(LopanColors.textSecondary)
             }
-            
-            VStack(spacing: 12) {
-                // Quality score gauge
+
+            VStack(spacing: LopanSpacing.md) {
                 QualityGauge(score: metrics.qualityScore)
-                
-                // Quality metrics details
-                HStack(spacing: 20) {
+
+                HStack(spacing: LopanSpacing.xl) {
                     QualityMetricCard(
-                        title: "拒绝批次",
-                        value: "\(metrics.rejectedBatches)",
+                        titleKey: "analytics_metrics_quality_rejected_batches",
+                        valueText: metrics.rejectedBatches.formatted(),
                         icon: "xmark.circle.fill",
-                        color: .red
+                        tint: LopanColors.error
                     )
-                    
+
                     QualityMetricCard(
-                        title: "合格率",
-                        value: "\(String(format: "%.1f", metrics.qualityScore * 100))%",
+                        titleKey: "analytics_metrics_quality_pass_rate",
+                        valueText: qualityScoreText,
                         icon: "checkmark.circle.fill",
-                        color: .green
+                        tint: LopanColors.success
                     )
                 }
             }
         }
+        .accessibilityElement(children: .contain)
+        .accessibilityLabel(Text("analytics_metrics_quality_title"))
+        .accessibilityValue(Text(qualityScoreDescription))
     }
 }
 
-/// Shift comparison visualization
-/// 班次对比可视化
 struct ShiftComparisonChart: View {
     let metrics: ProductionMetrics
-    
+
+    private var totalBatches: Int {
+        metrics.morningShiftBatches + metrics.eveningShiftBatches
+    }
+
+    private var morningRatio: Double {
+        totalBatches > 0 ? Double(metrics.morningShiftBatches) / Double(totalBatches) : 0
+    }
+
+    private var eveningRatio: Double {
+        totalBatches > 0 ? Double(metrics.eveningShiftBatches) / Double(totalBatches) : 0
+    }
+
     private var shiftData: [BarChartItem] {
         [
-            BarChartItem(category: "早班", value: Double(metrics.morningShiftBatches), color: .orange),
-            BarChartItem(category: "晚班", value: Double(metrics.eveningShiftBatches), color: .purple)
+            BarChartItem(category: analyticsLocalized("analytics_metrics_shift_morning"), value: Double(metrics.morningShiftBatches), color: LopanColors.warning),
+            BarChartItem(category: analyticsLocalized("analytics_metrics_shift_evening"), value: Double(metrics.eveningShiftBatches), color: LopanColors.accent)
         ]
     }
-    
+
     var body: some View {
-        VStack(alignment: .leading, spacing: 16) {
-            Text("班次对比")
+        VStack(alignment: .leading, spacing: LopanSpacing.sm) {
+            Text("analytics_metrics_shift_title")
                 .font(.headline)
-                .foregroundColor(.primary)
-            
-            HStack(spacing: 20) {
-                // Comparison chart
+                .foregroundColor(LopanColors.textPrimary)
+
+            HStack(spacing: LopanSpacing.xl) {
                 if #available(iOS 16.0, *) {
                     Chart(shiftData) { item in
                         BarMark(
@@ -475,45 +546,43 @@ struct ShiftComparisonChart: View {
                     LegacyBarChart(data: shiftData)
                         .frame(height: 150)
                 }
-                
-                // Shift statistics
-                VStack(alignment: .leading, spacing: 12) {
+
+                VStack(alignment: .leading, spacing: LopanSpacing.md) {
                     ShiftStatCard(
-                        title: "早班批次",
-                        value: "\(metrics.morningShiftBatches)",
-                        percentage: metrics.morningShiftBatches + metrics.eveningShiftBatches > 0 ?
-                            Double(metrics.morningShiftBatches) / Double(metrics.morningShiftBatches + metrics.eveningShiftBatches) * 100 : 0,
-                        color: .orange
+                        titleKey: "analytics_metrics_shift_morning_batches",
+                        valueText: metrics.morningShiftBatches.formatted(),
+                        ratio: morningRatio,
+                        tint: LopanColors.warning
                     )
-                    
+
                     ShiftStatCard(
-                        title: "晚班批次",
-                        value: "\(metrics.eveningShiftBatches)",
-                        percentage: metrics.morningShiftBatches + metrics.eveningShiftBatches > 0 ?
-                            Double(metrics.eveningShiftBatches) / Double(metrics.morningShiftBatches + metrics.eveningShiftBatches) * 100 : 0,
-                        color: .purple
+                        titleKey: "analytics_metrics_shift_evening_batches",
+                        valueText: metrics.eveningShiftBatches.formatted(),
+                        ratio: eveningRatio,
+                        tint: LopanColors.accent
                     )
                 }
             }
         }
+        .accessibilityElement(children: .contain)
+        .accessibilityLabel(Text("analytics_metrics_shift_title"))
     }
 }
 
-// MARK: - Supporting UI Components (支持UI组件)
-
-/// Quality score gauge
-/// 质量评分仪表
 struct QualityGauge: View {
     let score: Double
     @State private var animatedScore: Double = 0
-    
+    @Environment(\.accessibilityReduceMotion) private var reduceMotion
+
+    private var scoreText: String {
+        score.formatted(.percent.precision(.fractionLength(1)))
+    }
+
     var body: some View {
         ZStack {
-            // Background circle
             Circle()
-                .stroke(Color(.tertiarySystemBackground), lineWidth: 10)
-            
-            // Progress circle
+                .stroke(LopanColors.backgroundSecondary, lineWidth: 10)
+
             Circle()
                 .trim(from: 0, to: animatedScore)
                 .stroke(
@@ -521,131 +590,280 @@ struct QualityGauge: View {
                     style: StrokeStyle(lineWidth: 10, lineCap: .round)
                 )
                 .rotationEffect(.degrees(-90))
-                .animation(.easeInOut(duration: 1.0), value: animatedScore)
-            
-            // Score text
-            VStack {
-                Text("\(String(format: "%.1f", score * 100))")
+
+            VStack(spacing: LopanSpacing.xxxs) {
+                Text(scoreText)
                     .font(.title2)
                     .fontWeight(.bold)
-                    .foregroundColor(.primary)
-                
-                Text("质量评分")
+                    .foregroundColor(LopanColors.textPrimary)
+
+                Text("analytics_metrics_quality_gauge_label")
                     .font(.caption)
-                    .foregroundColor(.secondary)
+                    .foregroundColor(LopanColors.textSecondary)
             }
         }
         .frame(width: 120, height: 120)
         .onAppear {
-            withAnimation(.easeInOut(duration: 1.0).delay(0.5)) {
+            if reduceMotion {
                 animatedScore = score
-            }
-        }
-    }
-    
-    private var gaugeColor: Color {
-        if score >= 0.9 { return .green }
-        else if score >= 0.7 { return .orange }
-        else { return .red }
-    }
-}
-
-/// Quality metric card
-/// 质量指标卡片
-struct QualityMetricCard: View {
-    let title: String
-    let value: String
-    let icon: String
-    let color: Color
-    
-    var body: some View {
-        VStack(spacing: 8) {
-            Image(systemName: icon)
-                .font(.title2)
-                .foregroundColor(color)
-            
-            Text(value)
-                .font(.headline)
-                .fontWeight(.bold)
-                .foregroundColor(.primary)
-            
-            Text(title)
-                .font(.caption)
-                .foregroundColor(.secondary)
-        }
-        .frame(maxWidth: .infinity)
-        .padding()
-        .background(
-            RoundedRectangle(cornerRadius: 8)
-                .fill(Color(.tertiarySystemBackground))
-        )
-    }
-}
-
-/// Shift statistics card
-/// 班次统计卡片
-struct ShiftStatCard: View {
-    let title: String
-    let value: String
-    let percentage: Double
-    let color: Color
-    
-    var body: some View {
-        VStack(alignment: .leading, spacing: 4) {
-            HStack {
-                Text(title)
-                    .font(.caption)
-                    .foregroundColor(.secondary)
-                
-                Spacer()
-                
-                Text(value)
-                    .font(.caption)
-                    .fontWeight(.bold)
-                    .foregroundColor(color)
-            }
-            
-            ProgressView(value: percentage / 100.0)
-                .progressViewStyle(LinearProgressViewStyle(tint: color))
-                .scaleEffect(y: 0.5)
-            
-            Text("\(String(format: "%.1f", percentage))%")
-                .font(.caption2)
-                .foregroundColor(.secondary)
-        }
-        .padding(.vertical, 4)
-    }
-}
-
-// MARK: - Legacy Chart Components (兼容旧版本的图表组件)
-
-/// Legacy bar chart for iOS 15 compatibility
-/// iOS 15兼容的条形图
-struct LegacyBarChart: View {
-    let data: [BarChartItem]
-    
-    var body: some View {
-        let maxValue = data.map { $0.value }.max() ?? 1
-        
-        HStack(alignment: .bottom, spacing: 16) {
-            ForEach(data) { item in
-                VStack(spacing: 4) {
-                    Text("\(Int(item.value))")
-                        .font(.caption2)
-                        .foregroundColor(.secondary)
-                    
-                    RoundedRectangle(cornerRadius: 4)
-                        .fill(item.color)
-                        .frame(width: 40, height: CGFloat(item.value / maxValue * 100))
-                    
-                    Text(item.category)
-                        .font(.caption2)
-                        .foregroundColor(.secondary)
-                        .lineLimit(1)
+            } else {
+                withAnimation(.easeInOut(duration: 1.0).delay(0.5)) {
+                    animatedScore = score
                 }
             }
         }
+    }
+
+    private var gaugeColor: Color {
+        if score >= 0.9 { return LopanColors.success }
+        else if score >= 0.7 { return LopanColors.warning }
+        else { return LopanColors.error }
+    }
+}
+
+struct QualityMetricCard: View {
+    let titleKey: LocalizedStringKey
+    let valueText: String
+    let icon: String
+    let tint: Color
+
+    var body: some View {
+        VStack(spacing: LopanSpacing.xs) {
+            Image(systemName: icon)
+                .font(.title2)
+                .foregroundColor(tint)
+
+            Text(valueText)
+                .font(.headline)
+                .fontWeight(.bold)
+                .foregroundColor(LopanColors.textPrimary)
+
+            Text(titleKey)
+                .font(.caption)
+                .foregroundColor(LopanColors.textSecondary)
+        }
         .frame(maxWidth: .infinity)
+        .padding(LopanSpacing.cardPadding)
+        .background(
+            RoundedRectangle(cornerRadius: LopanCornerRadius.card, style: .continuous)
+                .fill(LopanColors.backgroundSecondary)
+        )
+        .overlay(
+            RoundedRectangle(cornerRadius: LopanCornerRadius.card, style: .continuous)
+                .stroke(LopanColors.border.opacity(0.08), lineWidth: 1)
+        )
+        .accessibilityElement(children: .ignore)
+        .accessibilityLabel(Text(titleKey))
+        .accessibilityValue(Text(valueText))
+    }
+}
+
+struct ShiftStatCard: View {
+    let titleKey: LocalizedStringKey
+    let valueText: String
+    let ratio: Double
+    let tint: Color
+
+    private var percentageText: String {
+        ratio.formatted(.percent.precision(.fractionLength(1)))
+    }
+
+    var body: some View {
+        VStack(alignment: .leading, spacing: LopanSpacing.xxxs) {
+            HStack {
+                Text(titleKey)
+                    .font(.caption)
+                    .foregroundColor(LopanColors.textSecondary)
+
+                Spacer()
+
+                Text(valueText)
+                    .font(.caption)
+                    .fontWeight(.bold)
+                    .foregroundColor(tint)
+            }
+
+            Text(String(format: analyticsLocalized("analytics_metrics_shift_percentage"), percentageText))
+                .font(.caption2)
+                .foregroundColor(LopanColors.textSecondary)
+        }
+        .accessibilityElement(children: .ignore)
+        .accessibilityLabel(Text(String(format: analyticsLocalized("analytics_metrics_shift_stat_accessibility"), valueText, percentageText)))
+    }
+}
+
+struct AnalyticsOverviewWidget: View {
+    let metrics: ProductionMetrics
+    @Environment(\.accessibilityReduceMotion) private var reduceMotion
+
+    private let columns: [GridItem] = [
+        GridItem(.flexible(), spacing: LopanSpacing.gridSpacing),
+        GridItem(.flexible(), spacing: LopanSpacing.gridSpacing)
+    ]
+
+    var body: some View {
+        AnalyticsSurface {
+            VStack(alignment: .leading, spacing: LopanSpacing.sm) {
+                HStack(alignment: .firstTextBaseline) {
+                    Text("analytics_overview_title")
+                        .font(.title3)
+                        .fontWeight(.semibold)
+                        .foregroundColor(LopanColors.textPrimary)
+                        .accessibilityAddTraits(.isHeader)
+
+                    Spacer()
+
+                    Text(dateRangeText)
+                        .font(.caption)
+                        .foregroundColor(LopanColors.textSecondary)
+                        .accessibilityLabel(Text("analytics_overview_date_range_accessibility"))
+                        .accessibilityValue(Text(dateRangeText))
+                }
+
+                LazyVGrid(columns: columns, spacing: LopanSpacing.gridSpacing) {
+                    ForEach(metricItems) { item in
+                        AnalyticsOverviewMetricCard(item: item, reduceMotion: reduceMotion)
+                    }
+                }
+            }
+        }
+    }
+
+    private var metricItems: [AnalyticsOverviewMetricItem] {
+        [
+            AnalyticsOverviewMetricItem(
+                titleKey: "analytics_overview_metric_batch_completion",
+                valueText: metrics.batchCompletionRate.formatted(.percent.precision(.fractionLength(1))),
+                numericValue: metrics.batchCompletionRate,
+                icon: "list.clipboard.fill",
+                tint: LopanColors.success
+            ),
+            AnalyticsOverviewMetricItem(
+                titleKey: "analytics_overview_metric_machine_utilization",
+                valueText: metrics.machineUtilizationRate.formatted(.percent.precision(.fractionLength(1))),
+                numericValue: metrics.machineUtilizationRate,
+                icon: "gearshape.2.fill",
+                tint: LopanColors.info
+            ),
+            AnalyticsOverviewMetricItem(
+                titleKey: "analytics_overview_metric_productivity",
+                valueText: metrics.productivityIndex.formatted(.percent.precision(.fractionLength(1))),
+                numericValue: metrics.productivityIndex,
+                icon: "speedometer",
+                tint: LopanColors.accent
+            ),
+            AnalyticsOverviewMetricItem(
+                titleKey: "analytics_overview_metric_quality",
+                valueText: metrics.qualityScore.formatted(.percent.precision(.fractionLength(1))),
+                numericValue: metrics.qualityScore,
+                icon: "checkmark.seal.fill",
+                tint: LopanColors.success
+            )
+        ]
+    }
+
+    private var dateRangeText: String {
+        let formatter = DateIntervalFormatter()
+        formatter.dateStyle = .medium
+        formatter.timeStyle = .none
+        return formatter.string(from: metrics.startDate, to: metrics.endDate)
+    }
+}
+
+private struct AnalyticsOverviewMetricItem: Identifiable {
+    let id = UUID()
+    let titleKey: LocalizedStringKey
+    let valueText: String
+    let numericValue: Double
+    let icon: String
+    let tint: Color
+}
+
+private struct AnalyticsOverviewMetricCard: View {
+    let item: AnalyticsOverviewMetricItem
+    let reduceMotion: Bool
+    @ScaledMetric(relativeTo: .title2) private var iconSize: CGFloat = 28
+
+    var body: some View {
+        VStack(alignment: .leading, spacing: LopanSpacing.xs) {
+            Image(systemName: item.icon)
+                .font(.system(size: iconSize, weight: .semibold))
+                .foregroundColor(item.tint)
+                .accessibilityHidden(true)
+
+            valueView
+                .foregroundColor(LopanColors.textPrimary)
+
+            Text(item.titleKey)
+                .font(.caption)
+                .foregroundColor(LopanColors.textSecondary)
+                .lineLimit(2)
+                .minimumScaleFactor(0.85)
+        }
+        .padding(LopanSpacing.cardPadding)
+        .frame(maxWidth: .infinity, alignment: .leading)
+        .background(
+            RoundedRectangle(cornerRadius: LopanCornerRadius.card, style: .continuous)
+                .fill(LopanColors.backgroundSecondary)
+        )
+        .overlay(
+            RoundedRectangle(cornerRadius: LopanCornerRadius.card, style: .continuous)
+                .stroke(LopanColors.border.opacity(0.08), lineWidth: 1)
+        )
+        .accessibilityElement(children: .ignore)
+        .accessibilityLabel(Text(item.titleKey))
+        .accessibilityValue(Text(item.valueText))
+    }
+
+    @ViewBuilder
+    private var valueView: some View {
+        if #available(iOS 17.0, *) {
+            Text(item.valueText)
+                .font(.title2)
+                .fontWeight(.bold)
+                .contentTransition(.numericText(value: item.numericValue))
+                .transaction { transaction in
+                    transaction.animation = reduceMotion ? nil : .spring(response: 0.4, dampingFraction: 0.8)
+                }
+        } else {
+            Text(item.valueText)
+                .font(.title2)
+                .fontWeight(.bold)
+        }
+    }
+}
+/// Legacy bar chart for iOS 15 compatibility
+/// iOS 15兼容的柱状图
+struct LegacyBarChart: View {
+    let data: [BarChartItem]
+
+    var body: some View {
+        GeometryReader { geometry in
+            let maxValue = data.map { $0.value }.max() ?? 1
+            let availableHeight = max(0, geometry.size.height - 40)
+
+            HStack(alignment: .bottom, spacing: LopanSpacing.sm) {
+                ForEach(data) { item in
+                    VStack(spacing: LopanSpacing.xxxs) {
+                        Text(Int(item.value).formatted())
+                            .font(.caption2)
+                            .foregroundColor(LopanColors.textSecondary)
+
+                        RoundedRectangle(cornerRadius: 4)
+                            .fill(item.color)
+                            .frame(height: maxValue <= 0 ? 0 : CGFloat(item.value / maxValue) * availableHeight)
+
+                        Text(item.category)
+                            .font(.caption2)
+                            .foregroundColor(LopanColors.textSecondary)
+                            .lineLimit(1)
+                    }
+                    .frame(maxWidth: .infinity)
+                }
+            }
+            .frame(maxWidth: .infinity, maxHeight: geometry.size.height, alignment: .bottom)
+        }
+        .frame(height: 200)
     }
 }
 
@@ -711,7 +929,7 @@ struct LegacyLineChart: View {
                     path.addLine(to: CGPoint(x: x, y: y))
                 }
             }
-            .stroke(Color.blue, lineWidth: 2)
+            .stroke(LopanColors.info, lineWidth: 2)
         }
         .frame(height: 200)
     }
@@ -721,111 +939,6 @@ struct LegacyLineChart: View {
 
 /// Compact analytics overview for dashboard
 /// 仪表板的紧凑分析概览
-struct AnalyticsOverviewWidget: View {
-    let metrics: ProductionMetrics
-    
-    var body: some View {
-        VStack(spacing: 16) {
-            HStack {
-                Text("生产概览")
-                    .font(.headline)
-                    .foregroundColor(.primary)
-                
-                Spacer()
-                
-                Text(formatDateRange(start: metrics.startDate, end: metrics.endDate))
-                    .font(.caption)
-                    .foregroundColor(.secondary)
-            }
-            
-            LazyVGrid(columns: Array(repeating: GridItem(.flexible()), count: 2), spacing: 12) {
-                OverviewMetricCard(
-                    title: "批次完成率",
-                    value: "\(String(format: "%.1f", metrics.batchCompletionRate * 100))%",
-                    icon: "list.clipboard.fill",
-                    color: metrics.batchCompletionRate >= 0.8 ? .green : .orange
-                )
-                
-                OverviewMetricCard(
-                    title: "机台利用率",
-                    value: "\(String(format: "%.1f", metrics.machineUtilizationRate * 100))%",
-                    icon: "gearshape.2.fill",
-                    color: metrics.machineUtilizationRate >= 0.7 ? .green : .orange
-                )
-                
-                OverviewMetricCard(
-                    title: "生产效率",
-                    value: "\(String(format: "%.1f", metrics.productivityIndex * 100))%",
-                    icon: "speedometer",
-                    color: metrics.productivityIndex >= 0.8 ? .green : .orange
-                )
-                
-                OverviewMetricCard(
-                    title: "质量评分",
-                    value: "\(String(format: "%.1f", metrics.qualityScore * 100))",
-                    icon: "checkmark.seal.fill",
-                    color: metrics.qualityScore >= 0.9 ? .green : .orange
-                )
-            }
-        }
-        .padding()
-        .background(
-            RoundedRectangle(cornerRadius: 12)
-                .fill(Color(.secondarySystemBackground))
-        )
-    }
-    
-    private func formatDateRange(start: Date, end: Date) -> String {
-        let formatter = DateFormatter()
-        formatter.dateStyle = .short
-        
-        if Calendar.current.isDate(start, inSameDayAs: end) {
-            return formatter.string(from: start)
-        } else {
-            return "\(formatter.string(from: start)) - \(formatter.string(from: end))"
-        }
-    }
-}
-
-/// Overview metric card
-/// 概览指标卡片
-struct OverviewMetricCard: View {
-    let title: String
-    let value: String
-    let icon: String
-    let color: Color
-    
-    var body: some View {
-        VStack(spacing: 8) {
-            HStack {
-                Image(systemName: icon)
-                    .font(.title2)
-                    .foregroundColor(color)
-                
-                Spacer()
-            }
-            
-            VStack(alignment: .leading, spacing: 4) {
-                Text(value)
-                    .font(.title3)
-                    .fontWeight(.bold)
-                    .foregroundColor(.primary)
-                
-                Text(title)
-                    .font(.caption)
-                    .foregroundColor(.secondary)
-                    .lineLimit(1)
-            }
-            .frame(maxWidth: .infinity, alignment: .leading)
-        }
-        .padding()
-        .background(
-            RoundedRectangle(cornerRadius: 8)
-                .fill(Color(.tertiarySystemBackground))
-        )
-    }
-}
-
 // MARK: - Extensions
 
 extension DateFormatter {

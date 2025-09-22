@@ -451,7 +451,7 @@ struct ExportConfigurationView: View {
     }
     
     var body: some View {
-        ModernNavigationView {
+        ModernNavigationStack {
             Form {
                 Section("导出格式") {
                     Picker("格式", selection: $selectedFormat) {

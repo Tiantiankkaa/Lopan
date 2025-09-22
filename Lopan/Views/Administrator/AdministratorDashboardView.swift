@@ -68,7 +68,7 @@ struct AdministratorDashboardView: View {
     }
     
     var body: some View {
-        NavigationView {
+        NavigationStack {
             VStack(spacing: 0) {
                 // Header section
                 headerSection

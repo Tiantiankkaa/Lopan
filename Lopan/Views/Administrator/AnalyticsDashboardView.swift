@@ -24,6 +24,7 @@ struct AnalyticsDashboardView: View {
     @State private var selectedDetailType: DetailViewType?
     @State private var errorMessage: String?
     @State private var showingErrorAlert = false
+    @Environment(\.accessibilityReduceMotion) private var reduceMotion
     
     enum DetailViewType: String, CaseIterable {
         case production = "production"
@@ -32,13 +33,13 @@ struct AnalyticsDashboardView: View {
         case shifts = "shifts"
         case trends = "trends"
         
-        var displayName: String {
+        var titleKey: LocalizedStringKey {
             switch self {
-            case .production: return "生产详情"
-            case .machines: return "机台分析"
-            case .quality: return "质量分析"
-            case .shifts: return "班次对比"
-            case .trends: return "趋势分析"
+            case .production: return "admin_analytics_detail_production"
+            case .machines: return "admin_analytics_detail_machines"
+            case .quality: return "admin_analytics_detail_quality"
+            case .shifts: return "admin_analytics_detail_shifts"
+            case .trends: return "admin_analytics_detail_trends"
             }
         }
         
@@ -52,7 +53,44 @@ struct AnalyticsDashboardView: View {
             }
         }
     }
-    
+
+    private func localizedTimePeriodTitle(_ period: AnalyticsTimePeriod) -> LocalizedStringKey {
+        switch period {
+        case .today: return "admin_analytics_period_today"
+        case .yesterday: return "admin_analytics_period_yesterday"
+        case .thisWeek: return "admin_analytics_period_this_week"
+        case .lastWeek: return "admin_analytics_period_last_week"
+        case .thisMonth: return "admin_analytics_period_this_month"
+        case .lastMonth: return "admin_analytics_period_last_month"
+        case .thisQuarter: return "admin_analytics_period_this_quarter"
+        case .lastQuarter: return "admin_analytics_period_last_quarter"
+        case .thisYear: return "admin_analytics_period_this_year"
+        case .custom: return "admin_analytics_period_custom"
+        }
+    }
+
+    private func localizedTrendTitle(_ trend: AnalyticsTrend) -> LocalizedStringKey {
+        switch trend {
+        case .improving: return "admin_analytics_trend_improving"
+        case .declining: return "admin_analytics_trend_declining"
+        case .stable: return "admin_analytics_trend_stable"
+        }
+    }
+
+    private func localizedBinaryState(_ isEnabled: Bool) -> String {
+        isEnabled ? "admin_analytics_status_enabled".localized : "admin_analytics_status_disabled".localized
+    }
+
+    private func localizedRiskSeverity(_ severity: SecurityEventSeverity) -> String {
+        switch severity {
+        case .info: return "admin_analytics_risk_info".localized
+        case .warning: return "admin_analytics_risk_warning".localized
+        case .error: return "admin_analytics_risk_error".localized
+        case .critical: return "admin_analytics_risk_critical".localized
+        case .fatal: return "admin_analytics_risk_fatal".localized
+        }
+    }
+
     init(serviceFactory: ServiceFactory) {
         let analyticsEngine = ProductionAnalyticsEngine(
             machineRepository: serviceFactory.repositoryFactory.machineRepository,
@@ -78,54 +116,54 @@ struct AnalyticsDashboardView: View {
     }
     
     var body: some View {
-        NavigationView {
+        NavigationStack {
             ScrollView {
-                LazyVStack(spacing: 20) {
-                    // Header section with time period selector
+                VStack(spacing: LopanSpacing.contentSpacing) {
                     headerSection
-                    
-                    // Key metrics overview
+
                     if let metrics = currentMetrics {
                         AnalyticsOverviewWidget(metrics: metrics)
+                            .accessibilityElement(children: .contain)
+                            .accessibilityLabel(Text("admin_analytics_overview_accessibility_label"))
                     }
-                    
-                    // Main analytics charts
+
                     if let metrics = currentMetrics {
                         ProductionMetricsChart(metrics: metrics)
+                            .accessibilityLabel(Text("admin_analytics_chart_accessibility_label"))
+                            .accessibilityHint(Text("admin_analytics_chart_accessibility_hint"))
                     }
-                    
-                    // Comparison section
+
                     if let comparison = comparisonMetrics {
                         comparisonSection(comparison: comparison)
                     }
-                    
-                    // Quick actions
+
                     quickActionsSection
-                    
-                    // Recent reports
+
                     recentReportsSection
-                    
-                    // System health integration
+
                     systemHealthSection
                 }
-                .padding()
+                .padding(.horizontal, LopanSpacing.screenPadding)
+                .padding(.vertical, LopanSpacing.lg)
             }
-            .navigationTitle("数据分析")
+            .scrollIndicators(.hidden)
+            .background(LopanColors.backgroundPrimary.ignoresSafeArea())
+            .navigationTitle(navigationTitleKey)
             .navigationBarTitleDisplayMode(.large)
             .toolbar {
                 ToolbarItem(placement: .primaryAction) {
                     Menu {
-                        Button("生成报告") {
+                        Button("admin_analytics_menu_generate_report".localized) {
                             showingReportGenerator = true
                         }
-                        
-                        Button("刷新数据") {
+
+                        Button("admin_analytics_menu_refresh".localized) {
                             Task {
                                 await refreshAnalytics()
                             }
                         }
-                        
-                        Button("导出数据") {
+
+                        Button("admin_analytics_menu_export".localized) {
                             Task {
                                 await exportAnalyticsData()
                             }
@@ -134,9 +172,9 @@ struct AnalyticsDashboardView: View {
                         Image(systemName: "ellipsis.circle")
                     }
                 }
-                
+
                 ToolbarItem(placement: .secondaryAction) {
-                    Button("详细视图") {
+                    Button("admin_analytics_toolbar_detail".localized) {
                         showingDetailView = true
                     }
                 }
@@ -156,8 +194,8 @@ struct AnalyticsDashboardView: View {
                     currentMetrics: currentMetrics
                 )
             }
-            .alert("错误", isPresented: $showingErrorAlert) {
-                Button("确定") {
+            .alert(navigationErrorTitleKey, isPresented: $showingErrorAlert) {
+                Button(navigationErrorDismissKey) {
                     errorMessage = nil
                 }
             } message: {
@@ -171,132 +209,155 @@ struct AnalyticsDashboardView: View {
         }
     }
     
+    private var navigationTitleKey: LocalizedStringKey { "admin_analytics_navigation_title" }
+    private var navigationErrorTitleKey: LocalizedStringKey { "admin_analytics_error_title" }
+    private var navigationErrorDismissKey: LocalizedStringKey { "admin_analytics_error_dismiss" }
+    
     // MARK: - Header Section (头部区域)
     
     private var headerSection: some View {
-        VStack(spacing: 16) {
-            HStack {
-                Text("分析仪表板")
-                    .font(.title2)
-                    .fontWeight(.bold)
-                    .foregroundColor(.primary)
-                
-                Spacer()
-                
-                if isLoadingData {
-                    ProgressView()
-                        .scaleEffect(0.8)
-                }
-            }
-            
-            // Time period selector
-            ScrollView(.horizontal, showsIndicators: false) {
-                HStack(spacing: 12) {
-                    ForEach(AnalyticsTimePeriod.allCases.filter { $0 != .custom }, id: \.self) { period in
-                        TimePeriodButton(
-                            period: period,
-                            isSelected: selectedTimePeriod == period,
-                            action: {
-                                selectedTimePeriod = period
-                                Task {
-                                    await refreshAnalytics()
-                                }
-                            }
-                        )
+        AnalyticsSurface {
+            VStack(alignment: .leading, spacing: LopanSpacing.md) {
+                HStack(alignment: .center, spacing: LopanSpacing.sm) {
+                    VStack(alignment: .leading, spacing: LopanSpacing.xs) {
+                        Text("admin_analytics_header_title")
+                            .font(.title2)
+                            .fontWeight(.bold)
+                            .foregroundColor(LopanColors.textPrimary)
+                            .accessibilityAddTraits(.isHeader)
+
+                        Text(localizedTimePeriodTitle(selectedTimePeriod))
+                            .font(.subheadline)
+                            .foregroundColor(LopanColors.textSecondary)
+                    }
+
+                    Spacer()
+
+                    if isLoadingData {
+                        ProgressView()
+                            .progressViewStyle(.circular)
+                            .accessibilityLabel(Text("admin_analytics_loading_label"))
                     }
                 }
-                .padding(.horizontal)
+
+                ScrollView(.horizontal, showsIndicators: false) {
+                    HStack(spacing: LopanSpacing.sm) {
+                        ForEach(AnalyticsTimePeriod.allCases.filter { $0 != .custom }, id: \.self) { period in
+                            TimePeriodButton(
+                                titleKey: localizedTimePeriodTitle(period),
+                                isSelected: selectedTimePeriod == period,
+                                action: {
+                                    selectedTimePeriod = period
+                                    Task {
+                                        await refreshAnalytics()
+                                    }
+                                }
+                            )
+                        }
+                    }
+                    .padding(.vertical, LopanSpacing.xxxs)
+                }
+                .accessibilityElement(children: .contain)
+                .accessibilityLabel(Text("admin_analytics_time_range_accessibility_label"))
+                .accessibilityHint(Text("admin_analytics_time_range_accessibility_hint"))
             }
         }
+        .accessibilityElement(children: .contain)
+        .accessibilityLabel(Text("admin_analytics_header_accessibility_label"))
+        .accessibilityHint(Text("admin_analytics_header_accessibility_hint"))
     }
     
     // MARK: - Comparison Section (对比区域)
     
     private func comparisonSection(comparison: AnalyticsComparison) -> some View {
-        VStack(alignment: .leading, spacing: 16) {
-            HStack {
-                Text("对比分析")
-                    .font(.headline)
-                    .foregroundColor(.primary)
-                
-                Spacer()
-                
-                HStack(spacing: 4) {
-                    Image(systemName: comparison.overallTrend.icon)
-                        .foregroundColor(comparison.overallTrend.color)
-                    
-                    Text(comparison.overallTrend.displayName)
-                        .font(.subheadline)
-                        .fontWeight(.medium)
-                        .foregroundColor(comparison.overallTrend.color)
+        AnalyticsSurface {
+            VStack(alignment: .leading, spacing: LopanSpacing.sm) {
+                HStack(spacing: LopanSpacing.sm) {
+                    Text("admin_analytics_comparison_title")
+                        .font(.title3)
+                        .fontWeight(.semibold)
+                        .foregroundColor(LopanColors.textPrimary)
+                        .accessibilityAddTraits(.isHeader)
+
+                    Spacer()
+
+                    HStack(spacing: LopanSpacing.xxxs) {
+                        Image(systemName: comparison.overallTrend.icon)
+                            .foregroundColor(comparison.overallTrend.color)
+                        Text(localizedTrendTitle(comparison.overallTrend))
+                            .font(.subheadline)
+                            .fontWeight(.medium)
+                            .foregroundColor(comparison.overallTrend.color)
+                    }
+                    .accessibilityElement(children: .combine)
+                    .accessibilityLabel(Text("admin_analytics_comparison_trend_accessibility_label"))
+                    .accessibilityValue(Text(localizedTrendTitle(comparison.overallTrend)))
+                }
+
+                LazyVGrid(columns: Array(repeating: GridItem(.flexible(), spacing: LopanSpacing.gridSpacing), count: 2), spacing: LopanSpacing.gridSpacing) {
+                    ComparisonMetricCard(
+                        titleKey: "admin_analytics_metric_batch_completion",
+                        currentValue: comparison.currentPeriod.batchCompletionRate,
+                        previousValue: comparison.comparisonPeriod.batchCompletionRate,
+                        format: .percentage,
+                        reduceMotion: reduceMotion
+                    )
+
+                    ComparisonMetricCard(
+                        titleKey: "admin_analytics_metric_machine_utilization",
+                        currentValue: comparison.currentPeriod.machineUtilizationRate,
+                        previousValue: comparison.comparisonPeriod.machineUtilizationRate,
+                        format: .percentage,
+                        reduceMotion: reduceMotion
+                    )
+
+                    ComparisonMetricCard(
+                        titleKey: "admin_analytics_metric_productivity",
+                        currentValue: comparison.currentPeriod.productivityIndex,
+                        previousValue: comparison.comparisonPeriod.productivityIndex,
+                        format: .percentage,
+                        reduceMotion: reduceMotion
+                    )
+
+                    ComparisonMetricCard(
+                        titleKey: "admin_analytics_metric_quality_score",
+                        currentValue: comparison.currentPeriod.qualityScore,
+                        previousValue: comparison.comparisonPeriod.qualityScore,
+                        format: .score,
+                        reduceMotion: reduceMotion
+                    )
+                }
+
+                if !comparison.improvements.isEmpty || !comparison.concerns.isEmpty {
+                    insightsSection(comparison: comparison)
                 }
             }
-            
-            LazyVGrid(columns: Array(repeating: GridItem(.flexible()), count: 2), spacing: 12) {
-                ComparisonMetricCard(
-                    title: "批次完成率",
-                    currentValue: comparison.currentPeriod.batchCompletionRate,
-                    previousValue: comparison.comparisonPeriod.batchCompletionRate,
-                    format: .percentage
-                )
-                
-                ComparisonMetricCard(
-                    title: "机台利用率",
-                    currentValue: comparison.currentPeriod.machineUtilizationRate,
-                    previousValue: comparison.comparisonPeriod.machineUtilizationRate,
-                    format: .percentage
-                )
-                
-                ComparisonMetricCard(
-                    title: "生产效率",
-                    currentValue: comparison.currentPeriod.productivityIndex,
-                    previousValue: comparison.comparisonPeriod.productivityIndex,
-                    format: .percentage
-                )
-                
-                ComparisonMetricCard(
-                    title: "质量评分",
-                    currentValue: comparison.currentPeriod.qualityScore,
-                    previousValue: comparison.comparisonPeriod.qualityScore,
-                    format: .score
-                )
-            }
-            
-            // Insights
-            if !comparison.improvements.isEmpty || !comparison.concerns.isEmpty {
-                insightsSection(comparison: comparison)
-            }
         }
-        .padding()
-        .background(
-            RoundedRectangle(cornerRadius: 12)
-                .fill(Color(.secondarySystemBackground))
-        )
     }
     
-    private func insightsSection(comparison: AnalyticsComparison) -> VStack<TupleView<(some View, some View)>> {
-        VStack(alignment: .leading, spacing: 12) {
-            Text("洞察建议")
+    private func insightsSection(comparison: AnalyticsComparison) -> some View {
+        VStack(alignment: .leading, spacing: LopanSpacing.xs) {
+            Text("admin_analytics_insights_title")
                 .font(.subheadline)
                 .fontWeight(.medium)
-                .foregroundColor(.primary)
-            
-            VStack(alignment: .leading, spacing: 8) {
+                .foregroundColor(LopanColors.textPrimary)
+
+            VStack(alignment: .leading, spacing: LopanSpacing.xs) {
                 if !comparison.improvements.isEmpty {
                     ForEach(comparison.improvements.prefix(2), id: \.self) { improvement in
                         InsightRow(
                             icon: "arrow.up.circle.fill",
-                            color: .green,
+                            color: LopanColors.success,
                             text: improvement
                         )
                     }
                 }
-                
+
                 if !comparison.concerns.isEmpty {
                     ForEach(comparison.concerns.prefix(2), id: \.self) { concern in
                         InsightRow(
                             icon: "exclamationmark.triangle.fill",
-                            color: .orange,
+                            color: LopanColors.warning,
                             text: concern
                         )
                     }
@@ -308,118 +369,117 @@ struct AnalyticsDashboardView: View {
     // MARK: - Quick Actions Section (快速操作区域)
     
     private var quickActionsSection: some View {
-        VStack(alignment: .leading, spacing: 16) {
-            Text("快速操作")
-                .font(.headline)
-                .foregroundColor(.primary)
-            
-            LazyVGrid(columns: Array(repeating: GridItem(.flexible()), count: 2), spacing: 12) {
-                ForEach(DetailViewType.allCases, id: \.self) { detailType in
-                    QuickActionCard(
-                        title: detailType.displayName,
-                        icon: detailType.icon,
-                        action: {
-                            selectedDetailType = detailType
-                            showingDetailView = true
-                        }
-                    )
+        AnalyticsSurface {
+            VStack(alignment: .leading, spacing: LopanSpacing.sm) {
+                Text("admin_analytics_quick_actions_title")
+                    .font(.title3)
+                    .fontWeight(.semibold)
+                    .foregroundColor(LopanColors.textPrimary)
+                    .accessibilityAddTraits(.isHeader)
+
+                LazyVGrid(columns: Array(repeating: GridItem(.flexible(), spacing: LopanSpacing.gridSpacing), count: 2), spacing: LopanSpacing.gridSpacing) {
+                    ForEach(DetailViewType.allCases, id: \.self) { detailType in
+                        QuickActionCard(
+                            titleKey: detailType.titleKey,
+                            icon: detailType.icon,
+                            action: {
+                                selectedDetailType = detailType
+                                showingDetailView = true
+                            }
+                        )
+                    }
                 }
             }
         }
-        .padding()
-        .background(
-            RoundedRectangle(cornerRadius: 12)
-                .fill(Color(.secondarySystemBackground))
-        )
     }
     
     // MARK: - Recent Reports Section (最近报告区域)
     
     private var recentReportsSection: some View {
-        VStack(alignment: .leading, spacing: 16) {
-            HStack {
-                Text("最近报告")
-                    .font(.headline)
-                    .foregroundColor(.primary)
-                
-                Spacer()
-                
-                Button("查看全部") {
-                    showingReportGenerator = true
-                }
-                .font(.caption)
-                .foregroundColor(.blue)
-            }
-            
-            if reportGenerator.recentReports.isEmpty {
-                Text("暂无报告")
+        AnalyticsSurface {
+            VStack(alignment: .leading, spacing: LopanSpacing.sm) {
+                HStack {
+                    Text("admin_analytics_recent_reports_title")
+                        .font(.title3)
+                        .fontWeight(.semibold)
+                        .foregroundColor(LopanColors.textPrimary)
+                        .accessibilityAddTraits(.isHeader)
+
+                    Spacer()
+
+                    Button("admin_analytics_recent_reports_view_all".localized) {
+                        showingReportGenerator = true
+                    }
                     .font(.caption)
-                    .foregroundColor(.secondary)
-                    .frame(maxWidth: .infinity, minHeight: 60)
-                    .background(
-                        RoundedRectangle(cornerRadius: 8)
-                            .fill(Color(.tertiarySystemBackground))
-                    )
-            } else {
-                VStack(spacing: 8) {
-                    ForEach(reportGenerator.recentReports.prefix(3)) { report in
-                        RecentReportRow(report: report)
+                    .foregroundColor(LopanColors.info)
+                    .accessibilityHint(Text("admin_analytics_recent_reports_view_all_hint"))
+                }
+
+                if reportGenerator.recentReports.isEmpty {
+                    Text("admin_analytics_recent_reports_empty")
+                        .font(.footnote)
+                        .foregroundColor(LopanColors.textSecondary)
+                        .frame(maxWidth: .infinity, minHeight: 60, alignment: .center)
+                        .background(
+                            RoundedRectangle(cornerRadius: LopanCornerRadius.card, style: .continuous)
+                                .fill(LopanColors.backgroundSecondary)
+                        )
+                        .accessibilityLabel(Text("admin_analytics_recent_reports_empty"))
+                } else {
+                    VStack(spacing: LopanSpacing.xs) {
+                        ForEach(reportGenerator.recentReports.prefix(3)) { report in
+                            RecentReportRow(report: report)
+                        }
                     }
                 }
             }
         }
-        .padding()
-        .background(
-            RoundedRectangle(cornerRadius: 12)
-                .fill(Color(.secondarySystemBackground))
-        )
     }
     
     // MARK: - System Health Section (系统健康区域)
     
     private var systemHealthSection: some View {
-        VStack(alignment: .leading, spacing: 16) {
-            Text("系统状态")
-                .font(.headline)
-                .foregroundColor(.primary)
-            
-            let analytics = securityAuditService.getSecurityAnalytics()
-            
-            LazyVGrid(columns: Array(repeating: GridItem(.flexible()), count: 2), spacing: 12) {
-                SystemHealthCard(
-                    title: "今日事件",
-                    value: "\(analytics.totalEvents24h)",
-                    icon: "doc.text.fill",
-                    color: .blue
-                )
-                
-                SystemHealthCard(
-                    title: "严重警报",
-                    value: "\(analytics.criticalEvents24h)",
-                    icon: "exclamationmark.triangle.fill",
-                    color: analytics.criticalEvents24h > 0 ? .red : .green
-                )
-                
-                SystemHealthCard(
-                    title: "威胁检测",
-                    value: analytics.threatDetectionEnabled ? "启用" : "禁用",
-                    icon: "shield.fill",
-                    color: analytics.threatDetectionEnabled ? .green : .orange
-                )
-                
-                SystemHealthCard(
-                    title: "风险等级",
-                    value: analytics.riskLevel.displayName,
-                    icon: "gauge.with.dots.needle.67percent",
-                    color: analytics.riskLevel.color
-                )
+        let analytics = securityAuditService.getSecurityAnalytics()
+
+        return AnalyticsSurface {
+            VStack(alignment: .leading, spacing: LopanSpacing.sm) {
+                Text("admin_analytics_system_health_title")
+                    .font(.title3)
+                    .fontWeight(.semibold)
+                    .foregroundColor(LopanColors.textPrimary)
+                    .accessibilityAddTraits(.isHeader)
+
+                LazyVGrid(columns: Array(repeating: GridItem(.flexible(), spacing: LopanSpacing.gridSpacing), count: 2), spacing: LopanSpacing.gridSpacing) {
+                    SystemHealthCard(
+                        titleKey: "admin_analytics_system_health_events_today",
+                        value: analytics.totalEvents24h.formatted(),
+                        icon: "doc.text.fill",
+                        color: LopanColors.info
+                    )
+
+                    SystemHealthCard(
+                        titleKey: "admin_analytics_system_health_critical_alerts",
+                        value: analytics.criticalEvents24h.formatted(),
+                        icon: "exclamationmark.triangle.fill",
+                        color: analytics.criticalEvents24h > 0 ? LopanColors.error : LopanColors.success
+                    )
+
+                    SystemHealthCard(
+                        titleKey: "admin_analytics_system_health_threat_detection",
+                        value: localizedBinaryState(analytics.threatDetectionEnabled),
+                        icon: "shield.fill",
+                        color: analytics.threatDetectionEnabled ? LopanColors.success : LopanColors.warning
+                    )
+
+                    SystemHealthCard(
+                        titleKey: "admin_analytics_system_health_risk_level",
+                        value: localizedRiskSeverity(analytics.riskLevel),
+                        icon: "gauge.with.dots.needle.67percent",
+                        color: analytics.riskLevel.color
+                    )
+                }
             }
         }
-        .padding()
-        .background(
-            RoundedRectangle(cornerRadius: 12)
-                .fill(Color(.secondarySystemBackground))
-        )
     }
     
     // MARK: - Data Operations (数据操作)
@@ -435,7 +495,7 @@ struct AnalyticsDashboardView: View {
             await refreshAnalytics()
             
         } catch {
-            errorMessage = "初始化分析数据失败: \(error.localizedDescription)"
+            errorMessage = String(format: "admin_analytics_error_initialize_failed".localized, error.localizedDescription)
             showingErrorAlert = true
         }
         
@@ -467,7 +527,7 @@ struct AnalyticsDashboardView: View {
             
         } catch {
             await MainActor.run {
-                errorMessage = "刷新分析数据失败: \(error.localizedDescription)"
+                errorMessage = String(format: "admin_analytics_error_refresh_failed".localized, error.localizedDescription)
                 showingErrorAlert = true
             }
         }
@@ -497,7 +557,7 @@ struct AnalyticsDashboardView: View {
             print("Analytics data exported to: \(savedURL)")
             
         } catch {
-            errorMessage = "导出数据失败: \(error.localizedDescription)"
+            errorMessage = String(format: "admin_analytics_error_export_failed".localized, error.localizedDescription)
             showingErrorAlert = true
         }
     }
@@ -518,90 +578,139 @@ struct AnalyticsDashboardView: View {
 /// Time period selection button
 /// 时间段选择按钮
 struct TimePeriodButton: View {
-    let period: AnalyticsTimePeriod
+    let titleKey: LocalizedStringKey
     let isSelected: Bool
     let action: () -> Void
-    
+
     var body: some View {
         Button(action: action) {
-            Text(period.displayName)
+            Text(titleKey)
                 .font(.caption)
                 .fontWeight(.medium)
-                .padding(.horizontal, 16)
-                .padding(.vertical, 8)
+                .padding(.horizontal, LopanSpacing.sm)
+                .padding(.vertical, LopanSpacing.xs)
                 .background(
-                    RoundedRectangle(cornerRadius: 16)
-                        .fill(isSelected ? Color.blue : Color(.tertiarySystemBackground))
+                    Capsule(style: .continuous)
+                        .fill(isSelected ? LopanColors.info : LopanColors.backgroundSecondary)
                 )
-                .foregroundColor(isSelected ? .white : .primary)
+                .foregroundColor(isSelected ? LopanColors.textOnPrimary : LopanColors.textPrimary)
         }
-        .buttonStyle(PlainButtonStyle())
+        .buttonStyle(.plain)
+        .accessibilityElement(children: .ignore)
+        .accessibilityLabel(Text(titleKey))
+        .accessibilityValue(Text(isSelected ? "admin_common_selected".localized : "admin_common_not_selected".localized))
     }
 }
 
 /// Comparison metric card
 /// 对比指标卡片
 struct ComparisonMetricCard: View {
-    let title: String
+    let titleKey: LocalizedStringKey
     let currentValue: Double
     let previousValue: Double
     let format: MetricFormat
-    
+    let reduceMotion: Bool
+
     enum MetricFormat {
         case percentage
         case score
         case count
     }
-    
+
     private var formattedCurrentValue: String {
         switch format {
         case .percentage:
-            return "\(String(format: "%.1f", currentValue * 100))%"
+            return currentValue.formatted(.percent.precision(.fractionLength(1)))
         case .score:
-            return String(format: "%.2f", currentValue)
+            return currentValue.formatted(.number.precision(.fractionLength(2)))
         case .count:
-            return String(format: "%.0f", currentValue)
+            return currentValue.formatted(.number.precision(.fractionLength(0)))
         }
     }
-    
-    private var changeValue: Double {
-        previousValue == 0 ? 0 : (currentValue - previousValue) / previousValue
+
+    private var changeRatio: Double? {
+        guard previousValue != 0 else { return nil }
+        return (currentValue - previousValue) / abs(previousValue)
     }
-    
+
+    private var changeSymbol: String {
+        guard let changeRatio else { return "minus" }
+        if changeRatio > 0 { return "arrow.up" }
+        if changeRatio < 0 { return "arrow.down" }
+        return "minus"
+    }
+
     private var changeColor: Color {
-        if changeValue > 0.05 { return .green }
-        else if changeValue < -0.05 { return .red }
-        else { return .gray }
+        guard let changeRatio else { return LopanColors.textSecondary }
+        if changeRatio > 0.05 { return LopanColors.success }
+        if changeRatio < -0.05 { return LopanColors.error }
+        return LopanColors.textSecondary
     }
-    
+
+    private var changePercentText: String {
+        guard let changeRatio else { return "--" }
+        return changeRatio.formatted(.percent.precision(.fractionLength(1)))
+    }
+
+    private var changeAccessibilityDescription: String {
+        guard let changeRatio else { return "admin_analytics_metric_change_no_data".localized }
+        return String(format: "admin_analytics_metric_change_value".localized, changePercentText)
+    }
+
     var body: some View {
-        VStack(spacing: 8) {
-            Text(title)
-                .font(.caption)
-                .foregroundColor(.secondary)
-                .multilineTextAlignment(.center)
-            
-            Text(formattedCurrentValue)
-                .font(.title3)
-                .fontWeight(.bold)
-                .foregroundColor(.primary)
-            
-            HStack(spacing: 4) {
-                Image(systemName: changeValue > 0 ? "arrow.up" : changeValue < 0 ? "arrow.down" : "minus")
+        VStack(alignment: .leading, spacing: LopanSpacing.xs) {
+            Text(titleKey)
+                .font(.footnote)
+                .foregroundColor(LopanColors.textSecondary)
+                .lineLimit(2)
+                .minimumScaleFactor(0.85)
+
+            valueView
+
+            HStack(spacing: LopanSpacing.xxxs) {
+                Image(systemName: changeSymbol)
                     .font(.caption2)
                     .foregroundColor(changeColor)
-                
-                Text("\(String(format: "%.1f", abs(changeValue) * 100))%")
+
+                Text(changePercentText)
                     .font(.caption2)
                     .foregroundColor(changeColor)
             }
+            .accessibilityLabel(Text(changeAccessibilityDescription))
         }
-        .padding()
-        .frame(maxWidth: .infinity)
+        .padding(LopanSpacing.cardPadding)
+        .frame(maxWidth: .infinity, alignment: .leading)
         .background(
-            RoundedRectangle(cornerRadius: 8)
-                .fill(Color(.tertiarySystemBackground))
+            RoundedRectangle(cornerRadius: LopanCornerRadius.card, style: .continuous)
+                .fill(LopanColors.backgroundSecondary)
         )
+        .overlay(
+            RoundedRectangle(cornerRadius: LopanCornerRadius.card, style: .continuous)
+                .stroke(LopanColors.border.opacity(0.08), lineWidth: 1)
+        )
+        .accessibilityElement(children: .ignore)
+        .accessibilityLabel(Text(titleKey))
+        .accessibilityValue(Text(formattedCurrentValue))
+        .accessibilityHint(Text(changeAccessibilityDescription))
+    }
+
+    @ViewBuilder
+    private var valueView: some View {
+        if #available(iOS 17.0, *) {
+            Text(formattedCurrentValue)
+                .font(.title3)
+                .fontWeight(.bold)
+                .foregroundColor(LopanColors.textPrimary)
+                .contentTransition(.numericText(value: currentValue))
+                .transaction { transaction in
+                    transaction.animation = reduceMotion ? nil : .spring(response: 0.4, dampingFraction: 0.8)
+                }
+        } else {
+            Text(formattedCurrentValue)
+                .font(.title3)
+                .fontWeight(.bold)
+                .foregroundColor(LopanColors.textPrimary)
+        }
     }
 }
 
@@ -611,18 +720,18 @@ struct InsightRow: View {
     let icon: String
     let color: Color
     let text: String
-    
+
     var body: some View {
-        HStack(spacing: 8) {
+        HStack(spacing: LopanSpacing.xs) {
             Image(systemName: icon)
                 .font(.caption)
                 .foregroundColor(color)
-            
+
             Text(text)
                 .font(.caption)
-                .foregroundColor(.primary)
+                .foregroundColor(LopanColors.textPrimary)
                 .lineLimit(2)
-            
+
             Spacer()
         }
     }
@@ -631,30 +740,32 @@ struct InsightRow: View {
 /// Quick action card
 /// 快速操作卡片
 struct QuickActionCard: View {
-    let title: String
+    let titleKey: LocalizedStringKey
     let icon: String
     let action: () -> Void
     
     var body: some View {
         Button(action: action) {
-            VStack(spacing: 8) {
+            VStack(spacing: LopanSpacing.xs) {
                 Image(systemName: icon)
                     .font(.title2)
-                    .foregroundColor(.blue)
+                    .foregroundColor(LopanColors.info)
                 
-                Text(title)
+                Text(titleKey)
                     .font(.caption)
                     .fontWeight(.medium)
-                    .foregroundColor(.primary)
+                    .foregroundColor(LopanColors.textPrimary)
                     .multilineTextAlignment(.center)
             }
-            .frame(maxWidth: .infinity, minHeight: 80)
+            .frame(maxWidth: .infinity, minHeight: 88)
             .background(
-                RoundedRectangle(cornerRadius: 8)
-                    .fill(Color(.tertiarySystemBackground))
+                RoundedRectangle(cornerRadius: LopanCornerRadius.card, style: .continuous)
+                    .fill(LopanColors.backgroundSecondary)
             )
         }
-        .buttonStyle(PlainButtonStyle())
+        .buttonStyle(.plain)
+        .accessibilityElement(children: .ignore)
+        .accessibilityLabel(Text(titleKey))
     }
 }
 
@@ -664,36 +775,36 @@ struct RecentReportRow: View {
     let report: GeneratedReport
     
     var body: some View {
-        HStack(spacing: 12) {
+        HStack(spacing: LopanSpacing.sm) {
             Image(systemName: report.configuration.type.icon)
                 .font(.title3)
-                .foregroundColor(.blue)
+                .foregroundColor(LopanColors.info)
                 .frame(width: 24)
             
             VStack(alignment: .leading, spacing: 2) {
                 Text(report.configuration.type.displayName)
                     .font(.caption)
                     .fontWeight(.medium)
-                    .foregroundColor(.primary)
+                    .foregroundColor(LopanColors.textPrimary)
                 
                 Text(formatDate(report.generatedAt))
                     .font(.caption2)
-                    .foregroundColor(.secondary)
+                    .foregroundColor(LopanColors.textSecondary)
             }
             
             Spacer()
             
             Text(report.fileSizeFormatted)
                 .font(.caption2)
-                .foregroundColor(.secondary)
+                .foregroundColor(LopanColors.textSecondary)
             
-            Button("查看") {
+            Button("admin_analytics_recent_reports_view".localized) {
                 // Handle report viewing
             }
             .font(.caption)
-            .foregroundColor(.blue)
+            .foregroundColor(LopanColors.info)
         }
-        .padding(.vertical, 4)
+        .padding(.vertical, LopanSpacing.xxxs)
     }
     
     private func formatDate(_ date: Date) -> String {
@@ -706,13 +817,13 @@ struct RecentReportRow: View {
 /// System health card
 /// 系统健康卡片
 struct SystemHealthCard: View {
-    let title: String
+    let titleKey: LocalizedStringKey
     let value: String
     let icon: String
     let color: Color
     
     var body: some View {
-        VStack(spacing: 8) {
+        VStack(spacing: LopanSpacing.xs) {
             HStack {
                 Image(systemName: icon)
                     .font(.title3)
@@ -721,24 +832,27 @@ struct SystemHealthCard: View {
                 Spacer()
             }
             
-            VStack(alignment: .leading, spacing: 4) {
+            VStack(alignment: .leading, spacing: LopanSpacing.xxxs) {
                 Text(value)
                     .font(.title3)
                     .fontWeight(.bold)
-                    .foregroundColor(.primary)
+                    .foregroundColor(LopanColors.textPrimary)
                 
-                Text(title)
+                Text(titleKey)
                     .font(.caption)
-                    .foregroundColor(.secondary)
+                    .foregroundColor(LopanColors.textSecondary)
                     .lineLimit(1)
             }
             .frame(maxWidth: .infinity, alignment: .leading)
         }
-        .padding()
+        .padding(LopanSpacing.cardPadding)
         .background(
-            RoundedRectangle(cornerRadius: 8)
-                .fill(Color(.tertiarySystemBackground))
+            RoundedRectangle(cornerRadius: LopanCornerRadius.card, style: .continuous)
+                .fill(LopanColors.backgroundSecondary)
         )
+        .accessibilityElement(children: .ignore)
+        .accessibilityLabel(Text(titleKey))
+        .accessibilityValue(Text(value))
     }
 }
 
@@ -751,47 +865,47 @@ struct AnalyticsDetailNavigationView: View {
     let currentMetrics: ProductionMetrics?
     
     var body: some View {
-        NavigationView {
+        NavigationStack {
             List {
                 if let metrics = currentMetrics {
-                    Section("详细分析") {
-                        NavigationLink("生产性能详情") {
+                    Section("admin_analytics_detail_section_title") {
+                        NavigationLink("admin_analytics_detail_link_production".localized) {
                             ProductionPerformanceDetailView(metrics: metrics)
                         }
                         
-                        NavigationLink("机台效率分析") {
+                        NavigationLink("admin_analytics_detail_link_machines".localized) {
                             MachineEfficiencyDetailView(metrics: metrics)
                         }
                         
-                        NavigationLink("质量指标详情") {
+                        NavigationLink("admin_analytics_detail_link_quality".localized) {
                             QualityMetricsDetailView(metrics: metrics)
                         }
                         
-                        NavigationLink("班次对比分析") {
+                        NavigationLink("admin_analytics_detail_link_shifts".localized) {
                             ShiftComparisonDetailView(metrics: metrics)
                         }
                         
-                        NavigationLink("趋势预测分析") {
+                        NavigationLink("admin_analytics_detail_link_trends".localized) {
                             TrendPredictionDetailView(metrics: metrics)
                         }
                     }
                     
-                    Section("数据导出") {
-                        Button("导出为Excel") {
+                    Section("admin_analytics_detail_export_section") {
+                        Button("admin_analytics_detail_export_excel".localized) {
                             // Handle Excel export
                         }
                         
-                        Button("导出为PDF") {
+                        Button("admin_analytics_detail_export_pdf".localized) {
                             // Handle PDF export
                         }
                         
-                        Button("导出为CSV") {
+                        Button("admin_analytics_detail_export_csv".localized) {
                             // Handle CSV export
                         }
                     }
                 }
             }
-            .navigationTitle("详细分析")
+            .navigationTitle("admin_analytics_detail_navigation_title")
             .navigationBarTitleDisplayMode(.inline)
         }
     }
@@ -804,8 +918,8 @@ struct ProductionPerformanceDetailView: View {
     
     var body: some View {
         ScrollView {
-            VStack(spacing: 20) {
-                Text("生产性能详细分析")
+            VStack(spacing: LopanSpacing.contentSpacing) {
+                Text("admin_analytics_detail_production_heading")
                     .font(.title2)
                     .fontWeight(.bold)
                 
@@ -815,9 +929,10 @@ struct ProductionPerformanceDetailView: View {
                 
                 // Additional detailed analysis components would go here
             }
-            .padding()
+            .padding(.horizontal, LopanSpacing.screenPadding)
+            .padding(.vertical, LopanSpacing.lg)
         }
-        .navigationTitle("生产性能")
+        .navigationTitle("admin_analytics_detail_production_title")
         .navigationBarTitleDisplayMode(.inline)
     }
 }
@@ -827,16 +942,17 @@ struct MachineEfficiencyDetailView: View {
     
     var body: some View {
         ScrollView {
-            VStack(spacing: 20) {
-                Text("机台效率详细分析")
+            VStack(spacing: LopanSpacing.contentSpacing) {
+                Text("admin_analytics_detail_machines_heading")
                     .font(.title2)
                     .fontWeight(.bold)
                 
                 // Machine efficiency specific analysis would go here
             }
-            .padding()
+            .padding(.horizontal, LopanSpacing.screenPadding)
+            .padding(.vertical, LopanSpacing.lg)
         }
-        .navigationTitle("机台效率")
+        .navigationTitle("admin_analytics_detail_machines_title")
         .navigationBarTitleDisplayMode(.inline)
     }
 }
@@ -846,16 +962,17 @@ struct QualityMetricsDetailView: View {
     
     var body: some View {
         ScrollView {
-            VStack(spacing: 20) {
-                Text("质量指标详细分析")
+            VStack(spacing: LopanSpacing.contentSpacing) {
+                Text("admin_analytics_detail_quality_heading")
                     .font(.title2)
                     .fontWeight(.bold)
                 
                 // Quality metrics specific analysis would go here
             }
-            .padding()
+            .padding(.horizontal, LopanSpacing.screenPadding)
+            .padding(.vertical, LopanSpacing.lg)
         }
-        .navigationTitle("质量指标")
+        .navigationTitle("admin_analytics_detail_quality_title")
         .navigationBarTitleDisplayMode(.inline)
     }
 }
@@ -865,16 +982,17 @@ struct ShiftComparisonDetailView: View {
     
     var body: some View {
         ScrollView {
-            VStack(spacing: 20) {
-                Text("班次对比详细分析")
+            VStack(spacing: LopanSpacing.contentSpacing) {
+                Text("admin_analytics_detail_shifts_heading")
                     .font(.title2)
                     .fontWeight(.bold)
                 
                 // Shift comparison specific analysis would go here
             }
-            .padding()
+            .padding(.horizontal, LopanSpacing.screenPadding)
+            .padding(.vertical, LopanSpacing.lg)
         }
-        .navigationTitle("班次对比")
+        .navigationTitle("admin_analytics_detail_shifts_title")
         .navigationBarTitleDisplayMode(.inline)
     }
 }
@@ -884,16 +1002,17 @@ struct TrendPredictionDetailView: View {
     
     var body: some View {
         ScrollView {
-            VStack(spacing: 20) {
-                Text("趋势预测详细分析")
+            VStack(spacing: LopanSpacing.contentSpacing) {
+                Text("admin_analytics_detail_trends_heading")
                     .font(.title2)
                     .fontWeight(.bold)
                 
                 // Trend prediction specific analysis would go here
             }
-            .padding()
+            .padding(.horizontal, LopanSpacing.screenPadding)
+            .padding(.vertical, LopanSpacing.lg)
         }
-        .navigationTitle("趋势预测")
+        .navigationTitle("admin_analytics_detail_trends_title")
         .navigationBarTitleDisplayMode(.inline)
     }
 }

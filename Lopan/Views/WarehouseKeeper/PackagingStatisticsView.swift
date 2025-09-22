@@ -120,7 +120,7 @@ struct PackagingStatisticsView: View {
     }
     
     var body: some View {
-        NavigationView {
+        NavigationStack {
             ScrollView {
                 VStack(spacing: 20) {
                     // Time range selector and date picker
@@ -287,20 +287,20 @@ struct TeamPerformanceRow: View {
             VStack(alignment: .trailing, spacing: 4) {
                 HStack(spacing: 16) {
                     VStack(alignment: .trailing) {
-                        Text("\(stat.totalPackages)")
-                            .font(.title3)
-                            .fontWeight(.bold)
-                            .foregroundColor(.blue)
+                       Text("\(stat.totalPackages)")
+                           .font(.title3)
+                           .fontWeight(.bold)
+                            .foregroundColor(LopanColors.info)
                         Text("包装数")
                             .font(.caption)
                             .foregroundColor(.secondary)
                     }
                     
                     VStack(alignment: .trailing) {
-                        Text("\(stat.totalItems)")
-                            .font(.title3)
-                            .fontWeight(.bold)
-                            .foregroundColor(.green)
+                       Text("\(stat.totalItems)")
+                           .font(.title3)
+                           .fontWeight(.bold)
+                            .foregroundColor(LopanColors.success)
                         Text("产品数")
                             .font(.caption)
                             .foregroundColor(.secondary)
@@ -330,20 +330,20 @@ struct StyleStatisticsRow: View {
             
             HStack(spacing: 12) {
                 VStack(alignment: .trailing) {
-                    Text("\(stat.totalPackages)")
-                        .font(.subheadline)
-                        .fontWeight(.bold)
-                        .foregroundColor(.blue)
+                   Text("\(stat.totalPackages)")
+                       .font(.subheadline)
+                       .fontWeight(.bold)
+                        .foregroundColor(LopanColors.info)
                     Text("包装")
                         .font(.caption)
                         .foregroundColor(.secondary)
                 }
                 
                 VStack(alignment: .trailing) {
-                    Text("\(stat.totalItems)")
-                        .font(.subheadline)
-                        .fontWeight(.bold)
-                        .foregroundColor(.green)
+                   Text("\(stat.totalItems)")
+                       .font(.subheadline)
+                       .fontWeight(.bold)
+                        .foregroundColor(LopanColors.success)
                     Text("产品")
                         .font(.caption)
                         .foregroundColor(.secondary)

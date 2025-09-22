@@ -354,7 +354,7 @@ struct NotificationFiltersView: View {
     @Environment(\.dismiss) private var dismiss
     
     var body: some View {
-        NavigationView {
+        NavigationStack {
             Form {
                 Section("按类别筛选") {
                     ForEach(NotificationCategory.allCases, id: \.self) { category in

@@ -18,7 +18,7 @@ struct SystemHealthDashboard: View {
     @State private var selectedHealthCheck: SystemHealthCheckResult? = nil
     
     var body: some View {
-        NavigationView {
+        NavigationStack {
             ScrollView {
                 LazyVStack(spacing: 20) {
                     headerSection
@@ -147,9 +147,9 @@ struct SystemHealthDashboard: View {
                                     .foregroundColor(.primary)
                             }
                             
-                            HStack {
-                                Image(systemName: "wrench.and.screwdriver.fill")
-                                    .foregroundColor(.blue)
+                           HStack {
+                               Image(systemName: "wrench.and.screwdriver.fill")
+                                    .foregroundColor(LopanColors.info)
                                     .font(.caption)
                                 
                                 Text("可自动修复: \(report.autoFixableIssues.count)")
@@ -361,9 +361,9 @@ struct SystemHealthDashboard: View {
     
     private func categoryCard(category: SystemHealthCategory, results: [SystemHealthCheckResult]) -> some View {
         VStack(spacing: 8) {
-            Image(systemName: category.icon)
-                .font(.system(size: 20, weight: .medium))
-                .foregroundColor(.blue)
+           Image(systemName: category.icon)
+               .font(.system(size: 20, weight: .medium))
+                .foregroundColor(LopanColors.info)
             
             Text(category.displayName)
                 .font(.caption)
@@ -490,15 +490,15 @@ struct HealthCheckDetailView: View {
     @Environment(\.dismiss) private var dismiss
     
     var body: some View {
-        NavigationView {
+        NavigationStack {
             ScrollView {
                 VStack(alignment: .leading, spacing: 20) {
                     // Status header
                     VStack(alignment: .leading, spacing: 12) {
-                        HStack {
-                            Image(systemName: healthCheck.category.icon)
-                                .font(.system(size: 24, weight: .medium))
-                                .foregroundColor(.blue)
+                       HStack {
+                           Image(systemName: healthCheck.category.icon)
+                               .font(.system(size: 24, weight: .medium))
+                                .foregroundColor(LopanColors.info)
                             
                             VStack(alignment: .leading, spacing: 4) {
                                 Text(healthCheck.checkName)
@@ -590,21 +590,21 @@ struct HealthCheckDetailView: View {
                     }
                     
                     // Auto-fix indicator
-                    if healthCheck.canAutoFix {
-                        HStack(spacing: 8) {
-                            Image(systemName: "wrench.and.screwdriver.fill")
-                                .foregroundColor(.blue)
-                            
+                   if healthCheck.canAutoFix {
+                       HStack(spacing: 8) {
+                           Image(systemName: "wrench.and.screwdriver.fill")
+                                .foregroundColor(LopanColors.info)
+                           
                             Text("此问题可以自动修复")
                                 .font(.caption)
-                                .foregroundColor(.blue)
+                                .foregroundColor(LopanColors.info)
                             
                             Spacer()
                         }
                         .padding()
                         .background(
                             RoundedRectangle(cornerRadius: 8)
-                                .fill(Color.blue.opacity(0.1))
+                                .fill(LopanColors.info.opacity(0.1))
                         )
                     }
                     

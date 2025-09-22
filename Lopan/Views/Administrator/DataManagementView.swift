@@ -17,7 +17,7 @@ struct DataManagementView: View {
     @State private var selectedTab = 0
     
     var body: some View {
-        NavigationView {
+        NavigationStack {
             TabView(selection: $selectedTab) {
                 // Export Tab
                 DataExportView()
@@ -172,13 +172,13 @@ struct ExportConfigurationSheet: View {
     @State private var exportError: Error?
     
     var body: some View {
-        NavigationView {
+        NavigationStack {
             Form {
                 Section("导出内容") {
                     ForEach(ExportDataType.allCases, id: \.self) { dataType in
-                        HStack {
-                            Image(systemName: dataType.icon)
-                                .foregroundColor(.blue)
+                       HStack {
+                           Image(systemName: dataType.icon)
+                                .foregroundColor(LopanColors.info)
                             
                             Toggle(dataType.displayName, isOn: Binding(
                                 get: { selectedDataTypes.contains(dataType) },
@@ -387,7 +387,7 @@ struct ActiveExportsView: View {
     @Environment(\.dismiss) private var dismiss
     
     var body: some View {
-        NavigationView {
+        NavigationStack {
             List {
                 ForEach(Array(exportEngine.activeExports.keys), id: \.self) { jobId in
                     if let progress = exportEngine.activeExports[jobId] {
@@ -557,7 +557,7 @@ struct ImportConfigurationSheet: View {
     @State private var importError: Error?
     
     var body: some View {
-        NavigationView {
+        NavigationStack {
             Form {
                 Section("导入文件") {
                     HStack {
@@ -766,7 +766,7 @@ struct ActiveImportsView: View {
     @Environment(\.dismiss) private var dismiss
     
     var body: some View {
-        NavigationView {
+        NavigationStack {
             List {
                 ForEach(Array(importEngine.activeImports.keys), id: \.self) { jobId in
                     if let progress = importEngine.activeImports[jobId] {
@@ -952,13 +952,13 @@ struct BackupConfigurationSheet: View {
     @State private var backupError: Error?
     
     var body: some View {
-        NavigationView {
+        NavigationStack {
             Form {
                 Section("备份内容") {
                     ForEach(ExportDataType.allCases, id: \.self) { dataType in
                         HStack {
                             Image(systemName: dataType.icon)
-                                .foregroundColor(.blue)
+                                .foregroundColor(LopanColors.info)
                             
                             Toggle(dataType.displayName, isOn: Binding(
                                 get: { selectedDataTypes.contains(dataType) },
@@ -1146,7 +1146,7 @@ struct BackupDetailsView: View {
     @State private var isLoading = true
     
     var body: some View {
-        NavigationView {
+        NavigationStack {
             List {
                 Section("基本信息") {
                     DetailRow(title: "备份名称", value: backup.name)
@@ -1236,7 +1236,7 @@ struct ActiveBackupsView: View {
     @Environment(\.dismiss) private var dismiss
     
     var body: some View {
-        NavigationView {
+        NavigationStack {
             List {
                 ForEach(Array(backupService.activeBackups.keys), id: \.self) { jobId in
                     if let progress = backupService.activeBackups[jobId] {
@@ -1327,7 +1327,7 @@ struct BackupSchedulerView: View {
     @Environment(\.dismiss) private var dismiss
     
     var body: some View {
-        NavigationView {
+        NavigationStack {
             VStack {
                 Text("备份调度")
                     .font(.title2)
@@ -1501,7 +1501,7 @@ struct RecoveryConfigurationSheet: View {
     }
     
     var body: some View {
-        NavigationView {
+        NavigationStack {
             Form {
                 Section("恢复来源") {
                     HStack {

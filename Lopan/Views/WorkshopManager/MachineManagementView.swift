@@ -322,7 +322,7 @@ struct AddMachineSheet: View {
     @State private var isAdding = false
     
     var body: some View {
-        NavigationView {
+        NavigationStack {
             VStack(spacing: 24) {
                 VStack(spacing: 16) {
                     Image(systemName: "gearshape.2.fill")

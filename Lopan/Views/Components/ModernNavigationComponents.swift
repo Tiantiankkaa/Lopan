@@ -21,7 +21,7 @@ struct ModernNavigationView<Content: View>: View {
                 content
             }
         } else {
-            NavigationView {
+            NavigationStack {
                 content
             }
             .navigationViewStyle(StackNavigationViewStyle())
@@ -126,7 +126,7 @@ struct ErrorStateView: View {
                         Text("重试")
                     }
                 }
-                .foregroundColor(.blue)
+                .foregroundColor(LopanColors.info)
                 .accessibilityLabel("重试")
             }
         }

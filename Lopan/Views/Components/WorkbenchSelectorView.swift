@@ -14,7 +14,7 @@ struct WorkbenchSelectorView: View {
     @Environment(\.dismiss) private var dismiss
     
     var body: some View {
-        NavigationView {
+        NavigationStack {
             VStack(spacing: 20) {
                 Text("工作台操作")
                     .font(.title2)
@@ -29,7 +29,7 @@ struct WorkbenchSelectorView: View {
                         if let currentContext = navigationService.currentWorkbenchContext {
                             Text("当前工作台：\(currentContext.displayName)")
                                 .font(.caption)
-                                .foregroundColor(.blue)
+                                .foregroundColor(LopanColors.info)
                                 .padding(.horizontal, 8)
                                 .padding(.vertical, 2)
                                 .background(Color.blue.opacity(0.1))
@@ -200,7 +200,7 @@ struct WorkbenchCard: View {
                 if isCurrentRole {
                     Text("当前工作台")
                         .font(.caption)
-                        .foregroundColor(.blue)
+                        .foregroundColor(LopanColors.info)
                         .padding(.horizontal, 8)
                         .padding(.vertical, 2)
                         .background(Color.blue.opacity(0.1))

@@ -7,7 +7,8 @@
 
 import Foundation
 
-public protocol RepositoryFactory: Sendable {
+@MainActor
+public protocol RepositoryFactory: AnyObject, Sendable {
     var userRepository: UserRepository { get }
     var customerRepository: CustomerRepository { get }
     var productRepository: ProductRepository { get }

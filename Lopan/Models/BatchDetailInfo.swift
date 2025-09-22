@@ -21,10 +21,12 @@ struct BatchDetailInfo: Identifiable {
     let submittedBy: String
     let submittedByName: String
     let submittedAt: Date
+    let createdAt: Date
     
     // Execution information (执行信息)
     let executionTime: Date?
     let completedAt: Date?
+    let appliedAt: Date?
     let isSystemAutoCompleted: Bool
     let allowsColorModificationOnly: Bool
     let isShiftBatch: Bool
@@ -39,6 +41,9 @@ struct BatchDetailInfo: Identifiable {
     let reviewedBy: String?
     let reviewedByName: String?
     let reviewNotes: String?
+    let products: [ProductSnapshot]
+    let totalStationsUsed: Int
+    let isValidConfiguration: Bool
     
     /// Initialize from ProductionBatch model
     /// 从ProductionBatch模型初始化
@@ -55,10 +60,12 @@ struct BatchDetailInfo: Identifiable {
         self.submittedBy = batch.submittedBy
         self.submittedByName = batch.submittedByName
         self.submittedAt = batch.submittedAt
+        self.createdAt = batch.createdAt
         
         // Execution information (执行信息)
         self.executionTime = batch.executionTime
         self.completedAt = batch.completedAt
+        self.appliedAt = batch.appliedAt
         self.isSystemAutoCompleted = batch.isSystemAutoCompleted
         self.allowsColorModificationOnly = batch.allowsColorModificationOnly
         self.isShiftBatch = batch.isShiftBatch
@@ -69,6 +76,11 @@ struct BatchDetailInfo: Identifiable {
         self.reviewedByName = batch.reviewedByName
         self.reviewNotes = batch.reviewNotes
         
+        // Snapshot related collections (集合快照)
+        self.products = batch.products.map { ProductSnapshot(from: $0) }
+        self.totalStationsUsed = batch.totalStationsUsed
+        self.isValidConfiguration = batch.isValidConfiguration
+
         // Calculate computed properties once during initialization (初始化时一次性计算属性)
         self.isAutoCompleted = Self.calculateIsAutoCompleted(
             isSystemAutoCompleted: batch.isSystemAutoCompleted,
@@ -208,6 +220,33 @@ struct BatchDetailInfo: Identifiable {
 // MARK: - Convenience Computed Properties (便利计算属性)
 
 extension BatchDetailInfo {
+    struct ProductSnapshot: Identifiable {
+        let id: String
+        let name: String
+        let primaryColorId: String
+        let secondaryColorId: String?
+        let occupiedStations: [Int]
+        let stationCount: Int?
+        let gunAssignment: String?
+        let isDualColor: Bool
+        
+        init(from product: ProductConfig) {
+            self.id = product.id
+            self.name = product.productName
+            self.primaryColorId = product.primaryColorId
+            self.secondaryColorId = product.secondaryColorId
+            self.occupiedStations = product.occupiedStations
+            self.stationCount = product.stationCount
+            self.gunAssignment = product.gunAssignment
+            self.isDualColor = product.isDualColor
+        }
+        
+        var occupiedStationsDisplay: String {
+            guard !occupiedStations.isEmpty else { return "-" }
+            return occupiedStations.sorted().map(String.init).joined(separator: ", ")
+        }
+    }
+    
     /// Display name for batch type
     /// 批次类型显示名称
     var batchTypeDisplayName: String {

@@ -306,7 +306,7 @@ struct SmartFilterBar: View {
     
     // MARK: - Saved Filters Sheet
     private var savedFiltersSheet: some View {
-        NavigationView {
+        NavigationStack {
             SavedFiltersView(
                 savedFilters: filterAnalytics.savedFilters,
                 onApplyFilter: handleApplySavedFilter,
@@ -326,7 +326,7 @@ struct SmartFilterBar: View {
     
     // MARK: - Custom Filter Sheet
     private var customFilterSheet: some View {
-        NavigationView {
+        NavigationStack {
             CustomFilterBuilder(
                 availableFilters: availableFilters,
                 currentFilters: Array(activeFilters),

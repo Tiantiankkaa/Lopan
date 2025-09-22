@@ -59,7 +59,7 @@ struct ShiftAwareApprovalView: View {
     }
     
     var body: some View {
-        NavigationView {
+        NavigationStack {
             ScrollView {
                 LazyVStack(spacing: 20) {
                     approvalHeaderSection

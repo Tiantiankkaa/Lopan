@@ -17,15 +17,15 @@ struct LoginView: View {
     @State private var showingDemoLogin = false
     @State private var showingSMSLogin = false
     @State private var selectedAuthMethod = 0
-    
+
     var body: some View {
-        NavigationView {
+        NavigationStack {
             VStack(spacing: 30) {
                 // Header
                 VStack(spacing: 16) {
                     Image(systemName: "building.2.fill")
                         .font(.system(size: 60))
-                        .foregroundColor(.blue)
+                        .foregroundColor(LopanColors.info)
                     
                     Text("洛盘生产管理系统")
                         .font(.largeTitle)
@@ -65,8 +65,8 @@ struct LoginView: View {
                         }
                         .frame(maxWidth: .infinity)
                         .padding()
-                        .background(Color.green)
-                        .foregroundColor(.white)
+                        .background(LopanColors.success)
+                        .foregroundColor(LopanColors.textOnPrimary)
                         .cornerRadius(10)
                     }
                     .padding(.horizontal, 40)
@@ -117,21 +117,21 @@ struct LoginView: View {
                         }
                         .padding(.horizontal, 40)
                     } else {
-                        Button("更多登录方式") {
-                            selectedAuthMethod = 2
-                        }
-                        .font(.caption)
-                        .foregroundColor(.blue)
+                       Button("更多登录方式") {
+                           selectedAuthMethod = 2
+                       }
+                       .font(.caption)
+                        .foregroundColor(LopanColors.info)
                     }
                 }
                 
                 // Demo Login Button - Only available in DEBUG builds
                 #if DEBUG
-                Button("演示登录") {
-                    showingDemoLogin = true
-                }
-                .font(.caption)
-                .foregroundColor(.blue)
+               Button("演示登录") {
+                   showingDemoLogin = true
+               }
+               .font(.caption)
+                .foregroundColor(LopanColors.info)
                 #endif
                 
                 Spacer()
@@ -165,15 +165,15 @@ struct DemoLoginView: View {
     @State private var loginError: String?
     
     var body: some View {
-        NavigationView {
+        NavigationStack {
             VStack(spacing: 20) {
                 Text("演示登录")
                     .font(.title2)
                     .fontWeight(.bold)
                 
-                Text("⚠️ 仅限开发环境使用")
-                    .font(.caption)
-                    .foregroundColor(.red)
+               Text("⚠️ 仅限开发环境使用")
+                   .font(.caption)
+                    .foregroundColor(LopanColors.error)
                     .padding(.horizontal)
                 
                 Text("选择角色进行演示")
@@ -188,13 +188,13 @@ struct DemoLoginView: View {
                             HStack {
                                 Text(role.displayName)
                                 Spacer()
-                                if selectedRole == role {
-                                    Image(systemName: "checkmark.circle.fill")
-                                        .foregroundColor(.blue)
-                                }
-                            }
-                            .padding()
-                            .background(selectedRole == role ? Color.blue.opacity(0.1) : Color.gray.opacity(0.1))
+                               if selectedRole == role {
+                                   Image(systemName: "checkmark.circle.fill")
+                                        .foregroundColor(LopanColors.info)
+                               }
+                           }
+                           .padding()
+                            .background(selectedRole == role ? LopanColors.info.opacity(0.1) : LopanColors.secondary.opacity(0.1))
                             .cornerRadius(8)
                         }
                         .buttonStyle(PlainButtonStyle())
@@ -289,7 +289,7 @@ struct SMSLoginView: View {
     @State private var name = ""
     
     var body: some View {
-        NavigationView {
+        NavigationStack {
             VStack(spacing: 20) {
                 Text("手机号登录")
                     .font(.title2)
@@ -359,7 +359,7 @@ struct SMSVerificationView: View {
     @State private var verificationCode = ""
     
     var body: some View {
-        NavigationView {
+        NavigationStack {
             VStack(spacing: 20) {
                 Text("验证码验证")
                     .font(.title2)

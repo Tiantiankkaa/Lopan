@@ -12,7 +12,7 @@ struct OutOfStockTestingView: View {
     @State private var showingMainView = false
     
     var body: some View {
-        NavigationView {
+        NavigationStack {
             ScrollView {
                 VStack(spacing: 24) {
                     headerSection

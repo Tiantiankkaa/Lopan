@@ -171,15 +171,18 @@ struct AdaptiveDateNavigationBar: View {
     ) -> some View {
         Button(action: action) {
             Image(systemName: direction.iconName)
-                .font(.system(size: 16, weight: .medium))
-                .foregroundColor(enabled ? .blue : .gray)
-                .opacity(enabled ? 1.0 : 0.4)
-                .padding(.vertical, 8)
-                .padding(.horizontal, 12)
+                .font(.system(size: 16, weight: .semibold))
+                .symbolRenderingMode(.monochrome)
+                .foregroundColor(enabled ? .blue : .secondary)
+                .frame(width: 36, height: 36)
+                .background(
+                    Circle()
+                        .fill(enabled ? Color.blue.opacity(0.12) : Color.secondary.opacity(0.12))
+                )
         }
         .buttonStyle(.plain)
         .disabled(!enabled)
-        .scaleEffect(isAnimating ? 1.1 : 1.0)
+        .scaleEffect(isAnimating ? 1.05 : 1.0)
         .accessibilityLabel(direction.accessibilityLabel)
         .accessibilityHint(enabled ? direction.accessibilityHint : "当前筛选模式下不可用")
     }
@@ -311,11 +314,18 @@ private struct FilterSummaryDisplayView: View {
 
 private enum NavigationDirection {
     case previous, next
-    
+
     var iconName: String {
         switch self {
         case .previous: return "chevron.left"
         case .next: return "chevron.right"
+        }
+    }
+
+    var title: String {
+        switch self {
+        case .previous: return "上一天"
+        case .next: return "下一天"
         }
     }
     

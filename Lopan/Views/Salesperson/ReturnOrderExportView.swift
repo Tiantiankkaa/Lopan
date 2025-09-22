@@ -21,7 +21,7 @@ struct ReturnOrderExportView: View {
     @State private var showingSaveDialog = false
     
     var body: some View {
-        NavigationView {
+        NavigationStack {
             VStack {
                 headerSection
                 exportTypeSection
@@ -131,7 +131,7 @@ struct ReturnOrderExportView: View {
                     toggleSelectAll()
                 }
                 .font(.caption)
-                .foregroundColor(.blue)
+                .foregroundColor(LopanColors.info)
             }
             .padding(.horizontal)
             
@@ -304,12 +304,12 @@ struct ExportItemRow: View {
                     HStack {
                         Text("剩余: \(item.remainingQuantity)")
                             .font(.caption)
-                            .foregroundColor(.orange)
+                            .foregroundColor(LopanColors.warning)
                         
                         if item.hasPartialReturn {
                             Text("已还: \(item.returnQuantity)")
                                 .font(.caption)
-                                .foregroundColor(.blue)
+                                .foregroundColor(LopanColors.info)
                         }
                     }
                 }
@@ -357,4 +357,3 @@ struct ExportItemRow: View {
         }
     }
 }
-

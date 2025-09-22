@@ -333,7 +333,7 @@ struct EditCustomerView: View {
     }
     
     var body: some View {
-        NavigationView {
+        NavigationStack {
             VStack(alignment: .leading, spacing: LopanSpacing.lg) {
                 Text("客户信息")
                     .font(LopanTypography.headlineSmall)

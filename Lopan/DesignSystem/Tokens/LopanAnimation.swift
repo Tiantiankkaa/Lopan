@@ -6,6 +6,8 @@
 //
 
 import SwiftUI
+import AVFoundation
+import UIKit
 
 /// Animation and motion design system for Lopan production management app
 /// Following iOS 2025 trends for purposeful motion and micro-interactions
@@ -95,28 +97,56 @@ extension View {
 
 // MARK: - Haptic Feedback Helper
 struct HapticFeedback {
+    private static var audioSession: AVAudioSession { AVAudioSession.sharedInstance() }
+    
+    private static var isHapticAllowed: Bool {
+        guard !UIAccessibility.isReduceMotionEnabled else { return false }
+        return !(audioSession.isOtherAudioPlaying)
+    }
+    
+    private static func playImpact(style: UIImpactFeedbackGenerator.FeedbackStyle) {
+        guard isHapticAllowed else { return }
+        let generator = UIImpactFeedbackGenerator(style: style)
+        generator.prepare()
+        generator.impactOccurred()
+    }
+    
+    private static func playNotification(_ type: UINotificationFeedbackGenerator.FeedbackType) {
+        guard isHapticAllowed else { return }
+        let generator = UINotificationFeedbackGenerator()
+        generator.prepare()
+        generator.notificationOccurred(type)
+    }
+    
     static func light() {
-        UIImpactFeedbackGenerator(style: .light).impactOccurred()
+        playImpact(style: .light)
     }
     
     static func medium() {
-        UIImpactFeedbackGenerator(style: .medium).impactOccurred()
+        playImpact(style: .medium)
     }
     
     static func heavy() {
-        UIImpactFeedbackGenerator(style: .heavy).impactOccurred()
+        playImpact(style: .heavy)
+    }
+    
+    static func selection() {
+        guard isHapticAllowed else { return }
+        let generator = UISelectionFeedbackGenerator()
+        generator.prepare()
+        generator.selectionChanged()
     }
     
     static func success() {
-        UINotificationFeedbackGenerator().notificationOccurred(.success)
+        playNotification(.success)
     }
     
     static func warning() {
-        UINotificationFeedbackGenerator().notificationOccurred(.warning)
+        playNotification(.warning)
     }
     
     static func error() {
-        UINotificationFeedbackGenerator().notificationOccurred(.error)
+        playNotification(.error)
     }
 }
 

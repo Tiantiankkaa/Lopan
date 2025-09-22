@@ -11,7 +11,7 @@ import SwiftData
 // MARK: - Salesperson Views
 struct SalesAnalyticsView: View {
     var body: some View {
-        NavigationView {
+        NavigationStack {
             VStack(spacing: 20) {
                 Image(systemName: "chart.bar.fill")
                     .font(.system(size: 60))
@@ -59,7 +59,7 @@ struct ProductionStyleListView: View {
     }
     
     var body: some View {
-        NavigationView {
+        NavigationStack {
             VStack(spacing: 0) {
                 // Search bar with white background
                 HStack {
@@ -209,7 +209,7 @@ struct ReadOnlyProductRow: View {
                 if !product.colors.isEmpty {
                     HStack(spacing: 4) {
                         Image(systemName: "paintbrush.fill")
-                            .foregroundColor(.blue)
+                            .foregroundColor(LopanColors.info)
                             .font(.caption)
                         Text("颜色: \(product.colors.joined(separator: ", "))")
                             .font(.subheadline)
@@ -243,11 +243,11 @@ struct ReadOnlyProductRow: View {
             // Status indicator
             VStack {
                 Image(systemName: "eye.fill")
-                    .foregroundColor(.blue.opacity(0.6))
+                    .foregroundColor(LopanColors.info.opacity(0.6))
                     .font(.caption)
                 Text("只读")
                     .font(.caption2)
-                    .foregroundColor(.blue.opacity(0.6))
+                    .foregroundColor(LopanColors.info.opacity(0.6))
             }
             .padding(.trailing, 4)
         }
@@ -286,11 +286,11 @@ struct WarehouseStatusView: View {
 // MARK: - Workshop Manager Views
 struct WorkshopProductionListView: View {
     var body: some View {
-        NavigationView {
+        NavigationStack {
             VStack(spacing: 20) {
                 Image(systemName: "gearshape.2.fill")
                     .font(.system(size: 60))
-                    .foregroundColor(.blue)
+                    .foregroundColor(LopanColors.info)
                 
                 Text("生产管理")
                     .font(.title)
@@ -313,7 +313,7 @@ struct WorkshopProductionListView: View {
 
 struct MachineStatusView: View {
     var body: some View {
-        NavigationView {
+        NavigationStack {
             VStack(spacing: 20) {
                 Image(systemName: "cpu.fill")
                     .font(.system(size: 60))
@@ -341,11 +341,11 @@ struct MachineStatusView: View {
 // MARK: - EVA Granulation Technician Views
 struct EVAGranulationListView: View {
     var body: some View {
-        NavigationView {
+        NavigationStack {
             VStack(spacing: 20) {
                 Image(systemName: "drop.fill")
                     .font(.system(size: 60))
-                    .foregroundColor(.blue)
+                    .foregroundColor(LopanColors.info)
                 
                 Text("造粒记录")
                     .font(.title)
@@ -368,7 +368,7 @@ struct EVAGranulationListView: View {
 
 struct RawMaterialView: View {
     var body: some View {
-        NavigationView {
+        NavigationStack {
             VStack(spacing: 20) {
                 Image(systemName: "cube.box.fill")
                     .font(.system(size: 60))
@@ -396,7 +396,7 @@ struct RawMaterialView: View {
 // MARK: - Workshop Technician Views
 struct WorkshopIssueListView: View {
     var body: some View {
-        NavigationView {
+        NavigationStack {
             VStack(spacing: 20) {
                 Image(systemName: "exclamationmark.triangle.fill")
                     .font(.system(size: 60))
@@ -423,7 +423,7 @@ struct WorkshopIssueListView: View {
 
 struct MachineMaintenanceView: View {
     var body: some View {
-        NavigationView {
+        NavigationStack {
             VStack(spacing: 20) {
                 Image(systemName: "wrench.and.screwdriver.fill")
                     .font(.system(size: 60))
@@ -451,11 +451,11 @@ struct MachineMaintenanceView: View {
 // MARK: - Administrator Views
 struct AdminAnalyticsView: View {
     var body: some View {
-        NavigationView {
+        NavigationStack {
             VStack(spacing: 20) {
                 Image(systemName: "chart.line.uptrend.xyaxis")
                     .font(.system(size: 60))
-                    .foregroundColor(.blue)
+                    .foregroundColor(LopanColors.info)
                 
                 Text("数据分析")
                     .font(.title)
@@ -478,7 +478,7 @@ struct AdminAnalyticsView: View {
 
 struct SystemOverviewView: View {
     var body: some View {
-        NavigationView {
+        NavigationStack {
             VStack(spacing: 20) {
                 Image(systemName: "chart.pie.fill")
                     .font(.system(size: 60))
@@ -505,7 +505,7 @@ struct SystemOverviewView: View {
 
 struct ProductionOverviewView: View {
     var body: some View {
-        NavigationView {
+        NavigationStack {
             VStack(spacing: 20) {
                 Image(systemName: "gearshape.2.fill")
                     .font(.system(size: 60))

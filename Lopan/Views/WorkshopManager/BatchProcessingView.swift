@@ -47,6 +47,7 @@ struct BatchProcessingView: View {
     let repositoryFactory: RepositoryFactory
     @ObservedObject var authService: AuthenticationService
     let auditService: NewAuditingService
+    @Environment(\.accessibilityReduceMotion) private var reduceMotion
     
     @State private var selectedDate = Date()
     @State private var selectedShift: Shift = .morning
@@ -61,9 +62,10 @@ struct BatchProcessingView: View {
     @State private var isHeaderCollapsed = false
     
     // Service dependencies
-    @StateObject private var productionBatchService: ProductionBatchService
-    @StateObject private var machineService: MachineService
-    @StateObject private var batchEditPermissionService: StandardBatchEditPermissionService
+    @StateObject private var serviceProvider: WorkshopManagerServiceProvider
+    @ObservedObject private var productionBatchService: ProductionBatchService
+    @ObservedObject private var machineService: MachineService
+    @ObservedObject private var batchEditPermissionService: StandardBatchEditPermissionService
     
     @StateObject private var dateShiftPolicy = StandardDateShiftPolicy()
     private let timeProvider = SystemTimeProvider()
@@ -73,31 +75,21 @@ struct BatchProcessingView: View {
         self.authService = authService
         self.auditService = auditService
         
-        // Initialize services
-        let productionService = ProductionBatchService(
-            productionBatchRepository: repositoryFactory.productionBatchRepository,
-            machineRepository: repositoryFactory.machineRepository,
-            colorRepository: repositoryFactory.colorRepository,
-            auditService: auditService,
-            authService: authService
+        let provider = WorkshopManagerServiceProvider(
+            repositoryFactory: repositoryFactory,
+            authService: authService,
+            auditService: auditService
         )
-        self._productionBatchService = StateObject(wrappedValue: productionService)
-        
-        let machineServiceInstance = MachineService(
-            machineRepository: repositoryFactory.machineRepository,
-            auditService: auditService,
-            authService: authService
-        )
-        self._machineService = StateObject(wrappedValue: machineServiceInstance)
-        
-        let permissionService = StandardBatchEditPermissionService(authService: authService)
-        self._batchEditPermissionService = StateObject(wrappedValue: permissionService)
+        self._serviceProvider = StateObject(wrappedValue: provider)
+        self._productionBatchService = ObservedObject(wrappedValue: provider.batchService)
+        self._machineService = ObservedObject(wrappedValue: provider.machineService)
+        self._batchEditPermissionService = ObservedObject(wrappedValue: provider.batchEditPermissionService)
     }
     
     var body: some View {
-        NavigationView {
+        NavigationStack {
             mainContent
-                .navigationTitle("批次处理")
+                .navigationTitle("batch_processing_title".localized)
                 .navigationBarTitleDisplayMode(.large)
                 .toolbar {
                     ToolbarItem(placement: .primaryAction) {
@@ -107,8 +99,8 @@ struct BatchProcessingView: View {
                 .task {
                     await loadInitialData()
                 }
-                .alert("错误", isPresented: $showingError, presenting: errorMessage) { _ in
-                    Button("确定", role: .cancel) { }
+                .alert("batch_processing_error_title".localized, isPresented: $showingError, presenting: errorMessage) { _ in
+                    Button("common_ok".localized, role: .cancel) { }
                 } message: { message in
                     Text(message)
                 }
@@ -117,7 +109,6 @@ struct BatchProcessingView: View {
                 }
                 .onChange(of: activeSheet) {
                 if activeSheet == nil {
-                    // Refresh data when any sheet is dismissed
                     Task {
                         await loadBatchesForSelectedDateTime()
                     }
@@ -135,8 +126,12 @@ struct BatchProcessingView: View {
                 .coordinateSpace(name: "scroll")
                 .onPreferenceChange(BatchScrollOffsetPreferenceKey.self) { value in
                     scrollOffset = value
-                    withAnimation(.easeInOut(duration: 0.25)) {
+                    if reduceMotion {
                         isHeaderCollapsed = value < -20
+                    } else {
+                        withAnimation(.easeInOut(duration: 0.25)) {
+                            isHeaderCollapsed = value < -20
+                        }
                     }
                 }
                 .refreshable {
@@ -159,7 +154,8 @@ struct BatchProcessingView: View {
                 batchListSection
                 createBatchSection
             }
-            .padding()
+            .padding(.horizontal, LopanSpacing.screenPadding)
+            .padding(.vertical, LopanSpacing.lg)
         }
     }
     
@@ -169,15 +165,15 @@ struct BatchProcessingView: View {
         VStack(spacing: isHeaderCollapsed ? 6 : 12) {
             HStack {
                 VStack(alignment: .leading, spacing: isHeaderCollapsed ? 2 : 4) {
-                    Text("班次批次管理")
+                    Text("batch_processing_header_title".localized)
                         .font(isHeaderCollapsed ? .headline : .title2)
                         .fontWeight(.bold)
-                        .foregroundColor(.primary)
+                        .foregroundColor(LopanColors.textPrimary)
                     
                     if !isHeaderCollapsed {
-                        Text("按班次安排生产批次，精准控制生产节奏")
+                        Text("batch_processing_header_subtitle".localized)
                             .font(.caption)
-                            .foregroundColor(.secondary)
+                            .foregroundColor(LopanColors.textSecondary)
                             .transition(.opacity.combined(with: .move(edge: .top)))
                     }
                 }
@@ -193,77 +189,65 @@ struct BatchProcessingView: View {
             Divider()
         }
         .frame(height: isHeaderCollapsed ? 60 : 80)
-        .background(Color(.systemBackground))
-        .animation(.easeInOut(duration: 0.25), value: isHeaderCollapsed)
+        .background(LopanColors.backgroundPrimary)
+        .animation(reduceMotion ? nil : .easeInOut(duration: 0.25), value: isHeaderCollapsed)
     }
-    
+
     private var batchCountBadge: some View {
-        VStack(spacing: 2) {
-            Text("\(currentBatches.count)")
+        VStack(spacing: LopanSpacing.xxxs) {
+            Text(currentBatches.count.formatted())
                 .font(.title2)
                 .fontWeight(.bold)
-                .foregroundColor(.blue)
-            
-            Text("当前批次")
+                .foregroundColor(LopanColors.info)
+
+            Text("batch_processing_header_badge".localized)
                 .font(.caption2)
-                .foregroundColor(.secondary)
+                .foregroundColor(LopanColors.textSecondary)
         }
-        .padding(.horizontal, 12)
-        .padding(.vertical, 6)
+        .padding(.horizontal, LopanSpacing.sm)
+        .padding(.vertical, LopanSpacing.xs)
         .background(
-            RoundedRectangle(cornerRadius: 8)
-                .fill(Color.blue.opacity(0.1))
+            Capsule()
+                .fill(LopanColors.info.opacity(0.12))
         )
     }
     
     // MARK: - Shift Date Selector Section (班次日期选择区域)
     
     private var shiftDateSelectorSection: some View {
-        VStack(alignment: .leading, spacing: 12) {
-            sectionHeader(title: "选择日期和班次", icon: "calendar.badge.clock")
-            
-            ShiftDateSelector(
-                selectedDate: $selectedDate,
-                selectedShift: $selectedShift,
-                dateShiftPolicy: dateShiftPolicy,
-                timeProvider: timeProvider
-            )
-            .onChange(of: selectedDate) { _ in
-                Task {
-                    await loadBatchesForSelectedDateTime()
+        AnalyticsSurface {
+            VStack(alignment: .leading, spacing: LopanSpacing.sm) {
+                sectionHeader(title: "batch_processing_section_date_shift", icon: "calendar.badge.clock")
+
+                ShiftDateSelector(
+                    selectedDate: $selectedDate,
+                    selectedShift: $selectedShift,
+                    dateShiftPolicy: dateShiftPolicy,
+                    timeProvider: timeProvider
+                )
+                .onChange(of: selectedDate) { _ in
+                    Task { await loadBatchesForSelectedDateTime() }
                 }
-            }
-            .onChange(of: selectedShift) { _ in
-                Task {
-                    await loadBatchesForSelectedDateTime()
+                .onChange(of: selectedShift) { _ in
+                    Task { await loadBatchesForSelectedDateTime() }
                 }
             }
         }
-        .padding()
-        .background(
-            RoundedRectangle(cornerRadius: 16)
-                .fill(Color(.secondarySystemBackground))
-        )
     }
     
     // MARK: - Machine Status Section (机器状态区域)
     
     private var machineStatusSection: some View {
-        VStack(alignment: .leading, spacing: 12) {
-            sectionHeader(title: "设备状态检查", icon: "gearshape.2")
-            
-            MachineStatusChecker(
-                machineService: machineService,
-                onStatusChange: { isRunning in
-                    // Handle machine status change if needed
-                }
-            )
+        AnalyticsSurface {
+            VStack(alignment: .leading, spacing: LopanSpacing.sm) {
+                sectionHeader(title: "batch_processing_section_machine_status", icon: "gearshape.2")
+
+                MachineStatusChecker(
+                    machineService: machineService,
+                    onStatusChange: { _ in }
+                )
+            }
         }
-        .padding()
-        .background(
-            RoundedRectangle(cornerRadius: 16)
-                .fill(Color(.secondarySystemBackground))
-        )
     }
     
     // MARK: - Machine Selection Section (机器选择区域)
@@ -271,7 +255,7 @@ struct BatchProcessingView: View {
     private var machineSelectionSection: some View {
         VStack(alignment: .leading, spacing: 12) {
             HStack {
-                sectionHeader(title: "选择生产设备", icon: "gearshape.fill")
+                sectionHeader(title: "batch_processing_section_machine_select", icon: "gearshape.fill")
                 
                 Spacer()
                 
@@ -286,43 +270,41 @@ struct BatchProcessingView: View {
                 machineSelectionGrid
             }
         }
-        .padding()
-        .background(
-            RoundedRectangle(cornerRadius: 16)
-                .fill(Color(.secondarySystemBackground))
-        )
     }
-    
+
     private var selectAllToggle: some View {
+        let isAllSelected = !availableMachines.isEmpty && selectedMachineIds.count == availableMachines.count
+        let toggleKey: LocalizedStringKey = isAllSelected ? "batch_processing_action_deselect_all" : "batch_processing_action_select_all"
+
         Button(action: {
-            if selectedMachineIds.count == availableMachines.count {
+            if isAllSelected {
                 selectedMachineIds.removeAll()
             } else {
                 selectedMachineIds = Set(availableMachines.map { $0.id })
             }
         }) {
             HStack(spacing: 6) {
-                Image(systemName: selectedMachineIds.count == availableMachines.count ? "checkmark.circle.fill" : "circle")
-                    .foregroundColor(selectedMachineIds.count == availableMachines.count ? .blue : .secondary)
+                Image(systemName: isAllSelected ? "checkmark.circle.fill" : "circle")
+                    .foregroundColor(isAllSelected ? LopanColors.info : LopanColors.textSecondary)
                 
-                Text(selectedMachineIds.count == availableMachines.count ? "取消全选" : "全选")
+                Text(toggleKey)
                     .font(.caption)
-                    .foregroundColor(.blue)
+                    .foregroundColor(LopanColors.info)
             }
         }
     }
-    
+
     private var machineEmptyState: some View {
         VStack(spacing: 12) {
             Image(systemName: "exclamationmark.triangle")
                 .font(.system(size: 40))
-                .foregroundColor(.orange)
+                .foregroundColor(LopanColors.warning)
             
-            Text("暂无可用设备")
+            Text("batch_processing_machine_empty_title")
                 .font(.headline)
                 .foregroundColor(.primary)
             
-            Text("请先在设备管理中添加生产设备")
+            Text("batch_processing_machine_empty_subtitle")
                 .font(.caption)
                 .foregroundColor(.secondary)
                 .multilineTextAlignment(.center)
@@ -330,7 +312,7 @@ struct BatchProcessingView: View {
         .frame(maxWidth: .infinity)
         .padding(.vertical, 20)
     }
-    
+
     private var machineSelectionGrid: some View {
         let columns = Array(repeating: GridItem(.flexible(), spacing: 12), count: 2)
         
@@ -340,7 +322,7 @@ struct BatchProcessingView: View {
             }
         }
     }
-    
+
     private func machineSelectionCard(machine: WorkshopMachine) -> some View {
         let isSelected = selectedMachineIds.contains(machine.id)
         
@@ -355,14 +337,14 @@ struct BatchProcessingView: View {
                 HStack {
                     Image(systemName: machine.isOperational ? "gearshape.fill" : "gearshape")
                         .font(.system(size: 20, weight: .medium))
-                        .foregroundColor(machine.isOperational ? .green : .orange)
+                        .foregroundColor(machine.isOperational ? LopanColors.success : LopanColors.warning)
                     
                     Spacer()
                     
                     if isSelected {
                         Image(systemName: "checkmark.circle.fill")
                             .font(.system(size: 18, weight: .medium))
-                            .foregroundColor(.blue)
+                            .foregroundColor(LopanColors.info)
                     }
                 }
                 
@@ -374,14 +356,14 @@ struct BatchProcessingView: View {
                         .multilineTextAlignment(.leading)
                         .frame(maxWidth: .infinity, alignment: .leading)
                     
-                    Text("编号: \(machine.machineNumber)")
+                    Text(String(format: "batch_processing_machine_number".localized, machine.machineNumber))
                         .font(.caption2)
                         .foregroundColor(.secondary)
                         .frame(maxWidth: .infinity, alignment: .leading)
                     
-                    Text(machine.isOperational ? "运行正常" : "需要维护")
+                    Text(machine.isOperational ? "batch_processing_machine_status_operational".localized : "batch_processing_machine_status_maintenance".localized)
                         .font(.caption2)
-                        .foregroundColor(machine.isOperational ? .green : .orange)
+                        .foregroundColor(machine.isOperational ? LopanColors.success : LopanColors.warning)
                         .frame(maxWidth: .infinity, alignment: .leading)
                 }
             }
@@ -389,81 +371,78 @@ struct BatchProcessingView: View {
             .frame(height: 100)
             .background(
                 RoundedRectangle(cornerRadius: 12)
-                    .fill(isSelected ? Color.blue.opacity(0.1) : Color(.systemBackground))
+                    .fill(isSelected ? LopanColors.info.opacity(0.1) : LopanColors.backgroundPrimary)
             )
             .overlay(
                 RoundedRectangle(cornerRadius: 12)
-                    .stroke(isSelected ? Color.blue : Color(.separator), lineWidth: isSelected ? 2 : 1)
+                    .stroke(isSelected ? LopanColors.info : LopanColors.border, lineWidth: isSelected ? 2 : 1)
             )
         }
-        .accessibilityLabel("机器 \(machine.name)")
+        .accessibilityLabel(String(format: "batch_processing_machine_accessibility_label".localized, machine.name))
         .accessibilityAddTraits(isSelected ? .isSelected : [])
-        .accessibilityHint("点击选择此机器创建批次")
+        .accessibilityHint("batch_processing_machine_selection_hint".localized)
     }
     
     // MARK: - Batch List Section (批次列表区域)
     
     private var batchListSection: some View {
-        VStack(alignment: .leading, spacing: 12) {
-            HStack {
-                sectionHeader(title: "当前批次列表", icon: "square.stack.3d.down.right")
-                
-                Spacer()
-                
-                if !currentBatches.isEmpty {
-                    Button("查看全部") {
-                        activeSheet = .batchList
+        AnalyticsSurface {
+            VStack(alignment: .leading, spacing: LopanSpacing.sm) {
+                HStack {
+                    sectionHeader(title: "batch_processing_section_current_batches", icon: "square.stack.3d.down.right")
+
+                    Spacer()
+
+                    if !currentBatches.isEmpty {
+                        Button("batch_processing_action_view_all".localized) {
+                            activeSheet = .batchList
+                        }
+                        .font(.caption)
+                        .foregroundColor(LopanColors.info)
                     }
-                    .font(.caption)
-                    .foregroundColor(.blue)
+                }
+
+                if isLoadingBatches {
+                    batchListLoadingState
+                } else if currentBatches.isEmpty {
+                    batchListEmptyState
+                } else {
+                    batchListContent
                 }
             }
-            
-            if isLoadingBatches {
-                batchListLoadingState
-            } else if currentBatches.isEmpty {
-                batchListEmptyState
-            } else {
-                batchListContent
-            }
         }
-        .padding()
-        .background(
-            RoundedRectangle(cornerRadius: 16)
-                .fill(Color(.secondarySystemBackground))
-        )
     }
     
     private var batchListLoadingState: some View {
-        VStack(spacing: 12) {
+        VStack(spacing: LopanSpacing.sm) {
             ProgressView()
                 .scaleEffect(1.2)
-            
-            Text("正在加载批次...")
+
+            Text("batch_processing_batch_list_loading".localized)
                 .font(.caption)
-                .foregroundColor(.secondary)
+                .foregroundColor(LopanColors.textSecondary)
         }
         .frame(maxWidth: .infinity)
-        .padding(.vertical, 20)
+        .padding(.vertical, LopanSpacing.xl)
     }
-    
+
     private var batchListEmptyState: some View {
-        VStack(spacing: 12) {
+        VStack(spacing: LopanSpacing.sm) {
             Image(systemName: "square.stack.3d.down.right")
                 .font(.system(size: 40))
-                .foregroundColor(.secondary)
+                .foregroundColor(LopanColors.textSecondary)
             
-            Text("当前时段暂无批次")
+            Text("batch_processing_batch_list_empty_title".localized)
                 .font(.headline)
-                .foregroundColor(.primary)
+                .foregroundColor(LopanColors.textPrimary)
             
-            Text("选择设备后可创建新的生产批次")
+            Text("batch_processing_batch_list_empty_description".localized)
                 .font(.caption)
-                .foregroundColor(.secondary)
+                .foregroundColor(LopanColors.textSecondary)
                 .multilineTextAlignment(.center)
         }
         .frame(maxWidth: .infinity)
-        .padding(.vertical, 20)
+        .padding(.vertical, LopanSpacing.xl)
     }
     
     private var batchListContent: some View {
@@ -476,96 +455,94 @@ struct BatchProcessingView: View {
     
     private func batchPreviewCard(batch: ProductionBatch) -> some View {
         Button(action: {
-            // Workshop Manager can only edit batches, not approve them
             activeSheet = .batchEdit(batch)
         }) {
-            HStack(spacing: 12) {
-                VStack(alignment: .leading, spacing: 4) {
-                    HStack {
+            HStack(spacing: LopanSpacing.sm) {
+                VStack(alignment: .leading, spacing: LopanSpacing.xxxs) {
+                    HStack(alignment: .firstTextBaseline) {
                         Text(batch.batchNumber + " (" + batch.batchType.displayName + ")")
                             .font(.system(.body, design: .monospaced))
                             .fontWeight(.medium)
-                            .foregroundColor(.primary)
-                        
+                            .foregroundColor(LopanColors.textPrimary)
+
                         Spacer()
-                        
+
                         batchStatusBadge(status: batch.status)
                     }
-                    
+
                     if let targetDate = batch.targetDate, let shift = batch.shift {
-                        HStack(spacing: 4) {
+                        HStack(spacing: LopanSpacing.xxxs) {
                             Image(systemName: shift == .morning ? "sun.min" : "moon")
                                 .font(.caption)
-                                .foregroundColor(.secondary)
-                            
-                            Text("\(DateTimeUtilities.formatDate(targetDate, format: "MM-dd")) - \(shift.displayName)")
+                                .foregroundColor(LopanColors.textSecondary)
+
+                            Text(String(format: "batch_processing_batch_card_shift".localized, DateTimeUtilities.formatDate(targetDate, format: "MM-dd"), shift.displayName))
                                 .font(.caption)
-                                .foregroundColor(.secondary)
+                                .foregroundColor(LopanColors.textSecondary)
                         }
                     }
-                    
-                    HStack(spacing: 8) {
-                        HStack(spacing: 4) {
+
+                    HStack(spacing: LopanSpacing.sm) {
+                        HStack(spacing: LopanSpacing.xxxs) {
                             Image(systemName: "gearshape")
                                 .font(.caption)
-                                .foregroundColor(.secondary)
-                            
-                            Text("机器: \(batch.machineId)")
+                                .foregroundColor(LopanColors.textSecondary)
+
+                            Text(String(format: "batch_processing_batch_machine".localized, batch.machineId))
                                 .font(.caption)
-                                .foregroundColor(.secondary)
+                                .foregroundColor(LopanColors.textSecondary)
                         }
-                        
+
                         if batch.allowsColorModificationOnly {
-                            HStack(spacing: 2) {
+                            HStack(spacing: LopanSpacing.xxxs) {
                                 Image(systemName: "paintpalette")
                                     .font(.caption2)
-                                    .foregroundColor(.orange)
-                                
-                                Text("颜色模式")
+                                    .foregroundColor(LopanColors.accent)
+
+                                Text("batch_processing_color_mode".localized)
                                     .font(.caption2)
-                                    .foregroundColor(.orange)
+                                    .foregroundColor(LopanColors.accent)
                             }
-                            .padding(.horizontal, 4)
-                            .padding(.vertical, 1)
+                            .padding(.horizontal, LopanSpacing.xxxs)
+                            .padding(.vertical, LopanSpacing.xxxs)
                             .background(
-                                RoundedRectangle(cornerRadius: 3)
-                                    .fill(Color.orange.opacity(0.2))
+                                RoundedRectangle(cornerRadius: LopanCornerRadius.sm, style: .continuous)
+                                    .fill(LopanColors.accent.opacity(0.15))
                             )
                         }
                     }
                 }
-                
-                Spacer()
-                
-                HStack(spacing: 8) {
-                    Image(systemName: "chevron.right")
-                        .font(.caption)
-                        .foregroundColor(.secondary)
-                }
+
+                Spacer(minLength: LopanSpacing.sm)
+
+                Image(systemName: "chevron.right")
+                    .font(.caption)
+                    .foregroundColor(LopanColors.textSecondary)
             }
-            .padding(12)
+            .padding(LopanSpacing.cardPadding)
             .background(
-                RoundedRectangle(cornerRadius: 8)
-                    .fill(Color(.systemBackground))
+                RoundedRectangle(cornerRadius: LopanCornerRadius.card, style: .continuous)
+                    .fill(LopanColors.backgroundSecondary)
             )
             .overlay(
-                RoundedRectangle(cornerRadius: 8)
-                    .stroke(Color(.separator), lineWidth: 0.5)
+                RoundedRectangle(cornerRadius: LopanCornerRadius.card, style: .continuous)
+                    .stroke(LopanColors.border.opacity(0.2), lineWidth: 1)
             )
         }
-        .buttonStyle(PlainButtonStyle())
+        .buttonStyle(.plain)
+        .accessibilityLabel(Text(batch.batchNumber))
     }
     
     private func batchStatusBadge(status: BatchStatus) -> some View {
         HStack(spacing: 3) {
             Image(systemName: status.iconName)
                 .font(.caption2)
-                .foregroundColor(.white)
+                .foregroundColor(LopanColors.textOnPrimary)
             
             Text(status.displayName)
                 .font(.caption2)
                 .fontWeight(.medium)
-                .foregroundColor(.white)
+                .foregroundColor(LopanColors.textOnPrimary)
         }
         .padding(.horizontal, 8)
         .padding(.vertical, 3)
@@ -580,14 +557,14 @@ struct BatchProcessingView: View {
     
     private var createBatchSection: some View {
         VStack(alignment: .leading, spacing: 12) {
-            sectionHeader(title: "创建新批次", icon: "plus.square.on.square")
+            sectionHeader(title: "batch_processing_section_create", icon: "plus.square.on.square")
             
             createBatchButton
         }
         .padding()
         .background(
             RoundedRectangle(cornerRadius: 16)
-                .fill(Color(.secondarySystemBackground))
+                .fill(LopanColors.backgroundSecondary)
         )
     }
     
@@ -600,48 +577,48 @@ struct BatchProcessingView: View {
                 activeSheet = .batchCreation
             }
         }) {
-            HStack(spacing: 12) {
+            HStack(spacing: LopanSpacing.sm) {
                 Image(systemName: hasSelectedMachines ? "plus.circle.fill" : "plus.circle")
                     .font(.system(size: 20, weight: .medium))
-                    .foregroundColor(hasSelectedMachines ? .white : .blue)
-                
-                VStack(alignment: .leading, spacing: 2) {
-                    Text("创建批次处理")
+                    .foregroundColor(hasSelectedMachines ? LopanColors.textOnPrimary : LopanColors.info)
+
+                VStack(alignment: .leading, spacing: LopanSpacing.xxxs) {
+                    Text("batch_processing_create_button".localized)
                         .font(.system(.body, design: .rounded))
                         .fontWeight(.medium)
-                        .foregroundColor(hasSelectedMachines ? .white : .blue)
-                    
+                        .foregroundColor(hasSelectedMachines ? LopanColors.textOnPrimary : LopanColors.info)
+
                     if !hasSelectedMachines {
-                        Text("请先选择设备")
+                        Text("batch_processing_create_button_disabled".localized)
                             .font(.caption)
-                            .foregroundColor(.secondary)
+                            .foregroundColor(LopanColors.textSecondary)
                     } else {
-                        Text("为\(selectedCount)个设备创建批次处理 (BP)")
+                        Text(String(format: "batch_processing_create_button_summary".localized, selectedCount.formatted()))
                             .font(.caption)
-                            .foregroundColor(hasSelectedMachines ? .white.opacity(0.8) : .secondary)
+                            .foregroundColor(LopanColors.textOnPrimary.opacity(0.85))
                     }
                 }
-                
+
                 Spacer()
-                
+
                 Image(systemName: "arrow.right")
                     .font(.system(size: 16, weight: .medium))
-                    .foregroundColor(hasSelectedMachines ? .white : .blue)
+                    .foregroundColor(hasSelectedMachines ? LopanColors.textOnPrimary : LopanColors.info)
             }
-            .padding()
+            .padding(LopanSpacing.cardPadding)
             .frame(maxWidth: .infinity)
             .background(
-                RoundedRectangle(cornerRadius: 12)
-                    .fill(hasSelectedMachines ? Color.blue : Color.blue.opacity(0.1))
+                RoundedRectangle(cornerRadius: LopanCornerRadius.card, style: .continuous)
+                    .fill(hasSelectedMachines ? LopanColors.info : LopanColors.info.opacity(0.12))
             )
             .overlay(
-                RoundedRectangle(cornerRadius: 12)
-                    .stroke(hasSelectedMachines ? Color.clear : Color.blue, lineWidth: 1)
+                RoundedRectangle(cornerRadius: LopanCornerRadius.card, style: .continuous)
+                    .stroke(hasSelectedMachines ? Color.clear : LopanColors.info, lineWidth: hasSelectedMachines ? 0 : 1)
             )
         }
         .disabled(!hasSelectedMachines)
-        .accessibilityLabel("创建生产批次")
-        .accessibilityHint(hasSelectedMachines ? "点击为所选设备创建批次" : "请先选择设备")
+        .accessibilityLabel(Text("batch_processing_create_button".localized))
+        .accessibilityHint(Text(hasSelectedMachines ? "batch_processing_create_button".localized : "batch_processing_create_button_disabled".localized))
     }
     
     // MARK: - Toolbar and Actions (工具栏和操作)
@@ -655,7 +632,7 @@ struct BatchProcessingView: View {
             Image(systemName: "arrow.clockwise")
                 .font(.system(size: 16, weight: .medium))
         }
-        .accessibilityLabel("刷新数据")
+        .accessibilityLabel(Text("batch_processing_refresh".localized))
     }
     
     // MARK: - Sheet Views (弹出视图)
@@ -677,9 +654,8 @@ struct BatchProcessingView: View {
     @ViewBuilder
     private var batchCreationSheet: some View {
         if !selectedMachineIds.isEmpty {
-            // Pass all selected machines for batch creation
             BatchCreationView(
-                repositoryFactory: repositoryFactory,
+                serviceProvider: serviceProvider,
                 authService: authService,
                 auditService: auditService,
                 selectedDate: selectedDate,
@@ -687,39 +663,46 @@ struct BatchProcessingView: View {
                 selectedMachineIds: selectedMachineIds
             )
         } else {
-            NavigationView {
-                VStack(spacing: 20) {
+            NavigationStack {
+                VStack(spacing: LopanSpacing.contentSpacing) {
                     Image(systemName: "exclamationmark.triangle")
                         .font(.system(size: 40))
-                        .foregroundColor(.orange)
+                        .foregroundColor(LopanColors.warning)
                     
-                    Text("未选择设备")
+                    Text("batch_processing_no_machine_title".localized)
                         .font(.headline)
+                        .foregroundColor(LopanColors.textPrimary)
                     
-                    Text("请先选择生产设备")
+                    Text("batch_processing_sheet_no_machine_message".localized)
                         .font(.body)
-                        .foregroundColor(.secondary)
+                        .foregroundColor(LopanColors.textSecondary)
+                        .multilineTextAlignment(.center)
+
+                    Button("batch_processing_sheet_no_machine_button".localized) {
+                        activeSheet = nil
+                    }
+                    .buttonStyle(.borderedProminent)
                 }
-                .navigationTitle("创建批次")
+                .padding()
+                .navigationTitle("batch_processing_sheet_creation_title".localized)
                 .navigationBarTitleDisplayMode(.inline)
-                .navigationBarBackButtonHidden(true)
             }
         }
     }
-    
+
     private var batchListSheet: some View {
-        NavigationView {
+        NavigationStack {
             List(currentBatches, id: \.id) { batch in
                 batchPreviewCard(batch: batch)
                     .listRowBackground(Color.clear)
                     .listRowSeparator(.hidden)
             }
             .listStyle(.plain)
-            .navigationTitle("批次列表")
+            .navigationTitle("batch_processing_sheet_list_title".localized)
             .navigationBarTitleDisplayMode(.inline)
             .toolbar {
                 ToolbarItem(placement: .cancellationAction) {
-                    Button("关闭") {
+                    Button("common_close".localized) {
                         activeSheet = nil
                     }
                 }
@@ -750,15 +733,15 @@ struct BatchProcessingView: View {
     
     // MARK: - Helper Methods (辅助方法)
     
-    private func sectionHeader(title: String, icon: String) -> some View {
-        HStack(spacing: 8) {
+    private func sectionHeader(title key: LocalizedStringKey, icon: String) -> some View {
+        HStack(spacing: LopanSpacing.xs) {
             Image(systemName: icon)
                 .font(.system(size: 16, weight: .medium))
-                .foregroundColor(.blue)
-            
-            Text(title)
+                .foregroundColor(LopanColors.info)
+
+            Text(key)
                 .font(.headline)
-                .foregroundColor(.primary)
+                .foregroundColor(LopanColors.textPrimary)
         }
     }
     
@@ -789,7 +772,7 @@ struct BatchProcessingView: View {
                 self.availableMachines = machines
             }
         } catch {
-            await showError("加载设备列表失败: \(error.localizedDescription)")
+            await showError(String(format: "batch_processing_error_network".localized, error.localizedDescription))
         }
     }
     
@@ -810,7 +793,7 @@ struct BatchProcessingView: View {
                 self.isLoadingBatches = false
             }
         } catch {
-            await showError("加载批次列表失败: \(error.localizedDescription)")
+            await showError(String(format: "batch_processing_error_refresh".localized, error.localizedDescription))
             await MainActor.run {
                 self.isLoadingBatches = false
             }
@@ -839,19 +822,19 @@ extension BatchStatus {
     var color: Color {
         switch self {
         case .unsubmitted:
-            return .orange
+            return LopanColors.warning
         case .pending:
-            return .blue
+            return LopanColors.info
         case .approved:
-            return .green
+            return LopanColors.success
         case .pendingExecution:
-            return .cyan
+            return LopanColors.accent
         case .active:
-            return .purple
+            return LopanColors.premium
         case .completed:
-            return .secondary
+            return LopanColors.secondary
         case .rejected:
-            return .red
+            return LopanColors.error
         }
     }
 }

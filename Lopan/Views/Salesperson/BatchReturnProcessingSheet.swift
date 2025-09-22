@@ -18,7 +18,7 @@ struct BatchReturnProcessingSheet: View {
     @State private var showingConfirmation = false
     
     var body: some View {
-        NavigationView {
+        NavigationStack {
             VStack {
                 headerSection
                 itemsList
@@ -86,8 +86,8 @@ struct BatchReturnProcessingSheet: View {
                 Text("填充最大还货数量")
                     .frame(maxWidth: .infinity)
                     .padding()
-                    .background(Color.blue.opacity(0.1))
-                    .foregroundColor(.blue)
+                    .background(LopanColors.info.opacity(0.1))
+                    .foregroundColor(LopanColors.info)
                     .cornerRadius(8)
             }
             
@@ -95,8 +95,8 @@ struct BatchReturnProcessingSheet: View {
                 Text("process_return".localized)
                     .frame(maxWidth: .infinity)
                     .padding()
-                    .background(isValidInput ? Color.green : Color.gray)
-                    .foregroundColor(.white)
+                    .background(isValidInput ? LopanColors.success : LopanColors.secondary)
+                    .foregroundColor(LopanColors.textOnPrimary)
                     .cornerRadius(8)
             }
             .disabled(!isValidInput)
@@ -162,7 +162,7 @@ struct ReturnItemInputRow: View {
             if showingError {
                 Text("invalid_return_quantity".localized)
                     .font(.caption)
-                    .foregroundColor(.red)
+                    .foregroundColor(LopanColors.error)
             }
         }
         .padding(.vertical, 8)
@@ -181,7 +181,7 @@ struct ReturnItemInputRow: View {
                     .font(.caption)
                     .padding(.horizontal, 8)
                     .padding(.vertical, 4)
-                    .background(Color.blue.opacity(0.2))
+                    .background(LopanColors.info.opacity(0.2))
                     .cornerRadius(4)
             }
             
@@ -192,12 +192,12 @@ struct ReturnItemInputRow: View {
             HStack {
                 Text("剩余数量: \(item.remainingQuantity)")
                     .font(.caption)
-                    .foregroundColor(.orange)
+                    .foregroundColor(LopanColors.warning)
                 
                 if item.hasPartialReturn {
                     Text("已还: \(item.returnQuantity)")
                         .font(.caption)
-                        .foregroundColor(.blue)
+                        .foregroundColor(LopanColors.info)
                 }
             }
         }
@@ -237,4 +237,3 @@ struct ReturnItemInputRow: View {
         showingError = quantity <= 0 || quantity > item.remainingQuantity
     }
 }
-

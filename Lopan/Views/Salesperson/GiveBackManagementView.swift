@@ -204,7 +204,7 @@ struct GiveBackManagementView: View {
                 HStack(spacing: 8) {
                     Image(systemName: showingAdvancedFilters ? "chevron.up.circle.fill" : "chevron.down.circle")
                         .font(.title3)
-                        .foregroundColor(.blue)
+                        .foregroundColor(LopanColors.info)
                     
                     Text("筛选选项")
                         .font(.subheadline)
@@ -216,8 +216,8 @@ struct GiveBackManagementView: View {
                             .font(.caption)
                             .padding(.horizontal, 8)
                             .padding(.vertical, 4)
-                            .background(Color.blue.opacity(0.2))
-                            .foregroundColor(.blue)
+                            .background(LopanColors.info.opacity(0.2))
+                            .foregroundColor(LopanColors.info)
                             .cornerRadius(12)
                     }
                 }
@@ -649,12 +649,12 @@ struct ReturnGoodsRowView: View {
                     VStack(alignment: .leading, spacing: 2) {
                         Text("原始数量: \(item.quantity)")
                             .font(.caption)
-                        Text("已还数量: \(item.returnQuantity)")
-                            .font(.caption)
-                            .foregroundColor(.blue)
+                       Text("已还数量: \(item.returnQuantity)")
+                           .font(.caption)
+                            .foregroundColor(LopanColors.info)
                         Text("剩余数量: \(item.remainingQuantity)")
                             .font(.caption)
-                            .foregroundColor(item.remainingQuantity > 0 ? .orange : .green)
+                            .foregroundColor(item.remainingQuantity > 0 ? LopanColors.warning : LopanColors.success)
                     }
                     
                     Spacer()
@@ -674,7 +674,7 @@ struct ReturnGoodsRowView: View {
         }
         .padding(.vertical, 12)
         .padding(.horizontal, 16)
-        .background(isSelected ? Color.blue.opacity(0.1) : Color.clear)
+        .background(isSelected ? LopanColors.info.opacity(0.1) : Color.clear)
         .cornerRadius(8)
     }
     

@@ -38,13 +38,13 @@ struct BatchManagementView: View {
     }
     
     var body: some View {
-        NavigationView {
+        NavigationStack {
             TabView(selection: $selectedTab) {
                 // Pending Review Tab
                 pendingReviewTab
                     .tabItem {
                         Image(systemName: "checkmark.seal")
-                        Text("待审核")
+                        Text("batch_management_tab_pending".localized)
                     }
                     .tag(0)
                 
@@ -52,17 +52,17 @@ struct BatchManagementView: View {
                 historyAnalyticsTab
                     .tabItem {
                         Image(systemName: "clock.arrow.circlepath")
-                        Text("历史记录")
+                        Text("batch_management_tab_history".localized)
                     }
                     .tag(1)
             }
-            .navigationTitle("批次管理")
+            .navigationTitle("batch_management_title".localized)
             .navigationBarTitleDisplayMode(.large)
             .refreshable {
                 await loadData()
             }
-            .alert("Error", isPresented: .constant(batchService.errorMessage != nil)) {
-                Button("确定") {
+            .alert("batch_management_error_title".localized, isPresented: .constant(batchService.errorMessage != nil)) {
+                Button("common_ok".localized) {
                     batchService.clearError()
                 }
             } message: {
@@ -99,7 +99,7 @@ struct BatchManagementView: View {
     private var pendingReviewTab: some View {
         VStack {
             if batchService.isLoading {
-                ProgressView("加载待审核批次...")
+                ProgressView("batch_management_loading_pending".localized)
                     .frame(maxWidth: .infinity, maxHeight: .infinity)
             } else if batchService.pendingBatches.isEmpty {
                 pendingEmptyStateView
@@ -116,11 +116,11 @@ struct BatchManagementView: View {
                 .foregroundColor(.gray)
             
             VStack(spacing: 8) {
-                Text("暂无待审核批次")
+                Text("batch_management_pending_empty_title".localized)
                     .font(.title2)
                     .fontWeight(.medium)
                 
-                Text("所有生产配置批次已审核完成")
+                Text("batch_management_pending_empty_subtitle".localized)
                     .font(.body)
                     .foregroundColor(.secondary)
                     .multilineTextAlignment(.center)
@@ -154,7 +154,7 @@ struct BatchManagementView: View {
     private var historyAnalyticsTab: some View {
         VStack {
             if batchService.isLoading {
-                ProgressView("加载批次历史...")
+                ProgressView("batch_management_loading_history".localized)
                     .frame(maxWidth: .infinity, maxHeight: .infinity)
             } else {
                 historyContent
@@ -181,7 +181,7 @@ struct BatchManagementView: View {
             HStack(spacing: 12) {
                 // All batches
                 StatusFilterChip(
-                    title: "全部",
+                    title: "batch_management_filter_all".localized,
                     count: batchService.batches.count,
                     isSelected: selectedStatus == nil
                 ) {
@@ -216,11 +216,11 @@ struct BatchManagementView: View {
                 .foregroundColor(.gray)
             
             VStack(spacing: 8) {
-                Text("暂无批次记录")
+                Text("batch_management_history_empty_title".localized)
                     .font(.title2)
                     .fontWeight(.medium)
                 
-                Text("创建生产配置后，批次历史将显示在这里")
+                Text("batch_management_history_empty_subtitle".localized)
                     .font(.body)
                     .foregroundColor(.secondary)
                     .multilineTextAlignment(.center)
@@ -263,10 +263,14 @@ struct PendingBatchRow: View {
     let batch: ProductionBatch
     let onApprove: () -> Void
     let onReject: () -> Void
-    
+
     @State private var showingDetail = false
     
+    private var batchSnapshot: BatchDetailInfo { BatchDetailInfo(from: batch) }
+
     var body: some View {
+        let snapshot = batchSnapshot
+        let submittedAtString = snapshot.submittedAt.formatted(.dateTime.month().day().hour().minute())
         VStack(spacing: 16) {
             // Main content - tappable for details
             Button {
@@ -276,12 +280,12 @@ struct PendingBatchRow: View {
                     // Header
                     HStack {
                         VStack(alignment: .leading, spacing: 4) {
-                            Text(batch.batchNumber)
+                            Text(snapshot.batchNumber)
                                 .font(.headline)
                                 .fontWeight(.semibold)
                                 .foregroundColor(.primary)
                             
-                            Text("提交人: \(batch.submittedByName)")
+                            Text(String(format: "batch_management_pending_submitter".localized, snapshot.submittedByName))
                                 .font(.caption)
                                 .foregroundColor(.secondary)
                         }
@@ -289,16 +293,16 @@ struct PendingBatchRow: View {
                         Spacer()
                         
                         VStack(alignment: .trailing, spacing: 4) {
-                            Text(batch.mode.displayName)
+                            Text(snapshot.mode.displayName)
                                 .font(.caption)
                                 .fontWeight(.medium)
                                 .padding(.horizontal, 8)
                                 .padding(.vertical, 2)
-                                .background(Color.blue.opacity(0.2))
-                                .foregroundColor(.blue)
+                                .background(LopanColors.info.opacity(0.2))
+                                .foregroundColor(LopanColors.info)
                                 .cornerRadius(4)
                             
-                            Text(batch.submittedAt.formatted(.dateTime.month().day().hour().minute()))
+                            Text(submittedAtString)
                                 .font(.caption2)
                                 .foregroundColor(.secondary)
                         }
@@ -307,35 +311,35 @@ struct PendingBatchRow: View {
                     // Configuration summary
                     VStack(spacing: 8) {
                         HStack {
-                            Label("\(batch.products.count) 个产品", systemImage: "cube.box")
+                            Label(String(format: "batch_management_pending_products_label".localized, snapshot.products.count), systemImage: "cube.box")
                                 .font(.caption)
                                 .foregroundColor(.secondary)
                             
                             Spacer()
                             
-                            Label("\(batch.totalStationsUsed)/12 工位", systemImage: "grid")
+                            Label(String(format: "batch_management_pending_stations_label".localized, snapshot.totalStationsUsed, 12), systemImage: "grid")
                                 .font(.caption)
                                 .foregroundColor(.secondary)
                         }
                         
                         // Configuration validation
                         HStack {
-                            Image(systemName: batch.isValidConfiguration ? "checkmark.circle.fill" : "xmark.circle.fill")
-                                .foregroundColor(batch.isValidConfiguration ? .green : .red)
+                            Image(systemName: snapshot.isValidConfiguration ? "checkmark.circle.fill" : "xmark.circle.fill")
+                                .foregroundColor(snapshot.isValidConfiguration ? LopanColors.success : LopanColors.error)
                             
-                            Text(batch.isValidConfiguration ? "配置有效" : "配置无效")
+                            Text(snapshot.isValidConfiguration ? "batch_management_pending_config_valid".localized : "batch_management_pending_config_invalid".localized)
                                 .font(.caption)
-                                .foregroundColor(batch.isValidConfiguration ? .green : .red)
+                                .foregroundColor(snapshot.isValidConfiguration ? LopanColors.success : LopanColors.error)
                             
                             Spacer()
                         }
                     }
                     
                     // Products preview
-                    if !batch.products.isEmpty {
+                    if !snapshot.products.isEmpty {
                         ScrollView(.horizontal, showsIndicators: false) {
                             HStack(spacing: 8) {
-                                ForEach(batch.products, id: \.id) { product in
+                                ForEach(snapshot.products, id: \.id) { product in
                                     ProductPreviewCard(product: product)
                                 }
                             }
@@ -345,22 +349,26 @@ struct PendingBatchRow: View {
                 }
             }
             .buttonStyle(.plain)
+            .accessibilityLabel(String(format: "batch_management_pending_row_accessibility_label".localized, snapshot.batchNumber))
+            .accessibilityHint("batch_management_pending_row_accessibility_hint".localized)
             
             // Action buttons - separate from main content
             HStack(spacing: 12) {
                 Spacer()
                 
-                Button("拒绝") {
+                Button("batch_management_action_reject".localized) {
                     onReject()
                 }
                 .buttonStyle(.bordered)
                 .foregroundColor(.red)
+                .accessibilityHint("batch_management_action_reject_hint".localized)
                 
-                Button("批准") {
+                Button("batch_management_action_approve".localized) {
                     onApprove()
                 }
                 .buttonStyle(.borderedProminent)
-                .disabled(!batch.isValidConfiguration)
+                .disabled(!snapshot.isValidConfiguration)
+                .accessibilityHint("batch_management_action_approve_hint".localized)
             }
         }
         .padding()
@@ -370,22 +378,22 @@ struct PendingBatchRow: View {
             showingDetail = false
         }) {
             // Use the proper BatchDetailView that already exists
-            NavigationView {
+            NavigationStack {
                 ScrollView {
                     VStack(spacing: 20) {
                         // Basic info
-                        batchInfoSection(batch)
-                        
+                        batchInfoSection(batchSnapshot)
+
                         // Products
-                        productsSection(batch)
+                        productsSection(batchSnapshot)
                     }
                     .padding()
                 }
-                .navigationTitle("批次详情")
+                .navigationTitle("batch_management_detail_title".localized)
                 .navigationBarTitleDisplayMode(.inline)
                 .toolbar {
                     ToolbarItem(placement: .navigationBarTrailing) {
-                        Button("关闭") {
+                        Button("common_close".localized) {
                             showingDetail = false
                         }
                     }
@@ -395,20 +403,20 @@ struct PendingBatchRow: View {
     }
     
     // Helper views for the detail sheet
-    private func batchInfoSection(_ batch: ProductionBatch) -> some View {
+    private func batchInfoSection(_ batch: BatchDetailInfo) -> some View {
         VStack(spacing: 12) {
-            Text("批次信息")
+            Text("batch_management_info_section_title".localized)
                 .font(.headline)
                 .fontWeight(.semibold)
                 .frame(maxWidth: .infinity, alignment: .leading)
-            
+
             VStack(spacing: 8) {
-                BatchInfoRow(label: "批次编号", value: batch.batchNumber)
-                BatchInfoRow(label: "生产模式", value: batch.mode.displayName)
-                BatchInfoRow(label: "设备ID", value: batch.machineId)
-                BatchInfoRow(label: "状态", value: batch.status.displayName)
-                BatchInfoRow(label: "提交人", value: batch.submittedByName)
-                BatchInfoRow(label: "提交时间", value: batch.submittedAt.formatted(.dateTime))
+                BatchInfoRow(label: "batch_management_info_label_batch_number".localized, value: batch.batchNumber)
+                BatchInfoRow(label: "batch_management_info_label_production_mode".localized, value: batch.mode.displayName)
+                BatchInfoRow(label: "batch_management_info_label_machine_id".localized, value: batch.machineId)
+                BatchInfoRow(label: "batch_management_info_label_status".localized, value: batch.status.displayName)
+                BatchInfoRow(label: "batch_management_info_label_submitted_by".localized, value: batch.submittedByName)
+                BatchInfoRow(label: "batch_management_info_label_submitted_at".localized, value: batch.submittedAt.formatted(.dateTime))
             }
             .padding()
             .background(Color(UIColor.secondarySystemBackground))
@@ -416,13 +424,13 @@ struct PendingBatchRow: View {
         }
     }
     
-    private func productsSection(_ batch: ProductionBatch) -> some View {
+    private func productsSection(_ batch: BatchDetailInfo) -> some View {
         VStack(spacing: 12) {
-            Text("产品配置")
+            Text("batch_management_products_section_title".localized)
                 .font(.headline)
                 .fontWeight(.semibold)
                 .frame(maxWidth: .infinity, alignment: .leading)
-            
+
             VStack(spacing: 8) {
                 ForEach(batch.products, id: \.id) { product in
                     BatchProductDetailRow(product: product)
@@ -434,24 +442,24 @@ struct PendingBatchRow: View {
 
 // MARK: - Product Preview Card
 struct ProductPreviewCard: View {
-    let product: ProductConfig
+    let product: BatchDetailInfo.ProductSnapshot
     
     var body: some View {
         VStack(spacing: 4) {
-            Text(product.productName)
+            Text(product.name)
                 .font(.caption2)
                 .fontWeight(.medium)
                 .lineLimit(1)
             
-            Text("工位: \(product.occupiedStations.map(String.init).joined(separator: ","))")
+            Text(String(format: "batch_management_product_card_stations".localized, product.occupiedStationsDisplay))
                 .font(.caption2)
                 .foregroundColor(.secondary)
             
-            if product.isDualColor {
-                Text("双色")
-                    .font(.caption2)
-                    .foregroundColor(.blue)
-            }
+                if product.isDualColor {
+                    Text("batch_management_product_card_dual_color".localized)
+                        .font(.caption2)
+                        .foregroundColor(LopanColors.info)
+                }
         }
         .padding(8)
         .background(Color(UIColor.tertiarySystemBackground))
@@ -508,7 +516,11 @@ struct BatchHistoryRow: View {
     let batch: ProductionBatch
     let onTap: () -> Void
     
+    private var batchSnapshot: BatchDetailInfo { BatchDetailInfo(from: batch) }
+    
     var body: some View {
+        let snapshot = batchSnapshot
+        let submittedAtString = snapshot.submittedAt.formatted(.dateTime.month().day().hour().minute())
         Button {
             onTap()
         } label: {
@@ -516,29 +528,29 @@ struct BatchHistoryRow: View {
                 // Header
                 HStack {
                     VStack(alignment: .leading, spacing: 4) {
-                        Text(batch.batchNumber)
+                        Text(snapshot.batchNumber)
                             .font(.headline)
                             .fontWeight(.semibold)
                             .foregroundColor(.primary)
                         
-                        Text("提交于 \(batch.submittedAt.formatted(.dateTime.month().day().hour().minute()))")
+                        Text(String(format: "batch_management_history_submitted_at".localized, submittedAtString))
                             .font(.caption)
                             .foregroundColor(.secondary)
                     }
                     
-                    Spacer()
-                    
-                    VStack(alignment: .trailing, spacing: 4) {
-                        Text(batch.status.displayName)
-                            .font(.caption)
-                            .fontWeight(.medium)
-                            .padding(.horizontal, 8)
-                            .padding(.vertical, 2)
-                            .background(batch.status.color.opacity(0.2))
-                            .foregroundColor(batch.status.color)
-                            .cornerRadius(4)
+                        Spacer()
                         
-                        Text(batch.mode.displayName)
+                        VStack(alignment: .trailing, spacing: 4) {
+                            Text(snapshot.status.displayName)
+                                .font(.caption)
+                                .fontWeight(.medium)
+                                .padding(.horizontal, 8)
+                                .padding(.vertical, 2)
+                                .background(snapshot.status.color.opacity(0.2))
+                                .foregroundColor(snapshot.status.color)
+                                .cornerRadius(4)
+                        
+                        Text(snapshot.mode.displayName)
                             .font(.caption2)
                             .foregroundColor(.secondary)
                     }
@@ -546,27 +558,28 @@ struct BatchHistoryRow: View {
                 
                 // Content summary
                 HStack {
-                    Label("\(batch.products.count) 个产品", systemImage: "cube.box")
+                    Label(String(format: "batch_management_pending_products_label".localized, snapshot.products.count), systemImage: "cube.box")
                         .font(.caption)
                         .foregroundColor(.secondary)
                     
                     Spacer()
                     
-                    Label("\(batch.totalStationsUsed)/12 工位", systemImage: "grid")
+                    Label(String(format: "batch_management_pending_stations_label".localized, snapshot.totalStationsUsed, 12), systemImage: "grid")
                         .font(.caption)
                         .foregroundColor(.secondary)
                 }
                 
                 // Review info (if applicable)
-                if let reviewedAt = batch.reviewedAt, let reviewedByName = batch.reviewedByName {
+                if let reviewedAt = snapshot.reviewedAt, let reviewedByName = snapshot.reviewedByName {
+                    let reviewedAtString = reviewedAt.formatted(.dateTime.month().day().hour().minute())
                     HStack {
-                        Text("审核: \(reviewedByName)")
+                        Text(String(format: "batch_management_history_reviewed_by".localized, reviewedByName))
                             .font(.caption2)
                             .foregroundColor(.secondary)
                         
                         Spacer()
                         
-                        Text(reviewedAt.formatted(.dateTime.month().day().hour().minute()))
+                        Text(reviewedAtString)
                             .font(.caption2)
                             .foregroundColor(.secondary)
                     }
@@ -589,13 +602,14 @@ struct ReviewSheet: View {
     let onDismiss: () -> Void
     
     @State private var isProcessing = false
+    @State private var showingRejectConfirmation = false
     
     var actionColor: Color {
         action == .approve ? .green : .red
     }
-    
+
     var actionTitle: String {
-        action == .approve ? "批准批次" : "拒绝批次"
+        action == .approve ? "batch_management_review_action_approve".localized : "batch_management_review_action_reject".localized
     }
     
     var actionIcon: String {
@@ -603,7 +617,7 @@ struct ReviewSheet: View {
     }
     
     var body: some View {
-        NavigationView {
+        NavigationStack {
             VStack(spacing: 24) {
                 // Action header
                 VStack(spacing: 16) {
@@ -616,7 +630,7 @@ struct ReviewSheet: View {
                             .font(.title2)
                             .fontWeight(.semibold)
                         
-                        Text("批次: \(batch.batchNumber)")
+                        Text(String(format: "batch_management_review_batch_label".localized, batch.batchNumber))
                             .font(.subheadline)
                             .foregroundColor(.secondary)
                     }
@@ -634,11 +648,11 @@ struct ReviewSheet: View {
                 actionButtons
             }
             .padding()
-            .navigationTitle("审核批次")
+            .navigationTitle("batch_management_review_nav_title".localized)
             .navigationBarTitleDisplayMode(.inline)
             .toolbar {
                 ToolbarItem(placement: .navigationBarLeading) {
-                    Button("取消") {
+                    Button("common_cancel".localized) {
                         onDismiss()
                     }
                 }
@@ -648,18 +662,19 @@ struct ReviewSheet: View {
     
     // MARK: - Batch Summary Section
     private var batchSummarySection: some View {
+        let detail = snapshot
         VStack(spacing: 12) {
-            Text("批次摘要")
+            Text("batch_management_summary_title".localized)
                 .font(.headline)
                 .fontWeight(.semibold)
                 .frame(maxWidth: .infinity, alignment: .leading)
             
             VStack(spacing: 8) {
-                SummaryRow(label: "提交人", value: batch.submittedByName)
-                SummaryRow(label: "生产模式", value: batch.mode.displayName)
-                SummaryRow(label: "产品数量", value: "\(batch.products.count)")
-                SummaryRow(label: "工位使用", value: "\(batch.totalStationsUsed)/12")
-                SummaryRow(label: "提交时间", value: batch.submittedAt.formatted(.dateTime))
+                SummaryRow(label: "batch_management_info_label_submitted_by".localized, value: detail.submittedByName)
+                SummaryRow(label: "batch_management_info_label_production_mode".localized, value: detail.mode.displayName)
+                SummaryRow(label: "batch_management_summary_label_product_count".localized, value: String(format: "batch_management_summary_value_product_count".localized, detail.products.count))
+                SummaryRow(label: "batch_management_summary_label_station_usage".localized, value: String(format: "batch_management_summary_value_station_usage".localized, detail.totalStationsUsed, 12))
+                SummaryRow(label: "batch_management_info_label_submitted_at".localized, value: detail.submittedAt.formatted(.dateTime))
             }
             .padding()
             .background(Color(UIColor.secondarySystemBackground))
@@ -670,7 +685,7 @@ struct ReviewSheet: View {
     // MARK: - Notes Section
     private var notesSection: some View {
         VStack(alignment: .leading, spacing: 12) {
-            Text(action == .approve ? "批准备注 (可选)" : "拒绝原因 (必填)")
+            Text(action == .approve ? "batch_management_notes_optional".localized : "batch_management_notes_required".localized)
                 .font(.headline)
                 .fontWeight(.semibold)
             
@@ -686,17 +701,36 @@ struct ReviewSheet: View {
     private var actionButtons: some View {
         VStack(spacing: 12) {
             Button(actionTitle) {
-                performReviewAction()
+                if action == .reject {
+                    showingRejectConfirmation = true
+                } else {
+                    performReviewAction()
+                }
             }
             .buttonStyle(.borderedProminent)
             .tint(actionColor)
             .disabled(isProcessing || (action == .reject && notes.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty))
             
-            Button("取消") {
+            Button("common_cancel".localized) {
                 onDismiss()
             }
             .buttonStyle(.bordered)
             .disabled(isProcessing)
+        }
+        .confirmationDialog(
+            "batch_management_confirm_reject_title".localized,
+            isPresented: $showingRejectConfirmation,
+            presenting: batch,
+            titleVisibility: .visible
+        ) { _ in
+            Button("batch_management_confirm_reject_confirm".localized, role: .destructive) {
+                performReviewAction()
+            }
+            Button("common_cancel".localized, role: .cancel) {
+                showingRejectConfirmation = false
+            }
+        } message: { _ in
+            Text(String(format: "batch_management_confirm_reject_message".localized, batch.batchNumber))
         }
     }
     
@@ -747,8 +781,10 @@ struct BatchDetailView: View {
     @ObservedObject var batchService: ProductionBatchService
     @Environment(\.dismiss) private var dismiss
     
+    private var snapshot: BatchDetailInfo { BatchDetailInfo(from: batch) }
+
     var body: some View {
-        NavigationView {
+        NavigationStack {
             ScrollView {
                 VStack(spacing: 20) {
                     // Basic info
@@ -758,7 +794,7 @@ struct BatchDetailView: View {
                     productsSection
                     
                     // Review info
-                    if batch.reviewedAt != nil {
+                    if snapshot.reviewedAt != nil {
                         reviewInfoSection
                     }
                     
@@ -767,11 +803,11 @@ struct BatchDetailView: View {
                 }
                 .padding()
             }
-            .navigationTitle("批次详情")
+            .navigationTitle("batch_management_detail_title".localized)
             .navigationBarTitleDisplayMode(.inline)
             .toolbar {
                 ToolbarItem(placement: .navigationBarTrailing) {
-                    Button("关闭") {
+                    Button("common_close".localized) {
                         dismiss()
                     }
                 }
@@ -781,19 +817,20 @@ struct BatchDetailView: View {
     
     // MARK: - Batch Info Section
     private var batchInfoSection: some View {
+        let detail = snapshot
         VStack(spacing: 12) {
-            Text("批次信息")
+            Text("batch_management_info_section_title".localized)
                 .font(.headline)
                 .fontWeight(.semibold)
                 .frame(maxWidth: .infinity, alignment: .leading)
             
             VStack(spacing: 8) {
-                BatchInfoRow(label: "批次编号", value: batch.batchNumber)
-                BatchInfoRow(label: "生产模式", value: batch.mode.displayName)
-                BatchInfoRow(label: "设备ID", value: batch.machineId)
-                BatchInfoRow(label: "状态", value: batch.status.displayName)
-                BatchInfoRow(label: "提交人", value: batch.submittedByName)
-                BatchInfoRow(label: "提交时间", value: batch.submittedAt.formatted(.dateTime))
+                BatchInfoRow(label: "batch_management_info_label_batch_number".localized, value: detail.batchNumber)
+                BatchInfoRow(label: "batch_management_info_label_production_mode".localized, value: detail.mode.displayName)
+                BatchInfoRow(label: "batch_management_info_label_machine_id".localized, value: detail.machineId)
+                BatchInfoRow(label: "batch_management_info_label_status".localized, value: detail.status.displayName)
+                BatchInfoRow(label: "batch_management_info_label_submitted_by".localized, value: detail.submittedByName)
+                BatchInfoRow(label: "batch_management_info_label_submitted_at".localized, value: detail.submittedAt.formatted(.dateTime))
             }
             .padding()
             .background(Color(UIColor.secondarySystemBackground))
@@ -803,14 +840,15 @@ struct BatchDetailView: View {
     
     // MARK: - Products Section
     private var productsSection: some View {
+        let detail = snapshot
         VStack(spacing: 12) {
-            Text("产品配置")
+            Text("batch_management_products_section_title".localized)
                 .font(.headline)
                 .fontWeight(.semibold)
                 .frame(maxWidth: .infinity, alignment: .leading)
             
             VStack(spacing: 8) {
-                ForEach(batch.products, id: \.id) { product in
+                ForEach(detail.products, id: \.id) { product in
                     BatchProductDetailRow(product: product)
                 }
             }
@@ -819,24 +857,25 @@ struct BatchDetailView: View {
     
     // MARK: - Review Info Section
     private var reviewInfoSection: some View {
+        let detail = snapshot
         VStack(spacing: 12) {
-            Text("审核信息")
+            Text("batch_management_review_info_title".localized)
                 .font(.headline)
                 .fontWeight(.semibold)
                 .frame(maxWidth: .infinity, alignment: .leading)
             
             VStack(spacing: 8) {
-                if let reviewedByName = batch.reviewedByName {
-                    BatchInfoRow(label: "审核人", value: reviewedByName)
+                if let reviewedByName = detail.reviewedByName {
+                    BatchInfoRow(label: "batch_management_review_info_reviewer".localized, value: reviewedByName)
                 }
                 
-                if let reviewedAt = batch.reviewedAt {
-                    BatchInfoRow(label: "审核时间", value: reviewedAt.formatted(.dateTime))
+                if let reviewedAt = detail.reviewedAt {
+                    BatchInfoRow(label: "batch_management_review_info_reviewed_at".localized, value: reviewedAt.formatted(.dateTime))
                 }
                 
-                if let reviewNotes = batch.reviewNotes, !reviewNotes.isEmpty {
+                if let reviewNotes = detail.reviewNotes, !reviewNotes.isEmpty {
                     VStack(alignment: .leading, spacing: 4) {
-                        Text("审核备注")
+                        Text("batch_management_review_info_notes_title".localized)
                             .font(.caption)
                             .foregroundColor(.secondary)
                         
@@ -854,40 +893,41 @@ struct BatchDetailView: View {
     
     // MARK: - Timeline Section
     private var timelineSection: some View {
+        let detail = snapshot
         VStack(spacing: 12) {
-            Text("时间线")
+            Text("batch_management_timeline_title".localized)
                 .font(.headline)
                 .fontWeight(.semibold)
                 .frame(maxWidth: .infinity, alignment: .leading)
             
             VStack(spacing: 8) {
                 TimelineRow(
-                    title: "批次创建",
-                    subtitle: "由 \(batch.submittedByName) 创建",
-                    time: batch.createdAt,
+                    title: "batch_management_timeline_created_title".localized,
+                    subtitle: String(format: "batch_management_timeline_created_subtitle".localized, detail.submittedByName),
+                    time: detail.createdAt,
                     isCompleted: true
                 )
                 
                 TimelineRow(
-                    title: "提交审核",
-                    subtitle: "等待管理员审核",
-                    time: batch.submittedAt,
+                    title: "batch_management_timeline_submitted_title".localized,
+                    subtitle: "batch_management_timeline_submitted_subtitle".localized,
+                    time: detail.submittedAt,
                     isCompleted: true
                 )
-                
-                if let reviewedAt = batch.reviewedAt {
+
+                if let reviewedAt = detail.reviewedAt {
                     TimelineRow(
-                        title: batch.status == .approved ? "审核通过" : "审核拒绝",
-                        subtitle: "由 \(batch.reviewedByName ?? "管理员") 审核",
+                        title: detail.status == .approved ? "batch_management_timeline_review_approved_title".localized : "batch_management_timeline_review_rejected_title".localized,
+                        subtitle: String(format: "batch_management_timeline_review_subtitle".localized, detail.reviewedByName ?? "batch_management_timeline_reviewer_placeholder".localized),
                         time: reviewedAt,
                         isCompleted: true
                     )
                 }
-                
-                if let appliedAt = batch.appliedAt {
+
+                if let appliedAt = detail.appliedAt ?? detail.completedAt {
                     TimelineRow(
-                        title: "配置应用",
-                        subtitle: "生产配置已应用到设备",
+                        title: "batch_management_timeline_applied_title".localized,
+                        subtitle: "batch_management_timeline_applied_subtitle".localized,
                         time: appliedAt,
                         isCompleted: true
                     )
@@ -922,37 +962,37 @@ struct BatchInfoRow: View {
 
 // MARK: - Batch Product Detail Row
 struct BatchProductDetailRow: View {
-    let product: ProductConfig
-    
+    let product: BatchDetailInfo.ProductSnapshot
+
     var body: some View {
         VStack(alignment: .leading, spacing: 8) {
             HStack {
-                Text(product.productName)
+                Text(product.name)
                     .font(.headline)
                     .fontWeight(.semibold)
                 
                 Spacer()
                 
-                Text("工位: \(product.occupiedStations.map(String.init).joined(separator: ", "))")
+                Text(String(format: "batch_management_product_detail_stations".localized, product.occupiedStationsDisplay))
                     .font(.caption)
                     .foregroundColor(.secondary)
             }
             
             VStack(alignment: .leading, spacing: 4) {
-                Text("颜色: \(product.primaryColorId)")
+                Text(String(format: "batch_management_product_detail_color".localized, product.primaryColorId))
                     .font(.caption)
                     .foregroundColor(.secondary)
                 
                 if let stationCount = product.stationCount {
-                    Text("工位数: \(stationCount)")
+                    Text(String(format: "batch_management_product_detail_station_count".localized, stationCount))
                         .font(.caption)
                         .foregroundColor(.secondary)
                 }
                 
                 if product.isDualColor {
-                    Text("双色生产")
+                    Text("batch_management_product_detail_dual_color".localized)
                         .font(.caption)
-                        .foregroundColor(.blue)
+                        .foregroundColor(LopanColors.info)
                 }
             }
         }

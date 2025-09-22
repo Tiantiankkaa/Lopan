@@ -412,7 +412,7 @@ public struct PreloadPerformanceView: View {
     public init() {}
     
     public var body: some View {
-        NavigationView {
+        NavigationStack {
             List {
                 Section("Performance Overview") {
                     if let report = performanceReport {

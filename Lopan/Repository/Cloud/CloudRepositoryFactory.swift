@@ -43,7 +43,7 @@ final class CloudRepositoryFactory: RepositoryFactory {
 // MARK: - Hybrid Repository Factory (supports both Local and Cloud)
 
 @MainActor
-final class HybridRepositoryFactory: RepositoryFactory, @unchecked Sendable {
+final class HybridRepositoryFactory: RepositoryFactory {
     private let localFactory: LocalRepositoryFactory
     private let cloudFactory: CloudRepositoryFactory?
     private let isCloudEnabled: Bool
@@ -148,7 +148,7 @@ enum RepositoryFeatureFlag {
 // MARK: - Feature Flag-Aware Repository Factory
 
 @MainActor
-final class FeatureFlagRepositoryFactory: RepositoryFactory, @unchecked Sendable {
+final class FeatureFlagRepositoryFactory: RepositoryFactory {
     private let localFactory: LocalRepositoryFactory
     private let cloudFactory: CloudRepositoryFactory?
     

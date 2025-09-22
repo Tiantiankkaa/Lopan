@@ -108,7 +108,7 @@ struct HistoricalBacktrackingView: View {
     }
     
     var body: some View {
-        NavigationView {
+        NavigationStack {
             VStack(spacing: 0) {
                 // Header with search and filters
                 headerView
@@ -272,12 +272,12 @@ struct HistoricalBacktrackingView: View {
             
             Button("重置筛选条件") {
                 resetFilters()
-            }
-            .padding(.horizontal, 20)
-            .padding(.vertical, 10)
-            .background(Color.blue)
-            .foregroundColor(.white)
-            .cornerRadius(10)
+        }
+        .padding(.horizontal, 20)
+        .padding(.vertical, 10)
+        .background(LopanColors.info)
+        .foregroundColor(LopanColors.textOnPrimary)
+        .cornerRadius(10)
             .accessibilityLabel("重置筛选条件")
             .accessibilityHint("清除所有过滤条件，显示所有操作记录")
             

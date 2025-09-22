@@ -140,7 +140,7 @@ struct BatchEditView: View {
     }
     
     var body: some View {
-        NavigationView {
+        NavigationStack {
             Group {
                 if isBatchLoading {
                     batchLoadingView
@@ -854,7 +854,7 @@ struct BatchEditView: View {
     // MARK: - Production Config Redirect Sheet (生产配置跳转弹出框)
     
     private var productionConfigRedirectSheet: some View {
-        NavigationView {
+        NavigationStack {
             VStack(spacing: 24) {
                 Image(systemName: "slider.horizontal.3")
                     .font(.system(size: 60))

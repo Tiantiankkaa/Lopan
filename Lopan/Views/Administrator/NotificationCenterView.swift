@@ -43,7 +43,7 @@ struct NotificationCenterView: View {
     }
     
     var body: some View {
-        NavigationView {
+        NavigationStack {
             VStack(spacing: 0) {
                 // Tab picker
                 tabPicker
@@ -302,15 +302,15 @@ struct NotificationRuleRow: View {
                 
                 HStack {
                     // Source badge
-                    HStack(spacing: 4) {
-                        Image(systemName: rule.source.icon)
-                        Text(rule.source.displayName)
-                    }
-                    .font(.caption)
-                    .foregroundColor(.blue)
+                   HStack(spacing: 4) {
+                       Image(systemName: rule.source.icon)
+                       Text(rule.source.displayName)
+                   }
+                   .font(.caption)
+                    .foregroundColor(LopanColors.info)
                     .padding(.horizontal, 8)
                     .padding(.vertical, 2)
-                    .background(Color.blue.opacity(0.1))
+                    .background(LopanColors.info.opacity(0.1))
                     .cornerRadius(4)
                     
                     // Severity badge
@@ -369,7 +369,7 @@ struct NewNotificationRuleView: View {
     @State private var conditions: [AlertCondition] = []
     
     var body: some View {
-        NavigationView {
+        NavigationStack {
             Form {
                 Section("基本信息") {
                     TextField("规则名称", text: $ruleName)
@@ -510,7 +510,7 @@ struct EditNotificationRuleView: View {
     }
     
     var body: some View {
-        NavigationView {
+        NavigationStack {
             Form {
                 Section("基本信息") {
                     TextField("规则名称", text: $ruleName)
@@ -815,7 +815,7 @@ struct NotificationSettingsView: View {
     @State private var notificationSound = "default"
     
     var body: some View {
-        NavigationView {
+        NavigationStack {
             Form {
                 Section("通知渠道") {
                     Toggle("推送通知", isOn: $enablePushNotifications)

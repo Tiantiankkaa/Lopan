@@ -40,7 +40,7 @@ struct MachineDetailView: View {
     }
     
     var body: some View {
-        NavigationView {
+        NavigationStack {
             VStack {
                 if machineService.isLoading || batchService.isLoading {
                     ProgressView("加载数据...")

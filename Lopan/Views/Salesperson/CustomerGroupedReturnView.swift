@@ -706,15 +706,15 @@ struct ReturnItemDetailRow: View {
                             .font(.caption)
                             .foregroundColor(.secondary)
                         
-                        if item.returnQuantity > 0 {
-                            Text("已还: \(item.returnQuantity)")
-                                .font(.caption)
-                                .foregroundColor(.blue)
-                        }
+                       if item.returnQuantity > 0 {
+                           Text("已还: \(item.returnQuantity)")
+                               .font(.caption)
+                                .foregroundColor(LopanColors.info)
+                       }
                         
                         Text("可还: \(item.remainingQuantity)")
                             .font(.caption)
-                            .foregroundColor(.orange)
+                            .foregroundColor(LopanColors.warning)
                     }
                 }
                 
@@ -734,11 +734,11 @@ struct ReturnItemDetailRow: View {
                             .keyboardType(.numberPad)
                             .frame(width: 80)
                         
-                        Button("最大值") {
-                            returnQuantity = String(item.remainingQuantity)
-                        }
-                        .font(.caption)
-                        .foregroundColor(.blue)
+                       Button("最大值") {
+                           returnQuantity = String(item.remainingQuantity)
+                       }
+                       .font(.caption)
+                        .foregroundColor(LopanColors.info)
                         
                         Spacer()
                     }
@@ -765,7 +765,7 @@ struct BatchCustomerReturnProcessingView: View {
     @Environment(\.dismiss) private var dismiss
     
     var body: some View {
-        ModernNavigationView {
+        ModernNavigationStack {
             VStack {
                 Text("批量还货处理功能开发中...")
                     .font(.headline)

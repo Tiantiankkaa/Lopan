@@ -313,7 +313,7 @@ struct SmartLoadingModifier: ViewModifier {
         }
         .sheet(isPresented: $controller.shouldShowErrorModal) {
             if let error = controller.currentError {
-                NavigationView {
+                NavigationStack {
                     ErrorRecoveryView(
                         error: error,
                         onRetry: controller.retry,

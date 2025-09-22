@@ -36,7 +36,7 @@ struct OutOfStockFilterSheet: View {
     private let hapticFeedback = UIImpactFeedbackGenerator(style: .light)
     
     var body: some View {
-        NavigationView {
+        NavigationStack {
             ZStack {
                 // Background
                 Color(.systemGroupedBackground)
@@ -607,7 +607,7 @@ struct CustomerFilterPickerSheet: View {
     @Environment(\.dismiss) private var dismiss
     
     var body: some View {
-        NavigationView {
+        NavigationStack {
             List {
                 Button("全部客户") {
                     selectedCustomer = nil
@@ -641,7 +641,7 @@ struct ProductFilterPickerSheet: View {
     @Environment(\.dismiss) private var dismiss
     
     var body: some View {
-        NavigationView {
+        NavigationStack {
             List {
                 Button("全部产品") {
                     selectedProduct = nil
@@ -676,7 +676,7 @@ struct AddressFilterPickerSheet: View {
     @Environment(\.dismiss) private var dismiss
     
     var body: some View {
-        NavigationView {
+        NavigationStack {
             List {
                 Button("全部地址") {
                     selectedAddress = nil
@@ -709,7 +709,7 @@ struct DateRangePickerSheet: View {
     @Environment(\.dismiss) private var dismiss
     
     var body: some View {
-        NavigationView {
+        NavigationStack {
             Form {
                 Section("快速选择") {
                     Button("本周") {

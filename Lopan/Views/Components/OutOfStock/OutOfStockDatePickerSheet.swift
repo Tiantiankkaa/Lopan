@@ -12,7 +12,7 @@ struct OutOfStockDatePickerSheet: View {
     @Environment(\.dismiss) private var dismiss
     
     var body: some View {
-        NavigationView {
+        NavigationStack {
             VStack {
                 DatePicker(
                     "选择日期",

@@ -51,7 +51,7 @@ struct SmartFormSystem: View {
     }
     
     var body: some View {
-        NavigationView {
+        NavigationStack {
             ZStack {
                 // 主表单内容
                 mainFormContent
@@ -390,7 +390,7 @@ struct SmartFormSystem: View {
     
     // MARK: - Validation Summary Sheet
     private var validationSummarySheet: some View {
-        NavigationView {
+        NavigationStack {
             ValidationSummaryView(
                 validationResults: validationEngine.getAllValidationResults(),
                 onFieldSelected: { fieldId in

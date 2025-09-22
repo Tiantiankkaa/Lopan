@@ -9,7 +9,8 @@ import XCTest
 @testable import Lopan
 
 // MARK: - Mock Repository Factory (模拟Repository工厂)
-class MockRepositoryFactory: RepositoryFactory {
+@MainActor
+final class MockRepositoryFactory: RepositoryFactory {
     var productionBatchRepository: ProductionBatchRepository = MockProductionBatchRepository()
     var machineRepository: MachineRepository = MockMachineRepository()
     var colorRepository: ColorRepository = MockColorRepository()

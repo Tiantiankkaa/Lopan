@@ -29,7 +29,7 @@ struct SystemConfigurationView: View {
     }
     
     var body: some View {
-        NavigationView {
+        NavigationStack {
             VStack(spacing: 0) {
                 // Header with quick actions
                 headerSection
@@ -548,7 +548,7 @@ struct ConfigurationEditSheet: View {
     }
     
     var body: some View {
-        NavigationView {
+        NavigationStack {
             Form {
                 Section("配置信息") {
                     VStack(alignment: .leading, spacing: 8) {
@@ -783,7 +783,7 @@ struct ConfigurationDetailsSheet: View {
     @State private var showingResetConfirmation = false
     
     var body: some View {
-        NavigationView {
+        NavigationStack {
             List {
                 Section("基本信息") {
                     DetailRow(title: "显示名称", value: definition.displayName)
@@ -982,7 +982,7 @@ struct AdvancedCategoryOptionsView: View {
     @State private var showingExport = false
     
     var body: some View {
-        NavigationView {
+        NavigationStack {
             List {
                 Section("批量操作") {
                     Button("批量编辑") {
@@ -1035,7 +1035,7 @@ struct SecuritySettingsView: View {
     @State private var showingSecurityScan = false
     
     var body: some View {
-        NavigationView {
+        NavigationStack {
             List {
                 Section("加密状态") {
                     HStack {
@@ -1121,7 +1121,7 @@ struct ConfigurationChangeRequestsView: View {
     @Environment(\.dismiss) private var dismiss
     
     var body: some View {
-        NavigationView {
+        NavigationStack {
             List {
                 ForEach(configurationService.pendingChangeRequests) { request in
                     ChangeRequestRow(request: request, configurationService: configurationService)
@@ -1162,7 +1162,7 @@ struct ConfigurationHistoryView: View {
     @Environment(\.dismiss) private var dismiss
     
     var body: some View {
-        NavigationView {
+        NavigationStack {
             List {
                 ForEach(configurationService.configurationHistory) { record in
                     HistoryRecordRow(record: record)
@@ -1323,7 +1323,7 @@ struct ChangeRequestDetailsView: View {
     @State private var isProcessing = false
     
     var body: some View {
-        NavigationView {
+        NavigationStack {
             List {
                 Section("请求信息") {
                     DetailRow(title: "配置键", value: request.configurationKey)
@@ -1437,7 +1437,7 @@ struct EncryptionSetupView: View {
     @State private var error: Error?
     
     var body: some View {
-        NavigationView {
+        NavigationStack {
             Form {
                 Section("加密设置") {
                     if securityService.encryptionStatus.isEnabled {
@@ -1530,7 +1530,7 @@ struct SecurityScanView: View {
     @State private var scanError: Error?
     
     var body: some View {
-        NavigationView {
+        NavigationStack {
             VStack {
                 if isScanning {
                     VStack(spacing: 20) {

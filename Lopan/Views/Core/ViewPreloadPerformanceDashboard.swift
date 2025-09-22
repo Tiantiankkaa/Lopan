@@ -26,7 +26,7 @@ public struct ViewPreloadPerformanceDashboard: View {
     public init() {}
     
     public var body: some View {
-        NavigationView {
+        NavigationStack {
             TabView(selection: $selectedTab) {
                 // Overview Tab
                 OverviewTab(performanceData: performanceData)

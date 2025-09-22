@@ -358,7 +358,7 @@ struct CacheManagementView: View {
     @State private var showingClearAlert = false
     
     var body: some View {
-        ModernNavigationView {
+        ModernNavigationStack {
             List {
                 Section("缓存状态") {
                     HStack {

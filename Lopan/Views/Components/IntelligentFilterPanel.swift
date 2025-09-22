@@ -111,7 +111,7 @@ struct IntelligentFilterPanel: View {
     @State private var productSearchText = ""
     
     var body: some View {
-        NavigationView {
+        NavigationStack {
             ScrollView {
                 VStack(spacing: 24) {
                     headerSection

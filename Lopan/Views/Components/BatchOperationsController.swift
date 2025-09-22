@@ -222,7 +222,7 @@ struct BatchOperationsController: View {
     // MARK: - Batch Action Sheet
     
     private var batchActionSheet: some View {
-        NavigationView {
+        NavigationStack {
             VStack(spacing: 0) {
                 // Header
                 VStack(spacing: 12) {

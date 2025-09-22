@@ -593,7 +593,7 @@ struct EnhancedProductDetailView: View {
     }
     
     private var imageGalleryView: some View {
-        NavigationView {
+        NavigationStack {
             ZStack {
                 Color.black.ignoresSafeArea()
                 
@@ -658,7 +658,7 @@ struct EnhancedProductDetailView: View {
     }
     
     private var actionsMenuView: some View {
-        NavigationView {
+        NavigationStack {
             List {
                 Button(action: duplicateProduct) {
                     Label("复制产品", systemImage: "doc.on.doc")
@@ -764,7 +764,7 @@ struct EnhancedProductDetailView: View {
         imageData: nil
     )
     
-    return NavigationView {
+    return NavigationStack {
         EnhancedProductDetailView(product: sampleProduct)
     }
     .modelContainer(for: [Product.self, ProductSize.self], inMemory: true)

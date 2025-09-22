@@ -53,7 +53,7 @@ struct PermissionManagementView: View {
     }
     
     var body: some View {
-        NavigationView {
+        NavigationStack {
             VStack(spacing: 0) {
                 // Tab selector
                 tabSelector
@@ -721,7 +721,7 @@ struct RoleAssignmentDialog: View {
     @State private var reason = ""
     
     var body: some View {
-        NavigationView {
+        NavigationStack {
             Form {
                 Section("角色信息") {
                     Picker("选择角色", selection: $selectedRole) {
@@ -784,7 +784,7 @@ struct ElevationRequestsView: View {
     @Environment(\.dismiss) private var dismiss
     
     var body: some View {
-        NavigationView {
+        NavigationStack {
             List {
                 ForEach(roleManagementService.getPendingElevationRequests(), id: \.id) { request in
                     ElevationRequestRow(
@@ -900,7 +900,7 @@ struct RoleEditorView: View {
     @Environment(\.dismiss) private var dismiss
     
     var body: some View {
-        NavigationView {
+        NavigationStack {
             VStack {
                 Text("角色编辑器")
                     .font(.title)
@@ -930,7 +930,7 @@ struct BulkPermissionEditorView: View {
     @Environment(\.dismiss) private var dismiss
     
     var body: some View {
-        NavigationView {
+        NavigationStack {
             VStack {
                 Text("批量权限编辑器")
                     .font(.title)

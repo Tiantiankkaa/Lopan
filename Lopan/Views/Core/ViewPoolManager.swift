@@ -504,7 +504,7 @@ public struct PoolPerformanceView: View {
     public init() {}
     
     public var body: some View {
-        NavigationView {
+        NavigationStack {
             List {
                 Section("Pool Overview") {
                     if let stats = poolStats {

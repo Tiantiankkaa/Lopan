@@ -20,7 +20,7 @@ struct FiltersView: View {
     let uniqueUsers: [String]
     
     var body: some View {
-        NavigationView {
+        NavigationStack {
             Form {
                 Section(header: Text("时间范围")) {
                     Picker("日期范围", selection: $dateRange) {
@@ -111,7 +111,7 @@ struct OperationDetailView: View {
     let auditLog: AuditLog
     
     var body: some View {
-        NavigationView {
+        NavigationStack {
             ScrollView {
                 VStack(alignment: .leading, spacing: 20) {
                     // Header card

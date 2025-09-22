@@ -22,7 +22,7 @@ struct AddProductView: View {
     @State private var newSize = ""
     
     var body: some View {
-        NavigationView {
+        NavigationStack {
             ScrollView {
                 VStack(alignment: .leading, spacing: 24) {
                     // Product Information Section

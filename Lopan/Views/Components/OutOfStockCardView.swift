@@ -20,9 +20,15 @@ struct OutOfStockCardView: View {
     @State private var showingDetail = false
     @State private var rotationAngle: Double = 0
     
-    private let hapticFeedback = UIImpactFeedbackGenerator(style: .light)
-    
     var body: some View {
+        AnyView(
+            makeInteractiveCard()
+                .modifier(accessibilityModifier)
+        )
+    }
+
+    @ViewBuilder
+    private func makeInteractiveCard() -> some View {
         ZStack {
             cardBackground
             cardContent
@@ -45,7 +51,7 @@ struct OutOfStockCardView: View {
             handleLongPress()
         }
     }
-    
+
     // MARK: - Card Background
     
     private var cardBackground: some View {
@@ -106,7 +112,7 @@ struct OutOfStockCardView: View {
             VStack(alignment: .leading, spacing: 4) {
                 HStack {
                     Text(item.customerDisplayName)
-                        .font(.system(size: 16, weight: .semibold, design: .rounded))
+                        .font(.headline.weight(.semibold))
                         .foregroundColor(.primary)
                         .lineLimit(1)
                     
@@ -150,7 +156,7 @@ struct OutOfStockCardView: View {
                 .frame(width: 48, height: 48)
             
             Text(String(item.customerDisplayName.prefix(1)))
-                .font(.system(size: 18, weight: .bold, design: .rounded))
+                .font(.title3.weight(.bold))
                 .foregroundColor(.white)
         }
         .overlay(
@@ -215,8 +221,9 @@ struct OutOfStockCardView: View {
     private var productInfoRow: some View {
         HStack(spacing: 12) {
             Image(systemName: "cube.box")
-                .font(.system(size: 16, weight: .medium))
-                .foregroundColor(.blue)
+                .symbolRenderingMode(.palette)
+                .foregroundStyle(Color.blue)
+                .imageScale(.medium)
                 .frame(width: 20)
             
             VStack(alignment: .leading, spacing: 2) {
@@ -225,7 +232,7 @@ struct OutOfStockCardView: View {
                     .foregroundColor(.secondary)
                 
                 Text(item.productDisplayName)
-                    .font(.system(size: 14, weight: .medium))
+                    .font(.subheadline.weight(.medium))
                     .foregroundColor(.primary)
                     .lineLimit(2)
             }
@@ -237,7 +244,7 @@ struct OutOfStockCardView: View {
     private var quantityInfoRow: some View {
         HStack(spacing: 12) {
             Image(systemName: "number.circle")
-                .font(.system(size: 16, weight: .medium))
+                .imageScale(.medium)
                 .foregroundColor(.green)
                 .frame(width: 20)
             
@@ -284,7 +291,7 @@ struct OutOfStockCardView: View {
     private func notesRow(_ notes: String) -> some View {
         HStack(alignment: .top, spacing: 12) {
             Image(systemName: "note.text")
-                .font(.system(size: 16, weight: .medium))
+                .imageScale(.medium)
                 .foregroundColor(.purple)
                 .frame(width: 20)
             
@@ -294,7 +301,7 @@ struct OutOfStockCardView: View {
                     .foregroundColor(.secondary)
                 
                 Text(notes)
-                    .font(.system(size: 13))
+                    .font(.callout)
                     .foregroundColor(.primary)
                     .lineLimit(2)
                     .multilineTextAlignment(.leading)
@@ -314,7 +321,7 @@ struct OutOfStockCardView: View {
             
             HStack(spacing: 8) {
                 Image(systemName: "arrow.uturn.backward.circle.fill")
-                    .font(.system(size: 14))
+                    .imageScale(.small)
                     .foregroundColor(returnStatusColor)
                 
                 Text(returnStatusText)
@@ -376,7 +383,7 @@ struct OutOfStockCardView: View {
                             
                             if isSelected {
                                 Image(systemName: "checkmark")
-                                    .font(.system(size: 12, weight: .bold))
+                                    .font(.caption.weight(.bold))
                                     .foregroundColor(.white)
                             }
                         }
@@ -431,7 +438,7 @@ struct OutOfStockCardView: View {
     }
     
     private func handleTap() {
-        hapticFeedback.impactOccurred()
+        playImpact(.light, intensity: 0.6)
         
         withAnimation(.easeInOut(duration: 0.1)) {
             cardScale = 0.95
@@ -446,8 +453,7 @@ struct OutOfStockCardView: View {
     }
     
     private func handleLongPress() {
-        let impactFeedback = UIImpactFeedbackGenerator(style: .heavy)
-        impactFeedback.impactOccurred()
+        playImpact(.heavy, intensity: 0.8)
         
         withAnimation(.spring(response: 0.3, dampingFraction: 0.6)) {
             cardScale = 1.05
@@ -464,8 +470,7 @@ struct OutOfStockCardView: View {
     
     private func handleSwipeRight() {
         // Swipe right - Quick mark as completed or edit
-        let impactFeedback = UIImpactFeedbackGenerator(style: .medium)
-        impactFeedback.impactOccurred()
+        playImpact(.medium, intensity: 0.7)
         
         withAnimation(.spring(response: 0.3, dampingFraction: 0.6)) {
             cardOffset = 100
@@ -492,8 +497,7 @@ struct OutOfStockCardView: View {
     
     private func handleSwipeLeft() {
         // Swipe left - Quick delete or archive
-        let impactFeedback = UIImpactFeedbackGenerator(style: .heavy)
-        impactFeedback.impactOccurred()
+        playImpact(.rigid, intensity: 0.9)
         
         withAnimation(.spring(response: 0.3, dampingFraction: 0.6)) {
             cardOffset = -100
@@ -511,6 +515,68 @@ struct OutOfStockCardView: View {
         }
         
         print("Quick action: Delete item - \(item.id)")
+    }
+
+    private func playImpact(_ style: UIImpactFeedbackGenerator.FeedbackStyle, intensity: CGFloat = 1.0) {
+        if #available(iOS 17.0, *) {
+            let generator = UIImpactFeedbackGenerator(style: style)
+            generator.prepare()
+            generator.impactOccurred(intensity: intensity)
+        } else {
+            UIImpactFeedbackGenerator(style: style).impactOccurred()
+        }
+    }
+
+    private var accessibilityLabel: Text {
+        Text("客户 \(item.customerDisplayName)，状态 \(item.status.displayName)")
+    }
+
+    private var accessibilityValue: Text {
+        if item.returnQuantity > 0 {
+            return Text("缺货 \(item.quantity) 件，已退 \(item.returnQuantity) 件")
+        } else {
+            return Text("缺货 \(item.quantity) 件")
+        }
+    }
+
+    private var accessibilityModifier: OutOfStockCardAccessibilityModifier {
+        OutOfStockCardAccessibilityModifier(
+            item: item,
+            onActivate: { handleTap() },
+            onToggleSelection: { handleLongPress() }
+        )
+    }
+}
+
+private struct OutOfStockCardAccessibilityModifier: ViewModifier {
+    let item: CustomerOutOfStock
+    let onActivate: () -> Void
+    let onToggleSelection: () -> Void
+
+    func body(content: Content) -> some View {
+        content
+            .accessibilityElement(children: .ignore)
+            .accessibilityLabel(Text("客户 \(item.customerDisplayName)，状态 \(item.status.displayName)"))
+            .accessibilityValue(accessibilityValue)
+            .accessibilityHint(Text("双击查看详情，长按进入多选"))
+            .accessibilityAddTraits(.isButton)
+            .accessibilityAction { onActivate() }
+            .accessibilityAction(named: Text("切换选择")) { onToggleSelection() }
+            .accessibilityCustomContent("客户地址", item.customerAddress)
+            .accessibilityCustomContent("状态", item.status.displayName)
+            .accessibilityCustomContent("缺货数量", "\(item.quantity)")
+            .accessibilityCustomContent(
+                "退货数量",
+                item.returnQuantity > 0 ? "\(item.returnQuantity)" : "无"
+            )
+    }
+
+    private var accessibilityValue: Text {
+        if item.returnQuantity > 0 {
+            return Text("缺货 \(item.quantity) 件，已退 \(item.returnQuantity) 件")
+        } else {
+            return Text("缺货 \(item.quantity) 件")
+        }
     }
 }
 

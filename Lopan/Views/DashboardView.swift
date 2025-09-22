@@ -50,7 +50,7 @@ struct UnauthorizedView: View {
     @ObservedObject var authService: AuthenticationService
     
     var body: some View {
-        NavigationView {
+        NavigationStack {
             VStack(spacing: 30) {
                 Image(systemName: "exclamationmark.triangle.fill")
                     .font(.system(size: 60))
@@ -122,7 +122,7 @@ struct SalespersonDashboardView: View {
     @State private var errorMessage: String? = nil
     
     var body: some View {
-        NavigationView {
+        NavigationStack {
             VStack(spacing: 20) {
                 Text("salesperson_dashboard".localized)
                     .font(.title)
@@ -376,7 +376,7 @@ struct WorkshopManagerDashboardView: View {
     @Environment(\.appDependencies) private var appDependencies
     
     var body: some View {
-        NavigationView {
+        NavigationStack {
             WorkshopManagerDashboard(
                 repositoryFactory: appDependencies.repositoryFactory,
                 authService: authService,
@@ -407,7 +407,7 @@ struct EVAGranulationDashboardView: View {
     @ObservedObject var navigationService: WorkbenchNavigationService
     
     var body: some View {
-        NavigationView {
+        NavigationStack {
             VStack(spacing: 20) {
                 Text("eva_granulation_dashboard".localized)
                     .font(.title)
@@ -464,7 +464,7 @@ struct WorkshopTechnicianDashboardView: View {
     @ObservedObject var navigationService: WorkbenchNavigationService
     
     var body: some View {
-        NavigationView {
+        NavigationStack {
             VStack(spacing: 20) {
                 Text("workshop_technician_dashboard".localized)
                     .font(.title)

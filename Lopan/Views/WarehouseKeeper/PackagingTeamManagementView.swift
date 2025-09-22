@@ -32,7 +32,7 @@ struct PackagingTeamManagementView: View {
     }
     
     var body: some View {
-        NavigationView {
+        NavigationStack {
             VStack(spacing: 0) {
                 // Search bar and add button
                 HStack {
@@ -212,7 +212,7 @@ struct AddPackagingTeamView: View {
     @State private var alertMessage = ""
     
     var body: some View {
-        NavigationView {
+        NavigationStack {
             Form {
                 Section(header: Text("团队信息")) {
                     TextField("团队名称", text: $teamName)
@@ -361,7 +361,7 @@ struct EditPackagingTeamView: View {
     }
     
     var body: some View {
-        NavigationView {
+        NavigationStack {
             Form {
                 Section(header: Text("团队信息")) {
                     TextField("团队名称", text: $teamName)

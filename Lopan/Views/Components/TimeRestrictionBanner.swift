@@ -269,7 +269,7 @@ struct MachineStatusChecker: View {
         .sheet(isPresented: $showingMachineDetail) {
             // This would navigate to machine management
             // For now, just a placeholder
-            NavigationView {
+            NavigationStack {
                 Text("设备管理")
                     .navigationTitle("设备管理")
                     .navigationBarTitleDisplayMode(.inline)

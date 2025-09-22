@@ -22,7 +22,7 @@ struct ExcelExportView: View {
     @State private var exportedFileURL: URL?
     
     var body: some View {
-        NavigationView {
+        NavigationStack {
             VStack(spacing: 30) {
                 // Header
                 VStack(spacing: 10) {

@@ -82,7 +82,7 @@ struct ModernAddProductView: View {
     }
     
     var body: some View {
-        NavigationView {
+        NavigationStack {
             VStack(spacing: 0) {
                 // Progress Header
                 progressHeaderView
@@ -741,7 +741,7 @@ struct ModernAddProductView: View {
     // MARK: - Color Picker Sheet
     
     private var colorPickerSheet: some View {
-        NavigationView {
+        NavigationStack {
             VStack(spacing: 20) {
                 ColorPicker("选择颜色", selection: $customColor)
                     .labelsHidden()

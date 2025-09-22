@@ -37,7 +37,7 @@ struct BatchOutOfStockCreationView: View {
     @State private var showingErrorAlert = false
     
     var body: some View {
-        NavigationView {
+        NavigationStack {
             ZStack {
                 Color(.systemGroupedBackground).ignoresSafeArea()
                 
@@ -101,7 +101,7 @@ struct BatchOutOfStockCreationView: View {
             .overlay {
                 if isLoading {
                     ZStack {
-                        Color.black.opacity(0.3)
+                        LopanColors.textPrimary.opacity(0.3)
                             .ignoresSafeArea()
                         
                         VStack(spacing: 16) {
@@ -109,10 +109,10 @@ struct BatchOutOfStockCreationView: View {
                                 .scaleEffect(1.2)
                             Text("正在保存...")
                                 .font(.headline)
-                                .foregroundColor(.white)
+                                .foregroundColor(LopanColors.textOnPrimary)
                         }
                         .padding(24)
-                        .background(Color.black.opacity(0.8))
+                        .background(LopanColors.textPrimary.opacity(0.8))
                         .cornerRadius(12)
                     }
                 }
@@ -124,7 +124,7 @@ struct BatchOutOfStockCreationView: View {
         VStack(alignment: .leading, spacing: 16) {
             HStack {
                 Image(systemName: "person.circle.fill")
-                    .foregroundColor(.blue)
+                    .foregroundColor(LopanColors.info)
                     .font(.title2)
                 Text("选择客户")
                     .font(.headline)
@@ -156,22 +156,22 @@ struct BatchOutOfStockCreationView: View {
                         } else {
                             Text("点击选择客户")
                                 .font(.title3)
-                                .foregroundColor(.blue)
+                                .foregroundColor(LopanColors.info)
                         }
                     }
                     
                     Spacer()
                     
                     Image(systemName: selectedCustomer == nil ? "plus.circle" : "chevron.right")
-                        .foregroundColor(.blue)
+                        .foregroundColor(LopanColors.info)
                         .font(.title2)
                         .scaleEffect(selectedCustomer == nil ? 1.2 : 1.0)
                 }
                 .padding(16)
-                .background(selectedCustomer == nil ? Color.blue.opacity(0.05) : Color(.systemBackground))
+                .background(selectedCustomer == nil ? LopanColors.info.opacity(0.05) : LopanColors.backgroundPrimary)
                 .overlay(
                     RoundedRectangle(cornerRadius: 12)
-                        .stroke(selectedCustomer == nil ? Color.blue.opacity(0.3) : Color(.systemGray4), lineWidth: selectedCustomer == nil ? 2 : 1)
+                        .stroke(selectedCustomer == nil ? LopanColors.info.opacity(0.3) : LopanColors.border, lineWidth: selectedCustomer == nil ? 2 : 1)
                         .animation(.easeInOut(duration: 0.2), value: selectedCustomer != nil)
                 )
                 .cornerRadius(12)
@@ -200,7 +200,7 @@ struct BatchOutOfStockCreationView: View {
                 .foregroundColor(.secondary)
                 .padding(.horizontal, 8)
                 .padding(.vertical, 4)
-                .background(Color(.systemGray6))
+                .background(LopanColors.backgroundSecondary)
                 .cornerRadius(8)
         }
         .padding(.horizontal, 4)
@@ -219,13 +219,13 @@ struct BatchOutOfStockCreationView: View {
                     .font(.headline)
                     .fontWeight(.medium)
             }
-            .foregroundColor(.blue)
+            .foregroundColor(LopanColors.info)
             .padding(16)
             .frame(maxWidth: .infinity)
-            .background(Color.blue.opacity(0.08))
+            .background(LopanColors.info.opacity(0.08))
             .overlay(
                 RoundedRectangle(cornerRadius: 12)
-                    .stroke(Color.blue.opacity(0.4), style: StrokeStyle(lineWidth: 1, dash: [5, 5]))
+                    .stroke(LopanColors.info.opacity(0.4), style: StrokeStyle(lineWidth: 1, dash: [5, 5]))
             )
             .cornerRadius(12)
         }
@@ -429,7 +429,7 @@ struct ProductItemCard: View {
                         Text("点击选择产品")
                             .font(.title3)
                             .fontWeight(.medium)
-                            .foregroundColor(.blue)
+                            .foregroundColor(LopanColors.info)
                         
                         Text("从产品库中选择")
                             .font(.caption)
@@ -440,7 +440,7 @@ struct ProductItemCard: View {
                 Spacer()
                 
                 Image(systemName: item.product == nil ? "plus.circle" : "chevron.right")
-                    .foregroundColor(.blue)
+                    .foregroundColor(LopanColors.info)
                     .font(.title2)
             }
             .padding(.horizontal, 20)
@@ -461,7 +461,7 @@ struct ProductItemCard: View {
                     .clipShape(RoundedRectangle(cornerRadius: 8))
             } else {
                 RoundedRectangle(cornerRadius: 8)
-                    .fill(item.product == nil ? Color.blue.opacity(0.1) : Color(.systemGray6))
+                    .fill(item.product == nil ? LopanColors.info.opacity(0.1) : LopanColors.backgroundSecondary)
                     .frame(width: 60, height: 60)
                     .overlay(
                         Image(systemName: item.product == nil ? "plus" : "photo")
@@ -515,7 +515,7 @@ struct ProductItemCard: View {
                                 .fontWeight(.medium)
                                 .foregroundColor(Int(item.quantity) == quickValue ? .white : .blue)
                                 .frame(width: 32, height: 32)
-                                .background(Int(item.quantity) == quickValue ? Color.blue : Color.blue.opacity(0.1))
+                                .background(Int(item.quantity) == quickValue ? LopanColors.info : LopanColors.info.opacity(0.1))
                                 .clipShape(Circle())
                         }
                         .buttonStyle(PlainButtonStyle())
@@ -588,7 +588,7 @@ struct ProductItemCard: View {
                     }) {
                         Image(systemName: "plus.circle.fill")
                             .font(.title2)
-                            .foregroundColor(.blue)
+                            .foregroundColor(LopanColors.info)
                     }
                     .scaleEffect(quantityButtonScale)
                 }
@@ -600,7 +600,7 @@ struct ProductItemCard: View {
         VStack(alignment: .leading, spacing: 8) {
             HStack {
                 Image(systemName: "note.text")
-                    .foregroundColor(.purple)
+                    .foregroundColor(LopanColors.premium)
                 Text("备注")
                     .font(.headline)
                     .fontWeight(.medium)
@@ -648,7 +648,7 @@ internal struct SearchableCustomerPicker: View {
     }
     
     var body: some View {
-        NavigationView {
+        NavigationStack {
             VStack {
                 SearchBar(text: $searchText)
                     .padding(.horizontal)
@@ -697,7 +697,7 @@ product.colorDisplay.localizedCaseInsensitiveContains(searchText)
     }
     
     var body: some View {
-        NavigationView {
+        NavigationStack {
             VStack {
                 SearchBar(text: $searchText)
                     .padding(.horizontal)

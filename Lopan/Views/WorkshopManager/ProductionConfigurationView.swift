@@ -796,7 +796,7 @@ struct AddProductSheet: View {
     }
     
     var body: some View {
-        NavigationView {
+        NavigationStack {
             ScrollView {
                 VStack(spacing: 20) {
                     // Product selection
@@ -1957,7 +1957,7 @@ struct BatchDetailsSheet: View {
     }
     
     var body: some View {
-        NavigationView {
+        NavigationStack {
             ScrollView {
                 VStack(spacing: 16) {
                     // Header with batch info

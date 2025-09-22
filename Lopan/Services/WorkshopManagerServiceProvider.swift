@@ -25,6 +25,11 @@ public class WorkshopManagerServiceProvider: ObservableObject {
     private var _machineService: MachineService?
     private var _productService: ProductService?
     private var _batchEditPermissionService: StandardBatchEditPermissionService?
+    private var _batchMachineCoordinator: StandardBatchMachineCoordinator?
+    private var _cacheWarmingService: CacheWarmingService?
+    private var _synchronizationService: MachineStateSynchronizationService?
+    private var _systemMonitoringService: SystemConsistencyMonitoringService?
+    private var _enhancedSecurityService: EnhancedSecurityAuditService?
     
     // MARK: - Initialization
     init(repositoryFactory: RepositoryFactory,
@@ -99,6 +104,75 @@ public class WorkshopManagerServiceProvider: ObservableObject {
             )
         }
         return _batchEditPermissionService!
+    }
+    
+    /// Batch machine coordinator
+    var batchMachineCoordinator: StandardBatchMachineCoordinator {
+        if _batchMachineCoordinator == nil {
+            _batchMachineCoordinator = StandardBatchMachineCoordinator(
+                machineRepository: repositoryFactory.machineRepository,
+                productionBatchRepository: repositoryFactory.productionBatchRepository,
+                auditService: auditService,
+                authService: authService
+            )
+        }
+        return _batchMachineCoordinator!
+    }
+    
+    /// Cache warming service
+    var cacheWarmingService: CacheWarmingService {
+        if _cacheWarmingService == nil {
+            _cacheWarmingService = CacheWarmingServiceFactory.createService(
+                batchMachineCoordinator: batchMachineCoordinator,
+                machineRepository: repositoryFactory.machineRepository,
+                productionBatchRepository: repositoryFactory.productionBatchRepository,
+                auditService: auditService,
+                authService: authService,
+                strategy: .combined
+            )
+        }
+        return _cacheWarmingService!
+    }
+    
+    /// Synchronization service
+    var synchronizationService: MachineStateSynchronizationService {
+        if _synchronizationService == nil {
+            _synchronizationService = MachineStateSynchronizationService(
+                machineRepository: repositoryFactory.machineRepository,
+                productionBatchRepository: repositoryFactory.productionBatchRepository,
+                batchMachineCoordinator: batchMachineCoordinator,
+                auditService: auditService,
+                authService: authService
+            )
+        }
+        return _synchronizationService!
+    }
+    
+    /// System monitoring service
+    var systemMonitoringService: SystemConsistencyMonitoringService {
+        if _systemMonitoringService == nil {
+            _systemMonitoringService = SystemConsistencyMonitoringService(
+                machineRepository: repositoryFactory.machineRepository,
+                productionBatchRepository: repositoryFactory.productionBatchRepository,
+                batchMachineCoordinator: batchMachineCoordinator,
+                synchronizationService: synchronizationService,
+                cacheWarmingService: cacheWarmingService,
+                auditService: auditService,
+                authService: authService
+            )
+        }
+        return _systemMonitoringService!
+    }
+    
+    /// Enhanced security audit service
+    var enhancedSecurityService: EnhancedSecurityAuditService {
+        if _enhancedSecurityService == nil {
+            _enhancedSecurityService = EnhancedSecurityAuditService(
+                baseAuditService: auditService,
+                authService: authService
+            )
+        }
+        return _enhancedSecurityService!
     }
     
     // MARK: - Service Management

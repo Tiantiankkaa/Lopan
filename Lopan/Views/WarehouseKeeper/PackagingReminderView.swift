@@ -97,7 +97,7 @@ struct PackagingReminderView: View {
     }
     
     var body: some View {
-        NavigationView {
+        NavigationStack {
             VStack(spacing: 0) {
                 // Statistics cards
                 ScrollView(.horizontal, showsIndicators: false) {
@@ -333,24 +333,24 @@ struct PackagingReminderRow: View {
             }
             
             VStack(spacing: 8) {
-                if record.needsReminder {
-                    Button(action: onSendReminder) {
-                        Image(systemName: "bell.fill")
-                            .foregroundColor(.white)
-                            .frame(width: 32, height: 32)
-                            .background(Color.purple)
+               if record.needsReminder {
+                   Button(action: onSendReminder) {
+                       Image(systemName: "bell.fill")
+                           .foregroundColor(.white)
+                           .frame(width: 32, height: 32)
+                            .background(LopanColors.premium)
                             .cornerRadius(8)
-                    }
-                } else if record.reminderSent {
-                    Image(systemName: "checkmark.circle.fill")
-                        .foregroundColor(.green)
+                   }
+               } else if record.reminderSent {
+                   Image(systemName: "checkmark.circle.fill")
+                        .foregroundColor(LopanColors.success)
                         .frame(width: 32, height: 32)
-                }
-                
-                Text("\(record.totalPackages)")
-                    .font(.title3)
-                    .fontWeight(.bold)
-                    .foregroundColor(.blue)
+               }
+               
+               Text("\(record.totalPackages)")
+                   .font(.title3)
+                   .fontWeight(.bold)
+                    .foregroundColor(LopanColors.info)
                 Text("包装")
                     .font(.caption)
                     .foregroundColor(.secondary)

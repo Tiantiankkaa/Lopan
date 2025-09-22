@@ -48,11 +48,11 @@ struct QuickActionMenu: View {
                 Spacer(minLength: LopanSpacing.lg)
             }
             .padding(LopanSpacing.lg)
-            .navigationTitle("快捷操作")
+            .navigationTitle("warehouse_quick_actions_title")
             .navigationBarTitleDisplayMode(.inline)
             .toolbar {
                 ToolbarItem(placement: .navigationBarTrailing) {
-                    Button("完成") {
+                    Button("common_done".localized) {
                         dismiss()
                     }
                     .fontWeight(.medium)
@@ -102,7 +102,7 @@ struct QuickActionMenu: View {
                         .font(LopanTypography.bodyMedium)
                         .foregroundStyle(LopanColors.textSecondary)
                     
-                    Text("仓库管理员")
+                    Text("warehouse_user_role_label".localized)
                         .font(LopanTypography.bodyMedium)
                         .foregroundStyle(LopanColors.roleWarehouseKeeper)
                     
@@ -128,8 +128,9 @@ struct QuickActionMenu: View {
             // Workbench operations
             QuickActionRow(
                 action: QuickAction(
-                    title: "切换工作台",
-                    subtitle: "访问其他角色工作台",
+                    identifier: "system_switch_workbench",
+                    title: "warehouse_quick_action_system_switch_title".localized,
+                    subtitle: "warehouse_quick_action_system_switch_subtitle".localized,
                     icon: "arrow.triangle.2.circlepath",
                     color: LopanColors.primary,
                     type: .navigation
@@ -142,8 +143,9 @@ struct QuickActionMenu: View {
             // Data refresh
             QuickActionRow(
                 action: QuickAction(
-                    title: "刷新数据",
-                    subtitle: "重新加载最新信息",
+                    identifier: "system_refresh_data",
+                    title: "warehouse_quick_action_system_refresh_title".localized,
+                    subtitle: "warehouse_quick_action_system_refresh_subtitle".localized,
                     icon: "arrow.clockwise",
                     color: LopanColors.info,
                     type: .action,
@@ -158,8 +160,9 @@ struct QuickActionMenu: View {
             if authService.currentUser?.isAdministrator == true {
                 QuickActionRow(
                     action: QuickAction(
-                        title: "系统设置",
-                        subtitle: "管理系统配置和权限",
+                        identifier: "system_settings",
+                        title: "warehouse_quick_action_system_settings_title".localized,
+                        subtitle: "warehouse_quick_action_system_settings_subtitle".localized,
                         icon: "gearshape.fill",
                         color: LopanColors.secondary,
                         type: .navigation
@@ -193,22 +196,25 @@ struct QuickActionMenu: View {
     private var packagingQuickActions: [QuickAction] {
         [
             QuickAction(
-                title: "新增包装记录",
-                subtitle: "快速记录包装数据",
+                identifier: "packaging_add_record",
+                title: "warehouse_quick_action_packaging_add_title".localized,
+                subtitle: "warehouse_quick_action_packaging_add_subtitle".localized,
                 icon: "plus.circle.fill",
                 color: LopanColors.success,
                 type: .create
             ),
             QuickAction(
-                title: "批量导入",
-                subtitle: "从 Excel 导入包装数据",
+                identifier: "packaging_bulk_import",
+                title: "warehouse_quick_action_packaging_import_title".localized,
+                subtitle: "warehouse_quick_action_packaging_import_subtitle".localized,
                 icon: "square.and.arrow.down.fill",
                 color: LopanColors.info,
                 type: .importData
             ),
             QuickAction(
-                title: "导出报表",
-                subtitle: "生成包装统计报表",
+                identifier: "packaging_export_report",
+                title: "warehouse_quick_action_packaging_export_title".localized,
+                subtitle: "warehouse_quick_action_packaging_export_subtitle".localized,
                 icon: "square.and.arrow.up.fill",
                 color: LopanColors.warning,
                 type: .export
@@ -219,15 +225,17 @@ struct QuickActionMenu: View {
     private var taskQuickActions: [QuickAction] {
         [
             QuickAction(
-                title: "创建提醒",
-                subtitle: "设置新的任务提醒",
+                identifier: "tasks_create_reminder",
+                title: "warehouse_quick_action_tasks_create_title".localized,
+                subtitle: "warehouse_quick_action_tasks_create_subtitle".localized,
                 icon: "bell.badge.plus.fill",
                 color: LopanColors.success,
                 type: .create
             ),
             QuickAction(
-                title: "批量处理",
-                subtitle: "批量完成或延期任务",
+                identifier: "tasks_bulk_process",
+                title: "warehouse_quick_action_tasks_bulk_title".localized,
+                subtitle: "warehouse_quick_action_tasks_bulk_subtitle".localized,
                 icon: "checklist",
                 color: LopanColors.info,
                 type: .action
@@ -238,15 +246,17 @@ struct QuickActionMenu: View {
     private var teamQuickActions: [QuickAction] {
         [
             QuickAction(
-                title: "添加成员",
-                subtitle: "邀请新的团队成员",
+                identifier: "team_add_member",
+                title: "warehouse_quick_action_team_add_title".localized,
+                subtitle: "warehouse_quick_action_team_add_subtitle".localized,
                 icon: "person.badge.plus.fill",
                 color: LopanColors.success,
                 type: .create
             ),
             QuickAction(
-                title: "分工管理",
-                subtitle: "调整团队工作分配",
+                identifier: "team_assignment",
+                title: "warehouse_quick_action_team_assign_title".localized,
+                subtitle: "warehouse_quick_action_team_assign_subtitle".localized,
                 icon: "person.2.gobackward",
                 color: LopanColors.info,
                 type: .action
@@ -257,15 +267,17 @@ struct QuickActionMenu: View {
     private var analyticsQuickActions: [QuickAction] {
         [
             QuickAction(
-                title: "生成报表",
-                subtitle: "创建自定义分析报表",
+                identifier: "analytics_generate_report",
+                title: "warehouse_quick_action_analytics_report_title".localized,
+                subtitle: "warehouse_quick_action_analytics_report_subtitle".localized,
                 icon: "doc.text.fill",
                 color: LopanColors.success,
                 type: .create
             ),
             QuickAction(
-                title: "数据导出",
-                subtitle: "导出统计数据到 Excel",
+                identifier: "analytics_export_data",
+                title: "warehouse_quick_action_analytics_export_title".localized,
+                subtitle: "warehouse_quick_action_analytics_export_subtitle".localized,
                 icon: "tablecells.badge.ellipsis",
                 color: LopanColors.warning,
                 type: .export
@@ -276,15 +288,17 @@ struct QuickActionMenu: View {
     private var productQuickActions: [QuickAction] {
         [
             QuickAction(
-                title: "同步产品数据",
-                subtitle: "从销售部门更新产品信息",
+                identifier: "products_sync",
+                title: "warehouse_quick_action_products_sync_title".localized,
+                subtitle: "warehouse_quick_action_products_sync_subtitle".localized,
                 icon: "arrow.triangle.2.circlepath",
                 color: LopanColors.info,
                 type: .sync
             ),
             QuickAction(
-                title: "产品搜索",
-                subtitle: "快速查找产品信息",
+                identifier: "products_search",
+                title: "warehouse_quick_action_products_search_title".localized,
+                subtitle: "warehouse_quick_action_products_search_subtitle".localized,
                 icon: "magnifyingglass",
                 color: LopanColors.primary,
                 type: .search
@@ -303,7 +317,7 @@ struct QuickActionMenu: View {
             await appDependencies.auditingService.logEvent(
                 action: "quick_action_selected",
                 entityId: authService.currentUser?.id ?? "unknown_user",
-                details: "Quick action: \(action.title) in \(selectedTab.rawValue) tab (type: \(action.type.rawValue))"
+                details: "Quick action: \(action.identifier) in \(selectedTab.rawValue) tab (type: \(action.type.rawValue))"
             )
         }
         
@@ -323,11 +337,11 @@ struct QuickActionMenu: View {
     
     private func performInlineAction(_ action: QuickAction) {
         // Implement inline actions that don't require navigation
-        switch action.title {
-        case "批量处理":
+        switch action.identifier {
+        case "tasks_bulk_process":
             // Handle batch processing
             break
-        case "分工管理":
+        case "team_assignment":
             // Handle team assignment
             break
         default:
@@ -428,6 +442,7 @@ private struct QuickActionRow: View {
 
 struct QuickAction {
     let id = UUID()
+    let identifier: String
     let title: String
     let subtitle: String
     let icon: String
@@ -436,6 +451,7 @@ struct QuickAction {
     let isLoading: Bool
     
     init(
+        identifier: String,
         title: String,
         subtitle: String,
         icon: String,
@@ -443,6 +459,7 @@ struct QuickAction {
         type: ActionType,
         isLoading: Bool = false
     ) {
+        self.identifier = identifier
         self.title = title
         self.subtitle = subtitle
         self.icon = icon

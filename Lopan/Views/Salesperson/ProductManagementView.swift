@@ -438,7 +438,7 @@ struct ProductManagementView: View {
     
     
     private var viewModeSelector: some View {
-        NavigationView {
+        NavigationStack {
             VStack(spacing: 0) {
                 VStack(spacing: 16) {
                     HStack(spacing: 12) {
@@ -1042,7 +1042,7 @@ struct EditProductView: View {
     }
     
     var body: some View {
-        ModernNavigationView {
+        ModernNavigationStack {
             Form {
                 Section("产品信息") {
                     TextField("产品名称", text: $name)

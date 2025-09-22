@@ -84,7 +84,7 @@ struct CustomerOutOfStockDetailView: View {
         }
         .sheet(isPresented: $showingEditSheet) {
             // Edit sheet would go here - placeholder for now
-            NavigationView {
+            NavigationStack {
                 Text("编辑功能待实现")
                     .navigationTitle("编辑记录")
                     .navigationBarTitleDisplayMode(.inline)
@@ -111,7 +111,7 @@ struct CustomerOutOfStockDetailView: View {
         VStack(alignment: .leading, spacing: 16) {
             HStack {
                 Image(systemName: "person.crop.circle.fill")
-                    .foregroundColor(.blue)
+                    .foregroundColor(LopanColors.info)
                     .font(.title2)
                 
                 Text("客户信息")
@@ -525,7 +525,7 @@ private extension DateFormatter {
         createdBy: "sales001"
     )
     
-    NavigationView {
+    NavigationStack {
         CustomerOutOfStockDetailView(item: outOfStockItem)
             .environmentObject(ServiceFactory(repositoryFactory: LocalRepositoryFactory(modelContext: context)))
     }

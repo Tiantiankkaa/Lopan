@@ -419,7 +419,7 @@ struct ColorPickerSheet: View {
     @State private var isAssigning = false
     
     var body: some View {
-        NavigationView {
+        NavigationStack {
             VStack(spacing: 20) {
                 // Gun info
                 VStack(spacing: 8) {

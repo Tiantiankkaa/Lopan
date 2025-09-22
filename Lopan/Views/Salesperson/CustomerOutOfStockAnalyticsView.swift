@@ -9,265 +9,420 @@ import SwiftUI
 import SwiftData
 
 struct CustomerOutOfStockAnalyticsView: View {
-    @Query private var outOfStockItems: [CustomerOutOfStock]
+    @Query(
+        sort: [SortDescriptor(\CustomerOutOfStock.requestDate, order: .reverse)]
+    ) private var outOfStockItems: [CustomerOutOfStock]
     @State private var selectedTimeRange: TimeRange = .week
+    @Environment(\.accessibilityReduceMotion) private var reduceMotion
     
     enum TimeRange: String, CaseIterable {
-        case week = "week"
-        case month = "month"
-        case quarter = "quarter"
-        case year = "year"
+        case week, month, quarter, year
         
-        var displayName: String {
+        var titleKey: LocalizedStringKey {
+            LocalizedStringKey("analytics_time_range_\(rawValue)")
+        }
+        
+        func startDate(from date: Date, calendar: Calendar) -> Date {
             switch self {
             case .week:
-                return "本周"
+                return calendar.dateInterval(of: .weekOfYear, for: date)?.start ?? date
             case .month:
-                return "本月"
+                return calendar.dateInterval(of: .month, for: date)?.start ?? date
             case .quarter:
-                return "本季度"
+                let quarter = (calendar.component(.month, from: date) - 1) / 3
+                let month = quarter * 3 + 1
+                return calendar.date(from: DateComponents(year: calendar.component(.year, from: date), month: month)) ?? date
             case .year:
-                return "本年"
+                return calendar.dateInterval(of: .year, for: date)?.start ?? date
             }
         }
     }
     
-    var filteredItems: [CustomerOutOfStock] {
+    private var filteredItems: [CustomerOutOfStock] {
         let calendar = Calendar.current
-        let now = Date()
-        let startDate: Date
-        
-        switch selectedTimeRange {
-        case .week:
-            startDate = calendar.dateInterval(of: .weekOfYear, for: now)?.start ?? now
-        case .month:
-            startDate = calendar.dateInterval(of: .month, for: now)?.start ?? now
-        case .quarter:
-            let quarter = (calendar.component(.month, from: now) - 1) / 3
-            startDate = calendar.date(from: DateComponents(year: calendar.component(.year, from: now), month: quarter * 3 + 1)) ?? now
-        case .year:
-            startDate = calendar.dateInterval(of: .year, for: now)?.start ?? now
-        }
-        
+        let startDate = selectedTimeRange.startDate(from: Date(), calendar: calendar)
         return outOfStockItems.filter { $0.requestDate >= startDate }
     }
     
-    var statusCounts: [OutOfStockStatus: Int] {
+    private var statusCounts: [OutOfStockStatus: Int] {
         Dictionary(grouping: filteredItems, by: { $0.status })
             .mapValues { $0.count }
     }
     
+    private var totalItems: Int { filteredItems.count }
+    private var completedItems: Int { filteredItems.filter { $0.status == .completed }.count }
+    private var pendingItems: Int { filteredItems.filter { $0.status == .pending }.count }
     
-    var totalItems: Int {
-        filteredItems.count
+    private var completionRate: Double {
+        guard totalItems > 0 else { return 0 }
+        return Double(completedItems) / Double(totalItems)
     }
     
-    var completedItems: Int {
-        filteredItems.filter { $0.status == .completed }.count
+    private var recentItems: [CustomerOutOfStock] {
+        Array(filteredItems.sorted { $0.requestDate > $1.requestDate }.prefix(5))
     }
     
-    var pendingItems: Int {
-        filteredItems.filter { $0.status == .pending }.count
+    private var statusOverview: [(status: OutOfStockStatus, count: Int)] {
+        OutOfStockStatus.allCases.map { status in
+            (status, statusCounts[status] ?? 0)
+        }
+    }
+    
+    private var percentageFormat: FloatingPointFormatStyle<Double>.Percent {
+        .percent.precision(.fractionLength(0))
+    }
+    
+    private var requestDateFormat: Date.FormatStyle {
+        Date.FormatStyle.dateTime
+            .year()
+            .month()
+            .day()
+            .weekday(.wide)
+    }
+    
+    private var gridColumns: [GridItem] {
+        [
+            GridItem(.flexible(), spacing: LopanSpacing.gridSpacing),
+            GridItem(.flexible(), spacing: LopanSpacing.gridSpacing)
+        ]
     }
     
     var body: some View {
-        NavigationView {
+        NavigationStack {
             ScrollView {
-                VStack(spacing: 20) {
+                VStack(spacing: LopanSpacing.contentSpacing) {
                     timeRangeSelector
                     summaryCardsView
                     statusDistributionView
                     recentItemsView
                 }
-                .padding(.vertical)
+                .padding(.horizontal, LopanSpacing.screenPadding)
+                .padding(.vertical, LopanSpacing.lg)
             }
-            .navigationTitle("缺货分析")
+            .scrollIndicators(.hidden)
+            .navigationTitle("out_of_stock_analytics".localized)
             .navigationBarTitleDisplayMode(.inline)
-            .adaptiveBackground()
+            .background(LopanColors.backgroundPrimary.ignoresSafeArea())
             .accessibilityElement(children: .contain)
-            .accessibilityLabel("缺货分析界面")
-            .accessibilityHint("包含时间范围选择、汇总数据、状态分布的分析界面")
+            .accessibilityLabel("analytics_screen_accessibility_label".localized)
+            .accessibilityHint("analytics_screen_accessibility_hint".localized)
             .toolbar {
-                ToolbarItem(placement: .navigationBarTrailing) {
-                    ExportButton(data: filteredItems, buttonText: "导出", systemImage: "square.and.arrow.up")
-                        .buttonStyle(.bordered)
-                        .accessibilityLabel("导出分析数据")
+                ToolbarItem(placement: .primaryAction) {
+                    ExportButton(
+                        data: filteredItems,
+                        buttonText: "export".localized,
+                        systemImage: "square.and.arrow.up"
+                    )
+                    .buttonStyle(.bordered)
+                    .accessibilityLabel("analytics_export_accessibility_label".localized)
                 }
             }
         }
     }
     
     private var timeRangeSelector: some View {
-        Picker("时间范围", selection: $selectedTimeRange) {
-            ForEach(TimeRange.allCases, id: \.self) { range in
-                Text(range.displayName).tag(range)
+        VStack(alignment: .leading, spacing: LopanSpacing.xs) {
+            Text("analytics_time_range_title".localized)
+                .font(.headline)
+                .fontWeight(.semibold)
+                .accessibilityAddTraits(.isHeader)
+            
+            Picker("analytics_time_range_title".localized, selection: $selectedTimeRange) {
+                ForEach(TimeRange.allCases, id: \.self) { range in
+                    Text(range.titleKey).tag(range)
+                }
             }
+            .pickerStyle(.segmented)
+            .accessibilityHint("analytics_time_range_accessibility_hint".localized)
         }
-        .pickerStyle(.segmented)
-        .padding(.horizontal)
-        .accessibilityLabel("选择时间范围")
-        .accessibilityHint("选择要分析的时间范围：本周、本月、本季度或本年")
+        .accessibilityElement(children: .combine)
     }
     
     private var summaryCardsView: some View {
-        LazyVGrid(columns: [
-            GridItem(.flexible()),
-            GridItem(.flexible())
-        ], spacing: 16) {
+        LazyVGrid(columns: gridColumns, spacing: LopanSpacing.gridSpacing) {
             AnalyticsCard(
-                title: "总缺货记录",
-                value: "\(totalItems)",
+                titleKey: "analytics_card_total_records",
+                displayValue: totalItems.formatted(),
+                numericValue: Double(totalItems),
                 icon: "exclamationmark.triangle.fill",
-                color: .orange
+                tint: LopanColors.warning,
+                reduceMotion: reduceMotion
             )
             
             AnalyticsCard(
-                title: "已完成",
-                value: "\(completedItems)",
+                titleKey: "analytics_card_completed_records",
+                displayValue: completedItems.formatted(),
+                numericValue: Double(completedItems),
                 icon: "checkmark.circle.fill",
-                color: .green
+                tint: LopanColors.success,
+                reduceMotion: reduceMotion
             )
             
             AnalyticsCard(
-                title: "待处理",
-                value: "\(pendingItems)",
+                titleKey: "analytics_card_pending_records",
+                displayValue: pendingItems.formatted(),
+                numericValue: Double(pendingItems),
                 icon: "clock.fill",
-                color: .blue
+                tint: LopanColors.info,
+                reduceMotion: reduceMotion
             )
             
             AnalyticsCard(
-                title: "完成率",
-                value: totalItems > 0 ? "\(Int((Double(completedItems) / Double(totalItems)) * 100))%" : "0%",
+                titleKey: "analytics_card_completion_rate",
+                displayValue: completionRate.formatted(percentageFormat),
+                numericValue: completionRate,
                 icon: "percent",
-                color: .purple
+                tint: LopanColors.accent,
+                reduceMotion: reduceMotion
             )
         }
-        .padding(.horizontal)
+        .animation(reduceMotion ? nil : .spring(response: 0.4, dampingFraction: 0.8), value: selectedTimeRange)
     }
     
     private var statusDistributionView: some View {
-        VStack(alignment: .leading, spacing: 12) {
-            Text("状态分布")
-                .font(.headline)
-                .padding(.horizontal)
-            
-            VStack(spacing: 8) {
-                ForEach(OutOfStockStatus.allCases, id: \.self) { status in
-                    let count = statusCounts[status] ?? 0
-                    if count > 0 {
-                        HStack {
-                            Text(status.displayName)
-                                .font(.subheadline)
-                            
-                            Spacer()
-                            
-                            Text("\(count)")
-                                .font(.subheadline)
-                                .fontWeight(.semibold)
-                            
-                            Text("(\(totalItems > 0 ? Int((Double(count) / Double(totalItems)) * 100) : 0)%)")
-                                .font(.caption)
-                                .foregroundColor(.secondary)
-                        }
-                        .padding(.horizontal)
-                        .padding(.vertical, 8)
-                        .background(statusColor(status).opacity(0.1))
-                        .cornerRadius(8)
-                    }
+        AnalyticsSurface {
+            VStack(alignment: .leading, spacing: LopanSpacing.sm) {
+                Text("analytics_status_distribution_title".localized)
+                    .font(.title3)
+                    .fontWeight(.semibold)
+                    .accessibilityAddTraits(.isHeader)
+                
+                ForEach(statusOverview, id: \.status) { status, count in
+                    AnalyticsStatusRow(
+                        title: localizedStatusName(status),
+                        count: count,
+                        total: totalItems,
+                        tint: statusTint(for: status),
+                        percentageText: percentageText(for: count),
+                        reduceMotion: reduceMotion
+                    )
                 }
             }
-            .padding(.horizontal)
         }
     }
     
     private var recentItemsView: some View {
-        VStack(alignment: .leading, spacing: 12) {
-            Text("最近缺货记录")
-                .font(.headline)
-                .padding(.horizontal)
-            
-            LazyVStack(spacing: 8) {
-                ForEach(Array(filteredItems.prefix(5)), id: \.id) { item in
-                    HStack {
-                        VStack(alignment: .leading) {
-                            Text(item.customerDisplayName)
-                                .font(.subheadline)
-                                .fontWeight(.medium)
-                            Text(item.product?.name ?? "")
-                                .font(.caption)
-                                .foregroundColor(.secondary)
-                        }
-                        
-                        Spacer()
-                        
-                        VStack(alignment: .trailing) {
-                            Text(item.status.displayName)
-                                .font(.caption)
-                                .padding(.horizontal, 6)
-                                .padding(.vertical, 2)
-                                .background(statusColor(item.status).opacity(0.2))
-                                .foregroundColor(statusColor(item.status))
-                                .cornerRadius(4)
-                            Text(item.requestDate, style: .date)
-                                .font(.caption2)
-                                .foregroundColor(.secondary)
+        AnalyticsSurface {
+            VStack(alignment: .leading, spacing: LopanSpacing.sm) {
+                Text("analytics_recent_records_title".localized)
+                    .font(.title3)
+                    .fontWeight(.semibold)
+                    .accessibilityAddTraits(.isHeader)
+                
+                if recentItems.isEmpty {
+                    Text("analytics_recent_records_empty".localized)
+                        .font(.footnote)
+                        .foregroundColor(LopanColors.textSecondary)
+                        .frame(maxWidth: .infinity, alignment: .leading)
+                } else {
+                    VStack(spacing: LopanSpacing.sm) {
+                        ForEach(recentItems, id: \.id) { item in
+                            AnalyticsRecentRow(
+                                item: item,
+                                statusName: localizedStatusName(item.status),
+                                statusTint: statusTint(for: item.status),
+                                dateFormat: requestDateFormat
+                            )
                         }
                     }
-                    .padding(.horizontal)
-                    .padding(.vertical, 8)
-                    .background(Color.gray.opacity(0.1))
-                    .cornerRadius(8)
                 }
             }
         }
     }
     
-    private func statusColor(_ status: OutOfStockStatus) -> Color {
+    private func localizedStatusName(_ status: OutOfStockStatus) -> String {
         switch status {
         case .pending:
-            return .orange
+            return "out_of_stock_status_pending".localized
         case .completed:
-            return .green
+            return "out_of_stock_status_completed".localized
         case .returned:
-            return .red
+            return "out_of_stock_status_returned".localized
         }
     }
     
+    private func statusTint(for status: OutOfStockStatus) -> Color {
+        switch status {
+        case .pending:
+            return LopanColors.warning
+        case .completed:
+            return LopanColors.success
+        case .returned:
+            return LopanColors.error
+        }
+    }
+    
+    private func percentageText(for count: Int) -> String {
+        guard totalItems > 0 else {
+            return Double.zero.formatted(percentageFormat)
+        }
+        let ratio = Double(count) / Double(totalItems)
+        return ratio.formatted(percentageFormat)
+    }
 }
 
-struct AnalyticsCard: View {
-    let title: String
-    let value: String
+private struct AnalyticsCard: View {
+    let titleKey: String
+    let displayValue: String
+    let numericValue: Double?
     let icon: String
-    let color: Color
+    let tint: Color
+    let reduceMotion: Bool
+    
+    @ScaledMetric(relativeTo: .title2) private var iconSize: CGFloat = 28
     
     var body: some View {
-        VStack(spacing: 12) {
-            Image(systemName: icon)
-                .font(.system(size: 30))
-                .foregroundColor(color)
-            
-            Text(value)
+        AnalyticsSurface {
+            VStack(alignment: .leading, spacing: LopanSpacing.sm) {
+                Image(systemName: icon)
+                    .font(.system(size: iconSize, weight: .semibold))
+                    .foregroundStyle(tint)
+                    .accessibilityHidden(true)
+                
+                valueView
+                    .foregroundColor(LopanColors.textPrimary)
+                
+                Text(LocalizedStringKey(titleKey))
+                    .font(.footnote)
+                    .foregroundColor(LopanColors.textSecondary)
+                    .lineLimit(2)
+                    .minimumScaleFactor(0.8)
+            }
+            .frame(maxWidth: .infinity, alignment: .leading)
+            .accessibilityElement(children: .ignore)
+            .accessibilityLabel(Text(LocalizedStringKey(titleKey)))
+            .accessibilityValue(Text(displayValue))
+        }
+    }
+    
+    @ViewBuilder
+    private var valueView: some View {
+        if let numericValue {
+            if #available(iOS 17.0, *) {
+                Text(displayValue)
+                    .font(.title2)
+                    .fontWeight(.bold)
+                    .contentTransition(.numericText(value: numericValue))
+                    .transaction { transaction in
+                        transaction.animation = reduceMotion ? nil : .spring(response: 0.4, dampingFraction: 0.8)
+                    }
+            } else {
+                Text(displayValue)
+                    .font(.title2)
+                    .fontWeight(.bold)
+            }
+        } else {
+            Text(displayValue)
                 .font(.title2)
                 .fontWeight(.bold)
-                .dynamicTypeSize(.small...DynamicTypeSize.accessibility1)
-            
-            Text(title)
-                .font(.caption)
-                .foregroundColor(.secondary)
-                .multilineTextAlignment(.center)
-                .dynamicTypeSize(.small...DynamicTypeSize.accessibility1)
         }
-        .frame(maxWidth: .infinity)
-        .padding()
-        .background(Color.gray.opacity(0.1))
-        .cornerRadius(12)
+    }
+}
+
+private struct AnalyticsStatusRow: View {
+    let title: String
+    let count: Int
+    let total: Int
+    let tint: Color
+    let percentageText: String
+    let reduceMotion: Bool
+    
+    private var progress: Double {
+        guard total > 0 else { return 0 }
+        return Double(count) / Double(total)
+    }
+    
+    var body: some View {
+        VStack(alignment: .leading, spacing: LopanSpacing.xs) {
+            HStack(alignment: .firstTextBaseline, spacing: LopanSpacing.xs) {
+                Text(title)
+                    .font(.subheadline)
+                    .fontWeight(.medium)
+                    .foregroundColor(LopanColors.textPrimary)
+                    .lineLimit(2)
+                    .minimumScaleFactor(0.8)
+                
+                Spacer(minLength: LopanSpacing.sm)
+                
+                Text("\(count)")
+                    .font(.headline)
+                    .fontWeight(.semibold)
+                    .foregroundColor(LopanColors.textPrimary)
+                    .accessibilityLabel(Text("analytics_status_count_accessibility_label".localized(with: title)))
+                
+                Text(percentageText)
+                    .font(.caption)
+                    .foregroundColor(LopanColors.textSecondary)
+            }
+            
+            ProgressView(value: progress)
+                .progressViewStyle(.linear)
+                .tint(tint)
+                .animation(reduceMotion ? nil : .spring(response: 0.4, dampingFraction: 0.8), value: progress)
+        }
+        .padding(.vertical, LopanSpacing.xs)
+        .padding(.horizontal, LopanSpacing.sm)
+        .background(
+            RoundedRectangle(cornerRadius: LopanCornerRadius.container, style: .continuous)
+                .fill(tint.opacity(0.12))
+        )
         .accessibilityElement(children: .combine)
-        .accessibilityLabel("\(title): \(value)")
+        .accessibilityLabel(Text(title))
+        .accessibilityValue(Text("analytics_status_row_accessibility_value".localized(with: count, percentageText)))
+    }
+}
+
+private struct AnalyticsRecentRow: View {
+    let item: CustomerOutOfStock
+    let statusName: String
+    let statusTint: Color
+    let dateFormat: Date.FormatStyle
+    
+    var body: some View {
+        VStack(alignment: .leading, spacing: LopanSpacing.xs) {
+            HStack(alignment: .firstTextBaseline) {
+                Text(item.customerDisplayName)
+                    .font(.subheadline)
+                    .fontWeight(.medium)
+                    .foregroundColor(LopanColors.textPrimary)
+                    .lineLimit(2)
+                    .minimumScaleFactor(0.8)
+                
+                Spacer(minLength: LopanSpacing.sm)
+                
+                Text(statusName)
+                    .font(.caption)
+                    .foregroundColor(statusTint)
+                    .padding(.horizontal, LopanSpacing.xs)
+                    .padding(.vertical, LopanSpacing.xxxs)
+                    .background(statusTint.opacity(0.1))
+                    .clipShape(Capsule())
+                    .accessibilityLabel(Text("analytics_recent_status_accessibility_label".localized(with: statusName)))
+            }
+            
+            Text(item.product?.name ?? "analytics_recent_record_unknown_product".localized)
+                .font(.caption)
+                .foregroundColor(LopanColors.textSecondary)
+                .lineLimit(2)
+                .minimumScaleFactor(0.8)
+            
+            Text(item.requestDate, format: dateFormat)
+                .font(.caption2)
+                .foregroundColor(LopanColors.textTertiary)
+        }
+        .padding(.vertical, LopanSpacing.xs)
+        .padding(.horizontal, LopanSpacing.sm)
+        .background(
+            RoundedRectangle(cornerRadius: LopanCornerRadius.container, style: .continuous)
+                .fill(LopanColors.backgroundSecondary.opacity(0.8))
+        )
+        .accessibilityElement(children: .combine)
+        .accessibilityLabel(Text("analytics_recent_record_accessibility_label".localized(with: item.customerDisplayName)))
+        .accessibilityValue(Text("analytics_recent_record_accessibility_value".localized(with: statusName)))
     }
 }
 
 #Preview {
     CustomerOutOfStockAnalyticsView()
         .modelContainer(for: CustomerOutOfStock.self, inMemory: true)
-} 
+}

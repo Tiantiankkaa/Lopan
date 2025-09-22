@@ -15,7 +15,7 @@ struct DependencyInjectionExampleView: View {
     @Environment(\.userManagementDependencies) private var userManagementDeps
     
     var body: some View {
-        NavigationView {
+        NavigationStack {
             List {
                 Section("App Dependencies") {
                     DependencyInfoRow(

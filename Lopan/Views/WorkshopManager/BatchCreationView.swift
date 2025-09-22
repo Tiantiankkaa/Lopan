@@ -10,7 +10,7 @@ import SwiftData
 
 // MARK: - Batch Creation View (批次创建视图)
 struct BatchCreationView: View {
-    let repositoryFactory: RepositoryFactory
+    let serviceProvider: WorkshopManagerServiceProvider
     @ObservedObject var authService: AuthenticationService
     let auditService: NewAuditingService
     
@@ -20,16 +20,17 @@ struct BatchCreationView: View {
     let selectedMachineIds: Set<String>
     
     @Environment(\.dismiss) private var dismiss
+    @Environment(\.accessibilityReduceMotion) private var reduceMotion
     
-    @StateObject private var productionBatchService: ProductionBatchService
-    @StateObject private var machineService: MachineService
-    @StateObject private var batchEditPermissionService: StandardBatchEditPermissionService
-    @StateObject private var colorService: ColorService
-    @StateObject private var batchMachineCoordinator: StandardBatchMachineCoordinator
-    @StateObject private var cacheWarmingService: CacheWarmingService
-    @StateObject private var synchronizationService: MachineStateSynchronizationService
-    @StateObject private var systemMonitoringService: SystemConsistencyMonitoringService
-    @StateObject private var enhancedSecurityService: EnhancedSecurityAuditService
+    @ObservedObject private var productionBatchService: ProductionBatchService
+    @ObservedObject private var machineService: MachineService
+    @ObservedObject private var batchEditPermissionService: StandardBatchEditPermissionService
+    @ObservedObject private var colorService: ColorService
+    @ObservedObject private var batchMachineCoordinator: StandardBatchMachineCoordinator
+    @ObservedObject private var cacheWarmingService: CacheWarmingService
+    @ObservedObject private var synchronizationService: MachineStateSynchronizationService
+    @ObservedObject private var systemMonitoringService: SystemConsistencyMonitoringService
+    @ObservedObject private var enhancedSecurityService: EnhancedSecurityAuditService
     
     @State private var availableMachines: [WorkshopMachine] = []
     @State private var currentMachineIndex: Int = 0
@@ -48,95 +49,34 @@ struct BatchCreationView: View {
     private let timeProvider = SystemTimeProvider()
     
     init(
-        repositoryFactory: RepositoryFactory,
+        serviceProvider: WorkshopManagerServiceProvider,
         authService: AuthenticationService,
         auditService: NewAuditingService,
         selectedDate: Date,
         selectedShift: Shift,
         selectedMachineIds: Set<String>
     ) {
-        self.repositoryFactory = repositoryFactory
+        self.serviceProvider = serviceProvider
         self.authService = authService
         self.auditService = auditService
         self.selectedDate = selectedDate
         self.selectedShift = selectedShift
         self.selectedMachineIds = selectedMachineIds
         
-        // Initialize services
-        let productionService = ProductionBatchService(
-            productionBatchRepository: repositoryFactory.productionBatchRepository,
-            machineRepository: repositoryFactory.machineRepository,
-            colorRepository: repositoryFactory.colorRepository,
-            auditService: auditService,
-            authService: authService
-        )
-        self._productionBatchService = StateObject(wrappedValue: productionService)
-        
-        let machineServiceInstance = MachineService(
-            machineRepository: repositoryFactory.machineRepository,
-            auditService: auditService,
-            authService: authService
-        )
-        self._machineService = StateObject(wrappedValue: machineServiceInstance)
-        
-        let permissionService = StandardBatchEditPermissionService(authService: authService)
-        self._batchEditPermissionService = StateObject(wrappedValue: permissionService)
-        
-        let colorServiceInstance = ColorService(
-            colorRepository: repositoryFactory.colorRepository,
-            machineRepository: repositoryFactory.machineRepository,
-            auditService: auditService,
-            authService: authService
-        )
-        self._colorService = StateObject(wrappedValue: colorServiceInstance)
-        
-        let batchMachineCoordinatorInstance = StandardBatchMachineCoordinator(
-            machineRepository: repositoryFactory.machineRepository,
-            productionBatchRepository: repositoryFactory.productionBatchRepository,
-            auditService: auditService,
-            authService: authService
-        )
-        self._batchMachineCoordinator = StateObject(wrappedValue: batchMachineCoordinatorInstance)
-        
-        let cacheWarmingServiceInstance = CacheWarmingServiceFactory.createService(
-            batchMachineCoordinator: batchMachineCoordinatorInstance,
-            machineRepository: repositoryFactory.machineRepository,
-            productionBatchRepository: repositoryFactory.productionBatchRepository,
-            auditService: auditService,
-            authService: authService,
-            strategy: .combined
-        )
-        self._cacheWarmingService = StateObject(wrappedValue: cacheWarmingServiceInstance)
-        
-        let synchronizationServiceInstance = MachineStateSynchronizationService(
-            machineRepository: repositoryFactory.machineRepository,
-            productionBatchRepository: repositoryFactory.productionBatchRepository,
-            batchMachineCoordinator: batchMachineCoordinatorInstance,
-            auditService: auditService,
-            authService: authService
-        )
-        self._synchronizationService = StateObject(wrappedValue: synchronizationServiceInstance)
-        
-        let systemMonitoringServiceInstance = SystemConsistencyMonitoringService(
-            machineRepository: repositoryFactory.machineRepository,
-            productionBatchRepository: repositoryFactory.productionBatchRepository,
-            batchMachineCoordinator: batchMachineCoordinatorInstance,
-            synchronizationService: synchronizationServiceInstance,
-            cacheWarmingService: cacheWarmingServiceInstance,
-            auditService: auditService,
-            authService: authService
-        )
-        self._systemMonitoringService = StateObject(wrappedValue: systemMonitoringServiceInstance)
-        
-        let enhancedSecurityServiceInstance = EnhancedSecurityAuditService(
-            baseAuditService: auditService,
-            authService: authService
-        )
-        self._enhancedSecurityService = StateObject(wrappedValue: enhancedSecurityServiceInstance)
+        // Initialize shared services via provider
+        self._productionBatchService = ObservedObject(wrappedValue: serviceProvider.batchService)
+        self._machineService = ObservedObject(wrappedValue: serviceProvider.machineService)
+        self._batchEditPermissionService = ObservedObject(wrappedValue: serviceProvider.batchEditPermissionService)
+        self._colorService = ObservedObject(wrappedValue: serviceProvider.colorService)
+        self._batchMachineCoordinator = ObservedObject(wrappedValue: serviceProvider.batchMachineCoordinator)
+        self._cacheWarmingService = ObservedObject(wrappedValue: serviceProvider.cacheWarmingService)
+        self._synchronizationService = ObservedObject(wrappedValue: serviceProvider.synchronizationService)
+        self._systemMonitoringService = ObservedObject(wrappedValue: serviceProvider.systemMonitoringService)
+        self._enhancedSecurityService = ObservedObject(wrappedValue: serviceProvider.enhancedSecurityService)
     }
     
     var body: some View {
-        NavigationView {
+        NavigationStack {
             ScrollView {
                 LazyVStack(spacing: 24) {
                     headerSection
@@ -148,17 +88,17 @@ struct BatchCreationView: View {
                 }
                 .padding()
             }
-            .navigationTitle("创建批次")
+            .navigationTitle("batch_creation_title".localized)
             .navigationBarTitleDisplayMode(.inline)
             .toolbar {
                 ToolbarItem(placement: .cancellationAction) {
-                    Button("取消") {
+                    Button("common_cancel".localized) {
                         dismiss()
                     }
                 }
                 
                 ToolbarItem(placement: .primaryAction) {
-                    Button("创建") {
+                    Button("batch_creation_primary_cta".localized) {
                         Task {
                             await createBatch()
                         }
@@ -179,7 +119,7 @@ struct BatchCreationView: View {
                     category: .systemOperation,
                     severity: .info,
                     eventName: "batch_creation_session_started",
-                    description: "用户开始批次创建会话",
+                    description: "batch_creation_event_start_description".localized,
                     details: [
                         "selected_date": DateTimeUtilities.formatDate(selectedDate),
                         "selected_shift": selectedShift.displayName,
@@ -199,7 +139,7 @@ struct BatchCreationView: View {
                         category: .systemOperation,
                         severity: .info,
                         eventName: "batch_creation_session_ended",
-                        description: "用户结束批次创建会话"
+                        description: "batch_creation_event_end_description".localized
                     )
                 }
             }
@@ -211,20 +151,20 @@ struct BatchCreationView: View {
             .onLongPressGesture(minimumDuration: 2.0) {
                 showingCacheDebug.toggle()
             }
-            .alert("错误", isPresented: $showingError, presenting: errorMessage) { _ in
-                Button("确定", role: .cancel) { }
+            .alert("batch_creation_error_title".localized, isPresented: $showingError, presenting: errorMessage) { _ in
+                Button("common_ok".localized, role: .cancel) { }
             } message: { message in
                 Text(message)
             }
-            .alert("批次冲突", isPresented: $showingConflictWarning, presenting: conflictingBatch) { batch in
-                Button("取消", role: .cancel) { }
-                Button("强制创建", role: .destructive) {
+            .alert("batch_creation_conflict_title".localized, isPresented: $showingConflictWarning, presenting: conflictingBatch) { batch in
+                Button("common_cancel".localized, role: .cancel) { }
+                Button("batch_creation_force_create".localized, role: .destructive) {
                     Task {
                         await createBatch(forceCreate: true)
                     }
                 }
             } message: { batch in
-                Text("该时段和设备已存在批次 \(batch.batchNumber)。是否要强制创建？")
+                Text(String(format: "batch_creation_conflict_message".localized, batch.batchNumber))
             }
         }
     }
@@ -236,15 +176,15 @@ struct BatchCreationView: View {
             HStack {
                 Image(systemName: "square.stack.3d.down.right.fill")
                     .font(.system(size: 24, weight: .medium))
-                    .foregroundColor(.blue)
+                    .foregroundColor(LopanColors.info)
                 
                 VStack(alignment: .leading, spacing: 4) {
-                    Text("新建生产批次")
+                    Text("batch_creation_header_title".localized)
                         .font(.title2)
                         .fontWeight(.bold)
                         .foregroundColor(.primary)
                     
-                    Text("为指定时段和设备创建生产批次")
+                    Text("batch_creation_header_subtitle".localized)
                         .font(.caption)
                         .foregroundColor(.secondary)
                 }
@@ -260,11 +200,11 @@ struct BatchCreationView: View {
     
     private var dateTimeInfoSection: some View {
         VStack(alignment: .leading, spacing: 12) {
-            sectionHeader(title: "生产时段", icon: "calendar.badge.clock")
+            sectionHeader(title: "batch_creation_section_timeslot", icon: "calendar.badge.clock")
             
             HStack(spacing: 16) {
                 VStack(alignment: .leading, spacing: 6) {
-                    Text("日期")
+                    Text("batch_creation_field_date".localized)
                         .font(.caption)
                         .fontWeight(.medium)
                         .foregroundColor(.secondary)
@@ -279,7 +219,7 @@ struct BatchCreationView: View {
                     .frame(height: 40)
                 
                 VStack(alignment: .leading, spacing: 6) {
-                    Text("班次")
+                    Text("batch_creation_field_shift".localized)
                         .font(.caption)
                         .fontWeight(.medium)
                         .foregroundColor(.secondary)
@@ -288,7 +228,7 @@ struct BatchCreationView: View {
                         HStack(spacing: 6) {
                             Image(systemName: selectedShift == .morning ? "sun.min" : "moon")
                                 .font(.system(size: 16, weight: .medium))
-                                .foregroundColor(selectedShift == .morning ? .orange : .indigo)
+                                .foregroundColor(shiftHighlightColor)
                             
                             Text(selectedShift.displayName)
                                 .font(.body)
@@ -299,7 +239,7 @@ struct BatchCreationView: View {
                         Text(selectedShift.timeRangeDisplay)
                             .font(.caption2)
                             .fontWeight(.medium)
-                            .foregroundColor(.blue)
+                            .foregroundColor(shiftHighlightColor)
                     }
                 }
                 
@@ -322,28 +262,28 @@ struct BatchCreationView: View {
             if cutoffInfo.hasRestriction {
                 Image(systemName: "clock.badge.exclamationmark")
                     .font(.system(size: 20, weight: .medium))
-                    .foregroundColor(.orange)
+                    .foregroundColor(LopanColors.warning)
                 
-                Text("限制模式")
+                Text("batch_creation_mode_restricted".localized)
                     .font(.caption2)
                     .fontWeight(.medium)
-                    .foregroundColor(.orange)
+                    .foregroundColor(LopanColors.warning)
             } else {
                 Image(systemName: "checkmark.circle")
                     .font(.system(size: 20, weight: .medium))
-                    .foregroundColor(.green)
+                    .foregroundColor(LopanColors.success)
                 
-                Text("正常模式")
+                Text("batch_creation_mode_normal".localized)
                     .font(.caption2)
                     .fontWeight(.medium)
-                    .foregroundColor(.green)
+                    .foregroundColor(LopanColors.success)
             }
         }
         .padding(.horizontal, 8)
         .padding(.vertical, 4)
         .background(
             RoundedRectangle(cornerRadius: 6)
-                .fill((cutoffInfo.hasRestriction ? Color.orange : Color.green).opacity(0.1))
+                .fill((cutoffInfo.hasRestriction ? LopanColors.warning : LopanColors.success).opacity(0.1))
         )
     }
     
@@ -352,7 +292,7 @@ struct BatchCreationView: View {
     private var machineInfoSection: some View {
         VStack(alignment: .leading, spacing: 12) {
             HStack {
-                sectionHeader(title: "生产设备", icon: "gearshape.2")
+                sectionHeader(title: "batch_creation_section_machines", icon: "gearshape.2")
                 
                 Spacer()
                 
@@ -387,11 +327,11 @@ struct BatchCreationView: View {
             }) {
                 Image(systemName: "chevron.left")
                     .font(.caption)
-                    .foregroundColor(currentMachineIndex > 0 ? .blue : .gray)
+                    .foregroundColor(currentMachineIndex > 0 ? LopanColors.info : LopanColors.secondary)
             }
             .disabled(currentMachineIndex <= 0)
             
-            Text("\(currentMachineIndex + 1)/\(availableMachines.count)")
+            Text(String(format: "batch_creation_machine_selector_progress".localized, currentMachineIndex + 1, availableMachines.count))
                 .font(.caption)
                 .foregroundColor(.secondary)
             
@@ -406,7 +346,7 @@ struct BatchCreationView: View {
             }) {
                 Image(systemName: "chevron.right")
                     .font(.caption)
-                    .foregroundColor(currentMachineIndex < availableMachines.count - 1 ? .blue : .gray)
+                    .foregroundColor(currentMachineIndex < availableMachines.count - 1 ? LopanColors.info : LopanColors.secondary)
             }
             .disabled(currentMachineIndex >= availableMachines.count - 1)
         }
@@ -423,36 +363,36 @@ struct BatchCreationView: View {
             VStack(spacing: 8) {
                 Image(systemName: machine.isActive ? "gearshape.fill" : "gearshape")
                     .font(.system(size: 24, weight: .medium))
-                    .foregroundColor(machine.isActive ? .green : .orange)
-                
+                    .foregroundColor(machine.isActive ? LopanColors.success : LopanColors.warning)
+
                 Circle()
-                    .fill(machine.isActive ? Color.green : Color.orange)
+                    .fill(machine.isActive ? LopanColors.success : LopanColors.warning)
                     .frame(width: 8, height: 8)
             }
             
             VStack(alignment: .leading, spacing: 6) {
-                Text("机器 \(machine.machineNumber)")
+                Text(String(format: "batch_creation_machine_title".localized, machine.machineNumber))
                     .font(.headline)
                     .foregroundColor(.primary)
                 
-                Text("编号: \(machine.machineNumber)")
+                Text(String(format: "batch_creation_machine_number".localized, machine.machineNumber))
                     .font(.caption)
                     .foregroundColor(.secondary)
                 
-                Text(machine.isActive ? "设备状态正常" : "设备需要维护")
+                Text(machine.isActive ? "batch_creation_machine_status_ok".localized : "batch_creation_machine_status_warning".localized)
                     .font(.caption)
                     .fontWeight(.medium)
-                    .foregroundColor(machine.isActive ? .green : .orange)
+                    .foregroundColor(machine.isActive ? LopanColors.success : LopanColors.warning)
             }
             
             Spacer()
             
             VStack(alignment: .trailing, spacing: 4) {
-                Text("\(machine.stations.count)个工位")
+                Text(String(format: "batch_creation_machine_station_count".localized, machine.stations.count))
                     .font(.caption)
                     .foregroundColor(.secondary)
                 
-                Text("\(machine.totalGuns)支喷枪")
+                Text(String(format: "batch_creation_machine_gun_count".localized, machine.totalGuns))
                     .font(.caption)
                     .foregroundColor(.secondary)
             }
@@ -469,7 +409,7 @@ struct BatchCreationView: View {
             ProgressView()
                 .scaleEffect(0.8)
             
-            Text("正在加载设备信息...")
+            Text("batch_creation_loading_machines".localized)
                 .font(.caption)
                 .foregroundColor(.secondary)
         }
@@ -486,11 +426,11 @@ struct BatchCreationView: View {
     private var productConfigurationSection: some View {
         VStack(alignment: .leading, spacing: 12) {
             HStack {
-                sectionHeader(title: "产品配置", icon: "cube.box")
+                sectionHeader(title: "batch_creation_section_products", icon: "cube.box")
                 
                 Spacer()
                 
-                Text("仅支持颜色修改")
+                Text("batch_creation_mode_color_only".localized)
                     .font(.caption)
                     .foregroundColor(.secondary)
             }
@@ -509,16 +449,16 @@ struct BatchCreationView: View {
                 .font(.system(size: 40))
                 .foregroundColor(.secondary)
             
-            Text("暂无产品配置")
+            Text("batch_creation_products_empty_title".localized)
                 .font(.headline)
                 .foregroundColor(.primary)
             
-            Text("点击\"添加产品\"开始配置生产产品")
+            Text("batch_creation_products_empty_subtitle".localized)
                 .font(.caption)
                 .foregroundColor(.secondary)
                 .multilineTextAlignment(.center)
             
-            Button("添加产品") {
+            Button("batch_creation_add_product".localized) {
                 showingProductSelection = true
             }
             .buttonStyle(.bordered)
@@ -538,7 +478,7 @@ struct BatchCreationView: View {
                 .font(.system(size: 40))
                 .foregroundColor(.secondary)
             
-            Text("暂无当前运行产品")
+            Text("batch_creation_current_product_empty".localized)
                 .font(.headline)
                 .foregroundColor(.primary)
             
@@ -576,14 +516,14 @@ struct BatchCreationView: View {
                 
                 Spacer()
                 
-                Text("仅限颜色修改")
+                Text("batch_creation_flag_color_only".localized)
                     .font(.caption2)
-                    .foregroundColor(.orange)
+                    .foregroundColor(LopanColors.warning)
                     .padding(.horizontal, 8)
                     .padding(.vertical, 4)
                     .background(
                         RoundedRectangle(cornerRadius: 4)
-                            .fill(Color.orange.opacity(0.1))
+                            .fill(LopanColors.warning.opacity(0.1))
                     )
             }
             
@@ -591,9 +531,9 @@ struct BatchCreationView: View {
             HStack(spacing: 8) {
                 Image(systemName: "paintpalette")
                     .font(.caption)
-                    .foregroundColor(.blue)
+                    .foregroundColor(LopanColors.info)
                 
-                Text("颜色:")
+                Text("batch_creation_color_label".localized)
                     .font(.caption)
                     .foregroundColor(.secondary)
                 
@@ -646,7 +586,7 @@ struct BatchCreationView: View {
     
     private var validationSection: some View {
         VStack(alignment: .leading, spacing: 12) {
-            sectionHeader(title: "创建验证", icon: "checkmark.shield")
+            sectionHeader(title: "batch_creation_section_validation", icon: "checkmark.shield")
             
             validationChecklist
         }
@@ -655,35 +595,35 @@ struct BatchCreationView: View {
     private var validationChecklist: some View {
         VStack(spacing: 8) {
             validationRow(
-                title: "时段可用性",
+                title: "batch_creation_validation_slot_title".localized,
                 isValid: dateTimeValid,
-                message: dateTimeValid ? "所选时段可用" : "所选时段存在限制"
+                message: dateTimeValid ? "batch_creation_validation_slot_ok".localized : "batch_creation_validation_slot_warning".localized
             )
             
             validationRow(
-                title: "设备状态",
+                title: "batch_creation_validation_machine_title".localized,
                 isValid: availableMachines[safe: currentMachineIndex]?.canReceiveNewTasks == true,
-                message: (availableMachines[safe: currentMachineIndex]?.canReceiveNewTasks == true) ? "当前设备运行正常" : "当前设备需要维护"
+                message: (availableMachines[safe: currentMachineIndex]?.canReceiveNewTasks == true) ? "batch_creation_validation_machine_ok".localized : "batch_creation_validation_machine_warning".localized
             )
             
             validationRow(
-                title: "产品配置",
+                title: "batch_creation_section_products".localized,
                 isValid: !productConfigs.isEmpty,
-                message: !productConfigs.isEmpty ? "\(productConfigs.count)个运行产品已加载" : productConfigErrorMessage
+                message: !productConfigs.isEmpty ? String(format: "batch_creation_validation_products_loaded".localized, productConfigs.count) : productConfigErrorMessage
             )
             
             validationRow(
-                title: "冲突检查",
+                title: "batch_creation_validation_conflict_title".localized,
                 isValid: conflictingBatch == nil,
-                message: conflictingBatch == nil ? "无批次冲突" : "存在时段冲突"
+                message: conflictingBatch == nil ? "batch_creation_validation_conflict_ok".localized : "batch_creation_validation_conflict_warning".localized
             )
             
             // State consistency validation
             let highSeverityIssues = synchronizationService.detectedInconsistencies.filter { $0.severity == .high }
             validationRow(
-                title: "状态一致性",
+                title: "batch_creation_validation_consistency_title".localized,
                 isValid: highSeverityIssues.isEmpty,
-                message: highSeverityIssues.isEmpty ? "状态一致" : "检测到 \(highSeverityIssues.count) 个高优先级状态问题"
+                message: highSeverityIssues.isEmpty ? "batch_creation_validation_consistency_ok".localized : String(format: "batch_creation_validation_consistency_warning".localized, highSeverityIssues.count)
             )
         }
         .padding()
@@ -723,7 +663,7 @@ struct BatchCreationView: View {
                     ProgressView()
                         .scaleEffect(0.8)
                     
-                    Text("正在创建批次...")
+                    Text("batch_creation_creating".localized)
                         .font(.body)
                         .foregroundColor(.secondary)
                 }
@@ -742,7 +682,7 @@ struct BatchCreationView: View {
                         Image(systemName: "plus.circle.fill")
                             .font(.system(size: 20, weight: .medium))
                         
-                        Text("创建生产批次")
+                        Text("batch_creation_primary_cta".localized)
                             .font(.body)
                             .fontWeight(.medium)
                     }
@@ -750,7 +690,7 @@ struct BatchCreationView: View {
                     .frame(maxWidth: .infinity, minHeight: 44)
                     .background(
                         RoundedRectangle(cornerRadius: 12)
-                            .fill(canCreateBatch ? Color.blue : Color.gray)
+                            .fill(canCreateBatch ? LopanColors.info : LopanColors.secondary)
                     )
                 }
                 .disabled(!canCreateBatch)
@@ -768,7 +708,7 @@ struct BatchCreationView: View {
     // MARK: - Product Selection Sheet (产品选择弹出框)
     
     private var productSelectionSheet: some View {
-        NavigationView {
+        NavigationStack {
             List {
                 ForEach(availableProducts, id: \.id) { product in
                     Button(action: {
@@ -781,25 +721,25 @@ struct BatchCreationView: View {
                                     .font(.body)
                                     .foregroundColor(.primary)
                                 
-                                Text("ID: \(product.id)")
+                                Text(String(format: "batch_creation_product_identifier".localized, product.id))
                                     .font(.caption)
                                     .foregroundColor(.secondary)
                             }
                             
                             Spacer()
                             
-                            Image(systemName: "plus.circle")
-                                .foregroundColor(.blue)
+                        Image(systemName: "plus.circle")
+                                .foregroundColor(LopanColors.info)
                         }
                     }
                     .buttonStyle(PlainButtonStyle())
                 }
             }
-            .navigationTitle("选择产品")
+            .navigationTitle("batch_creation_product_picker_title".localized)
             .navigationBarTitleDisplayMode(.inline)
             .toolbar {
                 ToolbarItem(placement: .cancellationAction) {
-                    Button("取消") {
+                    Button("common_cancel".localized) {
                         showingProductSelection = false
                     }
                 }
@@ -809,15 +749,15 @@ struct BatchCreationView: View {
     
     // MARK: - Helper Methods (辅助方法)
     
-    private func sectionHeader(title: String, icon: String) -> some View {
+    private func sectionHeader(title key: LocalizedStringKey, icon: String) -> some View {
         HStack(spacing: 8) {
             Image(systemName: icon)
                 .font(.system(size: 16, weight: .medium))
-                .foregroundColor(.blue)
+                .foregroundColor(LopanColors.info)
             
-            Text(title)
+            Text(key)
                 .font(.headline)
-                .foregroundColor(.primary)
+                .foregroundColor(LopanColors.textPrimary)
         }
     }
     
@@ -853,6 +793,12 @@ struct BatchCreationView: View {
                !isCreating
     }
     
+    private var repositoryFactory: RepositoryFactory { serviceProvider.repositoryFactory }
+    
+    private var shiftHighlightColor: Color {
+        selectedShift == .morning ? LopanColors.warning : LopanColors.info
+    }
+    
     private var dateTimeValid: Bool {
         let allowedShifts = dateShiftPolicy.allowedShifts(for: selectedDate, currentTime: timeProvider.now)
         return allowedShifts.contains(selectedShift)
@@ -860,11 +806,11 @@ struct BatchCreationView: View {
     
     private var validationMessage: String {
         if !dateTimeValid {
-            return "所选时段不可用"
+            return "batch_creation_validation_slot_error".localized
         } else if availableMachines.isEmpty {
-            return "没有可用设备"
+            return "batch_creation_error_no_machines".localized
         } else if availableMachines[safe: currentMachineIndex]?.canReceiveNewTasks != true {
-            return "当前设备状态异常"
+            return "batch_creation_error_machine_invalid".localized
         } else if productConfigs.isEmpty {
             return productConfigErrorMessage
         }
@@ -873,14 +819,14 @@ struct BatchCreationView: View {
     
     private var productConfigErrorMessage: String {
         guard let currentMachine = availableMachines[safe: currentMachineIndex] else {
-            return "没有可用设备"
+            return "batch_creation_error_no_machines".localized
         }
         
         // Check if machine is currently running
         let isMachineCurrentlyRunning = currentMachine.status == .running && currentMachine.isActive
         
         if !isMachineCurrentlyRunning {
-            return "机器 \(currentMachine.machineNumber) 当前未运行。只有正在运行的机器才能创建批次进行颜色修改。"
+            return String(format: "batch_creation_error_machine_not_running".localized, currentMachine.machineNumber)
         }
         
         // Check if this is a next day evening shift
@@ -892,7 +838,7 @@ struct BatchCreationView: View {
             // This is a next day evening shift
             let dateFormatter = DateFormatter()
             dateFormatter.dateFormat = "MM-dd"
-            return "无法创建 \(dateFormatter.string(from: selectedDate)) 晚班批次。次日晚班只能基于次日早班的生产内容进行颜色修改，但次日早班还未开始生产。请先等待次日早班批次创建并执行后，再创建晚班批次。"
+            return String(format: "batch_creation_error_night_shift".localized, dateFormatter.string(from: selectedDate))
         }
         
         // Get the previous shift info to provide context
@@ -901,7 +847,7 @@ struct BatchCreationView: View {
         dateFormatter.dateFormat = "MM-dd"
         
         // Provide more specific error message with shift context
-        return "机器 \(currentMachine.machineNumber) 正在运行，但在 \(dateFormatter.string(from: previousShiftInfo.date)) \(previousShiftInfo.shift.displayName)班次 没有找到可供颜色修改的产品批次。请检查该设备的当前生产状态或前一班次的批次配置。"
+        return String(format: "batch_creation_error_no_previous_batch".localized, currentMachine.machineNumber, dateFormatter.string(from: previousShiftInfo.date), previousShiftInfo.shift.displayName)
     }
     
     // MARK: - Shift Logic Helpers (班次逻辑辅助方法)
@@ -950,21 +896,26 @@ struct BatchCreationView: View {
                 self.availableMachines = machines.sorted { $0.machineNumber < $1.machineNumber }
             }
         } catch {
-            await showError("加载设备信息失败: \(error.localizedDescription)")
+            await showError(String(format: "batch_creation_error_load_machines".localized, error.localizedDescription))
         }
     }
     
     private func loadAvailableProducts() async {
+        let context = await MainActor.run { () -> (machine: WorkshopMachine?, date: Date, shift: Shift) in
+            let machine = availableMachines[safe: currentMachineIndex]
+            return (machine, selectedDate, selectedShift)
+        }
+        
+        guard let currentMachine = context.machine else {
+            return
+        }
+
         do {
-            guard let currentMachine = availableMachines[safe: currentMachineIndex] else { 
-                return 
-            }
-            
             // Use the unified BatchMachineCoordinator for optimized and consistent logic
             let inheritableProducts = try await batchMachineCoordinator.getInheritableProducts(
                 machineId: currentMachine.id,
-                date: selectedDate,
-                shift: selectedShift
+                date: context.date,
+                shift: context.shift
             )
             
             await MainActor.run {
@@ -973,60 +924,77 @@ struct BatchCreationView: View {
                 self.availableProducts = []
             }
         } catch {
-            await showError("加载当前运行产品失败: \(error.localizedDescription)")
+            await showError(String(format: "batch_creation_error_load_products".localized, error.localizedDescription))
         }
     }
     
     private func checkForConflictingBatches() async {
+        let machineContext = await MainActor.run { () -> (id: String?, date: Date, shift: Shift) in
+            let machineId = availableMachines[safe: currentMachineIndex]?.id
+            return (machineId, selectedDate, selectedShift)
+        }
+        
+        guard let machineId = machineContext.id else { return }
+        
         do {
-            guard let currentMachine = availableMachines[safe: currentMachineIndex] else { return }
-            
             let hasConflict = try await repositoryFactory.productionBatchRepository.hasConflictingBatches(
-                forDate: selectedDate,
-                shift: selectedShift,
-                machineId: currentMachine.id,
+                forDate: machineContext.date,
+                shift: machineContext.shift,
+                machineId: machineId,
                 excludingBatchId: nil
             )
             
             if hasConflict {
                 let existingBatches = try await repositoryFactory.productionBatchRepository.fetchBatches(
-                    forDate: selectedDate,
-                    shift: selectedShift
+                    forDate: machineContext.date,
+                    shift: machineContext.shift
                 )
-                let conflicting = existingBatches.first { $0.machineId == currentMachine.id }
+                let conflicting = existingBatches.first { $0.machineId == machineId }
                 
                 await MainActor.run {
                     self.conflictingBatch = conflicting
                 }
+            } else {
+                await MainActor.run {
+                    self.conflictingBatch = nil
+                }
             }
         } catch {
-            await showError("检查批次冲突失败: \(error.localizedDescription)")
+            await showError(String(format: "batch_creation_error_conflict_check".localized, error.localizedDescription))
         }
     }
     
     private func createBatch(forceCreate: Bool = false) async {
-        guard canCreateBatch else { return }
-        
-        // Check for conflicts unless forcing
-        if !forceCreate && conflictingBatch != nil {
+        let state = await MainActor.run { () -> (canCreate: Bool, machine: WorkshopMachine?, hasConflict: Bool, configs: [ProductConfig]) in
+            let machine = availableMachines[safe: currentMachineIndex]
+            let canCreate = dateTimeValid &&
+                            machine?.canReceiveNewTasks == true &&
+                            !productConfigs.isEmpty &&
+                            !isCreating
+            return (canCreate, machine, conflictingBatch != nil, productConfigs)
+        }
+
+        if !forceCreate && state.hasConflict {
             await MainActor.run {
                 showingConflictWarning = true
             }
             return
         }
+
+        guard forceCreate || state.canCreate else { return }
         
+        guard let currentMachine = state.machine else {
+            await showError("batch_creation_error_no_machines".localized)
+            return
+        }
+
         await MainActor.run {
             isCreating = true
         }
-        
+
         do {
-            guard let currentMachine = availableMachines[safe: currentMachineIndex] else {
-                await showError("没有可用的设备")
-                return
-            }
-            
             // Infer production mode from existing product configurations
-            let inferredMode = inferProductionMode(from: productConfigs)
+            let inferredMode = inferProductionMode(from: state.configs)
             
             // Create batch using ProductionBatchService
             if let batch = await productionBatchService.createShiftBatch(
@@ -1036,7 +1004,7 @@ struct BatchCreationView: View {
                 shift: selectedShift
             ) {
                 // Add product configurations to batch
-                for var config in productConfigs {
+                for var config in state.configs {
                     config.batchId = batch.id
                     try await repositoryFactory.productionBatchRepository.addProductConfig(config, toBatch: batch.id)
                 }
@@ -1045,10 +1013,10 @@ struct BatchCreationView: View {
                     dismiss()
                 }
             } else {
-                await showError("创建批次失败")
+                await showError("batch_creation_error_create_failed".localized)
             }
         } catch {
-            await showError("创建批次时发生错误: \(error.localizedDescription)")
+            await showError(String(format: "batch_creation_error_create_generic".localized, error.localizedDescription))
         }
         
         await MainActor.run {
@@ -1089,7 +1057,7 @@ struct BatchCreationView: View {
     private var cacheDebugOverlay: some View {
         VStack(alignment: .leading, spacing: 8) {
             HStack {
-                Text("Cache Debug")
+                Text("batch_creation_debug_title".localized)
                     .font(.caption)
                     .fontWeight(.bold)
                     .foregroundColor(.white)
@@ -1106,28 +1074,28 @@ struct BatchCreationView: View {
             let metrics = batchMachineCoordinator.getCacheMetrics()
             
             VStack(alignment: .leading, spacing: 4) {
-                Text("Hit Rate: \(String(format: "%.1f", metrics.hitRate * 100))%")
+                Text(String(format: "batch_creation_debug_hit_rate".localized, metrics.hitRate * 100))
                     .font(.caption2)
                     .foregroundColor(.white)
                 
-                Text("Entries: \(metrics.entries)")
+                Text(String(format: "batch_creation_debug_entries".localized, metrics.entries))
                     .font(.caption2)
                     .foregroundColor(.white)
                 
-                Text("Hits: \(metrics.hits) | Misses: \(metrics.misses)")
+                Text(String(format: "batch_creation_debug_hits_misses".localized, metrics.hits, metrics.misses))
                     .font(.caption2)
                     .foregroundColor(.white)
                 
-                Text("Evictions: \(metrics.evictions)")
+                Text(String(format: "batch_creation_debug_evictions".localized, metrics.evictions))
                     .font(.caption2)
                     .foregroundColor(.white)
                 
                 if let warmingResults = cacheWarmingService.warmingResults {
-                    Text("Last Warming: \(String(format: "%.1f", warmingResults.duration))s")
+                    Text(String(format: "batch_creation_debug_last_warming".localized, warmingResults.duration))
                         .font(.caption2)
                         .foregroundColor(.white)
                     
-                    Text("Warmed: \(warmingResults.machinesWarmed) (\(warmingResults.successCount)/\(warmingResults.machinesWarmed))")
+                    Text(String(format: "batch_creation_debug_warmed_summary".localized, warmingResults.machinesWarmed, warmingResults.successCount, warmingResults.machinesWarmed))
                         .font(.caption2)
                         .foregroundColor(.white)
                 }
@@ -1135,7 +1103,7 @@ struct BatchCreationView: View {
                 Divider()
                     .background(Color.white)
                 
-                Text("State Sync")
+                Text("batch_creation_debug_state_sync_title".localized)
                     .font(.caption)
                     .fontWeight(.bold)
                     .foregroundColor(.white)
@@ -1145,13 +1113,13 @@ struct BatchCreationView: View {
                 let mediumCount = inconsistencies.filter { $0.severity == .medium }.count
                 let lowCount = inconsistencies.filter { $0.severity == .low }.count
                 
-                Text("Issues: H:\(highCount) M:\(mediumCount) L:\(lowCount)")
+                Text(String(format: "batch_creation_debug_state_sync_issues".localized, highCount, mediumCount, lowCount))
                     .font(.caption2)
                     .foregroundColor(.white)
                 
                 if let lastScan = synchronizationService.lastScanTime {
                     let timeAgo = Date().timeIntervalSince(lastScan)
-                    Text("Last Scan: \(String(format: "%.0f", timeAgo))s ago")
+                    Text(String(format: "batch_creation_debug_last_scan".localized, timeAgo))
                         .font(.caption2)
                         .foregroundColor(.white)
                 }
@@ -1159,36 +1127,36 @@ struct BatchCreationView: View {
                 Divider()
                     .background(Color.white)
                 
-                Text("System Health")
+                Text("batch_creation_debug_system_health_title".localized)
                     .font(.caption)
                     .fontWeight(.bold)
                     .foregroundColor(.white)
-                
+
                 if let healthReport = systemMonitoringService.currentHealthReport {
-                    Text("Status: \(healthReport.overallStatus.displayName)")
+                    Text(String(format: "batch_creation_debug_system_status".localized, healthReport.overallStatus.displayName))
                         .font(.caption2)
                         .foregroundColor(.white)
                     
-                    Text("Score: \(String(format: "%.0f", healthReport.overallScore * 100))%")
+                    Text(String(format: "batch_creation_debug_system_score".localized, healthReport.overallScore * 100))
                         .font(.caption2)
                         .foregroundColor(.white)
                     
-                    Text("Critical: \(healthReport.criticalIssues.count)")
+                    Text(String(format: "batch_creation_debug_system_critical".localized, healthReport.criticalIssues.count))
                         .font(.caption2)
                         .foregroundColor(.white)
                 }
-                
+
                 let securityAnalytics = enhancedSecurityService.getSecurityAnalytics()
-                Text("Security: \(securityAnalytics.riskLevel.displayName)")
+                Text(String(format: "batch_creation_debug_security_status".localized, securityAnalytics.riskLevel.displayName))
                     .font(.caption2)
                     .foregroundColor(.white)
                 
-                Text("Alerts: \(securityAnalytics.activeAlerts)")
+                Text(String(format: "batch_creation_debug_security_alerts".localized, securityAnalytics.activeAlerts))
                     .font(.caption2)
                     .foregroundColor(.white)
                 
                 HStack(spacing: 8) {
-                    Button("Warm Cache") {
+                    Button("batch_creation_debug_action_warm_cache".localized) {
                         Task {
                             await cacheWarmingService.warmCacheManually()
                         }
@@ -1196,21 +1164,21 @@ struct BatchCreationView: View {
                     .font(.caption2)
                     .padding(.horizontal, 6)
                     .padding(.vertical, 2)
-                    .background(Color.blue)
+                    .background(LopanColors.info)
                     .foregroundColor(.white)
                     .cornerRadius(4)
                     
-                    Button("Clear Cache") {
+                    Button("batch_creation_debug_action_clear_cache".localized) {
                         batchMachineCoordinator.invalidateCache(reason: "debug_manual_clear")
                     }
                     .font(.caption2)
                     .padding(.horizontal, 6)
                     .padding(.vertical, 2)
-                    .background(Color.red)
+                    .background(LopanColors.error)
                     .foregroundColor(.white)
                     .cornerRadius(4)
                     
-                    Button("Sync Scan") {
+                    Button("batch_creation_debug_action_sync_scan".localized) {
                         Task {
                             await synchronizationService.triggerManualScan()
                         }
@@ -1218,13 +1186,13 @@ struct BatchCreationView: View {
                     .font(.caption2)
                     .padding(.horizontal, 6)
                     .padding(.vertical, 2)
-                    .background(Color.orange)
+                    .background(LopanColors.warning)
                     .foregroundColor(.white)
                     .cornerRadius(4)
                 }
                 
                 HStack(spacing: 8) {
-                    Button("Health Check") {
+                    Button("batch_creation_debug_action_health_check".localized) {
                         Task {
                             await systemMonitoringService.triggerManualHealthCheck()
                         }
@@ -1232,17 +1200,17 @@ struct BatchCreationView: View {
                     .font(.caption2)
                     .padding(.horizontal, 6)
                     .padding(.vertical, 2)
-                    .background(Color.purple)
+                    .background(LopanColors.premium)
                     .foregroundColor(.white)
                     .cornerRadius(4)
                     
-                    Button("Dashboard") {
+                    Button("batch_processing_action_view_all".localized) {
                         showingSystemHealthDashboard = true
                     }
                     .font(.caption2)
                     .padding(.horizontal, 6)
                     .padding(.vertical, 2)
-                    .background(Color.green)
+                    .background(LopanColors.success)
                     .foregroundColor(.white)
                     .cornerRadius(4)
                 }
@@ -1290,9 +1258,14 @@ struct BatchCreationView_Previews: PreviewProvider {
         let repositoryFactory = LocalRepositoryFactory(modelContext: container.mainContext)
         let authService = AuthenticationService(repositoryFactory: repositoryFactory)
         let auditService = NewAuditingService(repositoryFactory: repositoryFactory)
+        let provider = WorkshopManagerServiceProvider(
+            repositoryFactory: repositoryFactory,
+            authService: authService,
+            auditService: auditService
+        )
         
         BatchCreationView(
-            repositoryFactory: repositoryFactory,
+            serviceProvider: provider,
             authService: authService,
             auditService: auditService,
             selectedDate: Date(),

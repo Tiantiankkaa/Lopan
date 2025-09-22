@@ -79,7 +79,9 @@ class CustomerOutOfStockDashboardState: ObservableObject {
     
     // Comprehensive data loading state - prevents concurrent UI operations
     var isDataLocked: Bool {
-        return isLoading || isRefreshing || isProcessingStatusChange || isDataOperationLocked
+        // Keep quick status transitions visually responsive by allowing
+        // short-lived debounce states to pass through without locking the UI.
+        return isLoading || isRefreshing || isDataOperationLocked
     }
     
     // MARK: - Data State
@@ -323,7 +325,6 @@ struct CustomerOutOfStockDashboard: View {
             .ignoresSafeArea(.all, edges: .top)
             
             VStack(spacing: 0) {
-                headerSection
                 filterSection
                 quickStatsSection
                 adaptiveNavigationSection
@@ -331,7 +332,47 @@ struct CustomerOutOfStockDashboard: View {
             }
         }
         .ignoresSafeArea(.keyboard, edges: .bottom)
-        .navigationBarHidden(true)
+        .navigationTitle("客户缺货管理")
+        .navigationBarTitleDisplayMode(.inline)
+        .toolbar {
+            ToolbarItem(placement: .principal) {
+                Text("客户缺货管理")
+                    .font(.headline)
+                    .accessibilityAddTraits(.isHeader)
+            }
+
+            ToolbarItem(placement: .navigationBarTrailing) {
+                Menu {
+                    Button {
+                        isSearchFocused = false
+                        dashboardState.showingAnalytics = true
+                    } label: {
+                        Label("数据分析", systemImage: "chart.bar.fill")
+                    }
+
+                    Button(action: exportData) {
+                        Label("导出数据", systemImage: "square.and.arrow.up")
+                    }
+
+                    Button(action: { Task { await refreshData() } }) {
+                        Label("刷新数据", systemImage: "arrow.clockwise")
+                    }
+
+                    Divider()
+
+                    Button(action: toggleSelectionMode) {
+                        Label(
+                            dashboardState.isSelectionMode ? "取消选择" : "批量操作",
+                            systemImage: dashboardState.isSelectionMode ? "xmark.circle" : "checkmark.circle"
+                        )
+                    }
+                } label: {
+                    Image(systemName: "ellipsis.circle")
+                        .imageScale(.large)
+                        .accessibilityLabel("更多操作")
+                }
+            }
+        }
         .sheet(isPresented: $dashboardState.showingFilterPanel) {
             IntelligentFilterPanel(
                 filters: $dashboardState.activeFilters,
@@ -421,77 +462,11 @@ struct CustomerOutOfStockDashboard: View {
         .refreshable {
             await refreshData()
         }
-        .allowsHitTesting(!dashboardState.isRefreshing) // Disable interactions during skeleton loading
         .sheet(item: $dashboardState.selectedDetailItem) { selectedItem in
-            NavigationView {
+            NavigationStack {
                 CustomerOutOfStockDetailView(item: selectedItem)
             }
         }
-    }
-    
-    
-    // MARK: - Header Section
-    
-    private var headerSection: some View {
-        ZStack {
-            HStack {
-                // Back navigation
-                Button(action: { dismiss() }) {
-                    HStack(spacing: 4) {
-                        Image(systemName: "chevron.left")
-                            .font(.system(size: 18, weight: .medium))
-                            .foregroundColor(.blue)
-                        
-                        Text("工作台")
-                            .font(.system(size: 17))
-                            .foregroundColor(.blue)
-                    }
-                }
-                
-                Spacer()
-                
-                // Action menu
-                Menu {
-                    Button(action: { 
-                        isSearchFocused = false
-                        dashboardState.showingAnalytics = true 
-                    }) {
-                        Label("数据分析", systemImage: "chart.bar.fill")
-                    }
-                    
-                    Button(action: exportData) {
-                        Label("导出数据", systemImage: "square.and.arrow.up")
-                    }
-                    
-                    Button(action: { Task { await refreshData() }}) {
-                        Label("刷新数据", systemImage: "arrow.clockwise")
-                    }
-                    
-                    Divider()
-                    
-                    Button(action: toggleSelectionMode) {
-                        Label(
-                            dashboardState.isSelectionMode ? "取消选择" : "批量操作", 
-                            systemImage: dashboardState.isSelectionMode ? "xmark.circle" : "checkmark.circle"
-                        )
-                    }
-                } label: {
-                    Image(systemName: "ellipsis.circle")
-                        .font(.system(size: 20))
-                        .foregroundColor(.blue)
-                }
-            }
-            
-            // Centered title using overlay
-            Text("客户缺货管理")
-                .font(.system(size: 20, weight: .bold))
-                .foregroundColor(.primary)
-        }
-        .padding(.horizontal, 20)
-        .padding(.vertical, 12)
-        .background(Color(.systemBackground).opacity(0.95))
-        .offset(y: animationState.headerOffset)
-        .animation(.spring(response: 0.6, dampingFraction: 0.8), value: animationState.headerOffset)
     }
     
     // MARK: - Adaptive Navigation
@@ -539,9 +514,9 @@ struct CustomerOutOfStockDashboard: View {
                         trend: nil,
                         associatedStatus: nil,
                         isSelected: dashboardState.selectedStatusTab == nil,
+                        isLocked: dashboardState.isDataLocked,
                         onTap: { handleStatusTabTap(nil) }
                     )
-                    .disabled(dashboardState.isDataLocked)
                     
                     QuickStatCard(
                         title: "待处理",
@@ -551,9 +526,9 @@ struct CustomerOutOfStockDashboard: View {
                         trend: .stable,
                         associatedStatus: .pending,
                         isSelected: dashboardState.selectedStatusTab == .pending,
+                        isLocked: dashboardState.isDataLocked,
                         onTap: { handleStatusTabTap(.pending) }
                     )
-                    .disabled(dashboardState.isDataLocked)
                     
                     QuickStatCard(
                         title: "已完成",
@@ -563,9 +538,9 @@ struct CustomerOutOfStockDashboard: View {
                         trend: .up,
                         associatedStatus: .completed,
                         isSelected: dashboardState.selectedStatusTab == .completed,
+                        isLocked: dashboardState.isDataLocked,
                         onTap: { handleStatusTabTap(.completed) }
                     )
-                    .disabled(dashboardState.isDataLocked)
                     
                     QuickStatCard(
                         title: "已退货",
@@ -575,15 +550,16 @@ struct CustomerOutOfStockDashboard: View {
                         trend: (dashboardState.statusCounts[.returned] ?? 0) > 0 ? .up : nil,
                         associatedStatus: .returned,
                         isSelected: dashboardState.selectedStatusTab == .returned,
+                        isLocked: dashboardState.isDataLocked,
                         onTap: { handleStatusTabTap(.returned) }
                     )
-                    .disabled(dashboardState.isDataLocked)
                 }
                 .padding(.horizontal, 20)
                 .padding(.vertical, 16)
                 .commonScaleAnimation(delay: 0.3)
                 .opacity(dashboardState.isRefreshing ? 0.3 : 1.0)
                 .transition(.opacity.combined(with: .scale(scale: 1.05)))
+                .selectionFeedback(trigger: dashboardState.selectedStatusTab)
             }
         }
         .animation(.easeInOut(duration: 0.4), value: dashboardState.isRefreshing)
@@ -614,7 +590,7 @@ struct CustomerOutOfStockDashboard: View {
                                 Button("完成") {
                                     isSearchFocused = false
                                 }
-                                .foregroundColor(.blue)
+                                .foregroundColor(LopanColors.info)
                             }
                         }*/
                     
@@ -639,7 +615,7 @@ struct CustomerOutOfStockDashboard: View {
                 }) {
                     ZStack {
                         Image(systemName: "line.3.horizontal.decrease.circle.fill")
-                            .font(.system(size: 20))
+                            .font(.title2)
                             .foregroundColor(dashboardState.hasActiveFilters ? .blue : .secondary)
                         
                         if dashboardState.hasActiveFilters {
@@ -650,6 +626,8 @@ struct CustomerOutOfStockDashboard: View {
                         }
                     }
                 }
+                .accessibilityLabel(Text("筛选"))
+                .accessibilityValue(Text(dashboardState.hasActiveFilters ? "已启用筛选" : "未启用筛选"))
             }
         }
         .padding(.horizontal, 20)
@@ -1400,7 +1378,8 @@ struct CustomerOutOfStockDashboard: View {
         }
         
         print("📊 [Status Filter] Tapped status tab: \(status?.displayName ?? "总计")")
-        
+        playStatusSelectionFeedback()
+
         // If tapping the same status, clear the filter
         let targetStatus: OutOfStockStatus?
         if dashboardState.selectedStatusTab == status {
@@ -1430,8 +1409,7 @@ struct CustomerOutOfStockDashboard: View {
     
     private func showDataLockedFeedback() {
         // Provide lighter haptic feedback
-        let impactFeedback = UIImpactFeedbackGenerator(style: .light)
-        impactFeedback.impactOccurred()
+        playStatusSelectionFeedback()
         
         // Show visual feedback - could be enhanced with toast notification
         print("💬 [User Feedback] 数据正在加载中，请稍候...")
@@ -1445,6 +1423,16 @@ struct CustomerOutOfStockDashboard: View {
             withAnimation(.easeInOut(duration: 0.15)) {
                 dashboardState.statusTabAnimationScale = 1.0
             }
+        }
+    }
+
+    private func playStatusSelectionFeedback() {
+        if #available(iOS 17.0, *) {
+            let generator = UIImpactFeedbackGenerator(style: .light)
+            generator.prepare()
+            generator.impactOccurred(intensity: 0.6)
+        } else {
+            UIImpactFeedbackGenerator(style: .light).impactOccurred()
         }
     }
 
@@ -1950,14 +1938,14 @@ private struct QuickStatCard: View {
     let trend: Trend?
     let associatedStatus: OutOfStockStatus?
     let isSelected: Bool
+    let isLocked: Bool
     let onTap: () -> Void
     
-    @State private var isPressed = false
-    @Environment(\.isEnabled) private var isEnabled
-    
+    private var cardCornerRadius: CGFloat { 12 }
+
     enum Trend {
         case up, down, stable
-        
+
         var icon: String {
             switch self {
             case .up: return "arrow.up.right"
@@ -1974,79 +1962,79 @@ private struct QuickStatCard: View {
             }
         }
     }
-    
+
     var body: some View {
+        Button(action: onTap) {
+            cardContent
+        }
+        .buttonStyle(.plain)
+        .contentShape(RoundedRectangle(cornerRadius: cardCornerRadius))
+        .allowsHitTesting(!isLocked)
+        .accessibilityElement(children: .ignore)
+        .accessibilityLabel(Text(title))
+        .accessibilityValue(Text(value))
+        .accessibilityHint(Text("切换状态筛选"))
+    }
+
+    @ViewBuilder
+    private var cardContent: some View {
         VStack(spacing: 8) {
             HStack {
                 Image(systemName: icon)
-                    .font(.system(size: 16))
-                    .foregroundColor(isSelected ? .white : (isEnabled ? color : color.opacity(0.5)))
-                
+                    .imageScale(.medium)
+                    .foregroundStyle(isSelected ? Color.white : (isLocked ? color.opacity(0.4) : color))
+
                 Spacer()
-                
+
                 if let trend = trend {
                     Image(systemName: trend.icon)
-                        .font(.system(size: 10))
-                        .foregroundColor(isSelected ? .white.opacity(0.8) : (isEnabled ? trend.color : trend.color.opacity(0.5)))
+                        .font(.caption2)
+                        .foregroundStyle(isSelected ? Color.white.opacity(0.85) : (isLocked ? trend.color.opacity(0.4) : trend.color))
                 }
             }
-            
+
             VStack(spacing: 2) {
                 Text(value)
-                    .font(.system(size: 18, weight: .bold))
-                    .foregroundColor(isSelected ? .white : (isEnabled ? .primary : .secondary))
-                
+                    .font(.title3.weight(.semibold))
+                    .monospacedDigit()
+                    .foregroundStyle(isSelected ? Color.white : (isLocked ? Color.secondary : Color.primary))
+                    .minimumScaleFactor(0.7)
+
                 Text(title)
-                    .font(.system(size: 10))
-                    .foregroundColor(isSelected ? .white.opacity(0.9) : (isEnabled ? .secondary : .secondary.opacity(0.6)))
+                    .font(.footnote)
+                    .foregroundStyle(isSelected ? Color.white.opacity(0.9) : Color.secondary)
+                    .lineLimit(1)
             }
+            .frame(maxWidth: .infinity)
         }
         .padding(12)
+        .frame(maxWidth: .infinity, alignment: .leading)
         .background(
-            RoundedRectangle(cornerRadius: 12)
+            RoundedRectangle(cornerRadius: cardCornerRadius)
                 .fill(isSelected ? color : Color(.systemBackground))
-                .shadow(
-                    color: isSelected ? color.opacity(0.3) : .black.opacity(isEnabled ? 0.05 : 0.02), 
-                    radius: isSelected ? 8 : (isEnabled ? 4 : 2), 
-                    x: 0, 
-                    y: isSelected ? 4 : (isEnabled ? 2 : 1)
-                )
+                .shadow(color: shadowColor, radius: shadowRadius, x: 0, y: shadowY)
         )
         .overlay(
-            RoundedRectangle(cornerRadius: 12)
-                .stroke(isSelected ? color : Color.clear, lineWidth: isSelected ? 2 : 0)
+            RoundedRectangle(cornerRadius: cardCornerRadius)
+                .stroke(isSelected ? color.opacity(0.9) : Color.clear, lineWidth: isSelected ? 2 : 0)
         )
-        .scaleEffect(isPressed ? 0.95 : 1.0)
-        .opacity(isEnabled ? 1.0 : 0.8)
-        .animation(.spring(response: 0.2, dampingFraction: 0.8), value: isSelected)
-        .animation(.easeInOut(duration: 0.15), value: isPressed)
-        .animation(.easeInOut(duration: 0.15), value: isEnabled)
-        .onTapGesture {
-            guard isEnabled else {
-                // Provide lighter disabled feedback
-                let impactFeedback = UIImpactFeedbackGenerator(style: .light)
-                impactFeedback.impactOccurred()
-                print("🚫 [QuickStatCard] Tap blocked - data is currently loading")
-                return
-            }
-            
-            // Add lighter haptic feedback for enabled state
-            let impactFeedback = UIImpactFeedbackGenerator(style: .light)
-            impactFeedback.impactOccurred()
-            
-            // Quicker press animation
-            withAnimation(.easeInOut(duration: 0.08)) {
-                isPressed = true
-            }
-            
-            // Reset press animation and call action
-            DispatchQueue.main.asyncAfter(deadline: .now() + 0.08) {
-                withAnimation(.easeInOut(duration: 0.08)) {
-                    isPressed = false
-                }
-                onTap()
-            }
+        .opacity(isLocked ? 0.8 : 1.0)
+        .animation(.spring(response: 0.2, dampingFraction: 0.85), value: isSelected)
+    }
+
+    private var shadowColor: Color {
+        if isSelected {
+            return color.opacity(0.28)
         }
+        return LopanColors.textPrimary.opacity(isLocked ? 0.03 : 0.06)
+    }
+
+    private var shadowRadius: CGFloat {
+        isSelected ? 8 : (isLocked ? 2 : 4)
+    }
+
+    private var shadowY: CGFloat {
+        isSelected ? 4 : (isLocked ? 1 : 2)
     }
 }
 
@@ -2064,7 +2052,7 @@ private struct DatePickerContent: View {
     }
     
     var body: some View {
-        NavigationView {
+        NavigationStack {
             VStack {
                 DatePicker("选择日期", 
                           selection: $tempDate,
@@ -2155,17 +2143,16 @@ private struct ActiveFiltersView: View {
             Button(action: onToggleSort) {
                 HStack(spacing: 4) {
                     Image(systemName: sortOrder == .newestFirst ? "arrow.down" : "arrow.up")
-                        .font(.system(size: 12, weight: .semibold))
+                        .font(.caption.weight(.semibold))
                     Text(sortOrder == .newestFirst ? "倒序" : "正序")
                         .font(.caption)
-                        .fontWeight(.medium)
                 }
-                .foregroundColor(.blue)
+                .foregroundColor(LopanColors.info)
                 .padding(.horizontal, 12)
                 .padding(.vertical, 6)
                 .background(
                     Capsule()
-                        .fill(Color.blue.opacity(0.1))
+                        .fill(LopanColors.info.opacity(0.1))
                 )
             }
             
@@ -2173,7 +2160,7 @@ private struct ActiveFiltersView: View {
             Button("清除筛选", action: onClearAll)
                 .font(.caption)
                 .fontWeight(.medium)
-                .foregroundColor(.red)
+                .foregroundColor(LopanColors.error)
                 .padding(.horizontal, 12)
                 .padding(.vertical, 6)
                 .background(
@@ -2257,8 +2244,9 @@ private struct OutOfStockItemCard: View {
                 // Product information
                 HStack(spacing: 12) {
                     Image(systemName: "cube.box.fill")
-                        .foregroundColor(.blue)
-                        .font(.system(size: 16))
+                        .foregroundColor(LopanColors.info)
+                        .symbolRenderingMode(.multicolor)
+                        .imageScale(.medium)
                     
                     VStack(alignment: .leading, spacing: 2) {
                         Text(item.productDisplayName)
@@ -2299,12 +2287,12 @@ private struct OutOfStockItemCard: View {
                 if item.status == .returned && item.returnQuantity > 0 {
                     HStack(spacing: 8) {
                         Image(systemName: "return.left")
-                            .foregroundColor(.orange)
+                            .foregroundColor(LopanColors.warning)
                             .font(.caption)
                         
                         Text("退货数量: \(item.returnQuantity)")
                             .font(.caption)
-                            .foregroundColor(.orange)
+                            .foregroundColor(LopanColors.warning)
                         
                         if let returnDate = item.returnDate {
                             Text(returnDate, style: .date)
@@ -2321,7 +2309,7 @@ private struct OutOfStockItemCard: View {
             RoundedRectangle(cornerRadius: 16)
                 .fill(Color(.systemBackground))
                 .shadow(
-                    color: isSelected ? Color.blue.opacity(0.3) : Color.black.opacity(0.06),
+                    color: isSelected ? LopanColors.info.opacity(0.3) : LopanColors.textPrimary.opacity(0.06),
                     radius: isSelected ? 8 : 4,
                     x: 0,
                     y: isSelected ? 4 : 2
@@ -2330,7 +2318,7 @@ private struct OutOfStockItemCard: View {
         .overlay(
             RoundedRectangle(cornerRadius: 16)
                 .stroke(
-                    isSelected ? Color.blue : Color.clear,
+                    isSelected ? LopanColors.info : Color.clear,
                     lineWidth: isSelected ? 2 : 0
                 )
         )
@@ -2389,8 +2377,8 @@ private struct CustomEmptyStateView: View {
     var body: some View {
         VStack(spacing: 20) {
             Image(systemName: systemImage)
-                .font(.system(size: 50))
-                .foregroundColor(.gray)
+                .font(.system(.largeTitle, weight: .regular))
+                .foregroundColor(LopanColors.textSecondary)
             
             VStack(spacing: 8) {
                 Text(title)
@@ -2411,11 +2399,11 @@ private struct CustomEmptyStateView: View {
                         Image(systemName: "plus.circle.fill")
                         Text(actionTitle)
                     }
-                    .font(.system(size: 16, weight: .medium))
-                    .foregroundColor(.white)
+                    .font(.headline)
+                    .foregroundColor(LopanColors.textOnPrimary)
                     .padding(.horizontal, 24)
                     .padding(.vertical, 12)
-                    .background(Color.blue)
+                    .background(LopanColors.info)
                     .clipShape(RoundedRectangle(cornerRadius: 12))
                 }
                 
@@ -2426,18 +2414,29 @@ private struct CustomEmptyStateView: View {
                             Image(systemName: "wand.and.stars")
                             Text(secondaryActionTitle)
                         }
-                        .font(.system(size: 14, weight: .medium))
-                        .foregroundColor(.blue)
+                        .font(.subheadline.weight(.medium))
+                        .foregroundColor(LopanColors.info)
                         .padding(.horizontal, 20)
                         .padding(.vertical, 10)
-                        .background(Color.blue.opacity(0.1))
+                        .background(LopanColors.info.opacity(0.1))
                         .clipShape(RoundedRectangle(cornerRadius: 10))
                     }
                 }
             }
         }
         .frame(maxWidth: .infinity, maxHeight: .infinity)
-        .background(Color(.systemBackground))
+        .background(LopanColors.backgroundPrimary)
+    }
+}
+
+private extension View {
+    @ViewBuilder
+    func selectionFeedback<T: Equatable>(trigger: T) -> some View {
+        if #available(iOS 17.0, *) {
+            self.sensoryFeedback(.selection, trigger: trigger)
+        } else {
+            self
+        }
     }
 }
 
@@ -2449,4 +2448,3 @@ private struct CustomEmptyStateView: View {
     CustomerOutOfStockDashboard()
         .environmentObject(ServiceFactory(repositoryFactory: LocalRepositoryFactory(modelContext: context)))
 }
-
