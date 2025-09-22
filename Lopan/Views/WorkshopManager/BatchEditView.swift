@@ -496,7 +496,7 @@ struct BatchEditView: View {
         .padding(.vertical, 3)
         .background(
             RoundedRectangle(cornerRadius: 4)
-                .fill(Color.orange.opacity(0.2))
+                .fill(LopanColors.warning.opacity(0.2))
         )
         .foregroundColor(.orange)
     }
@@ -555,7 +555,7 @@ struct BatchEditView: View {
         )
         .overlay(
             RoundedRectangle(cornerRadius: 12)
-                .stroke(batchInfo.isAutoCompleted ? Color.blue.opacity(0.3) : Color.green.opacity(0.3), lineWidth: 1)
+                .stroke(batchInfo.isAutoCompleted ? LopanColors.primary.opacity(0.3) : LopanColors.success.opacity(0.3), lineWidth: 1)
         )
     }
     
@@ -658,7 +658,7 @@ struct BatchEditView: View {
                 .padding(.vertical, 2)
                 .background(
                     RoundedRectangle(cornerRadius: 4)
-                        .fill(Color.blue.opacity(0.1))
+                        .fill(LopanColors.primary.opacity(0.1))
                 )
         }
     }
@@ -737,7 +737,7 @@ struct BatchEditView: View {
         )
         .overlay(
             RoundedRectangle(cornerRadius: 12)
-                .stroke(hasConfigChanged(at: index) ? Color.blue : Color.clear, lineWidth: 2)
+                .stroke(hasConfigChanged(at: index) ? LopanColors.primary : Color.clear, lineWidth: 2)
         )
     }
     
@@ -759,7 +759,7 @@ struct BatchEditView: View {
                         .padding(.vertical, 2)
                         .background(
                             RoundedRectangle(cornerRadius: 4)
-                                .fill(Color.green.opacity(0.2))
+                                .fill(LopanColors.success.opacity(0.2))
                         )
                         .foregroundColor(.green)
                 }
@@ -840,7 +840,7 @@ struct BatchEditView: View {
     private var changedIndicator: some View {
         HStack(spacing: 4) {
             Circle()
-                .fill(Color.blue)
+                .fill(LopanColors.primary)
                 .frame(width: 6, height: 6)
             
             Text("已修改")

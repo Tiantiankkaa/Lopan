@@ -28,7 +28,7 @@ struct NotificationBadge: View {
                 .foregroundColor(.white)
                 .padding(.horizontal, count > 9 ? 6 : 4)
                 .padding(.vertical, 2)
-                .background(Color.red)
+                .background(LopanColors.error)
                 .clipShape(Capsule())
                 .scaleEffect(count > 0 ? 1.0 : 0.0)
                 .animation(.spring(response: 0.3, dampingFraction: 0.6), value: count)
@@ -74,7 +74,7 @@ struct NotificationItemView: View {
                 // Read indicator
                 if !notification.isRead {
                     Circle()
-                        .fill(Color.blue)
+                        .fill(LopanColors.primary)
                         .frame(width: 8, height: 8)
                 }
             }
@@ -559,11 +559,11 @@ struct AlertItemView: View {
     private var alertBackgroundColor: Color {
         switch alert.severity {
         case .emergency:
-            return Color.red.opacity(0.05)
+            return LopanColors.error.opacity(0.05)
         case .critical:
             return Color.purple.opacity(0.05)
         case .error:
-            return Color.red.opacity(0.03)
+            return LopanColors.error.opacity(0.03)
         case .warning:
             return Color.orange.opacity(0.03)
         case .info:
@@ -791,7 +791,7 @@ struct AlertDashboardView: View {
                     .buttonStyle(.bordered)
                     .controlSize(.small)
                     .foregroundColor(selectedSource == source ? .white : .blue)
-                    .background(selectedSource == source ? Color.blue : Color.clear)
+                    .background(selectedSource == source ? LopanColors.primary : Color.clear)
                 }
                 
                 Divider()

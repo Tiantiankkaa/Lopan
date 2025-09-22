@@ -105,7 +105,7 @@ struct ColorManagementView: View {
                         .foregroundColor(.white)
                         .padding(.horizontal, 16)
                         .padding(.vertical, 12)
-                        .background(Color.blue)
+                        .background(LopanColors.primary)
                         .cornerRadius(25)
                         .shadow(color: .black.opacity(0.2), radius: 8, x: 0, y: 4)
                     }
@@ -210,7 +210,7 @@ struct ColorCardView: View {
                 .frame(height: 80)
                 .overlay(
                     RoundedRectangle(cornerRadius: 12)
-                        .stroke(Color.gray.opacity(0.3), lineWidth: 1)
+                        .stroke(LopanColors.secondary.opacity(0.3), lineWidth: 1)
                 )
             
             // Color info
@@ -233,7 +233,7 @@ struct ColorCardView: View {
                     .font(.caption2)
                     .padding(.horizontal, 8)
                     .padding(.vertical, 2)
-                    .background(Color.orange.opacity(0.2))
+                    .background(LopanColors.warning.opacity(0.2))
                     .foregroundColor(.orange)
                     .cornerRadius(4)
             }
@@ -263,7 +263,7 @@ struct AddColorSheet: View {
     @Environment(\.dismiss) private var dismiss
     
     @State private var colorName = ""
-    @State private var selectedColor = Color.blue
+    @State private var selectedColor = LopanColors.primary
     @State private var isAdding = false
     
     var body: some View {
@@ -276,7 +276,7 @@ struct AddColorSheet: View {
                         .frame(height: 120)
                         .overlay(
                             RoundedRectangle(cornerRadius: 20)
-                                .stroke(Color.gray.opacity(0.3), lineWidth: 2)
+                                .stroke(LopanColors.secondary.opacity(0.3), lineWidth: 2)
                         )
                     
                     Text("#\(selectedColor.toHex())")

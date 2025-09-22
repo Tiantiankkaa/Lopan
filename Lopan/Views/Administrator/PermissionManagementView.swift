@@ -137,7 +137,7 @@ struct PermissionManagementView: View {
                     }
                     .background(
                         Rectangle()
-                            .fill(selectedTab == tab ? Color.blue.opacity(0.1) : Color.clear)
+                            .fill(selectedTab == tab ? LopanColors.primary.opacity(0.1) : Color.clear)
                     )
                 }
             }
@@ -383,7 +383,7 @@ struct PermissionMatrixView: View {
                 .buttonStyle(.bordered)
                 .controlSize(.small)
                 .foregroundColor(selectedCategory == nil ? .white : .blue)
-                .background(selectedCategory == nil ? Color.blue : Color.clear)
+                .background(selectedCategory == nil ? LopanColors.primary : Color.clear)
                 
                 ForEach(PermissionCategory.allCases, id: \.self) { category in
                     Button(selectedCategory == category ? "\(category.displayName) ✓" : category.displayName) {
@@ -392,7 +392,7 @@ struct PermissionMatrixView: View {
                     .buttonStyle(.bordered)
                     .controlSize(.small)
                     .foregroundColor(selectedCategory == category ? .white : .blue)
-                    .background(selectedCategory == category ? Color.blue : Color.clear)
+                    .background(selectedCategory == category ? LopanColors.primary : Color.clear)
                 }
             }
             .padding(.horizontal)
@@ -627,7 +627,7 @@ struct RoleAssignmentRow: View {
                             .foregroundColor(.white)
                             .padding(.horizontal, 6)
                             .padding(.vertical, 2)
-                            .background(Color.red)
+                            .background(LopanColors.error)
                             .cornerRadius(4)
                     }
                 }

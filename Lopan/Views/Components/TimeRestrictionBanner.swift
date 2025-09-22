@@ -21,22 +21,22 @@ struct TimeRestrictionBanner: View {
         var backgroundColor: Color {
             switch self {
             case .warning:
-                return Color.orange.opacity(0.1)
+                return LopanColors.warning.opacity(0.1)
             case .info:
-                return Color.blue.opacity(0.1)
+                return LopanColors.primary.opacity(0.1)
             case .success:
-                return Color.green.opacity(0.1)
+                return LopanColors.success.opacity(0.1)
             }
         }
         
         var borderColor: Color {
             switch self {
             case .warning:
-                return Color.orange.opacity(0.3)
+                return LopanColors.warning.opacity(0.3)
             case .info:
-                return Color.blue.opacity(0.3)
+                return LopanColors.primary.opacity(0.3)
             case .success:
-                return Color.green.opacity(0.3)
+                return LopanColors.success.opacity(0.3)
             }
         }
         
@@ -288,13 +288,13 @@ struct MachineStatusChecker: View {
     
     private var backgroundColor: Color {
         return machineService.isAnyMachineRunning ? 
-               Color.green.opacity(0.1) : 
+               LopanColors.success.opacity(0.1) : 
                Color.red.opacity(0.1)
     }
     
     private var borderColor: Color {
         return machineService.isAnyMachineRunning ? 
-               Color.green.opacity(0.3) : 
+               LopanColors.success.opacity(0.3) : 
                Color.red.opacity(0.3)
     }
     

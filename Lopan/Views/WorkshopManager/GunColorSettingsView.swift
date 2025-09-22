@@ -376,7 +376,7 @@ struct GunColorRow: View {
                         .frame(width: 24, height: 24)
                         .overlay(
                             Circle()
-                                .stroke(Color.gray.opacity(0.3), lineWidth: 1)
+                                .stroke(LopanColors.secondary.opacity(0.3), lineWidth: 1)
                         )
                 }
                 
@@ -446,7 +446,7 @@ struct ColorPickerSheet: View {
                                 .frame(width: 32, height: 32)
                                 .overlay(
                                     Circle()
-                                        .stroke(Color.gray.opacity(0.3), lineWidth: 1)
+                                        .stroke(LopanColors.secondary.opacity(0.3), lineWidth: 1)
                                 )
                             
                             VStack(alignment: .leading, spacing: 2) {
@@ -565,7 +565,7 @@ struct ColorSelectionCard: View {
                 .frame(height: 60)
                 .overlay(
                     RoundedRectangle(cornerRadius: 8)
-                        .stroke(Color.gray.opacity(0.3), lineWidth: 1)
+                        .stroke(LopanColors.secondary.opacity(0.3), lineWidth: 1)
                 )
             
             VStack(spacing: 2) {

@@ -379,7 +379,7 @@ struct ShiftAwareApprovalView: View {
             .padding(.vertical, 8)
             .background(
                 RoundedRectangle(cornerRadius: 8)
-                    .fill(cutoffInfo.hasRestriction ? Color.orange.opacity(0.1) : Color.green.opacity(0.1))
+                    .fill(cutoffInfo.hasRestriction ? LopanColors.warning.opacity(0.1) : LopanColors.success.opacity(0.1))
             )
         }
     }
@@ -417,7 +417,7 @@ struct ShiftAwareApprovalView: View {
             .padding(.vertical, 8)
             .background(
                 RoundedRectangle(cornerRadius: 8)
-                    .fill(Color.orange.opacity(0.1))
+                    .fill(LopanColors.warning.opacity(0.1))
             )
         }
     }
@@ -472,7 +472,7 @@ struct ShiftAwareApprovalView: View {
                     .foregroundColor(machine.isOperational ? .green : .orange)
                 
                 Circle()
-                    .fill(machine.isOperational ? Color.green : Color.orange)
+                    .fill(machine.isOperational ? LopanColors.success : LopanColors.warning)
                     .frame(width: 8, height: 8)
             }
             
@@ -516,7 +516,7 @@ struct ShiftAwareApprovalView: View {
         )
         .overlay(
             RoundedRectangle(cornerRadius: 12)
-                .stroke(machine.isOperational ? Color.clear : Color.orange.opacity(0.5), lineWidth: 1)
+                .stroke(machine.isOperational ? Color.clear : LopanColors.warning.opacity(0.5), lineWidth: 1)
         )
     }
     
@@ -587,7 +587,7 @@ struct ShiftAwareApprovalView: View {
                 .frame(width: 20, height: 20)
                 .background(
                     Circle()
-                        .fill(Color.blue)
+                        .fill(LopanColors.primary)
                 )
             
             VStack(alignment: .leading, spacing: 4) {
@@ -640,7 +640,7 @@ struct ShiftAwareApprovalView: View {
                     .padding(4)
                     .background(
                         Circle()
-                            .fill(Color.orange.opacity(0.2))
+                            .fill(LopanColors.warning.opacity(0.2))
                     )
             }
         }
@@ -708,11 +708,11 @@ struct ShiftAwareApprovalView: View {
                         .frame(maxWidth: .infinity, minHeight: 44)
                         .background(
                             RoundedRectangle(cornerRadius: 12)
-                                .fill(Color.red.opacity(0.1))
+                                .fill(LopanColors.error.opacity(0.1))
                         )
                         .overlay(
                             RoundedRectangle(cornerRadius: 12)
-                                .stroke(Color.red.opacity(0.5), lineWidth: 1)
+                                .stroke(LopanColors.error.opacity(0.5), lineWidth: 1)
                         )
                     }
                     
@@ -732,7 +732,7 @@ struct ShiftAwareApprovalView: View {
                         .frame(maxWidth: .infinity, minHeight: 44)
                         .background(
                             RoundedRectangle(cornerRadius: 12)
-                                .fill(canApprove ? Color.green : Color.gray)
+                                .fill(canApprove ? LopanColors.success : LopanColors.secondary)
                         )
                     }
                     .disabled(!canApprove)
@@ -903,7 +903,7 @@ struct ShiftAwareApprovalView: View {
                 .padding()
                 .background(
                     RoundedRectangle(cornerRadius: 12)
-                        .fill(Color.blue)
+                        .fill(LopanColors.primary)
                 )
             }
         }

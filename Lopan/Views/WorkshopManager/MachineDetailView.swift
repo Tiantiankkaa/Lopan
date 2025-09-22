@@ -437,7 +437,7 @@ struct MachineDetailView: View {
                     }
                     .padding(.horizontal)
                     .padding(.vertical, 8)
-                    .background(Color.blue.opacity(0.1))
+                    .background(LopanColors.primary.opacity(0.1))
                     .cornerRadius(8)
                 }
                 
@@ -656,11 +656,11 @@ struct SelectableStationCard: View {
         .padding()
         .background(
             RoundedRectangle(cornerRadius: 8)
-                .fill(isSelected ? Color.blue.opacity(0.1) : Color(UIColor.tertiarySystemBackground))
+                .fill(isSelected ? LopanColors.primary.opacity(0.1) : Color(UIColor.tertiarySystemBackground))
         )
         .overlay(
             RoundedRectangle(cornerRadius: 8)
-                .stroke(isSelected ? Color.blue : Color.clear, lineWidth: 2)
+                .stroke(isSelected ? LopanColors.primary : Color.clear, lineWidth: 2)
         )
         .onTapGesture {
             onTap()
@@ -701,7 +701,7 @@ struct GunCard: View {
                         .frame(width: 24, height: 24)
                         .overlay(
                             Circle()
-                                .stroke(Color.gray.opacity(0.3), lineWidth: 1)
+                                .stroke(LopanColors.secondary.opacity(0.3), lineWidth: 1)
                         )
                 }
                 
