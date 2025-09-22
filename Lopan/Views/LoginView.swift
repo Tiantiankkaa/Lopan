@@ -109,7 +109,7 @@ struct LoginView: View {
                                 }
                                 .frame(maxWidth: .infinity)
                                 .padding()
-                                .background(Color.blue)
+                                .background(LopanColors.primary)
                                 .foregroundColor(.white)
                                 .cornerRadius(10)
                             }
@@ -240,7 +240,7 @@ struct DemoLoginView: View {
                 }
                 .frame(maxWidth: .infinity)
                 .padding()
-                .background((isLoggingIn || authService.isLoading) ? Color.gray : Color.blue)
+                .background((isLoggingIn || authService.isLoading) ? Color.gray : LopanColors.primary)
                 .foregroundColor(.white)
                 .cornerRadius(10)
                 .disabled(isLoggingIn || authService.isLoading)
@@ -327,7 +327,7 @@ struct SMSLoginView: View {
                 }
                 .frame(maxWidth: .infinity)
                 .padding()
-                .background(phoneNumber.count >= 11 && !name.isEmpty ? Color.green : Color.gray)
+                .background(phoneNumber.count >= 11 && !name.isEmpty ? LopanColors.success : Color.gray)
                 .foregroundColor(.white)
                 .cornerRadius(10)
                 .disabled(phoneNumber.count < 11 || name.isEmpty || authService.isLoading)
@@ -388,7 +388,7 @@ struct SMSVerificationView: View {
                 }
                 .frame(maxWidth: .infinity)
                 .padding()
-                .background(verificationCode.count >= 4 ? Color.green : Color.gray)
+                .background(verificationCode.count >= 4 ? LopanColors.success : Color.gray)
                 .foregroundColor(.white)
                 .cornerRadius(10)
                 .disabled(verificationCode.count < 4 || authService.isLoading)

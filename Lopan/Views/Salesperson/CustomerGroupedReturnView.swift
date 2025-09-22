@@ -226,8 +226,8 @@ struct CustomerGroupedReturnView: View {
         .background(
             LinearGradient(
                 gradient: Gradient(colors: [
-                    Color.blue.opacity(0.08),
-                    Color.blue.opacity(0.04)
+                    LopanColors.primary.opacity(0.08),
+                    LopanColors.primary.opacity(0.04)
                 ]),
                 startPoint: .top,
                 endPoint: .bottom
@@ -236,7 +236,7 @@ struct CustomerGroupedReturnView: View {
         .overlay(
             Rectangle()
                 .frame(height: 0.5)
-                .foregroundColor(Color.blue.opacity(0.2)),
+                .foregroundColor(LopanColors.primary.opacity(0.2)),
             alignment: .bottom
         )
     }
@@ -383,7 +383,7 @@ struct EnhancedCustomerGroupRowView: View {
                     // Customer Avatar
                     Circle()
                         .fill(LinearGradient(
-                            gradient: Gradient(colors: [Color.blue.opacity(0.6), Color.blue.opacity(0.3)]),
+                            gradient: Gradient(colors: [LopanColors.primary.opacity(0.6), LopanColors.primary.opacity(0.3)]),
                             startPoint: .topLeading,
                             endPoint: .bottomTrailing
                         ))
@@ -426,7 +426,7 @@ struct EnhancedCustomerGroupRowView: View {
                             }
                             .padding(.horizontal, 8)
                             .padding(.vertical, 4)
-                            .background(Color.orange.opacity(0.15))
+                            .background(LopanColors.warning.opacity(0.15))
                             .foregroundColor(.orange)
                             .cornerRadius(12)
                         } else {
@@ -439,7 +439,7 @@ struct EnhancedCustomerGroupRowView: View {
                             }
                             .padding(.horizontal, 8)
                             .padding(.vertical, 4)
-                            .background(Color.green.opacity(0.15))
+                            .background(LopanColors.success.opacity(0.15))
                             .foregroundColor(.green)
                             .cornerRadius(12)
                         }
@@ -494,12 +494,12 @@ struct EnhancedCustomerGroupRowView: View {
         .padding(16)
         .background(
             RoundedRectangle(cornerRadius: 12)
-                .fill(isSelected ? Color.blue.opacity(0.05) : Color(.systemBackground))
+                .fill(isSelected ? LopanColors.primary.opacity(0.05) : Color(.systemBackground))
         )
         .overlay(
             RoundedRectangle(cornerRadius: 12)
                 .stroke(
-                    isSelected ? Color.blue.opacity(0.3) : Color(.systemGray5),
+                    isSelected ? LopanColors.primary.opacity(0.3) : Color(.systemGray5),
                     lineWidth: isSelected ? 1.5 : 0.5
                 )
         )
@@ -622,7 +622,7 @@ struct CustomerReturnDetailView: View {
             }
         }
         .padding()
-        .background(Color.gray.opacity(0.1))
+        .background(LopanColors.secondary.opacity(0.1))
     }
     
     private var processButton: some View {
@@ -634,7 +634,7 @@ struct CustomerReturnDetailView: View {
                 .foregroundColor(.white)
                 .frame(maxWidth: .infinity)
                 .padding()
-                .background(selectedItems.isEmpty ? Color.gray : Color.blue)
+                .background(selectedItems.isEmpty ? LopanColors.secondary : LopanColors.primary)
                 .cornerRadius(8)
         }
         .disabled(selectedItems.isEmpty || isProcessing)

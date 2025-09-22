@@ -152,7 +152,7 @@ struct SystemConfigurationView: View {
                 VStack(alignment: .trailing, spacing: 4) {
                     HStack {
                         Circle()
-                            .fill(securityService.encryptionStatus.isEnabled ? Color.green : Color.orange)
+                            .fill(securityService.encryptionStatus.isEnabled ? LopanColors.success : LopanColors.warning)
                             .frame(width: 8, height: 8)
                         
                         Text(securityService.encryptionStatus.isEnabled ? "加密启用" : "加密禁用")
@@ -365,7 +365,7 @@ struct ConfigurationItemView: View {
                                 .font(.caption2)
                                 .padding(.horizontal, 6)
                                 .padding(.vertical, 2)
-                                .background(Color.orange.opacity(0.2))
+                                .background(LopanColors.warning.opacity(0.2))
                                 .foregroundColor(.orange)
                                 .cornerRadius(4)
                         }
@@ -400,7 +400,7 @@ struct ConfigurationItemView: View {
                             .font(.caption2)
                             .padding(.horizontal, 4)
                             .padding(.vertical, 1)
-                            .background(Color.blue.opacity(0.1))
+                            .background(LopanColors.primary.opacity(0.1))
                             .foregroundColor(.blue)
                             .cornerRadius(3)
                     }
@@ -495,7 +495,7 @@ struct ConfigurationItemView: View {
                                 .font(.caption2)
                                 .padding(.horizontal, 6)
                                 .padding(.vertical, 2)
-                                .background(Color.gray.opacity(0.1))
+                                .background(LopanColors.secondary.opacity(0.1))
                                 .cornerRadius(4)
                         }
                         Spacer()
@@ -574,7 +574,7 @@ struct ConfigurationEditSheet: View {
                                     .font(.caption2)
                                     .padding(.horizontal, 6)
                                     .padding(.vertical, 2)
-                                    .background(Color.orange.opacity(0.2))
+                                    .background(LopanColors.warning.opacity(0.2))
                                     .foregroundColor(.orange)
                                     .cornerRadius(4)
                             }
@@ -823,7 +823,7 @@ struct ConfigurationDetailsSheet: View {
                                         .font(.caption)
                                         .padding(.horizontal, 8)
                                         .padding(.vertical, 4)
-                                        .background(Color.blue.opacity(0.1))
+                                        .background(LopanColors.primary.opacity(0.1))
                                         .foregroundColor(.blue)
                                         .cornerRadius(6)
                                 }
@@ -1038,7 +1038,7 @@ struct SecuritySettingsView: View {
                 Section("加密状态") {
                     HStack {
                         Circle()
-                            .fill(securityService.encryptionStatus.isEnabled ? Color.green : Color.orange)
+                            .fill(securityService.encryptionStatus.isEnabled ? LopanColors.success : LopanColors.warning)
                             .frame(width: 12, height: 12)
                         
                         Text(securityService.encryptionStatus.isEnabled ? "配置加密已启用" : "配置加密已禁用")

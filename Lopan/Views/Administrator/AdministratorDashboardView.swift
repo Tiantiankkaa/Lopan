@@ -302,7 +302,7 @@ struct AdministratorDashboardView: View {
             .padding()
             .background(
                 RoundedRectangle(cornerRadius: 12)
-                    .fill(Color.blue)
+                    .fill(LopanColors.primary)
             )
         }
     }
@@ -322,7 +322,7 @@ struct AdministratorDashboardView: View {
             .padding()
             .background(
                 RoundedRectangle(cornerRadius: 12)
-                    .fill(Color.blue)
+                    .fill(LopanColors.primary)
             )
         }
     }
@@ -351,7 +351,7 @@ struct AdministratorDashboardView: View {
             .padding()
             .background(
                 RoundedRectangle(cornerRadius: 12)
-                    .fill(Color.blue)
+                    .fill(LopanColors.primary)
             )
         }
     }
@@ -381,7 +381,7 @@ struct AdministratorDashboardView: View {
             .padding()
             .background(
                 RoundedRectangle(cornerRadius: 12)
-                    .fill(Color.blue)
+                    .fill(LopanColors.primary)
             )
         }
     }
@@ -420,7 +420,7 @@ struct AdministratorTabButton: View {
             .padding(.vertical, 8)
             .background(
                 RoundedRectangle(cornerRadius: 20)
-                    .fill(isSelected ? Color.blue.opacity(0.1) : Color.clear)
+                    .fill(isSelected ? LopanColors.primary.opacity(0.1) : Color.clear)
             )
         }
         .buttonStyle(PlainButtonStyle())
