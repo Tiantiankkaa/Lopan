@@ -311,8 +311,7 @@ struct LopanSearchBar: View {
     // MARK: - Actions
     
     private func clearSearch() {
-        let impactFeedback = UIImpactFeedbackGenerator(style: .light)
-        impactFeedback.impactOccurred()
+        HapticFeedback.light()
         
         withAnimation(.easeInOut(duration: 0.2)) {
             searchText = ""
@@ -331,8 +330,7 @@ struct LopanSearchBar: View {
     }
     
     private func selectSuggestion(_ suggestion: String) {
-        let impactFeedback = UIImpactFeedbackGenerator(style: .light)
-        impactFeedback.impactOccurred()
+        HapticFeedback.light()
         
         withAnimation(.easeInOut(duration: 0.2)) {
             searchText = suggestion

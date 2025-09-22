@@ -1014,12 +1014,12 @@ struct TimelineRow: View {
             // Timeline indicator
             VStack {
                 Circle()
-                    .fill(isCompleted ? Color.green : Color.gray)
+                    .fill(isCompleted ? LopanColors.success : LopanColors.secondary)
                     .frame(width: 12, height: 12)
                 
                 if isCompleted {
                     Rectangle()
-                        .fill(Color.green)
+                        .fill(LopanColors.success)
                         .frame(width: 2, height: 20)
                 }
             }

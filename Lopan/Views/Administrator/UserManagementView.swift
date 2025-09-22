@@ -97,7 +97,7 @@ struct UserFilterChip: View {
                 .font(.caption)
                 .padding(.horizontal, 12)
                 .padding(.vertical, 6)
-                .background(isSelected ? Color.blue : Color.gray.opacity(0.2))
+                .background(isSelected ? LopanColors.primary : LopanColors.secondaryLight)
                 .foregroundColor(isSelected ? .white : .primary)
                 .cornerRadius(16)
         }
@@ -132,8 +132,8 @@ struct UserRowView: View {
                                 .font(.caption)
                                 .padding(.horizontal, 8)
                                 .padding(.vertical, 4)
-                                .background(Color.purple.opacity(0.2))
-                                .foregroundColor(.purple)
+                                .background(LopanColors.roleAdministrator.opacity(0.2))
+                                .foregroundColor(LopanColors.roleAdministrator)
                                 .cornerRadius(4)
                             
                             Text("可访问所有工作台")
@@ -208,19 +208,19 @@ struct UserRowView: View {
     private var primaryRoleColor: Color {
         switch user.primaryRole {
         case .administrator:
-            return .purple
+            return LopanColors.roleAdministrator
         case .salesperson:
-            return .blue
+            return LopanColors.roleSalesperson
         case .warehouseKeeper:
-            return .orange
+            return LopanColors.roleWarehouseKeeper
         case .workshopManager:
-            return .green
+            return LopanColors.roleWorkshopManager
         case .evaGranulationTechnician:
-            return .cyan
+            return LopanColors.roleEVATechnician
         case .workshopTechnician:
-            return .red
+            return LopanColors.roleWorkshopTechnician
         case .unauthorized:
-            return .gray
+            return LopanColors.secondary
         }
     }
 }

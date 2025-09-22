@@ -336,7 +336,7 @@ struct OfflineStatusView: View {
             }
             .padding(.horizontal, 16)
             .padding(.vertical, 8)
-            .background(Color.orange.opacity(0.1))
+            .background(LopanColors.warning.opacity(0.1))
             .accessibilityElement(children: .combine)
             .accessibilityLabel("离线模式，显示缓存数据")
             .accessibilityValue(cacheManager.lastSyncDate != nil ? "上次同步时间 \(formatSyncDate(cacheManager.lastSyncDate!))" : "无同步记录")

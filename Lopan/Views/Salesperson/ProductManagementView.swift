@@ -535,8 +535,7 @@ struct ProductManagementView: View {
     // MARK: - Action Functions
     
     private func toggleBatchMode() {
-        let impactFeedback = UIImpactFeedbackGenerator(style: .medium)
-        impactFeedback.impactOccurred()
+        HapticFeedback.medium()
         
         withAnimation(.easeInOut(duration: 0.3)) {
             isBatchMode.toggle()
@@ -555,8 +554,7 @@ struct ProductManagementView: View {
     }
     
     private func clearSearch() {
-        let impactFeedback = UIImpactFeedbackGenerator(style: .light)
-        impactFeedback.impactOccurred()
+        HapticFeedback.light()
         
         withAnimation(.easeInOut(duration: 0.2)) {
             searchText = ""
@@ -643,8 +641,7 @@ struct ProductManagementView: View {
     
     private func toggleProductSelection(_ product: Product) {
         if isBatchMode {
-            let impactFeedback = UIImpactFeedbackGenerator(style: .light)
-            impactFeedback.impactOccurred()
+            HapticFeedback.light()
             
             if selectedProducts.contains(product.id) {
                 selectedProducts.remove(product.id)

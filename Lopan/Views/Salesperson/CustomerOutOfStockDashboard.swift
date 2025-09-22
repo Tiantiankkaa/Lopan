@@ -1427,13 +1427,7 @@ struct CustomerOutOfStockDashboard: View {
     }
 
     private func playStatusSelectionFeedback() {
-        if #available(iOS 17.0, *) {
-            let generator = UIImpactFeedbackGenerator(style: .light)
-            generator.prepare()
-            generator.impactOccurred(intensity: 0.6)
-        } else {
-            UIImpactFeedbackGenerator(style: .light).impactOccurred()
-        }
+        HapticFeedback.light()
     }
 
     // MARK: - Phase 5 View Preloading Methods

@@ -378,8 +378,7 @@ struct ProductItemCard: View {
                         isDeleting = true
                     }
                     
-                    let impactFeedback = UIImpactFeedbackGenerator(style: .medium)
-                    impactFeedback.impactOccurred()
+                    HapticFeedback.medium()
                     
                     DispatchQueue.main.asyncAfter(deadline: .now() + 0.2) {
                         onDelete()
@@ -503,8 +502,7 @@ struct ProductItemCard: View {
                     ForEach([1, 5, 10], id: \.self) { quickValue in
                         Button(action: {
                             guard index >= 0 && index < productItems.count else { return }
-                            let impactFeedback = UIImpactFeedbackGenerator(style: .light)
-                            impactFeedback.impactOccurred()
+                            HapticFeedback.light()
                             
                             withAnimation(.easeInOut(duration: 0.2)) {
                                 productItems[index].quantity = String(quickValue)
@@ -530,8 +528,7 @@ struct ProductItemCard: View {
                         guard index >= 0 && index < productItems.count else { return }
                         let currentValue = Int(productItems[index].quantity) ?? 0
                         if currentValue > 1 {
-                            let impactFeedback = UIImpactFeedbackGenerator(style: .light)
-                            impactFeedback.impactOccurred()
+                            HapticFeedback.light()
                             
                             withAnimation(.easeInOut(duration: 0.15)) {
                                 quantityButtonScale = 0.9
@@ -572,8 +569,7 @@ struct ProductItemCard: View {
                         guard index >= 0 && index < productItems.count else { return }
                         let currentValue = Int(productItems[index].quantity) ?? 0
                         
-                        let impactFeedback = UIImpactFeedbackGenerator(style: .light)
-                        impactFeedback.impactOccurred()
+                        HapticFeedback.light()
                         
                         withAnimation(.easeInOut(duration: 0.15)) {
                             quantityButtonScale = 0.9
