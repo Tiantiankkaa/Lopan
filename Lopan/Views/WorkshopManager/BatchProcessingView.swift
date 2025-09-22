@@ -276,7 +276,7 @@ struct BatchProcessingView: View {
         let isAllSelected = !availableMachines.isEmpty && selectedMachineIds.count == availableMachines.count
         let toggleKey: LocalizedStringKey = isAllSelected ? "batch_processing_action_deselect_all" : "batch_processing_action_select_all"
 
-        Button(action: {
+        return Button(action: {
             if isAllSelected {
                 selectedMachineIds.removeAll()
             } else {
