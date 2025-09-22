@@ -273,7 +273,7 @@ struct OutOfStockFilterSheet: View {
                     .padding(.vertical, 8)
                     .background(
                         RoundedRectangle(cornerRadius: 8)
-                            .fill(Color.blue.opacity(0.1))
+                            .fill(LopanColors.primary.opacity(0.1))
                     )
                 }
             }
@@ -297,7 +297,7 @@ struct OutOfStockFilterSheet: View {
                 .frame(height: 50)
                 .background(
                     LinearGradient(
-                        colors: [Color.blue, Color.blue.opacity(0.8)],
+                        colors: [LopanColors.primary, LopanColors.primary.opacity(0.8)],
                         startPoint: .leading,
                         endPoint: .trailing
                     )
@@ -488,10 +488,10 @@ struct FilterOptionRow: View {
             .padding(.vertical, 10)
             .background(
                 RoundedRectangle(cornerRadius: 8)
-                    .fill(isSelected ? Color.blue.opacity(0.1) : Color(.systemGray6))
+                    .fill(isSelected ? LopanColors.primary.opacity(0.1) : Color(.systemGray6))
                     .overlay(
                         RoundedRectangle(cornerRadius: 8)
-                            .stroke(isSelected ? Color.blue.opacity(0.3) : Color.clear, lineWidth: 1)
+                            .stroke(isSelected ? LopanColors.primary.opacity(0.3) : Color.clear, lineWidth: 1)
                     )
             )
         }
@@ -516,7 +516,7 @@ struct SizeChip: View {
                 .padding(.vertical, 6)
                 .background(
                     RoundedRectangle(cornerRadius: 16)
-                        .fill(isSelected ? Color.blue : Color(.systemGray6))
+                        .fill(isSelected ? LopanColors.primary : Color(.systemGray6))
                 )
         }
         .buttonStyle(PlainButtonStyle())
@@ -554,7 +554,7 @@ struct StatusFilterRow: View {
             .padding(.vertical, 10)
             .background(
                 RoundedRectangle(cornerRadius: 8)
-                    .fill(isSelected ? Color.blue.opacity(0.1) : Color.clear)
+                    .fill(isSelected ? LopanColors.primary.opacity(0.1) : Color.clear)
             )
         }
         .buttonStyle(PlainButtonStyle())
@@ -592,7 +592,7 @@ struct SortOrderRow: View {
             .padding(.vertical, 10)
             .background(
                 RoundedRectangle(cornerRadius: 8)
-                    .fill(isSelected ? Color.blue.opacity(0.1) : Color.clear)
+                    .fill(isSelected ? LopanColors.primary.opacity(0.1) : Color.clear)
             )
         }
         .buttonStyle(PlainButtonStyle())

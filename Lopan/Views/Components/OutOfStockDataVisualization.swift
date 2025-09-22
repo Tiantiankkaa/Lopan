@@ -24,10 +24,10 @@ struct LiquidDataCard<Content: View>: View {
         
         var gradientColors: [Color] {
             switch self {
-            case .low: return [Color.blue.opacity(0.1), Color.blue.opacity(0.05)]
-            case .normal: return [Color.green.opacity(0.1), Color.green.opacity(0.05)]
+            case .low: return [LopanColors.primary.opacity(0.1), LopanColors.primary.opacity(0.05)]
+            case .normal: return [LopanColors.success.opacity(0.1), LopanColors.success.opacity(0.05)]
             case .high: return [Color.orange.opacity(0.1), Color.orange.opacity(0.05)]
-            case .critical: return [Color.red.opacity(0.1), Color.red.opacity(0.05)]
+            case .critical: return [LopanColors.error.opacity(0.1), LopanColors.error.opacity(0.05)]
             }
         }
         
@@ -428,7 +428,7 @@ struct TrendAnalysisView: View {
                     .trim(from: 0, to: animationProgress)
                     .stroke(
                         LinearGradient(
-                            colors: [Color.blue, Color.green],
+                            colors: [LopanColors.primary, LopanColors.success],
                             startPoint: .leading,
                             endPoint: .trailing
                         ),
@@ -455,7 +455,7 @@ struct TrendAnalysisView: View {
                     .trim(from: 0, to: animationProgress)
                     .fill(
                         LinearGradient(
-                            colors: [Color.blue.opacity(0.3), Color.blue.opacity(0.0)],
+                            colors: [LopanColors.primary.opacity(0.3), LopanColors.primary.opacity(0.0)],
                             startPoint: .top,
                             endPoint: .bottom
                         )
@@ -565,7 +565,7 @@ struct DataFlowAnimation: View {
                     y: CGFloat.random(in: -2...2)
                 ),
                 size: CGFloat.random(in: 2...8),
-                color: [Color.blue, Color.green, Color.purple, Color.orange].randomElement()!,
+                color: [LopanColors.primary, LopanColors.success, Color.purple, Color.orange].randomElement()!,
                 lifespan: Double.random(in: 2...5),
                 scale: CGFloat.random(in: 0.5...1.5),
                 blur: CGFloat.random(in: 0...2)
@@ -589,7 +589,7 @@ struct DataFlowAnimation: View {
                     position: CGPoint(x: 0, y: CGFloat.random(in: 0...200)),
                     velocity: CGPoint(x: CGFloat.random(in: 1...3), y: CGFloat.random(in: -1...1)),
                     size: CGFloat.random(in: 2...8),
-                    color: [Color.blue, Color.green, Color.purple, Color.orange].randomElement()!,
+                    color: [LopanColors.primary, LopanColors.success, Color.purple, Color.orange].randomElement()!,
                     lifespan: Double.random(in: 2...5),
                     scale: 1.0,
                     blur: 0

@@ -253,7 +253,7 @@ struct ProductionConfigurationView: View {
             Spacer()
         }
         .padding()
-        .background(Color.orange.opacity(0.1))
+        .background(LopanColors.warningLight)
         .cornerRadius(12)
     }
     
@@ -514,7 +514,7 @@ struct MachineCard: View {
             }
         }
         .frame(width: 100, height: 100)
-        .background(isSelected ? Color.blue : Color(UIColor.secondarySystemBackground))
+        .background(isSelected ? LopanColors.primary : Color(UIColor.secondarySystemBackground))
         .foregroundColor(isSelected ? .white : .primary)
         .cornerRadius(12)
         .onTapGesture {
@@ -555,7 +555,7 @@ struct ProductionModeCard: View {
         }
         .frame(maxWidth: .infinity)
         .padding()
-        .background(isSelected ? Color.blue : Color(UIColor.secondarySystemBackground))
+        .background(isSelected ? LopanColors.primary : Color(UIColor.secondarySystemBackground))
         .foregroundColor(isSelected ? .white : .primary)
         .cornerRadius(12)
         .onTapGesture {
@@ -633,7 +633,7 @@ struct ColorDot: View {
                 .frame(width: 20, height: 20)
                 .overlay(
                     Circle()
-                        .stroke(Color.gray.opacity(0.3), lineWidth: 1)
+                        .stroke(LopanColors.secondaryLight, lineWidth: 1)
                 )
             
             Text(color.name)
@@ -652,7 +652,7 @@ struct StationIndicator: View {
     var body: some View {
         VStack(spacing: 2) {
             RoundedRectangle(cornerRadius: 4)
-                .fill(isOccupied ? Color.blue : Color.gray.opacity(0.3))
+                .fill(isOccupied ? LopanColors.primary : LopanColors.secondaryLight)
                 .frame(width: 32, height: 20)
                 .overlay(
                     Text("\(stationNumber)")
@@ -920,7 +920,7 @@ struct AddProductSheet: View {
                             .foregroundColor(.secondary)
                     }
                     .padding()
-                    .background(Color.orange.opacity(0.1))
+                    .background(LopanColors.warningLight)
                     .cornerRadius(8)
                 }
             }
@@ -1020,7 +1020,7 @@ struct AddProductSheet: View {
                     }
                     .frame(maxWidth: .infinity)
                     .padding(.vertical, 8)
-                    .background(selectedStationCount == count ? Color.blue : Color.gray.opacity(0.2))
+                    .background(selectedStationCount == count ? LopanColors.primary : LopanColors.secondaryLight)
                     .foregroundColor(selectedStationCount == count ? .white : .primary)
                     .cornerRadius(8)
                 }
@@ -1031,7 +1031,7 @@ struct AddProductSheet: View {
                 }
                 .frame(maxWidth: .infinity)
                 .padding(.vertical, 8)
-                .background(selectedStationCount == -1 ? Color.blue : Color.gray.opacity(0.2))
+                .background(selectedStationCount == -1 ? LopanColors.primary : LopanColors.secondaryLight)
                 .foregroundColor(selectedStationCount == -1 ? .white : .primary)
                 .cornerRadius(8)
             }
@@ -1057,7 +1057,7 @@ struct AddProductSheet: View {
                                 }
                             }
                             .frame(height: 40)
-                            .background(selectedStations.contains(station) ? Color.blue : Color.gray.opacity(0.2))
+                            .background(selectedStations.contains(station) ? LopanColors.primary : LopanColors.secondaryLight)
                             .foregroundColor(selectedStations.contains(station) ? .white : .primary)
                             .cornerRadius(8)
                         }
@@ -1068,7 +1068,7 @@ struct AddProductSheet: View {
                             .font(.caption)
                             .foregroundColor(.red)
                             .padding()
-                            .background(Color.red.opacity(0.1))
+                            .background(LopanColors.errorLight)
                             .cornerRadius(8)
                     }
                 }
@@ -1107,17 +1107,17 @@ struct AddProductSheet: View {
                                     .frame(width: 20, height: 20)
                                     .overlay(
                                         Circle()
-                                            .stroke(Color.gray.opacity(0.3), lineWidth: 1)
+                                            .stroke(LopanColors.secondaryLight, lineWidth: 1)
                                     )
                             } else {
                                 Circle()
-                                    .fill(Color.gray.opacity(0.3))
+                                    .fill(LopanColors.secondaryLight)
                                     .frame(width: 20, height: 20)
                             }
                         }
                         .frame(maxWidth: .infinity)
                         .padding()
-                        .background(Color.blue.opacity(0.1))
+                        .background(LopanColors.primaryLight)
                         .cornerRadius(8)
                         
                         VStack(spacing: 4) {
@@ -1133,17 +1133,17 @@ struct AddProductSheet: View {
                                     .frame(width: 20, height: 20)
                                     .overlay(
                                         Circle()
-                                            .stroke(Color.gray.opacity(0.3), lineWidth: 1)
+                                            .stroke(LopanColors.secondaryLight, lineWidth: 1)
                                     )
                             } else {
                                 Circle()
-                                    .fill(Color.gray.opacity(0.3))
+                                    .fill(LopanColors.secondaryLight)
                                     .frame(width: 20, height: 20)
                             }
                         }
                         .frame(maxWidth: .infinity)
                         .padding()
-                        .background(Color.orange.opacity(0.1))
+                        .background(LopanColors.warningLight)
                         .cornerRadius(8)
                     }
                 }
@@ -1159,7 +1159,7 @@ struct AddProductSheet: View {
                         }
                         .frame(maxWidth: .infinity)
                         .padding(.vertical, 8)
-                        .background(selectedGun == "Gun A" ? Color.blue : (canSelectGunA ? Color.gray.opacity(0.2) : Color.red.opacity(0.2)))
+                        .background(selectedGun == "Gun A" ? LopanColors.primary : (canSelectGunA ? LopanColors.secondaryLight : LopanColors.errorLight))
                         .foregroundColor(selectedGun == "Gun A" ? .white : (canSelectGunA ? .primary : .red))
                         .cornerRadius(8)
                         .disabled(!canSelectGunA)
@@ -1185,7 +1185,7 @@ struct AddProductSheet: View {
                         }
                         .frame(maxWidth: .infinity)
                         .padding(.vertical, 8)
-                        .background(selectedGun == "Gun B" ? Color.blue : (canSelectGunB ? Color.gray.opacity(0.2) : Color.red.opacity(0.2)))
+                        .background(selectedGun == "Gun B" ? LopanColors.primary : (canSelectGunB ? LopanColors.secondaryLight : LopanColors.errorLight))
                         .foregroundColor(selectedGun == "Gun B" ? .white : (canSelectGunB ? .primary : .red))
                         .cornerRadius(8)
                         .disabled(!canSelectGunB)
@@ -1302,7 +1302,7 @@ struct AddProductSheet: View {
                         }
                     }
                     .frame(height: 40)
-                    .background(selectedStations.contains(station) ? Color.blue : Color.gray.opacity(0.2))
+                    .background(selectedStations.contains(station) ? LopanColors.primary : LopanColors.secondaryLight)
                     .foregroundColor(selectedStations.contains(station) ? .white : .primary)
                     .cornerRadius(8)
                 }
@@ -1582,7 +1582,7 @@ struct ReadOnlyColorRow: View {
                     .frame(width: 32, height: 32)
                     .overlay(
                         Circle()
-                            .stroke(Color.green, lineWidth: 2)
+                            .stroke(LopanColors.success, lineWidth: 2)
                     )
                 
                 VStack(alignment: .leading, spacing: 2) {
@@ -1602,7 +1602,7 @@ struct ReadOnlyColorRow: View {
                     .font(.caption)
                     .padding(.horizontal, 8)
                     .padding(.vertical, 4)
-                    .background(Color.green.opacity(0.1))
+                    .background(LopanColors.successLight)
                     .foregroundColor(.green)
                     .cornerRadius(4)
             }
@@ -1653,7 +1653,7 @@ struct ColorPickerRow: View {
                                     .frame(width: 32, height: 32)
                                     .overlay(
                                         Circle()
-                                            .stroke(selectedColor?.id == color.id ? Color.blue : Color.gray.opacity(0.3), lineWidth: selectedColor?.id == color.id ? 2 : 1)
+                                            .stroke(selectedColor?.id == color.id ? LopanColors.primary : LopanColors.secondaryLight, lineWidth: selectedColor?.id == color.id ? 2 : 1)
                                     )
                                 
                                 Text(color.name)
@@ -1740,7 +1740,7 @@ struct WorkflowProgressView: View {
                 ForEach(0..<steps.count, id: \.self) { index in
                     HStack {
                         Circle()
-                            .fill(index <= currentStep ? Color.blue : Color.gray.opacity(0.3))
+                            .fill(index <= currentStep ? LopanColors.primary : LopanColors.secondaryLight)
                             .frame(width: 20, height: 20)
                             .overlay(
                                 Text("\(index + 1)")
@@ -1751,7 +1751,7 @@ struct WorkflowProgressView: View {
                         
                         if index < steps.count - 1 {
                             Rectangle()
-                                .fill(index < currentStep ? Color.blue : Color.gray.opacity(0.3))
+                                .fill(index < currentStep ? LopanColors.primary : LopanColors.secondaryLight)
                                 .frame(height: 2)
                         }
                     }
@@ -1828,7 +1828,7 @@ struct ApprovalBatchRow: View {
                             .foregroundColor(.blue)
                             .padding(.horizontal, 6)
                             .padding(.vertical, 2)
-                            .background(Color.blue.opacity(0.1))
+                            .background(LopanColors.primaryLight)
                             .cornerRadius(4)
                     }
                     
@@ -1892,7 +1892,7 @@ struct ApprovalBatchRow: View {
                         .font(.caption)
                         .padding(.horizontal, 12)
                         .padding(.vertical, 4)
-                        .background(Color.blue)
+                        .background(LopanColors.primary)
                         .foregroundColor(.white)
                         .cornerRadius(4)
                         .onTapGesture {
@@ -1907,7 +1907,7 @@ struct ApprovalBatchRow: View {
                         .font(.caption)
                         .padding(.horizontal, 12)
                         .padding(.vertical, 4)
-                        .background(Color.orange)
+                        .background(LopanColors.warning)
                         .foregroundColor(.white)
                         .cornerRadius(4)
                         .onTapGesture {
@@ -2257,7 +2257,7 @@ struct BatchDetailsSheet: View {
                             .font(.subheadline)
                             .padding(.horizontal, 12)
                             .padding(.vertical, 8)
-                            .background(batch.status == .rejected ? Color.red.opacity(0.1) : Color.green.opacity(0.1))
+                            .background(batch.status == .rejected ? LopanColors.errorLight : LopanColors.successLight)
                             .foregroundColor(batch.status == .rejected ? .red : .green)
                             .cornerRadius(8)
                     }
@@ -2337,7 +2337,7 @@ struct BatchDetailsSheet: View {
                                         .foregroundColor(.secondary)
                                         .padding(.horizontal, 12)
                                         .padding(.vertical, 8)
-                                        .background(Color.gray.opacity(0.1))
+                                        .background(LopanColors.secondary.opacity(0.1))
                                         .cornerRadius(8)
                                 }
                             }*/
@@ -2463,11 +2463,11 @@ struct BatchDetailsSheet: View {
                             .fontWeight(.medium)
                             .foregroundColor(.red)
                             .frame(maxWidth: .infinity, minHeight: 44)
-                            .background(Color.red.opacity(0.1))
+                            .background(LopanColors.errorLight)
                             .cornerRadius(12)
                             .overlay(
                                 RoundedRectangle(cornerRadius: 12)
-                                    .stroke(Color.red.opacity(0.5), lineWidth: 1)
+                                    .stroke(LopanColors.error.opacity(0.5), lineWidth: 1)
                             )
                             
                             Button(action: confirmExecution) {
@@ -2481,7 +2481,7 @@ struct BatchDetailsSheet: View {
                                 }
                                 .foregroundColor(.white)
                                 .frame(maxWidth: .infinity, minHeight: 44)
-                                .background(canConfirm ? Color.blue : Color.gray)
+                                .background(canConfirm ? LopanColors.primary : LopanColors.secondary)
                                 .cornerRadius(12)
                             }
                             .disabled(!canConfirm)
@@ -2598,7 +2598,7 @@ struct ProductDetailRow: View {
                         .font(.caption)
                         .padding(.horizontal, 8)
                         .padding(.vertical, 4)
-                        .background(Color.gray.opacity(0.2))
+                        .background(LopanColors.secondaryLight)
                         .cornerRadius(4)
                 }
             }
@@ -2658,7 +2658,7 @@ struct ColorDetailDot: View {
                     .frame(width: 16, height: 16)
                     .overlay(
                         Circle()
-                            .stroke(Color.gray.opacity(0.3), lineWidth: 1)
+                            .stroke(LopanColors.secondaryLight, lineWidth: 1)
                     )
                 
                 Text(label)
@@ -2738,7 +2738,7 @@ struct StationDetailIndicator: View {
     var body: some View {
         VStack(spacing: 2) {
             RoundedRectangle(cornerRadius: 4)
-                .fill(isOccupied ? Color.blue : Color.gray.opacity(0.3))
+                .fill(isOccupied ? LopanColors.primary : LopanColors.secondaryLight)
                 .frame(width: 32, height: 20)
                 .overlay(
                     Text("\(stationNumber)")

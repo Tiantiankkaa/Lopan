@@ -126,7 +126,7 @@ struct ReportGeneratorView: View {
                     .padding(.vertical, 12)
                     .background(
                         Rectangle()
-                            .fill(selectedTab == tab ? Color.blue.opacity(0.1) : Color.clear)
+                            .fill(selectedTab == tab ? LopanColors.primary.opacity(0.1) : Color.clear)
                     )
                 }
                 .buttonStyle(PlainButtonStyle())
@@ -376,7 +376,7 @@ struct ReportGeneratorView: View {
                 .padding()
                 .background(
                     RoundedRectangle(cornerRadius: 12)
-                        .fill(Color.blue)
+                        .fill(LopanColors.primary)
                 )
             }
         }
@@ -529,11 +529,11 @@ struct ReportTypeCard: View {
             .padding()
             .background(
                 RoundedRectangle(cornerRadius: 8)
-                    .fill(isSelected ? Color.blue : Color(.tertiarySystemBackground))
+                    .fill(isSelected ? LopanColors.primary : Color(.tertiarySystemBackground))
             )
             .overlay(
                 RoundedRectangle(cornerRadius: 8)
-                    .stroke(isSelected ? Color.blue : Color.clear, lineWidth: 2)
+                    .stroke(isSelected ? LopanColors.primary : Color.clear, lineWidth: 2)
             )
         }
         .buttonStyle(PlainButtonStyle())
@@ -556,7 +556,7 @@ struct TimePeriodChip: View {
                 .padding(.vertical, 6)
                 .background(
                     RoundedRectangle(cornerRadius: 12)
-                        .fill(isSelected ? Color.blue : Color(.tertiarySystemBackground))
+                        .fill(isSelected ? LopanColors.primary : Color(.tertiarySystemBackground))
                 )
                 .foregroundColor(isSelected ? .white : .primary)
         }
@@ -580,7 +580,7 @@ struct FormatChip: View {
                 .padding(.vertical, 6)
                 .background(
                     RoundedRectangle(cornerRadius: 12)
-                        .fill(isSelected ? Color.blue : Color(.tertiarySystemBackground))
+                        .fill(isSelected ? LopanColors.primary : Color(.tertiarySystemBackground))
                 )
                 .foregroundColor(isSelected ? .white : .primary)
         }
@@ -743,7 +743,7 @@ struct ReportHistoryCard: View {
                 .frame(width: 40, height: 40)
                 .background(
                     RoundedRectangle(cornerRadius: 8)
-                        .fill(Color.blue.opacity(0.1))
+                        .fill(LopanColors.primary.opacity(0.1))
                 )
             
             // Report info
@@ -898,7 +898,7 @@ struct GeneratedReportView: View {
             .padding()
             .background(
                 RoundedRectangle(cornerRadius: 12)
-                    .fill(Color.blue)
+                    .fill(LopanColors.primary)
             )
             
             HStack(spacing: 12) {
@@ -911,7 +911,7 @@ struct GeneratedReportView: View {
                 .padding()
                 .background(
                     RoundedRectangle(cornerRadius: 8)
-                        .stroke(Color.blue, lineWidth: 1)
+                        .stroke(LopanColors.primary, lineWidth: 1)
                 )
                 
                 Button("保存到文件") {
@@ -923,7 +923,7 @@ struct GeneratedReportView: View {
                 .padding()
                 .background(
                     RoundedRectangle(cornerRadius: 8)
-                        .stroke(Color.blue, lineWidth: 1)
+                        .stroke(LopanColors.primary, lineWidth: 1)
                 )
             }
         }

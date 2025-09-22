@@ -81,10 +81,10 @@ struct AdaptiveDateNavigationBar: View {
                                 .padding(.vertical, 6)
                                 .background(
                                     RoundedRectangle(cornerRadius: 16)
-                                        .fill(Color.blue.opacity(0.08))
+                                        .fill(LopanColors.primary.opacity(0.08))
                                         .overlay(
                                             RoundedRectangle(cornerRadius: 16)
-                                                .stroke(Color.blue.opacity(0.2), lineWidth: 1)
+                                                .stroke(LopanColors.primary.opacity(0.2), lineWidth: 1)
                                         )
                                 )
                             }
@@ -115,10 +115,10 @@ struct AdaptiveDateNavigationBar: View {
                             .padding(.vertical, 6)
                             .background(
                                 RoundedRectangle(cornerRadius: 16)
-                                    .fill(Color.red.opacity(0.08))
+                                    .fill(LopanColors.error.opacity(0.08))
                                     .overlay(
                                         RoundedRectangle(cornerRadius: 16)
-                                            .stroke(Color.red.opacity(0.2), lineWidth: 1)
+                                            .stroke(LopanColors.error.opacity(0.2), lineWidth: 1)
                                     )
                             )
                         }
@@ -177,7 +177,7 @@ struct AdaptiveDateNavigationBar: View {
                 .frame(width: 36, height: 36)
                 .background(
                     Circle()
-                        .fill(enabled ? Color.blue.opacity(0.12) : Color.secondary.opacity(0.12))
+                        .fill(enabled ? LopanColors.primary.opacity(0.12) : Color.secondary.opacity(0.12))
                 )
         }
         .buttonStyle(.plain)
@@ -210,10 +210,10 @@ private struct DateDisplayView: View {
             .padding(.vertical, 6)
             .background(
                 RoundedRectangle(cornerRadius: 16)
-                    .fill(Color.blue.opacity(isEnabled ? 0.08 : 0.04))
+                    .fill(LopanColors.primary.opacity(isEnabled ? 0.08 : 0.04))
                     .overlay(
                         RoundedRectangle(cornerRadius: 16)
-                            .stroke(Color.blue.opacity(isEnabled ? 0.2 : 0.1), lineWidth: 1)
+                            .stroke(LopanColors.primary.opacity(isEnabled ? 0.2 : 0.1), lineWidth: 1)
                     )
             )
         }
@@ -272,7 +272,7 @@ private struct FilterSummaryDisplayView: View {
                         .frame(minWidth: 14, minHeight: 14)
                         .background(
                             Circle()
-                                .fill(Color.blue)
+                                .fill(LopanColors.primary)
                         )
                 }
             }
@@ -280,10 +280,10 @@ private struct FilterSummaryDisplayView: View {
             .padding(.vertical, 6)
             .background(
                 RoundedRectangle(cornerRadius: 16)
-                    .fill(Color.blue.opacity(0.08))
+                    .fill(LopanColors.primary.opacity(0.08))
                     .overlay(
                         RoundedRectangle(cornerRadius: 16)
-                            .stroke(Color.blue.opacity(0.2), lineWidth: 1)
+                            .stroke(LopanColors.primary.opacity(0.2), lineWidth: 1)
                     )
             )
         }

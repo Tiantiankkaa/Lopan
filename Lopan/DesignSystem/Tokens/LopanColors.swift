@@ -68,6 +68,14 @@ struct LopanColors {
     static let glassMorphism = Color.white.opacity(0.1)
     static let glassMorphismStrong = Color.white.opacity(0.2)
     
+    // MARK: - Interaction Colors
+    static let selection = primary
+    static let selectionLight = primaryLight
+    static let disabled = secondary
+    static let placeholder = secondaryLight
+    static let destructive = error
+    static let highlight = primaryLight
+
     // MARK: - Status Colors (for production management)
     static let statusPending = warning
     static let statusInProgress = info

@@ -48,7 +48,7 @@ struct DelightfulLoadingView: View {
                 Circle()
                     .stroke(
                         LinearGradient(
-                            colors: [Color.blue.opacity(0.3), Color.blue.opacity(0.1)],
+                            colors: [LopanColors.primary.opacity(0.3), LopanColors.primary.opacity(0.1)],
                             startPoint: .topLeading,
                             endPoint: .bottomTrailing
                         ),
@@ -60,7 +60,7 @@ struct DelightfulLoadingView: View {
                 // Inner rotating elements
                 ForEach(0..<8) { index in
                     Circle()
-                        .fill(Color.blue.opacity(0.7))
+                        .fill(LopanColors.primary.opacity(0.7))
                         .frame(width: 8, height: 8)
                         .offset(y: -30)
                         .rotationEffect(.degrees(Double(index) * 45 + rotationAngle))
@@ -86,12 +86,12 @@ struct DelightfulLoadingView: View {
             // Compact spinner
             ZStack {
                 Circle()
-                    .stroke(Color.blue.opacity(0.3), lineWidth: 2)
+                    .stroke(LopanColors.primary.opacity(0.3), lineWidth: 2)
                     .frame(width: 20, height: 20)
                 
                 Circle()
                     .trim(from: 0, to: 0.7)
-                    .stroke(Color.blue, lineWidth: 2)
+                    .stroke(LopanColors.primary, lineWidth: 2)
                     .frame(width: 20, height: 20)
                     .rotationEffect(.degrees(rotationAngle))
             }
@@ -123,7 +123,7 @@ struct DelightfulLoadingView: View {
             HStack(spacing: 4) {
                 ForEach(0..<3) { index in
                     Circle()
-                        .fill(Color.blue)
+                        .fill(LopanColors.primary)
                         .frame(width: 6, height: 6)
                         .scaleEffect(1.0 + 0.5 * sin(wavePhase + Double(index) * 0.5))
                         .animation(
@@ -271,7 +271,7 @@ struct SimplePullToRefreshIndicator: View {
                 
                 Circle()
                     .trim(from: 0, to: pullProgress)
-                    .stroke(Color.blue, lineWidth: 2)
+                    .stroke(LopanColors.primary, lineWidth: 2)
                     .frame(width: 30, height: 30)
                     .rotationEffect(.degrees(-90))
                 
