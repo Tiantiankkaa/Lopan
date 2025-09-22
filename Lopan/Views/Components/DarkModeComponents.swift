@@ -211,7 +211,7 @@ struct DarkModeSettingsView: View {
     @Environment(\.dismiss) private var dismiss
     
     var body: some View {
-        ModernNavigationStack {
+        NavigationStack {
             List {
                 Section(header: Text("外观设置")) {
                     ThemeOption(

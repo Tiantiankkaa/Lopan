@@ -1042,7 +1042,7 @@ struct EditProductView: View {
     }
     
     var body: some View {
-        ModernNavigationStack {
+        NavigationStack {
             Form {
                 Section("产品信息") {
                     TextField("产品名称", text: $name)

@@ -454,12 +454,12 @@ struct ProductPreviewCard: View {
             Text(String(format: "batch_management_product_card_stations".localized, product.occupiedStationsDisplay))
                 .font(.caption2)
                 .foregroundColor(.secondary)
-            
-                if product.isDualColor {
-                    Text("batch_management_product_card_dual_color".localized)
-                        .font(.caption2)
-                        .foregroundColor(LopanColors.info)
-                }
+
+            if product.isDualColor {
+                Text("batch_management_product_card_dual_color".localized)
+                    .font(.caption2)
+                    .foregroundColor(LopanColors.info)
+            }
         }
         .padding(8)
         .background(Color(UIColor.tertiarySystemBackground))
@@ -600,9 +600,11 @@ struct ReviewSheet: View {
     @Binding var notes: String
     @ObservedObject var batchService: ProductionBatchService
     let onDismiss: () -> Void
-    
+
     @State private var isProcessing = false
     @State private var showingRejectConfirmation = false
+
+    private var snapshot: BatchDetailInfo { BatchDetailInfo(from: batch) }
     
     var actionColor: Color {
         action == .approve ? .green : .red
@@ -663,7 +665,7 @@ struct ReviewSheet: View {
     // MARK: - Batch Summary Section
     private var batchSummarySection: some View {
         let detail = snapshot
-        VStack(spacing: 12) {
+        return VStack(spacing: 12) {
             Text("batch_management_summary_title".localized)
                 .font(.headline)
                 .fontWeight(.semibold)
@@ -720,8 +722,8 @@ struct ReviewSheet: View {
         .confirmationDialog(
             "batch_management_confirm_reject_title".localized,
             isPresented: $showingRejectConfirmation,
-            presenting: batch,
-            titleVisibility: .visible
+            titleVisibility: .visible,
+            presenting: batch
         ) { _ in
             Button("batch_management_confirm_reject_confirm".localized, role: .destructive) {
                 performReviewAction()
@@ -818,7 +820,7 @@ struct BatchDetailView: View {
     // MARK: - Batch Info Section
     private var batchInfoSection: some View {
         let detail = snapshot
-        VStack(spacing: 12) {
+        return VStack(spacing: 12) {
             Text("batch_management_info_section_title".localized)
                 .font(.headline)
                 .fontWeight(.semibold)
@@ -841,7 +843,7 @@ struct BatchDetailView: View {
     // MARK: - Products Section
     private var productsSection: some View {
         let detail = snapshot
-        VStack(spacing: 12) {
+        return VStack(spacing: 12) {
             Text("batch_management_products_section_title".localized)
                 .font(.headline)
                 .fontWeight(.semibold)
@@ -858,7 +860,7 @@ struct BatchDetailView: View {
     // MARK: - Review Info Section
     private var reviewInfoSection: some View {
         let detail = snapshot
-        VStack(spacing: 12) {
+        return VStack(spacing: 12) {
             Text("batch_management_review_info_title".localized)
                 .font(.headline)
                 .fontWeight(.semibold)
@@ -894,7 +896,7 @@ struct BatchDetailView: View {
     // MARK: - Timeline Section
     private var timelineSection: some View {
         let detail = snapshot
-        VStack(spacing: 12) {
+        return VStack(spacing: 12) {
             Text("batch_management_timeline_title".localized)
                 .font(.headline)
                 .fontWeight(.semibold)

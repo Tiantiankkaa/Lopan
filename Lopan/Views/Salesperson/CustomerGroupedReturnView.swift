@@ -765,7 +765,7 @@ struct BatchCustomerReturnProcessingView: View {
     @Environment(\.dismiss) private var dismiss
     
     var body: some View {
-        ModernNavigationStack {
+        NavigationStack {
             VStack {
                 Text("批量还货处理功能开发中...")
                     .font(.headline)
