@@ -593,9 +593,9 @@ struct SimplifiedAdministratorDashboardView: View {
                         auditService: appDependencies.auditingService
                     )
                 case "SystemOverview":
-                    SystemOverviewView()
+                    SystemConfigurationView()
                 case "ProductionOverview":
-                    ProductionOverviewView()
+                    AnalyticsDashboardView(serviceFactory: appDependencies.serviceFactory)
                 default:
                     Text("Unknown destination")
                 }
