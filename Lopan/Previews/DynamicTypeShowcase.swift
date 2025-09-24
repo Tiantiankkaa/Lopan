@@ -39,11 +39,7 @@ struct DynamicTypeShowcase: View {
                     }
 
                     DynamicTypeComponentTest {
-                        CustomerOutOfStockCardShowcase()
-                    }
-
-                    DynamicTypeComponentTest {
-                        BatchProcessingCardShowcase()
+                        TextStyleShowcase()
                     }
                 }
                 .padding()
@@ -63,19 +59,19 @@ struct LopanButtonShowcase: View {
                 .font(LopanTypography.headlineMedium)
 
             LopanButton(
-                title: "Primary Action Button with Long Text",
+                "Primary Action Button with Long Text",
                 style: .primary,
                 size: .large
             ) { }
 
             LopanButton(
-                title: "Secondary",
+                "Secondary",
                 style: .secondary,
                 size: .medium
             ) { }
 
             LopanButton(
-                title: "Small Button",
+                "Small Button",
                 style: .tertiary,
                 size: .small
             ) { }
@@ -136,74 +132,37 @@ struct QuickStatCardShowcase: View {
             QuickStatCard(
                 title: "Total Out-of-Stock Items",
                 value: "1,234",
-                subtitle: "Across all customers this week",
-                trend: .up,
-                trendValue: "+12.5%"
+                icon: "exclamationmark.triangle.fill",
+                color: LopanColors.warning,
+                trend: .up
             )
         }
     }
 }
 
-struct CustomerOutOfStockCardShowcase: View {
+struct TextStyleShowcase: View {
     var body: some View {
         VStack(spacing: 12) {
-            Text("Customer Out-of-Stock Card at XL Sizes")
+            Text("Typography at XL Sizes")
                 .font(LopanTypography.headlineMedium)
 
-            OutOfStockCardView(
-                customerName: "ABC Manufacturing Company Ltd.",
-                productName: "High-Precision Metal Component Series X",
-                quantity: 500,
-                requestDate: Date(),
-                status: .pending,
-                priority: .high,
-                onTap: { },
-                onEdit: { },
-                onDelete: { }
-            )
-        }
-    }
-}
+            VStack(alignment: .leading, spacing: 8) {
+                Text("Display Large")
+                    .font(LopanTypography.displayLarge)
 
-struct BatchProcessingCardShowcase: View {
-    var body: some View {
-        VStack(spacing: 12) {
-            Text("Batch Processing at XL Sizes")
-                .font(LopanTypography.headlineMedium)
+                Text("Headline Medium")
+                    .font(LopanTypography.headlineMedium)
 
-            VStack(alignment: .leading, spacing: 16) {
-                HStack {
-                    Text("Batch #2024-09-001")
-                        .font(LopanTypography.titleLarge)
+                Text("Title Large - This is a longer title that demonstrates how text wraps at different Dynamic Type sizes")
+                    .font(LopanTypography.titleLarge)
 
-                    Spacer()
+                Text("Body Medium - This body text shows how readable content scales with Dynamic Type settings. It should remain legible and properly spaced at all accessibility sizes.")
+                    .font(LopanTypography.bodyMedium)
+                    .foregroundColor(LopanColors.textSecondary)
 
-                    LopanBadge("In Progress", style: .info)
-                }
-
-                VStack(alignment: .leading, spacing: 8) {
-                    Text("Machine Assignment: Workshop Line A")
-                        .font(LopanTypography.bodyMedium)
-
-                    Text("Products: High-Volume Production Run with Multiple Components")
-                        .font(LopanTypography.bodyMedium)
-                        .foregroundColor(LopanColors.textSecondary)
-
-                    Text("Estimated Completion: Tomorrow 2:30 PM")
-                        .font(LopanTypography.labelMedium)
-                        .foregroundColor(LopanColors.textTertiary)
-                }
-
-                HStack {
-                    Text("Progress")
-                        .font(LopanTypography.labelMedium)
-
-                    Spacer()
-
-                    Text("67%")
-                        .font(LopanTypography.labelMedium)
-                        .fontWeight(.medium)
-                }
+                Text("Label Medium - Metadata text")
+                    .font(LopanTypography.labelMedium)
+                    .foregroundColor(LopanColors.textTertiary)
             }
             .padding()
             .background(LopanColors.surface)
@@ -305,5 +264,4 @@ struct DynamicTypeComponentTest<Content: View>: View {
 #Preview("High Contrast") {
     DynamicTypeShowcase()
         .environment(\.dynamicTypeSize, .accessibility5)
-        .environment(\.accessibilityDifferentiateWithoutColor, true)
 }
