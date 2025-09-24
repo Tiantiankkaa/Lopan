@@ -232,6 +232,24 @@
 "admin_analytics_detail_trends_heading" = "趋势预测详细分析";
 "admin_analytics_detail_trends_title" = "趋势预测";
 
+/* Development and Testing (Phase 1 Completion) */
+"dependency_injection" = "依赖注入";
+"app_dependencies" = "应用依赖";
+"repository_factory" = "数据仓库工厂";
+"service_factory" = "服务工厂";
+"authentication_service" = "身份验证服务";
+"customer_out_of_stock_dependencies" = "客户缺货依赖";
+"customer_out_of_stock_management" = "客户缺货管理";
+"customer_repository" = "客户数据仓库";
+"product_repository" = "产品数据仓库";
+"production_dependencies" = "生产依赖";
+"production_management" = "生产管理";
+"machine_service" = "机台服务";
+"production_batch_service" = "生产批次服务";
+"user_management_dependencies" = "用户管理依赖";
+"user_service" = "用户服务";
+"mock_dependencies_example" = "模拟依赖示例";
+
 /* Shared Analytics Components */
 "analytics_metrics_selector_accessibility_label" = "生产指标选择器";
 "analytics_metrics_selector_accessibility_hint" = "左右滑动并轻点以切换不同的生产指标";
