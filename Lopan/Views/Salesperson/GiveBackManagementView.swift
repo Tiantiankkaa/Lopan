@@ -271,7 +271,7 @@ struct GiveBackManagementView: View {
                     .foregroundColor(.secondary)
             }
             .padding(12)
-            .background(Color(.systemGray6))
+            .background(LopanColors.backgroundSecondary)
             .cornerRadius(10)
         }
         .accessibilityLabel("选择还货状态")
@@ -307,7 +307,7 @@ struct GiveBackManagementView: View {
                     .foregroundColor(.secondary)
             }
             .padding(12)
-            .background(Color(.systemGray6))
+            .background(LopanColors.backgroundSecondary)
             .cornerRadius(10)
         }
         .accessibilityLabel("选择客户")
@@ -343,7 +343,7 @@ struct GiveBackManagementView: View {
                     .foregroundColor(.secondary)
             }
             .padding(12)
-            .background(Color(.systemGray6))
+            .background(LopanColors.backgroundSecondary)
             .cornerRadius(10)
         }
         .accessibilityLabel("选择地址")
@@ -359,7 +359,7 @@ struct GiveBackManagementView: View {
             }
             .padding(.horizontal)
             .padding(.vertical, 8)
-            .background(Color(.systemGray6))
+            .background(LopanColors.backgroundSecondary)
             .cornerRadius(8)
             
             if isFilteringByDate {
@@ -371,7 +371,7 @@ struct GiveBackManagementView: View {
                 .datePickerStyle(.compact)
                 .padding(.horizontal)
                 .padding(.vertical, 8)
-                .background(Color(.systemGray6))
+                .background(LopanColors.backgroundSecondary)
                 .cornerRadius(8)
             }
         }
@@ -617,7 +617,7 @@ struct ReturnGoodsRowView: View {
             if isEditing {
                 Button(action: onSelect) {
                     Image(systemName: isSelected ? "checkmark.circle.fill" : "circle")
-                        .foregroundColor(isSelected ? .blue : .gray)
+                        .foregroundColor(isSelected ? LopanColors.primary : LopanColors.secondary)
                         .font(.title2)
                 }
                 .buttonStyle(PlainButtonStyle())
@@ -627,7 +627,7 @@ struct ReturnGoodsRowView: View {
                 HStack {
                     Text(item.customerDisplayName)
                         .font(.headline)
-                        .dynamicTypeSize(.small...DynamicTypeSize.accessibility1)
+                        // Removed Dynamic Type constraint for full accessibility support
                     
                     Spacer()
                     
@@ -674,7 +674,7 @@ struct ReturnGoodsRowView: View {
         }
         .padding(.vertical, 12)
         .padding(.horizontal, 16)
-        .background(isSelected ? LopanColors.info.opacity(0.1) : Color.clear)
+        .background(isSelected ? LopanColors.info.opacity(0.1) : LopanColors.clear)
         .cornerRadius(8)
     }
     
@@ -692,13 +692,13 @@ struct ReturnGoodsRowView: View {
     
     private var returnStatusColor: Color {
         if item.isFullyReturned {
-            return .green
+            return LopanColors.success
         } else if item.hasPartialReturn {
-            return .blue
+            return LopanColors.primary
         } else if item.needsReturn {
-            return .orange
+            return LopanColors.warning
         } else {
-            return .gray
+            return LopanColors.textSecondary
         }
     }
 }

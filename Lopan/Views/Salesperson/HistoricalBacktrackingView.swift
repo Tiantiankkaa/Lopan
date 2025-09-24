@@ -174,7 +174,7 @@ struct HistoricalBacktrackingView: View {
                 }
                 .padding(.horizontal)
                 .padding(.vertical, 8)
-                .background(Color(.systemGray6))
+                .background(LopanColors.backgroundSecondary)
                 .cornerRadius(10)
             }
             .padding(.horizontal)
@@ -188,8 +188,8 @@ struct HistoricalBacktrackingView: View {
                                 .font(.subheadline)
                                 .padding(.horizontal, 16)
                                 .padding(.vertical, 8)
-                                .background(dateRange == range ? Color.blue : Color(.systemGray6))
-                                .foregroundColor(dateRange == range ? .white : .primary)
+                                .background(dateRange == range ? LopanColors.primary : LopanColors.backgroundSecondary)
+                                .foregroundColor(dateRange == range ? LopanColors.textPrimary : .primary)
                                 .cornerRadius(20)
                         }
                     }
@@ -208,28 +208,28 @@ struct HistoricalBacktrackingView: View {
                     title: "总操作数",
                     value: "\(filteredAuditLogs.count)",
                     icon: "chart.bar.fill",
-                    color: .blue
+                    color: LopanColors.primary
                 )
                 
                 HistoryStatCard(
                     title: "今日操作",
                     value: "\(todayOperationsCount)",
                     icon: "calendar.badge.clock",
-                    color: .orange
+                    color: LopanColors.warning
                 )
                 
                 HistoryStatCard(
                     title: "活跃用户",
                     value: "\(activeUsersCount)",
                     icon: "person.3.fill",
-                    color: .green
+                    color: LopanColors.success
                 )
                 
                 HistoryStatCard(
                     title: "缺货操作",
                     value: "\(outOfStockOperationsCount)",
                     icon: "exclamationmark.triangle.fill",
-                    color: .red
+                    color: LopanColors.error
                 )
             }
             .padding(.horizontal)
@@ -255,20 +255,20 @@ struct HistoricalBacktrackingView: View {
             
             Image(systemName: "clock.arrow.circlepath")
                 .font(.system(size: 60))
-                .foregroundColor(.gray.opacity(0.6))
+                .foregroundColor(LopanColors.textSecondary.opacity(0.6))
             
             Text("暂无操作记录")
                 .font(.title2)
                 .fontWeight(.semibold)
                 .foregroundColor(.secondary)
-                .dynamicTypeSize(.small...DynamicTypeSize.accessibility1)
+                
             
             Text("在选定的时间范围内没有找到匹配的操作记录")
                 .font(.body)
                 .foregroundColor(.secondary)
                 .multilineTextAlignment(.center)
                 .padding(.horizontal, 40)
-                .dynamicTypeSize(.small...DynamicTypeSize.accessibility1)
+                
             
             Button("重置筛选条件") {
                 resetFilters()
@@ -379,14 +379,14 @@ struct AuditLogRow: View {
     
     private var operationColor: Color {
         switch log.operationType.color {
-        case "green": return .green
-        case "blue": return .blue
-        case "red": return .red
-        case "orange": return .orange
-        case "purple": return .purple
-        case "indigo": return .indigo
-        case "teal": return .teal
-        default: return .gray
+        case "green": return LopanColors.success
+        case "blue": return LopanColors.primary
+        case "red": return LopanColors.error
+        case "orange": return LopanColors.warning
+        case "purple": return LopanColors.primary
+        case "indigo": return LopanColors.primary
+        case "teal": return LopanColors.primary
+        default: return LopanColors.textSecondary
         }
     }
 }
@@ -411,16 +411,16 @@ struct HistoryStatCard: View {
                 .font(.title2)
                 .fontWeight(.bold)
                 .foregroundColor(color)
-                .dynamicTypeSize(.small...DynamicTypeSize.accessibility1)
+                
             
             Text(title)
                 .font(.caption)
                 .foregroundColor(.secondary)
-                .dynamicTypeSize(.small...DynamicTypeSize.accessibility1)
+                
         }
         .padding()
         .frame(width: 120)
-        .background(Color(.systemGray6).opacity(0.5))
+        .background(LopanColors.backgroundSecondary.opacity(0.5))
         .cornerRadius(12)
         .accessibilityElement(children: .combine)
         .accessibilityLabel("\(title): \(value)")

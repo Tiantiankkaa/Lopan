@@ -77,7 +77,7 @@ struct EnhancedReturnGoodsRowView: View {
                             .font(.headline)
                             .fontWeight(.semibold)
                             .foregroundColor(.primary)
-                            .dynamicTypeSize(.small...DynamicTypeSize.accessibility2)
+                            
                             .lineLimit(1)
                         
                         Text(item.customer?.address ?? "地址已删除")
@@ -116,7 +116,7 @@ struct EnhancedReturnGoodsRowView: View {
                         .fontWeight(.medium)
                         .foregroundColor(.primary)
                         .lineLimit(2)
-                        .dynamicTypeSize(.small...DynamicTypeSize.accessibility1)
+                        
                     
                     // Quantity Information Grid
                     LazyVGrid(columns: [
@@ -165,17 +165,17 @@ struct EnhancedReturnGoodsRowView: View {
         .padding(16)
         .background(
             RoundedRectangle(cornerRadius: 12)
-                .fill(isSelected ? Color.blue.opacity(0.05) : Color(.systemBackground))
+                .fill(isSelected ? LopanColors.primary.opacity(0.05) : LopanColors.background)
         )
         .overlay(
             RoundedRectangle(cornerRadius: 12)
                 .stroke(
-                    isSelected ? Color.blue.opacity(0.3) : Color(.systemGray5),
+                    isSelected ? LopanColors.primary.opacity(0.3) : LopanColors.border,
                     lineWidth: isSelected ? 1.5 : 0.5
                 )
         )
         .shadow(
-            color: isSelected ? Color.blue.opacity(0.1) : Color.black.opacity(0.05),
+            color: isSelected ? LopanColors.primary.opacity(0.1) : LopanColors.shadow,
             radius: isSelected ? 4 : 2,
             x: 0,
             y: isSelected ? 2 : 1
@@ -286,10 +286,10 @@ struct EmptyReturnStateView: View {
                     }
                     .font(.subheadline)
                     .fontWeight(.medium)
-                    .foregroundColor(.white)
+                    .foregroundColor(LopanColors.textPrimary)
                     .padding(.horizontal, 20)
                     .padding(.vertical, 12)
-                    .background(Color.blue)
+                    .background(LopanColors.primary)
                     .cornerRadius(20)
                 }
                 .accessibilityLabel("初始化示例数据")

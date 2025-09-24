@@ -130,7 +130,7 @@ struct CustomerGroupedReturnView: View {
             if isLoading {
                 ProgressView("正在加载...")
                     .frame(maxWidth: .infinity, maxHeight: .infinity)
-                    .background(Color.black.opacity(0.3))
+                    .background(LopanColors.shadow.opacity(0.5))
             }
         }
         .navigationDestination(item: $selectedGroupForDetail) { group in
@@ -148,11 +148,11 @@ struct CustomerGroupedReturnView: View {
                     
                     TextField("搜索客户姓名或地址", text: $searchText)
                         .font(.subheadline)
-                        .dynamicTypeSize(.small...DynamicTypeSize.accessibility1)
+                        
                 }
                 .padding(.horizontal, 12)
                 .padding(.vertical, 10)
-                .background(Color(.systemGray6))
+                .background(LopanColors.backgroundSecondary)
                 .cornerRadius(10)
                 
                 if !searchText.isEmpty {
@@ -195,7 +195,7 @@ struct CustomerGroupedReturnView: View {
                         selectedCustomerGroups.removeAll()
                     }
                 }
-                .foregroundColor(.red)
+                .foregroundColor(LopanColors.error)
                 
                 Spacer()
                 
@@ -210,7 +210,7 @@ struct CustomerGroupedReturnView: View {
                         showingBatchProcessing = true
                     }
                 }
-                .foregroundColor(selectedCustomerGroups.isEmpty ? .secondary : .blue)
+                .foregroundColor(selectedCustomerGroups.isEmpty ? LopanColors.textSecondary : LopanColors.primary)
                 .disabled(selectedCustomerGroups.isEmpty)
             }
             
@@ -246,14 +246,14 @@ struct CustomerGroupedReturnView: View {
             EnhancedStatCard(
                 title: "客户数量",
                 count: filteredGroups.count,
-                color: .blue,
+                color: LopanColors.primary,
                 icon: "person.2.fill"
             )
             
             EnhancedStatCard(
                 title: "可还货量",
                 count: filteredGroups.reduce(0) { $0 + $1.returnableQuantity },
-                color: .orange,
+                color: LopanColors.warning,
                 icon: "arrow.uturn.left.fill"
             )
             
@@ -261,7 +261,7 @@ struct CustomerGroupedReturnView: View {
                 EnhancedStatCard(
                     title: "已选中",
                     count: selectedCustomerGroups.count,
-                    color: .green,
+                    color: LopanColors.success,
                     icon: "checkmark.circle.fill"
                 )
             }
@@ -370,7 +370,7 @@ struct EnhancedCustomerGroupRowView: View {
                     onSelectionChanged(!isSelected)
                 }) {
                     Image(systemName: isSelected ? "checkmark.circle.fill" : "circle")
-                        .foregroundColor(isSelected ? .blue : .gray)
+                        .foregroundColor(isSelected ? LopanColors.primary : LopanColors.textSecondary)
                         .font(.title2)
                         .frame(width: 24, height: 24)
                 }
@@ -392,7 +392,7 @@ struct EnhancedCustomerGroupRowView: View {
                             Text(String(group.customer.name.prefix(1)))
                                 .font(.headline)
                                 .fontWeight(.bold)
-                                .foregroundColor(.white)
+                                .foregroundColor(LopanColors.textPrimary)
                         )
                     
                     // Customer Information
@@ -404,7 +404,7 @@ struct EnhancedCustomerGroupRowView: View {
                                 .font(.headline)
                                 .fontWeight(.semibold)
                                 .foregroundColor(.primary)
-                                .dynamicTypeSize(.small...DynamicTypeSize.accessibility2)
+                                
                                 .lineLimit(1)
                             
                             Text(group.customer.address)
@@ -427,7 +427,7 @@ struct EnhancedCustomerGroupRowView: View {
                             .padding(.horizontal, 8)
                             .padding(.vertical, 4)
                             .background(LopanColors.warning.opacity(0.15))
-                            .foregroundColor(.orange)
+                            .foregroundColor(LopanColors.warning)
                             .cornerRadius(12)
                         } else {
                             HStack(spacing: 4) {
@@ -440,7 +440,7 @@ struct EnhancedCustomerGroupRowView: View {
                             .padding(.horizontal, 8)
                             .padding(.vertical, 4)
                             .background(LopanColors.success.opacity(0.15))
-                            .foregroundColor(.green)
+                            .foregroundColor(LopanColors.success)
                             .cornerRadius(12)
                         }
                     }
@@ -467,14 +467,14 @@ struct EnhancedCustomerGroupRowView: View {
                         StatisticItem(
                             title: "可还货",
                             value: "\(group.returnableQuantity)",
-                            color: group.returnableQuantity > 0 ? .orange : .secondary
+                            color: group.returnableQuantity > 0 ? LopanColors.warning : LopanColors.textSecondary
                         )
                         
                         if group.returnedQuantity > 0 {
                             StatisticItem(
                                 title: "已还货",
                                 value: "\(group.returnedQuantity)",
-                                color: .blue
+                                color: LopanColors.primary
                             )
                         }
                     }
@@ -499,7 +499,7 @@ struct EnhancedCustomerGroupRowView: View {
         .overlay(
             RoundedRectangle(cornerRadius: 12)
                 .stroke(
-                    isSelected ? LopanColors.primary.opacity(0.3) : Color(.systemGray5),
+                    isSelected ? LopanColors.primary.opacity(0.3) : LopanColors.border,
                     lineWidth: isSelected ? 1.5 : 0.5
                 )
         )
@@ -597,7 +597,7 @@ struct CustomerReturnDetailView: View {
             if isProcessing {
                 ProgressView("正在处理还货...")
                     .frame(maxWidth: .infinity, maxHeight: .infinity)
-                    .background(Color.black.opacity(0.3))
+                    .background(LopanColors.shadow.opacity(0.5))
             }
         }
     }
@@ -631,7 +631,7 @@ struct CustomerReturnDetailView: View {
         }) {
             Text("处理还货 (\(selectedItems.count))")
                 .font(.headline)
-                .foregroundColor(.white)
+                .foregroundColor(LopanColors.textPrimary)
                 .frame(maxWidth: .infinity)
                 .padding()
                 .background(selectedItems.isEmpty ? LopanColors.secondary : LopanColors.primary)
@@ -692,7 +692,7 @@ struct ReturnItemDetailRow: View {
                     onSelectionChanged(!isSelected)
                 }) {
                     Image(systemName: isSelected ? "checkmark.circle.fill" : "circle")
-                        .foregroundColor(isSelected ? .blue : .gray)
+                        .foregroundColor(isSelected ? LopanColors.primary : LopanColors.textSecondary)
                         .font(.title3)
                 }
                 .buttonStyle(PlainButtonStyle())

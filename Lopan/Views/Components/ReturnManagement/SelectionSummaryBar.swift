@@ -54,7 +54,7 @@ struct SelectionSummaryBar: View {
                     .font(.subheadline)
                     .fontWeight(.medium)
                     .foregroundColor(selectedCount > 0 ? .primary : .secondary)
-                    .dynamicTypeSize(.small...DynamicTypeSize.accessibility1)
+                    
             }
             .accessibilityElement(children: .combine)
             .accessibilityLabel(selectionText)
@@ -78,7 +78,7 @@ struct SelectionSummaryBar: View {
                         }
                         .padding(.horizontal, 10)
                         .padding(.vertical, 6)
-                        .background(secondaryActionText == "还货" ? Color.green.opacity(0.1) : Color.red.opacity(0.1))
+                        .background(secondaryActionText == "还货" ? LopanColors.success.opacity(0.1) : LopanColors.error.opacity(0.1))
                         .foregroundColor(secondaryActionText == "还货" ? .green : .red)
                         .cornerRadius(16)
                     }
@@ -101,7 +101,7 @@ struct SelectionSummaryBar: View {
                         }
                         .padding(.horizontal, 10)
                         .padding(.vertical, 6)
-                        .background(Color.blue.opacity(0.1))
+                        .background(LopanColors.primary.opacity(0.1))
                         .foregroundColor(.blue)
                         .cornerRadius(16)
                     }
@@ -114,11 +114,11 @@ struct SelectionSummaryBar: View {
         .padding(.vertical, 12)
         .background(
             RoundedRectangle(cornerRadius: 12)
-                .fill(selectedCount > 0 ? Color.blue.opacity(0.05) : Color(.systemGray6))
+                .fill(selectedCount > 0 ? LopanColors.primary.opacity(0.05) : LopanColors.secondary.opacity(0.2))
         )
         .overlay(
             RoundedRectangle(cornerRadius: 12)
-                .stroke(selectedCount > 0 ? Color.blue.opacity(0.2) : Color.clear, lineWidth: 1)
+                .stroke(selectedCount > 0 ? LopanColors.primary.opacity(0.2) : LopanColors.clear, lineWidth: 1)
         )
         .animation(.easeInOut(duration: 0.2), value: selectedCount)
         .accessibilityElement(children: .contain)
@@ -227,8 +227,8 @@ struct BatchOperationHeader: View {
         .background(
             LinearGradient(
                 gradient: Gradient(colors: [
-                    Color.blue.opacity(0.08),
-                    Color.blue.opacity(0.04)
+                    LopanColors.primary.opacity(0.08),
+                    LopanColors.primary.opacity(0.04)
                 ]),
                 startPoint: .top,
                 endPoint: .bottom
@@ -237,7 +237,7 @@ struct BatchOperationHeader: View {
         .overlay(
             Rectangle()
                 .frame(height: 0.5)
-                .foregroundColor(Color.blue.opacity(0.2)),
+                .foregroundColor(LopanColors.primary.opacity(0.2)),
             alignment: .bottom
         )
         .accessibilityElement(children: .contain)

@@ -87,7 +87,7 @@ struct UnauthorizedView: View {
                         }
                         .font(.subheadline)
                         .padding()
-                        .background(Color.gray.opacity(0.1))
+                        .background(LopanColors.secondary.opacity(0.1))
                         .cornerRadius(10)
                     }
                 }
@@ -99,8 +99,8 @@ struct UnauthorizedView: View {
                 }
                 .frame(maxWidth: .infinity)
                 .padding()
-                .background(Color.red)
-                .foregroundColor(.white)
+                .background(LopanColors.error)
+                .foregroundColor(LopanColors.textPrimary)
                 .cornerRadius(10)
                 .padding(.horizontal, 40)
             }
@@ -127,7 +127,7 @@ struct SalespersonDashboardView: View {
                 Text("salesperson_dashboard".localized)
                     .font(.title)
                     .fontWeight(.bold)
-                    .dynamicTypeSize(.small...DynamicTypeSize.accessibility1)
+                    
                 
                 // Enhanced Data Statistics
                 dataStatisticsView
@@ -334,11 +334,11 @@ struct SalespersonDashboardView: View {
             Text(title)
                 .font(.caption)
                 .foregroundColor(.secondary)
-                .dynamicTypeSize(.small...DynamicTypeSize.accessibility1)
+                
         }
         .frame(maxWidth: .infinity)
         .padding(.vertical, 12)
-        .background(Color.gray.opacity(0.05))
+        .background(LopanColors.secondary.opacity(0.05))
         .cornerRadius(12)
     }
     
@@ -650,17 +650,17 @@ struct DashboardCard: View {
             Text(title)
                 .font(.headline)
                 .multilineTextAlignment(.center)
-                .dynamicTypeSize(.small...DynamicTypeSize.accessibility1)
+                
             
             Text(subtitle)
                 .font(.caption)
                 .foregroundColor(.secondary)
                 .multilineTextAlignment(.center)
-                .dynamicTypeSize(.small...DynamicTypeSize.accessibility1)
+                
         }
         .frame(maxWidth: .infinity)
         .padding()
-        .background(Color.gray.opacity(0.1))
+        .background(LopanColors.secondary.opacity(0.1))
         .cornerRadius(12)
         .buttonStyle(PlainButtonStyle())
         .accessibilityElement(children: .combine)

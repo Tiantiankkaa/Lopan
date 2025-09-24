@@ -38,13 +38,13 @@ struct EnhancedStatCard: View {
                     .font(.system(.title2, design: .rounded))
                     .fontWeight(.bold)
                     .foregroundColor(.primary)
-                    .dynamicTypeSize(.small...DynamicTypeSize.accessibility2)
+                    
                 
                 Text(title)
                     .font(.caption)
                     .foregroundColor(.secondary)
                     .lineLimit(2)
-                    .dynamicTypeSize(.small...DynamicTypeSize.accessibility1)
+                    
                 
                 if let subtitle = subtitle {
                     Text(subtitle)

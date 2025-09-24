@@ -17,7 +17,7 @@ struct ReturnFilterChip: View {
             Text(title)
                 .font(.caption)
                 .lineLimit(1)
-                .dynamicTypeSize(.small...DynamicTypeSize.accessibility1)
+                
             
             Button(action: {
                 withHapticFeedback(.light) {
