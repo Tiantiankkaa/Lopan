@@ -46,7 +46,6 @@ struct MachineManagementView: View {
                 }
             }
             .navigationTitle("设备管理")
-            .navigationBarBackButtonHidden(true)
             .refreshable {
                 await machineService.loadMachines()
             }
@@ -86,12 +85,12 @@ struct MachineManagementView: View {
                             Text("添加设备")
                                 .font(.system(size: 14, weight: .semibold))
                         }
-                        .foregroundColor(.white)
+                        .foregroundColor(LopanColors.textPrimary)
                         .padding(.horizontal, 16)
                         .padding(.vertical, 12)
-                        .background(Color.blue)
+                        .background(LopanColors.primary)
                         .cornerRadius(25)
-                        .shadow(color: .black.opacity(0.2), radius: 8, x: 0, y: 4)
+                        .shadow(color: LopanColors.shadow.opacity(4), radius: 8, x: 0, y: 4)
                     }
                 }
                 .padding(.horizontal, 16)
@@ -106,7 +105,7 @@ struct MachineManagementView: View {
         VStack(spacing: 20) {
             Image(systemName: "gearshape.2")
                 .font(.system(size: 64))
-                .foregroundColor(.gray)
+                .foregroundColor(LopanColors.textSecondary)
             
             VStack(spacing: 8) {
                 Text("暂无设备")
@@ -183,10 +182,10 @@ struct MachineRow: View {
     
     var statusColor: Color {
         switch machine.status {
-        case .running: return .green
-        case .stopped: return .gray
+        case .running: return LopanColors.success
+        case .stopped: return LopanColors.textSecondary
         case .maintenance: return .orange
-        case .error: return .red
+        case .error: return LopanColors.error
         }
     }
     
@@ -204,7 +203,7 @@ struct MachineRow: View {
                                 .font(.caption)
                                 .padding(.horizontal, 8)
                                 .padding(.vertical, 2)
-                                .background(Color.orange.opacity(0.2))
+                                .background(LopanColors.warning.opacity(0.2))
                                 .foregroundColor(.orange)
                                 .cornerRadius(4)
                         }
@@ -219,10 +218,10 @@ struct MachineRow: View {
                         if machine.hasActiveProductionBatch {
                             Image(systemName: "gear.badge.checkmark")
                                 .font(.caption2)
-                                .foregroundColor(.green)
+                                .foregroundColor(LopanColors.success)
                             Text(machine.currentBatchDisplayName)
                                 .font(.caption2)
-                                .foregroundColor(.green)
+                                .foregroundColor(LopanColors.success)
                                 .fontWeight(.medium)
                         } else {
                             Image(systemName: "gear")
@@ -276,7 +275,7 @@ struct MachineRow: View {
             } label: {
                 Label("状态", systemImage: machine.status.iconName)
             }
-            .tint(.blue)
+            .tint(LopanColors.primary)
             
         }
         .swipeActions(edge: .trailing, allowsFullSwipe: false) {
@@ -306,10 +305,10 @@ struct MachineRow: View {
     
     private func stationColor(for status: StationStatus) -> Color {
         switch status {
-        case .running: return .green
-        case .idle: return .gray.opacity(0.3)
-        case .blocked: return .orange
-        case .maintenance: return .red
+        case .running: return LopanColors.success
+        case .idle: return LopanColors.textSecondary.opacity(0.3)
+        case .blocked: return LopanColors.warning
+        case .maintenance: return LopanColors.error
         }
     }
 }
@@ -327,7 +326,7 @@ struct AddMachineSheet: View {
                 VStack(spacing: 16) {
                     Image(systemName: "gearshape.2.fill")
                         .font(.system(size: 60))
-                        .foregroundColor(.blue)
+                        .foregroundColor(LopanColors.primary)
                     
                     VStack(spacing: 8) {
                         Text("新增生产设备")
@@ -348,7 +347,7 @@ struct AddMachineSheet: View {
                     MachineInfoRow(label: "初始状态", value: "已停止")
                 }
                 .padding()
-                .background(Color(UIColor.secondarySystemBackground))
+                .background(LopanColors.backgroundSecondary)
                 .cornerRadius(12)
                 
                 Spacer()

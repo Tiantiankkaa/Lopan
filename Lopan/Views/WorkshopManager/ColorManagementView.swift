@@ -63,7 +63,6 @@ struct ColorManagementView: View {
                 }
             }
             .navigationTitle("颜色管理")
-            .navigationBarBackButtonHidden(true)
             .searchable(text: $searchText, prompt: "搜索颜色")
             .refreshable {
                 await colorService.loadColors()
@@ -102,7 +101,7 @@ struct ColorManagementView: View {
                             Text("添加颜色")
                                 .font(.system(size: 14, weight: .semibold))
                         }
-                        .foregroundColor(.white)
+                        .foregroundColor(LopanColors.textPrimary)
                         .padding(.horizontal, 16)
                         .padding(.vertical, 12)
                         .background(LopanColors.primary)
@@ -239,7 +238,7 @@ struct ColorCardView: View {
             }
         }
         .padding()
-        .background(Color(UIColor.secondarySystemBackground))
+        .background(LopanColors.backgroundSecondary)
         .cornerRadius(12)
         .contextMenu {
             if let onEdit = onEdit {

@@ -64,7 +64,6 @@ struct ProductionConfigurationView: View {
                 }
             }
             .navigationTitle("生产配置")
-            .navigationBarBackButtonHidden(true)
             .refreshable {
                 await viewModel.loadData()
             }
@@ -150,7 +149,7 @@ struct ProductionConfigurationView: View {
             .padding()
             // Add safe area padding for tab bar
             .safeAreaInset(edge: .bottom) {
-                Color.clear.frame(height: 34)
+                LopanColors.clear.frame(height: 34)
             }
         }
     }
@@ -231,7 +230,7 @@ struct ProductionConfigurationView: View {
             }
         }
         .padding()
-        .background(Color(UIColor.secondarySystemBackground))
+        .background(LopanColors.backgroundSecondary)
         .cornerRadius(12)
     }
     
@@ -265,7 +264,7 @@ struct ProductionConfigurationView: View {
             } label: {
                 Image(systemName: "plus.circle.fill")
                     .font(.system(size: 48))
-                    .foregroundColor(viewModel.canCreateBatch ? .blue : .gray)
+                    .foregroundColor(viewModel.canCreateBatch ? LopanColors.primary : LopanColors.textSecondary)
             }
             .buttonStyle(.plain)
             .disabled(!viewModel.canCreateBatch)
@@ -285,7 +284,7 @@ struct ProductionConfigurationView: View {
             
         }
         .padding()
-        .background(Color(UIColor.secondarySystemBackground))
+        .background(LopanColors.backgroundSecondary)
         .cornerRadius(12)
     }
     
@@ -384,7 +383,7 @@ struct ProductionConfigurationView: View {
             }
         }
         .padding()
-        .background(Color(UIColor.secondarySystemBackground))
+        .background(LopanColors.backgroundSecondary)
         .cornerRadius(12)
     }
     
@@ -399,7 +398,7 @@ struct ProductionConfigurationView: View {
                 VStack(spacing: 12) {
                     Image(systemName: "tray")
                         .font(.system(size: 32))
-                        .foregroundColor(.gray)
+                        .foregroundColor(LopanColors.textSecondary)
                     
                     Text("暂无产品配置")
                         .font(.subheadline)
@@ -407,7 +406,7 @@ struct ProductionConfigurationView: View {
                 }
                 .frame(maxWidth: .infinity)
                 .padding()
-                .background(Color(UIColor.tertiarySystemBackground))
+                .background(LopanColors.backgroundSecondary)
                 .cornerRadius(8)
             } else {
                 VStack(spacing: 8) {
@@ -469,7 +468,7 @@ struct ProductionConfigurationView: View {
                 .padding(.horizontal, 4)
             }
             .padding()
-            .background(Color(UIColor.secondarySystemBackground))
+            .background(LopanColors.backgroundSecondary)
             .cornerRadius(12)
         }
     }
@@ -514,7 +513,7 @@ struct MachineCard: View {
             }
         }
         .frame(width: 100, height: 100)
-        .background(isSelected ? LopanColors.primary : Color(UIColor.secondarySystemBackground))
+        .background(isSelected ? LopanColors.primary : LopanColors.backgroundSecondary)
         .foregroundColor(isSelected ? .white : .primary)
         .cornerRadius(12)
         .onTapGesture {
@@ -524,10 +523,10 @@ struct MachineCard: View {
     
     private var statusColor: Color {
         switch machine.status {
-        case .running: return .green
-        case .stopped: return .gray
+        case .running: return LopanColors.success
+        case .stopped: return LopanColors.textSecondary
         case .maintenance: return .orange
-        case .error: return .red
+        case .error: return LopanColors.error
         }
     }
 }
@@ -555,7 +554,7 @@ struct ProductionModeCard: View {
         }
         .frame(maxWidth: .infinity)
         .padding()
-        .background(isSelected ? LopanColors.primary : Color(UIColor.secondarySystemBackground))
+        .background(isSelected ? LopanColors.primary : LopanColors.backgroundSecondary)
         .foregroundColor(isSelected ? .white : .primary)
         .cornerRadius(12)
         .onTapGesture {
@@ -611,13 +610,13 @@ struct ProductConfigRow: View {
                     onDelete()
                 } label: {
                     Image(systemName: "trash")
-                        .foregroundColor(.red)
+                        .foregroundColor(LopanColors.error)
                 }
                 .buttonStyle(.plain)
             }
         }
         .padding()
-        .background(Color(UIColor.secondarySystemBackground))
+        .background(LopanColors.backgroundSecondary)
         .cornerRadius(8)
     }
 }
@@ -658,7 +657,7 @@ struct StationIndicator: View {
                     Text("\(stationNumber)")
                         .font(.caption2)
                         .fontWeight(.semibold)
-                        .foregroundColor(isOccupied ? .white : .gray)
+                        .foregroundColor(isOccupied ? LopanColors.textPrimary : LopanColors.textSecondary)
                 )
             
             if let productName = productName {
@@ -926,7 +925,7 @@ struct AddProductSheet: View {
             }
         }
         .padding()
-        .background(Color(UIColor.secondarySystemBackground))
+        .background(LopanColors.backgroundSecondary)
         .cornerRadius(12)
     }
     
@@ -944,7 +943,7 @@ struct AddProductSheet: View {
                     HStack(spacing: 4) {
                         Image(systemName: "checkmark.circle.fill")
                             .font(.caption)
-                            .foregroundColor(.green)
+                            .foregroundColor(LopanColors.success)
                         Text("已从喷枪配置自动填充")
                             .font(.caption)
                             .foregroundColor(.secondary)
@@ -1002,7 +1001,7 @@ struct AddProductSheet: View {
             }
         }
         .padding()
-        .background(Color(UIColor.secondarySystemBackground))
+        .background(LopanColors.backgroundSecondary)
         .cornerRadius(12)
     }
     
@@ -1066,7 +1065,7 @@ struct AddProductSheet: View {
                     if stationsForSelectedGun.isEmpty {
                         Text("所选喷枪无可用工位")
                             .font(.caption)
-                            .foregroundColor(.red)
+                            .foregroundColor(LopanColors.error)
                             .padding()
                             .background(LopanColors.errorLight)
                             .cornerRadius(8)
@@ -1076,7 +1075,7 @@ struct AddProductSheet: View {
             }
         }
         .padding()
-        .background(Color(UIColor.secondarySystemBackground))
+        .background(LopanColors.backgroundSecondary)
         .cornerRadius(12)
     }
     
@@ -1160,14 +1159,14 @@ struct AddProductSheet: View {
                         .frame(maxWidth: .infinity)
                         .padding(.vertical, 8)
                         .background(selectedGun == "Gun A" ? LopanColors.primary : (canSelectGunA ? LopanColors.secondaryLight : LopanColors.errorLight))
-                        .foregroundColor(selectedGun == "Gun A" ? .white : (canSelectGunA ? .primary : .red))
+                        .foregroundColor(selectedGun == "Gun A" ? LopanColors.textPrimary : (canSelectGunA ? LopanColors.primary : LopanColors.error))
                         .cornerRadius(8)
                         .disabled(!canSelectGunA)
                         
                         if !canSelectGunA {
                             Text(isGunAFull ? "已满" : "工位不足")
                                 .font(.caption2)
-                                .foregroundColor(.red)
+                                .foregroundColor(LopanColors.error)
                         } else {
                             Text("\(gunAAvailableStations.count) 个可用")
                                 .font(.caption2)
@@ -1186,14 +1185,14 @@ struct AddProductSheet: View {
                         .frame(maxWidth: .infinity)
                         .padding(.vertical, 8)
                         .background(selectedGun == "Gun B" ? LopanColors.primary : (canSelectGunB ? LopanColors.secondaryLight : LopanColors.errorLight))
-                        .foregroundColor(selectedGun == "Gun B" ? .white : (canSelectGunB ? .primary : .red))
+                        .foregroundColor(selectedGun == "Gun B" ? LopanColors.textPrimary : (canSelectGunB ? LopanColors.primary : LopanColors.error))
                         .cornerRadius(8)
                         .disabled(!canSelectGunB)
                         
                         if !canSelectGunB {
                             Text(isGunBFull ? "已满" : "工位不足")
                                 .font(.caption2)
-                                .foregroundColor(.red)
+                                .foregroundColor(LopanColors.error)
                         } else {
                             Text("\(gunBAvailableStations.count) 个可用")
                                 .font(.caption2)
@@ -1204,7 +1203,7 @@ struct AddProductSheet: View {
             }
         }
         .padding()
-        .background(Color(UIColor.secondarySystemBackground))
+        .background(LopanColors.backgroundSecondary)
         .cornerRadius(12)
     }
     
@@ -1224,7 +1223,7 @@ struct AddProductSheet: View {
             )
         }
         .padding()
-        .background(Color(UIColor.secondarySystemBackground))
+        .background(LopanColors.backgroundSecondary)
         .cornerRadius(12)
     }
     
@@ -1278,7 +1277,7 @@ struct AddProductSheet: View {
             }
         }
         .padding()
-        .background(Color(UIColor.secondarySystemBackground))
+        .background(LopanColors.backgroundSecondary)
         .cornerRadius(12)
     }
     
@@ -1569,7 +1568,7 @@ struct ReadOnlyColorRow: View {
                 
                 Image(systemName: "checkmark.circle.fill")
                     .font(.caption)
-                    .foregroundColor(.green)
+                    .foregroundColor(LopanColors.success)
             }
             .frame(width: 80, alignment: .leading)
             
@@ -1603,7 +1602,7 @@ struct ReadOnlyColorRow: View {
                     .padding(.horizontal, 8)
                     .padding(.vertical, 4)
                     .background(LopanColors.successLight)
-                    .foregroundColor(.green)
+                    .foregroundColor(LopanColors.success)
                     .cornerRadius(4)
             }
         }
@@ -1636,7 +1635,7 @@ struct ColorPickerRow: View {
                 if isPrePopulated {
                     Image(systemName: "checkmark.circle.fill")
                         .font(.caption)
-                        .foregroundColor(.green)
+                        .foregroundColor(LopanColors.success)
                 }
             }
             .frame(width: 80, alignment: .leading)
@@ -1709,11 +1708,11 @@ struct StationPreviewIndicator: View {
     
     private var fillColor: Color {
         if isSelected {
-            return .blue
+            return LopanColors.primary
         } else if isAvailable {
-            return .gray.opacity(0.3)
+            return LopanColors.textSecondary.opacity(0.3)
         } else {
-            return .red.opacity(0.3)
+            return LopanColors.error.opacity(0.3)
         }
     }
     
@@ -1721,9 +1720,9 @@ struct StationPreviewIndicator: View {
         if isSelected {
             return .white
         } else if isAvailable {
-            return .gray
+            return LopanColors.textSecondary
         } else {
-            return .red
+            return LopanColors.error
         }
     }
 }
@@ -1746,7 +1745,7 @@ struct WorkflowProgressView: View {
                                 Text("\(index + 1)")
                                     .font(.caption)
                                     .fontWeight(.semibold)
-                                    .foregroundColor(index <= currentStep ? .white : .gray)
+                                    .foregroundColor(index <= currentStep ? LopanColors.textPrimary : LopanColors.textSecondary)
                             )
                         
                         if index < steps.count - 1 {
@@ -1768,7 +1767,7 @@ struct WorkflowProgressView: View {
             }
         }
         .padding()
-        .background(Color(UIColor.tertiarySystemBackground))
+        .background(LopanColors.backgroundSecondary)
         .cornerRadius(8)
     }
 }
@@ -1825,7 +1824,7 @@ struct ApprovalBatchRow: View {
                         
                         Text(batch.mode.displayName)
                             .font(.caption)
-                            .foregroundColor(.blue)
+                            .foregroundColor(LopanColors.primary)
                             .padding(.horizontal, 6)
                             .padding(.vertical, 2)
                             .background(LopanColors.primaryLight)
@@ -1878,7 +1877,7 @@ struct ApprovalBatchRow: View {
                     if let reviewNotes = batch.reviewNotes, batch.status == .rejected {
                         Text("拒绝原因: \(reviewNotes)")
                             .font(.caption)
-                            .foregroundColor(.red)
+                            .foregroundColor(LopanColors.error)
                             .padding(.top, 2)
                     }
                 }
@@ -1893,7 +1892,7 @@ struct ApprovalBatchRow: View {
                         .padding(.horizontal, 12)
                         .padding(.vertical, 4)
                         .background(LopanColors.primary)
-                        .foregroundColor(.white)
+                        .foregroundColor(LopanColors.textPrimary)
                         .cornerRadius(4)
                         .onTapGesture {
                             onExecute(batch)
@@ -1908,7 +1907,7 @@ struct ApprovalBatchRow: View {
                         .padding(.horizontal, 12)
                         .padding(.vertical, 4)
                         .background(LopanColors.warning)
-                        .foregroundColor(.white)
+                        .foregroundColor(LopanColors.textPrimary)
                         .cornerRadius(4)
                         .onTapGesture {
                             onRecreate(batch)
@@ -1919,7 +1918,7 @@ struct ApprovalBatchRow: View {
         }
         .buttonStyle(PlainButtonStyle())
         .padding()
-        .background(Color(UIColor.tertiarySystemBackground))
+        .background(LopanColors.backgroundSecondary)
         .cornerRadius(8)
     }
     
@@ -2025,7 +2024,7 @@ struct BatchDetailsSheet: View {
             // Submitter info moved to status section
         }
         .padding()
-        .background(Color(UIColor.secondarySystemBackground))
+        .background(LopanColors.backgroundSecondary)
         .cornerRadius(12)
     }
     
@@ -2042,7 +2041,7 @@ struct BatchDetailsSheet: View {
                         HStack(spacing: 4) {
                             Image(systemName: "gearshape.2.fill")
                                 .font(.caption)
-                                .foregroundColor(.blue)
+                                .foregroundColor(LopanColors.primary)
                             Text((machine?.machineNumber).map { "\($0)" } ?? batch.machineId)
                                 .font(.callout)
                                 .fontWeight(.medium)
@@ -2055,11 +2054,11 @@ struct BatchDetailsSheet: View {
                         Text(batch.mode.displayName)
                             .font(.callout)
                             .fontWeight(.medium)
-                            .foregroundColor(.blue)
+                            .foregroundColor(LopanColors.primary)
                     }
                 }
                 .padding(8)
-                .background(Color(UIColor.secondarySystemBackground))
+                .background(LopanColors.backgroundSecondary)
                 .cornerRadius(8)
                 
                 Divider()
@@ -2081,7 +2080,7 @@ struct BatchDetailsSheet: View {
             }
         }
         .padding()
-        .background(Color(UIColor.secondarySystemBackground))
+        .background(LopanColors.backgroundSecondary)
         .cornerRadius(12)
     }
     
@@ -2102,7 +2101,7 @@ struct BatchDetailsSheet: View {
                     HStack(spacing: 4) {
                         Image(systemName: "gearshape.2.fill")
                             .font(.caption)
-                            .foregroundColor(.blue)
+                            .foregroundColor(LopanColors.primary)
                         Text((machine?.machineNumber).map { "\($0)" } ?? batch.machineId)
                             .font(.body)
                             .fontWeight(.medium)
@@ -2126,7 +2125,7 @@ struct BatchDetailsSheet: View {
             }
         }
         .padding()
-        .background(Color(UIColor.secondarySystemBackground))
+        .background(LopanColors.backgroundSecondary)
         .cornerRadius(12)
     }
     
@@ -2151,7 +2150,7 @@ struct BatchDetailsSheet: View {
             }
         }
         .padding()
-        .background(Color(UIColor.secondarySystemBackground))
+        .background(LopanColors.backgroundSecondary)
         .cornerRadius(12)
     }
     
@@ -2258,7 +2257,7 @@ struct BatchDetailsSheet: View {
                             .padding(.horizontal, 12)
                             .padding(.vertical, 8)
                             .background(batch.status == .rejected ? LopanColors.errorLight : LopanColors.successLight)
-                            .foregroundColor(batch.status == .rejected ? .red : .green)
+                            .foregroundColor(batch.status == .rejected ? LopanColors.error : LopanColors.success)
                             .cornerRadius(8)
                     }
                 }
@@ -2309,7 +2308,7 @@ struct BatchDetailsSheet: View {
                                 Text(duration)
                                     .font(.subheadline)
                                     .fontWeight(.medium)
-                                    .foregroundColor(.blue)
+                                    .foregroundColor(LopanColors.primary)
                             }
                         }
                         
@@ -2323,7 +2322,7 @@ struct BatchDetailsSheet: View {
                                 Text(executionInfo.type)
                                     .font(.subheadline)
                                     .fontWeight(.medium)
-                                    .foregroundColor(batch.isSystemAutoCompleted ? .orange : .green)
+                                    .foregroundColor(batch.isSystemAutoCompleted ? LopanColors.warning : LopanColors.success)
                             }
                             
                             // 显示执行描述
@@ -2354,7 +2353,7 @@ struct BatchDetailsSheet: View {
                         /*HStack {
                             Image(systemName: "play.circle.fill")
                                 .font(.title2)
-                                .foregroundColor(.blue)
+                                .foregroundColor(LopanColors.primary)
                             
                             VStack(alignment: .leading, spacing: 2) {
                                 Text("准备执行")
@@ -2390,7 +2389,7 @@ struct BatchDetailsSheet: View {
                                         .foregroundColor(.primary)
                                         .padding(.horizontal, 12)
                                         .padding(.vertical, 6)
-                                        .background(Color.secondary.opacity(0.1))
+                                        .background(LopanColors.secondary.opacity(0.1))
                                         .cornerRadius(8)
                                 }
                                 
@@ -2461,7 +2460,7 @@ struct BatchDetailsSheet: View {
                             }
                             .font(.body)
                             .fontWeight(.medium)
-                            .foregroundColor(.red)
+                            .foregroundColor(LopanColors.error)
                             .frame(maxWidth: .infinity, minHeight: 44)
                             .background(LopanColors.errorLight)
                             .cornerRadius(12)
@@ -2479,7 +2478,7 @@ struct BatchDetailsSheet: View {
                                         .font(.body)
                                         .fontWeight(.medium)
                                 }
-                                .foregroundColor(.white)
+                                .foregroundColor(LopanColors.textPrimary)
                                 .frame(maxWidth: .infinity, minHeight: 44)
                                 .background(canConfirm ? LopanColors.primary : LopanColors.secondary)
                                 .cornerRadius(12)
@@ -2491,7 +2490,7 @@ struct BatchDetailsSheet: View {
             }
         }
         .padding()
-        .background(Color(UIColor.secondarySystemBackground))
+        .background(LopanColors.backgroundSecondary)
         .cornerRadius(12)
     }
     
@@ -2552,7 +2551,7 @@ struct BatchDetailsSheet: View {
         HStack(spacing: 8) {
             Image(systemName: isValid ? "checkmark.circle.fill" : "xmark.circle.fill")
                 .font(.system(size: 16, weight: .medium))
-                .foregroundColor(isValid ? .green : .red)
+                .foregroundColor(isValid ? LopanColors.success : LopanColors.error)
             
             VStack(alignment: .leading, spacing: 2) {
                 Text(title)
@@ -2562,7 +2561,7 @@ struct BatchDetailsSheet: View {
                 
                 Text(message)
                     .font(.caption2)
-                    .foregroundColor(isValid ? .green : .red)
+                    .foregroundColor(isValid ? LopanColors.success : LopanColors.error)
             }
             
             Spacer()
@@ -2633,7 +2632,7 @@ struct ProductDetailRow: View {
             }
         }
         .padding()
-        .background(Color(UIColor.tertiarySystemBackground))
+        .background(LopanColors.backgroundSecondary)
         .cornerRadius(8)
     }
     
@@ -2664,7 +2663,7 @@ struct ColorDetailDot: View {
                 Text(label)
                     .font(.caption2)
                     .fontWeight(.bold)
-                    .foregroundColor(.white)
+                    .foregroundColor(LopanColors.textPrimary)
             }
             
             Text(color.name)
@@ -2705,7 +2704,7 @@ struct CompactProductRow: View {
                     if let primaryColor = primaryColor {
                         HStack(spacing: 2) {
                             Circle()
-                                .fill(Color(hex: primaryColor.hexCode) ?? .gray)
+                                .fill(Color(hex: primaryColor.hexCode) ?? LopanColors.secondary)
                                 .frame(width: 8, height: 8)
                             Text("主")
                                 .font(.caption2)
@@ -2716,7 +2715,7 @@ struct CompactProductRow: View {
                     if let secondaryColor = secondaryColor {
                         HStack(spacing: 2) {
                             Circle()
-                                .fill(Color(hex: secondaryColor.hexCode) ?? .gray)
+                                .fill(Color(hex: secondaryColor.hexCode) ?? LopanColors.secondary)
                                 .frame(width: 8, height: 8)
                             Text("副")
                                 .font(.caption2)
@@ -2744,7 +2743,7 @@ struct StationDetailIndicator: View {
                     Text("\(stationNumber)")
                         .font(.caption2)
                         .fontWeight(.semibold)
-                        .foregroundColor(isOccupied ? .white : .gray)
+                        .foregroundColor(isOccupied ? LopanColors.textPrimary : LopanColors.textSecondary)
                 )
             
             if let productName = productName {
