@@ -92,7 +92,7 @@ public struct DynamicTypePreview<Content: View>: View {
                             HStack {
                                 Text(testSize.displayName)
                                     .font(.headline)
-                                    .foregroundColor(.primary)
+                                    .foregroundColor(LopanColors.textPrimary)
 
                                 if testSize.isAccessibilitySize {
                                     Label("Accessibility", systemImage: "accessibility")
@@ -105,7 +105,7 @@ public struct DynamicTypePreview<Content: View>: View {
 
                                 Text(colorScheme == .dark ? "Dark" : "Light")
                                     .font(.caption)
-                                    .foregroundColor(.secondary)
+                                    .foregroundColor(LopanColors.textSecondary)
                             }
                             .padding(.horizontal)
 
@@ -120,9 +120,9 @@ public struct DynamicTypePreview<Content: View>: View {
                             .padding()
                             .background(
                                 RoundedRectangle(cornerRadius: 12)
-                                    .fill(Color(.systemBackground))
+                                    .fill(LopanColors.background)
                                     .shadow(
-                                        color: .black.opacity(0.05),
+                                        color: LopanColors.shadow,
                                         radius: 4,
                                         x: 0,
                                         y: 2
@@ -134,7 +134,7 @@ public struct DynamicTypePreview<Content: View>: View {
             }
             .padding(.vertical)
         }
-        .background(Color(.systemGroupedBackground))
+        .background(LopanColors.backgroundSecondary)
     }
 }
 
@@ -303,7 +303,7 @@ public struct TextTruncationTester: View {
         VStack(alignment: .leading, spacing: 8) {
             Text("Original Text:")
                 .font(.caption)
-                .foregroundColor(.secondary)
+                .foregroundColor(LopanColors.textSecondary)
 
             Text(text)
                 .lineLimit(maxLines)
@@ -313,11 +313,11 @@ public struct TextTruncationTester: View {
             if maxLines != nil {
                 Text("Line limit: \(maxLines!)")
                     .font(.caption2)
-                    .foregroundColor(.secondary)
+                    .foregroundColor(LopanColors.textSecondary)
             }
         }
         .padding()
-        .background(Color(.systemGray6))
+        .background(LopanColors.backgroundSecondary)
         .cornerRadius(8)
     }
 }

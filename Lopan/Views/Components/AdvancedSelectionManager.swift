@@ -757,9 +757,9 @@ struct SelectionIndicator: View {
             .foregroundColor(isSelected ? LopanColors.primary : LopanColors.textTertiary)
             .background(
                 Circle()
-                    .fill(Color(.systemBackground))
+                    .fill(LopanColors.background)
                     .frame(width: 28, height: 28)
-                    .shadow(color: .black.opacity(0.1), radius: 2, x: 0, y: 1)
+                    .shadow(color: LopanColors.textPrimary.opacity(0.1), radius: 2, x: 0, y: 1)
             )
             .scaleEffect(isSelected ? 1.1 : 1.0)
             .animation(.spring(response: 0.3, dampingFraction: 0.6), value: isSelected)
@@ -827,8 +827,8 @@ struct SelectionControlBar<ItemType: Identifiable & Hashable>: View {
             .padding(.vertical, 12)
             .background(
                 RoundedRectangle(cornerRadius: 16)
-                    .fill(Color(.systemBackground))
-                    .shadow(color: .black.opacity(0.1), radius: 8, x: 0, y: -4)
+                    .fill(LopanColors.background)
+                    .shadow(color: LopanColors.textPrimary.opacity(0.1), radius: 8, x: 0, y: -4)
             )
             .transition(.move(edge: .bottom).combined(with: .opacity))
         }

@@ -161,8 +161,8 @@ struct ReturnOrderExportView: View {
                 }
                 .frame(maxWidth: .infinity)
                 .padding()
-                .background(itemsToExport.isEmpty ? Color.gray : Color.green)
-                .foregroundColor(.white)
+                .background(itemsToExport.isEmpty ? LopanColors.disabled : LopanColors.success)
+                .foregroundColor(LopanColors.textPrimary)
                 .cornerRadius(10)
             }
             .disabled(itemsToExport.isEmpty)
@@ -271,10 +271,10 @@ struct ExportTypeButton: View {
                 Spacer()
                 
                 Image(systemName: selectedType == type ? "checkmark.circle.fill" : "circle")
-                    .foregroundColor(selectedType == type ? .blue : .gray)
+                    .foregroundColor(selectedType == type ? LopanColors.primary : LopanColors.secondary)
             }
             .padding()
-            .background(selectedType == type ? Color.blue.opacity(0.1) : Color.gray.opacity(0.1))
+            .background(selectedType == type ? LopanColors.primary.opacity(0.1) : LopanColors.secondary.opacity(0.1))
             .cornerRadius(8)
         }
         .buttonStyle(PlainButtonStyle())
@@ -290,7 +290,7 @@ struct ExportItemRow: View {
         Button(action: onToggle) {
             HStack {
                 Image(systemName: isSelected ? "checkmark.circle.fill" : "circle")
-                    .foregroundColor(isSelected ? .blue : .gray)
+                    .foregroundColor(isSelected ? LopanColors.primary : LopanColors.secondary)
                 
                 VStack(alignment: .leading, spacing: 4) {
                     Text(item.customerDisplayName)
@@ -347,13 +347,13 @@ struct ExportItemRow: View {
     
     private var returnStatusColor: Color {
         if item.isFullyReturned {
-            return .green
+            return LopanColors.success
         } else if item.hasPartialReturn {
-            return .blue
+            return LopanColors.primary
         } else if item.needsReturn {
-            return .orange
+            return LopanColors.warning
         } else {
-            return .gray
+            return LopanColors.textSecondary
         }
     }
 }

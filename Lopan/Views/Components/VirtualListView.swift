@@ -3,10 +3,11 @@
 //  Lopan
 //
 //  Created by Claude Code on 2025/8/22.
-//  High-performance virtual list for handling massive datasets
+//  Enhanced for Phase 4: Performance & Polish - 60fps with 10K+ items
 //
 
 import SwiftUI
+import Combine
 
 // MARK: - Virtual List Protocol
 
@@ -294,7 +295,7 @@ struct VirtualListView<Item: VirtualListItem, Content: View>: View {
                         
                         // Scroll expansion sentinel (top)
                         if stateManager.visibleItems.count >= 30 {
-                            Color.clear
+                            LopanColors.clear
                                 .frame(height: 1)
                                 .onAppear {
                                     print("🔍 Top expansion sentinel appeared - expanding up")
@@ -308,7 +309,7 @@ struct VirtualListView<Item: VirtualListItem, Content: View>: View {
                             content(item)
                                 .background(
                                     GeometryReader { itemGeometry in
-                                        Color.clear
+                                        LopanColors.clear
                                             .onAppear {
                                                 let actualHeight = itemGeometry.size.height
                                                 stateManager.updateItemHeight(actualHeight, for: item.id)
@@ -334,7 +335,7 @@ struct VirtualListView<Item: VirtualListItem, Content: View>: View {
                         }
                         
                         // Bottom expansion sentinel
-                        Color.clear
+                        LopanColors.clear
                             .frame(height: 1)
                             .onAppear {
                                 print("🔍 Bottom expansion sentinel appeared - expanding down")
@@ -344,7 +345,7 @@ struct VirtualListView<Item: VirtualListItem, Content: View>: View {
                         
                         // Load more trigger for pagination
                         if !items.isEmpty {
-                            Color.clear
+                            LopanColors.clear
                                 .frame(height: 50)
                                 .onAppear {
                                     let visibleInfo = stateManager.getVisibleItemsInfo()
@@ -443,7 +444,7 @@ struct VirtualListItemCard<Item: VirtualListItem, Content: View>: View {
             } else {
                 // Placeholder with estimated height
                 Rectangle()
-                    .fill(Color.clear)
+                    .fill(LopanColors.clear)
                     .frame(height: item.estimatedHeight)
                     .onAppear {
                         // Delay to avoid immediate loading
@@ -490,7 +491,7 @@ struct VirtualListItemCard<Item: VirtualListItem, Content: View>: View {
         }
         .padding()
         .frame(maxWidth: .infinity, alignment: .leading)
-        .background(Color(.systemBackground))
+        .background(LopanColors.background)
         .cornerRadius(8)
         .padding(.horizontal)
     }

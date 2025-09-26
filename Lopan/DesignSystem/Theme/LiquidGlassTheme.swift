@@ -128,37 +128,37 @@ public struct LiquidGlassColors {
 
     /// Primary glass tint color
     public var primary: Color {
-        Color(.systemBlue).opacity(0.6)
+        LopanColors.primary.opacity(0.6)
     }
 
     /// Secondary glass tint color
     public var secondary: Color {
-        Color(.systemPurple).opacity(0.4)
+        LopanColors.secondary.opacity(0.4)
     }
 
     /// Accent glass color for highlights
     public var accent: Color {
-        Color(.systemTeal).opacity(0.5)
+        LopanColors.info.opacity(0.5)
     }
 
     /// Success glass color
     public var success: Color {
-        Color(.systemGreen).opacity(0.5)
+        LopanColors.success.opacity(0.5)
     }
 
     /// Warning glass color
     public var warning: Color {
-        Color(.systemOrange).opacity(0.5)
+        LopanColors.warning.opacity(0.5)
     }
 
     /// Error glass color
     public var error: Color {
-        Color(.systemRed).opacity(0.5)
+        LopanColors.error.opacity(0.5)
     }
 
     /// Neutral glass color
     public var neutral: Color {
-        Color(.systemGray).opacity(0.3)
+        LopanColors.textSecondary.opacity(0.3)
     }
 }
 

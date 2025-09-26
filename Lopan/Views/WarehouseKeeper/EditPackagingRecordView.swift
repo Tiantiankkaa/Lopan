@@ -166,7 +166,7 @@ struct EditPackagingRecordView: View {
                         Spacer()
                         Text("\(totalPackages * stylesPerPackage)")
                             .fontWeight(.bold)
-                            .foregroundColor(.blue)
+                            .foregroundColor(LopanColors.primary)
                     }
                 }
                 
@@ -194,9 +194,9 @@ struct EditPackagingRecordView: View {
                         if record.reminderSent {
                             HStack {
                                 Image(systemName: "checkmark.circle.fill")
-                                    .foregroundColor(.green)
+                                    .foregroundColor(LopanColors.success)
                                 Text("提醒已发送")
-                                    .foregroundColor(.secondary)
+                                    .foregroundColor(LopanColors.textSecondary)
                             }
                         }
                     }
@@ -212,14 +212,14 @@ struct EditPackagingRecordView: View {
                         Text("创建时间")
                         Spacer()
                         Text(record.createdAt, style: .date)
-                            .foregroundColor(.secondary)
+                            .foregroundColor(LopanColors.textSecondary)
                     }
                     
                     HStack {
                         Text("更新时间")
                         Spacer()
                         Text(record.updatedAt, style: .date)
-                            .foregroundColor(.secondary)
+                            .foregroundColor(LopanColors.textSecondary)
                     }
                 }
             }

@@ -338,8 +338,8 @@ class AdvancedReportGenerator: ObservableObject {
         do {
             // Log report generation start
             try? await auditService.logSecurityEvent(
-                category: .systemOperation,
-                severity: .info,
+                category: SecurityEventCategory.systemOperation,
+                severity: SecurityEventSeverity.info,
                 eventName: "report_generation_started",
                 description: "开始生成报告: \(configuration.type.displayName)",
                 details: [
@@ -414,8 +414,8 @@ class AdvancedReportGenerator: ObservableObject {
             
             // Log successful generation
             try? await auditService.logSecurityEvent(
-                category: .systemOperation,
-                severity: .info,
+                category: SecurityEventCategory.systemOperation,
+                severity: SecurityEventSeverity.info,
                 eventName: "report_generation_completed",
                 description: "报告生成完成: \(configuration.type.displayName)",
                 details: [
@@ -430,8 +430,8 @@ class AdvancedReportGenerator: ObservableObject {
             
         } catch {
             try? await auditService.logSecurityEvent(
-                category: .systemOperation,
-                severity: .error,
+                category: SecurityEventCategory.systemOperation,
+                severity: SecurityEventSeverity.error,
                 eventName: "report_generation_failed",
                 description: "报告生成失败: \(error.localizedDescription)",
                 details: [
@@ -1130,7 +1130,7 @@ class AdvancedReportGenerator: ObservableObject {
         try report.content.write(to: fileURL)
         
         try? await auditService.logSecurityEvent(
-            category: .systemOperation,
+            category: SecurityEventCategory.systemOperation,
             severity: .info,
             eventName: "report_saved",
             description: "报告已保存: \(report.fileName)",
@@ -1150,8 +1150,8 @@ class AdvancedReportGenerator: ObservableObject {
         
         Task {
             try? await auditService.logSecurityEvent(
-                category: .systemOperation,
-                severity: .info,
+                category: SecurityEventCategory.systemOperation,
+                severity: SecurityEventSeverity.info,
                 eventName: "report_deleted",
                 description: "报告已删除: \(report.fileName)",
                 details: ["report_id": report.id.uuidString]

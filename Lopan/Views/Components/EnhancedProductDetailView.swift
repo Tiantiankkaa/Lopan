@@ -110,8 +110,8 @@ struct EnhancedProductDetailView: View {
         }
         .background(
             RoundedRectangle(cornerRadius: 16)
-                .fill(Color.white)
-                .shadow(color: Color.black.opacity(0.05), radius: 4, x: 0, y: 2)
+                .fill(LopanColors.backgroundSecondary)
+                .shadow(color: LopanColors.shadow, radius: 4, x: 0, y: 2)
         )
     }
     
@@ -189,8 +189,8 @@ struct EnhancedProductDetailView: View {
                             }) {
                                 Image(systemName: "xmark.circle.fill")
                                     .font(.title2)
-                                    .foregroundColor(.white)
-                                    .background(Color.black.opacity(0.5))
+                                    .foregroundColor(LopanColors.textPrimary)
+                                    .background(LopanColors.shadow.opacity(10))
                                     .clipShape(Circle())
                             }
                             .padding()
@@ -202,7 +202,7 @@ struct EnhancedProductDetailView: View {
             .padding(20)
             .background(
                 RoundedRectangle(cornerRadius: 16)
-                    .fill(isImageExpanded ? Color.black : Color.white)
+                    .fill(isImageExpanded ? LopanColors.textPrimary : LopanColors.backgroundSecondary)
             )
             
             if !isImageExpanded {
@@ -397,7 +397,7 @@ struct EnhancedProductDetailView: View {
             Circle()
                 .fill(colorForName(color))
                 .frame(width: 16, height: 16)
-                .overlay(Circle().stroke(Color.black.opacity(0.15), lineWidth: 0.5))
+                .overlay(Circle().stroke(LopanColors.border, lineWidth: 0.5))
             
             Text(color)
                 .font(.callout)
@@ -479,12 +479,11 @@ struct EnhancedProductDetailView: View {
         VStack(spacing: 12) {
             HStack(spacing: 12) {
                 Button("编辑产品") {
-                    let impactFeedback = UIImpactFeedbackGenerator(style: .medium)
-                    impactFeedback.impactOccurred()
+                    LopanHapticEngine.shared.medium()
                     showingEditSheet = true
                 }
                 .buttonStyle(.borderedProminent)
-                .foregroundColor(.white)
+                .foregroundColor(LopanColors.textPrimary)
                 .tint(LopanColors.primary)
                 .accessibilityHint("编辑产品信息")
                 
@@ -521,8 +520,8 @@ struct EnhancedProductDetailView: View {
             .padding(contentPadding)
             .background(
                 RoundedRectangle(cornerRadius: 16)
-                    .fill(Color.white)
-                    .shadow(color: Color.black.opacity(0.05), radius: 2, x: 0, y: 1)
+                    .fill(LopanColors.backgroundSecondary)
+                    .shadow(color: LopanColors.shadow, radius: 2, x: 0, y: 1)
             )
     }
     
@@ -584,7 +583,7 @@ struct EnhancedProductDetailView: View {
             Button(action: { showingDeleteAlert = true }) {
                 Label("删除产品", systemImage: "trash")
             }
-            .foregroundColor(.red)
+            .foregroundColor(LopanColors.error)
         } label: {
             Image(systemName: "ellipsis.circle")
                 .font(.body)
@@ -595,7 +594,7 @@ struct EnhancedProductDetailView: View {
     private var imageGalleryView: some View {
         NavigationStack {
             ZStack {
-                Color.black.ignoresSafeArea()
+                LopanColors.textPrimary.ignoresSafeArea()
                 
                 if let imageData = product.imageData, let uiImage = UIImage(data: imageData) {
                     Image(uiImage: uiImage)
@@ -646,7 +645,7 @@ struct EnhancedProductDetailView: View {
                         imageScale = 1
                         dragOffset = .zero
                     }
-                    .foregroundColor(.white)
+                    .foregroundColor(LopanColors.textPrimary)
                 }
             }
         }
@@ -675,7 +674,7 @@ struct EnhancedProductDetailView: View {
                 Section {
                     Button(action: { showingDeleteAlert = true }) {
                         Label("删除产品", systemImage: "trash")
-                            .foregroundColor(.red)
+                            .foregroundColor(LopanColors.error)
                     }
                 }
             }
@@ -702,18 +701,18 @@ struct EnhancedProductDetailView: View {
     private func colorForName(_ colorName: String) -> Color {
         let lowercased = colorName.lowercased()
         switch lowercased {
-        case "红色", "红", "red": return .red
-        case "蓝色", "蓝", "blue": return .blue
-        case "绿色", "绿", "green": return .green
-        case "黄色", "黄", "yellow": return .yellow
-        case "橙色", "橙", "orange": return .orange
-        case "紫色", "紫", "purple": return .purple
-        case "粉色", "粉", "pink": return .pink
-        case "黑色", "黑", "black": return .black
-        case "白色", "白", "white": return .white
-        case "灰色", "灰", "gray", "grey": return .gray
-        case "棕色", "棕", "brown": return Color(.systemBrown)
-        default: return Color(.systemGray3)
+        case "红色", "红", "red": return LopanColors.error
+        case "蓝色", "蓝", "blue": return LopanColors.info
+        case "绿色", "绿", "green": return LopanColors.success
+        case "黄色", "黄", "yellow": return LopanColors.warning
+        case "橙色", "橙", "orange": return LopanColors.warning
+        case "紫色", "紫", "purple": return LopanColors.accent
+        case "粉色", "粉", "pink": return LopanColors.accent.opacity(0.7)
+        case "黑色", "黑", "black": return LopanColors.textPrimary
+        case "白色", "白", "white": return LopanColors.backgroundPrimary
+        case "灰色", "灰", "gray", "grey": return LopanColors.secondary
+        case "棕色", "棕", "brown": return LopanColors.secondary
+        default: return LopanColors.secondary
         }
     }
     

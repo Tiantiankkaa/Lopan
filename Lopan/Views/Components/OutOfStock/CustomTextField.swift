@@ -105,7 +105,7 @@ struct CustomTextField: UIViewRepresentable {
         )
         .padding(.horizontal, 12)
         .padding(.vertical, 10)
-        .background(Color(.systemGray6))
+        .background(LopanColors.backgroundTertiary)
         .cornerRadius(10)
         
         CustomTextField(
@@ -114,7 +114,7 @@ struct CustomTextField: UIViewRepresentable {
         )
         .padding(.horizontal, 12)
         .padding(.vertical, 10)
-        .background(Color(.systemGray6))
+        .background(LopanColors.backgroundTertiary)
         .cornerRadius(10)
     }
     .padding()

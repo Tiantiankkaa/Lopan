@@ -183,7 +183,7 @@ struct GunColorSettingsView: View {
                     }
                 }
                 .padding()
-                .background(Color(UIColor.secondarySystemBackground))
+                .background(LopanColors.backgroundSecondary)
                 .cornerRadius(12)
                 
                 // Mold Opening Times
@@ -219,7 +219,7 @@ struct GunColorSettingsView: View {
                     }
                 }
                 .padding()
-                .background(Color(UIColor.secondarySystemBackground))
+                .background(LopanColors.backgroundSecondary)
                 .cornerRadius(12)
             }
         }
@@ -251,7 +251,7 @@ struct GunColorSettingsView: View {
         VStack(spacing: 16) {
             Image(systemName: "gearshape.2")
                 .font(.system(size: 48))
-                .foregroundColor(.gray)
+                .foregroundColor(LopanColors.secondary)
             
             Text("请选择设备来配置基础设置")
                 .font(.headline)
@@ -331,15 +331,15 @@ struct MachineSelectionCard: View {
             
             Image(systemName: "gearshape.2.fill")
                 .font(.title2)
-                .foregroundColor(isSelected ? .white : .blue)
+                .foregroundColor(isSelected ? LopanColors.textOnPrimary : LopanColors.primary)
             
             Text(machine.status.displayName)
                 .font(.caption2)
-                .foregroundColor(isSelected ? .white.opacity(0.8) : .secondary)
+                .foregroundColor(isSelected ? LopanColors.textOnPrimary.opacity(0.8) : LopanColors.textSecondary)
         }
         .frame(width: 80, height: 80)
-        .background(isSelected ? Color.blue : Color(UIColor.secondarySystemBackground))
-        .foregroundColor(isSelected ? .white : .primary)
+        .background(isSelected ? LopanColors.primary : LopanColors.backgroundSecondary)
+        .foregroundColor(isSelected ? LopanColors.textOnPrimary : LopanColors.textPrimary)
         .cornerRadius(12)
         .onTapGesture {
             onTap()
@@ -372,7 +372,7 @@ struct GunColorRow: View {
             HStack(spacing: 8) {
                 if let hexCode = gun.currentColorHex {
                     Circle()
-                        .fill(Color(hex: hexCode) ?? .gray)
+                        .fill(Color(hex: hexCode) ?? LopanColors.secondary)
                         .frame(width: 24, height: 24)
                         .overlay(
                             Circle()
@@ -404,7 +404,7 @@ struct GunColorRow: View {
             }
         }
         .padding()
-        .background(Color(UIColor.secondarySystemBackground))
+        .background(LopanColors.backgroundSecondary)
         .cornerRadius(12)
     }
 }
@@ -442,7 +442,7 @@ struct ColorPickerSheet: View {
                         
                         HStack(spacing: 12) {
                             Circle()
-                                .fill(Color(hex: currentColorHex) ?? .gray)
+                                .fill(Color(hex: currentColorHex) ?? LopanColors.secondary)
                                 .frame(width: 32, height: 32)
                                 .overlay(
                                     Circle()
@@ -463,7 +463,7 @@ struct ColorPickerSheet: View {
                             Spacer()
                         }
                         .padding()
-                        .background(Color(UIColor.tertiarySystemBackground))
+                        .background(LopanColors.backgroundSecondary)
                         .cornerRadius(8)
                     }
                     
@@ -496,7 +496,7 @@ struct ColorPickerSheet: View {
                     VStack(spacing: 16) {
                         Image(systemName: "paintpalette")
                             .font(.system(size: 48))
-                            .foregroundColor(.gray)
+                            .foregroundColor(LopanColors.secondary)
                         
                         Text("暂无可用颜色")
                             .font(.headline)
@@ -581,7 +581,7 @@ struct ColorSelectionCard: View {
             }
         }
         .padding(8)
-        .background(Color(UIColor.secondarySystemBackground))
+        .background(LopanColors.backgroundSecondary)
         .cornerRadius(8)
         .onTapGesture {
             onTap()

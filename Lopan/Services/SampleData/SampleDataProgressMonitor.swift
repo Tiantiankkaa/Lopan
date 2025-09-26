@@ -185,7 +185,7 @@ struct SampleDataProgressView: View {
             // 当前阶段
             Text(monitor.currentPhase)
                 .font(.headline)
-                .foregroundColor(.blue)
+                .foregroundColor(LopanColors.primary)
             
             // 进度条
             VStack(alignment: .leading, spacing: 8) {
@@ -244,13 +244,13 @@ struct SampleDataProgressView: View {
                         Spacer()
                         Text(formatTime(monitor.estimatedTimeRemaining))
                             .font(.subheadline)
-                            .foregroundColor(.orange)
+                            .foregroundColor(LopanColors.warning)
                     }
                 }
             }
         }
         .padding(24)
-        .background(Color(.systemBackground))
+        .background(LopanColors.background)
         .cornerRadius(16)
         .shadow(radius: 8)
     }

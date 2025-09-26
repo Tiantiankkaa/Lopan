@@ -57,23 +57,23 @@ struct SwipeActionOverlay: View {
             Image(systemName: actionIconName)
                 .font(.title2)
                 .fontWeight(.bold)
-                .foregroundColor(.white)
+                .foregroundColor(LopanColors.textPrimary)
                 .scaleEffect(iconScale)
                 .rotationEffect(.degrees(iconRotation))
             
             Text(actionText)
                 .font(.caption)
                 .fontWeight(.semibold)
-                .foregroundColor(.white.opacity(0.9))
+                .foregroundColor(LopanColors.textOnPrimary.opacity(0.9))
         }
         .padding(.horizontal, 16)
     }
     
     private var actionColor: Color {
         if isLeftSwipe {
-            return .red
+            return LopanColors.error
         } else {
-            return item.status == .pending ? .green : .blue
+            return item.status == .pending ? LopanColors.success : LopanColors.info
         }
     }
     
@@ -104,8 +104,7 @@ struct SwipeActionOverlay: View {
     }
     
     private func triggerHapticFeedback() {
-        let impactFeedback = UIImpactFeedbackGenerator(style: .heavy)
-        impactFeedback.impactOccurred()
+        LopanHapticEngine.shared.heavy()
     }
 }
 
@@ -126,7 +125,6 @@ struct EnhancedOutOfStockCardView: View {
     @State private var showingActionOverlay = false
     
     private let swipeThreshold: CGFloat = 100
-    private let hapticFeedback = UIImpactFeedbackGenerator(style: .light)
     
     enum SwipeAction {
         case delete
@@ -186,8 +184,7 @@ struct EnhancedOutOfStockCardView: View {
         
         // Trigger haptic feedback at threshold
         if abs(translation) > swipeThreshold && abs(translation) < swipeThreshold + 10 {
-            let impactFeedback = UIImpactFeedbackGenerator(style: .medium)
-            impactFeedback.impactOccurred()
+            LopanHapticEngine.shared.medium()
         }
     }
     
@@ -236,5 +233,5 @@ struct EnhancedOutOfStockCardView: View {
         )
     }
     .padding()
-    .background(Color(.systemGray6))
+    .background(LopanColors.backgroundTertiary)
 }

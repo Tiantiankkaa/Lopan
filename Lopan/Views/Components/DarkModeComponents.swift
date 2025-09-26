@@ -57,48 +57,48 @@ class DarkModeManager: ObservableObject {
 // MARK: - Dark Mode Colors
 struct AdaptiveColors {
     // Background colors
-    static let primaryBackground = Color(.systemBackground)
-    static let secondaryBackground = Color(.secondarySystemBackground)
-    static let tertiaryBackground = Color(.tertiarySystemBackground)
-    static let groupedBackground = Color(.systemGroupedBackground)
-    static let secondaryGroupedBackground = Color(.secondarySystemGroupedBackground)
+    static let primaryBackground = LopanColors.background
+    static let secondaryBackground = LopanColors.backgroundSecondary
+    static let tertiaryBackground = LopanColors.backgroundTertiary
+    static let groupedBackground = LopanColors.backgroundSecondary
+    static let secondaryGroupedBackground = LopanColors.backgroundTertiary
     
     // Text colors
-    static let primaryText = Color(.label)
-    static let secondaryText = Color(.secondaryLabel)
-    static let tertiaryText = Color(.tertiaryLabel)
-    static let quaternaryText = Color(.quaternaryLabel)
+    static let primaryText = LopanColors.textPrimary
+    static let secondaryText = LopanColors.textSecondary
+    static let tertiaryText = LopanColors.textSecondary.opacity(0.8)
+    static let quaternaryText = LopanColors.textSecondary.opacity(0.6)
     
     // Separator colors
-    static let separator = Color(.separator)
-    static let opaqueSeparator = Color(.opaqueSeparator)
+    static let separator = LopanColors.secondary.opacity(0.3)
+    static let opaqueSeparator = LopanColors.secondary
     
     // System colors that adapt
-    static let systemBlue = Color(.systemBlue)
-    static let systemGreen = Color(.systemGreen)
-    static let systemRed = Color(.systemRed)
-    static let systemOrange = Color(.systemOrange)
-    static let systemYellow = Color(.systemYellow)
-    static let systemPurple = Color(.systemPurple)
-    static let systemPink = Color(.systemPink)
-    static let systemIndigo = Color(.systemIndigo)
-    static let systemTeal = Color(.systemTeal)
+    static let systemBlue = LopanColors.primary
+    static let systemGreen = LopanColors.success
+    static let systemRed = LopanColors.error
+    static let systemOrange = LopanColors.accent
+    static let systemYellow = LopanColors.warning
+    static let systemPurple = LopanColors.premium
+    static let systemPink = LopanColors.accent.opacity(0.7)
+    static let systemIndigo = LopanColors.primary.opacity(0.8)
+    static let systemTeal = LopanColors.info
     
     // Fill colors
-    static let fill = Color(.systemFill)
-    static let secondaryFill = Color(.secondarySystemFill)
-    static let tertiaryFill = Color(.tertiarySystemFill)
-    static let quaternaryFill = Color(.quaternarySystemFill)
+    static let fill = LopanColors.backgroundSecondary
+    static let secondaryFill = LopanColors.backgroundTertiary
+    static let tertiaryFill = LopanColors.backgroundTertiary.opacity(0.7)
+    static let quaternaryFill = LopanColors.backgroundTertiary.opacity(0.5)
     
     // Custom status colors that adapt to dark mode
     static func statusColor(for status: OutOfStockStatus) -> Color {
         switch status {
         case .pending:
-            return Color(.systemOrange)
+            return LopanColors.warning
         case .completed:
-            return Color(.systemGreen)
+            return LopanColors.success
         case .returned:
-            return Color(.systemPurple)
+            return LopanColors.premium
         }
     }
     

@@ -117,7 +117,7 @@ struct LopanTextField: View {
                     if !text.isEmpty && isFocused {
                         Button(action: {
                             text = ""
-                            HapticFeedback.light()
+                            LopanHapticEngine.shared.light()
                         }) {
                             Image(systemName: "xmark.circle.fill")
                                 .font(LopanTypography.bodySmall)
@@ -129,7 +129,7 @@ struct LopanTextField: View {
                     if isSecure {
                         Button(action: {
                             isSecureVisible.toggle()
-                            HapticFeedback.light()
+                            LopanHapticEngine.shared.light()
                         }) {
                             Image(systemName: isSecureVisible ? "eye.slash" : "eye")
                                 .font(LopanTypography.bodyMedium)
@@ -240,7 +240,7 @@ extension LopanTextField {
         var defaultBorderColor: Color {
             switch self {
             case .filled:
-                return Color.clear
+                return LopanColors.clear
             case .outline:
                 return LopanColors.border
             case .underline:
@@ -405,10 +405,15 @@ extension LopanTextField {
     }
 }
 
-// MARK: - Preview
-#Preview {
+// MARK: - Dynamic Type Previews
+
+#Preview("Default Size") {
     ScrollView {
-        VStack(spacing: LopanSpacing.lg) {
+        VStack(spacing: 20) {
+            Text("Text Field Variants")
+                .font(.headline)
+                .padding(.bottom)
+
             LopanTextField.standard(
                 title: "客户姓名",
                 placeholder: "请输入客户姓名",
@@ -417,7 +422,7 @@ extension LopanTextField {
                 icon: "person",
                 helperText: "客户的真实姓名"
             )
-            
+
             LopanTextField.email(
                 title: "邮箱地址",
                 placeholder: "请输入邮箱",
@@ -425,13 +430,13 @@ extension LopanTextField {
                 isRequired: true,
                 helperText: "用于接收订单通知"
             )
-            
+
             LopanTextField.phone(
                 title: "联系电话",
                 placeholder: "请输入手机号",
-                text: .constant("13800138000")
+                text: .constant("138")
             )
-            
+
             LopanTextField.password(
                 title: "密码",
                 placeholder: "请输入密码",
@@ -439,30 +444,221 @@ extension LopanTextField {
                 isRequired: true,
                 helperText: "密码长度至少8位"
             )
-            
+
+            Divider()
+
             LopanTextField.search(
                 placeholder: "搜索客户、产品...",
                 text: .constant("")
             )
-            
-            // Error state example
-            LopanTextField(
-                title: "错误示例",
-                placeholder: "输入内容",
-                text: .constant("invalid"),
-                state: .error,
-                errorText: "输入格式不正确"
+        }
+        .padding()
+    }
+    .environment(\.dynamicTypeSize, .large)
+}
+
+#Preview("Extra Large") {
+    ScrollView {
+        VStack(spacing: 24) {
+            Text("Text Field Preview at Extra Large Size")
+                .font(.title2)
+                .padding(.bottom)
+
+            LopanTextField.standard(
+                title: "Manufacturing Customer Information",
+                placeholder: "Enter complete customer name for production order",
+                text: .constant(""),
+                isRequired: true,
+                icon: "person.fill",
+                helperText: "Full legal name as registered for manufacturing contracts"
             )
-            
-            // Success state example
+
+            LopanTextField.email(
+                title: "Production Notification Email Address",
+                placeholder: "customer@company.com",
+                text: .constant(""),
+                isRequired: true,
+                helperText: "Email address for production status updates and quality reports"
+            )
+
             LopanTextField(
-                title: "成功示例",
-                placeholder: "输入内容",
-                text: .constant("valid@example.com"),
-                state: .success,
-                helperText: "邮箱格式正确"
+                title: "Quality Control Notes with Character Limit",
+                placeholder: "Enter detailed quality control observations",
+                text: .constant("Initial inspection complete"),
+                helperText: "Detailed notes about product quality and inspection results",
+                maxLength: 200
             )
         }
         .padding()
     }
+    .environment(\.dynamicTypeSize, .xLarge)
+}
+
+#Preview("Accessibility 3") {
+    ScrollView {
+        VStack(spacing: 28) {
+            Text("Text Field Preview at AX3 Size")
+                .font(.title2)
+                .padding(.bottom)
+
+            LopanTextField.standard(
+                title: "Production Batch Customer Name (Required Field)",
+                placeholder: "Enter customer full legal name for manufacturing order processing",
+                text: .constant(""),
+                isRequired: true,
+                icon: "person.badge.plus",
+                helperText: "Customer name must match exactly with manufacturing contract documentation"
+            )
+
+            LopanTextField(
+                title: "Critical Alert: Quality Control Issue Description",
+                placeholder: "Describe quality control problem in detail",
+                text: .constant("Surface defect detected"),
+                state: .error,
+                icon: "exclamationmark.triangle.fill",
+                errorText: "Quality issue description must be comprehensive and specific"
+            )
+
+            LopanTextField(
+                title: "Successfully Validated Production Specification",
+                placeholder: "Product specification details",
+                text: .constant("Meets all manufacturing standards"),
+                state: .success,
+                icon: "checkmark.circle.fill",
+                helperText: "Production specification has passed all quality validation checks"
+            )
+        }
+        .padding()
+    }
+    .environment(\.dynamicTypeSize, .accessibility3)
+}
+
+#Preview("Accessibility 5 (Maximum)") {
+    ScrollView {
+        VStack(spacing: 32) {
+            Text("Maximum Accessibility Size")
+                .font(.largeTitle)
+                .padding(.bottom)
+
+            LopanTextField.standard(
+                title: "Customer Name",
+                placeholder: "Enter name",
+                text: .constant(""),
+                isRequired: true,
+                icon: "person",
+                helperText: "Required field"
+            )
+
+            LopanTextField(
+                title: "Error Example",
+                placeholder: "Enter data",
+                text: .constant("Invalid"),
+                state: .error,
+                errorText: "Invalid format"
+            )
+
+            LopanTextField.search(
+                placeholder: "Search...",
+                text: .constant("")
+            )
+        }
+        .padding()
+    }
+    .environment(\.dynamicTypeSize, .accessibility5)
+}
+
+#Preview("Dark Mode - AX3") {
+    ScrollView {
+        VStack(spacing: 28) {
+            Text("Dark Mode Text Field Preview")
+                .font(.title2)
+                .padding(.bottom)
+
+            LopanTextField.standard(
+                title: "Dark Mode Customer Information Entry",
+                placeholder: "Enter customer details for night shift processing",
+                text: .constant(""),
+                isRequired: true,
+                icon: "moon.stars.fill",
+                helperText: "Customer information for after-hours manufacturing operations"
+            )
+
+            LopanTextField.password(
+                title: "Secure Access for Night Operations",
+                placeholder: "Enter secure access password",
+                text: .constant(""),
+                isRequired: true,
+                helperText: "Enhanced security required for night shift access"
+            )
+
+            LopanTextField.search(
+                placeholder: "Search night shift production records...",
+                text: .constant("")
+            )
+        }
+        .padding()
+    }
+    .preferredColorScheme(.dark)
+    .environment(\.dynamicTypeSize, .accessibility3)
+}
+
+#Preview("Field States") {
+    ScrollView {
+        VStack(spacing: 20) {
+            Text("Text Field Validation States")
+                .font(.headline)
+                .padding(.bottom)
+
+            LopanTextField(
+                title: "Normal State",
+                placeholder: "Enter information",
+                text: .constant(""),
+                helperText: "Standard input field"
+            )
+
+            LopanTextField(
+                title: "Success State",
+                placeholder: "Enter information",
+                text: .constant("valid@example.com"),
+                state: .success,
+                helperText: "Email format is valid"
+            )
+
+            LopanTextField(
+                title: "Error State",
+                placeholder: "Enter information",
+                text: .constant("invalid"),
+                state: .error,
+                errorText: "Input format is incorrect"
+            )
+
+            LopanTextField(
+                title: "Warning State",
+                placeholder: "Enter information",
+                text: .constant("caution"),
+                state: .warning,
+                helperText: "Please review this input"
+            )
+
+            Divider()
+
+            LopanTextField(
+                title: "Filled Variant",
+                placeholder: "Filled style",
+                text: .constant(""),
+                variant: .filled,
+                helperText: "Filled background style"
+            )
+
+            LopanTextField(
+                title: "Character Count",
+                placeholder: "Type here...",
+                text: .constant("Sample text"),
+                helperText: "Text with character limit",
+                maxLength: 50
+            )
+        }
+        .padding()
+    }
+    .environment(\.dynamicTypeSize, .xLarge)
 }

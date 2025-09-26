@@ -32,11 +32,11 @@ enum SecurityEventSeverity: String, CaseIterable, Codable {
     
     var color: Color {
         switch self {
-        case .info: return .blue
-        case .warning: return .orange
-        case .error: return .red
-        case .critical: return .purple
-        case .fatal: return .black
+        case .info: return LopanColors.primary
+        case .warning: return LopanColors.warning
+        case .error: return LopanColors.error
+        case .critical: return LopanColors.primary
+        case .fatal: return LopanColors.textPrimary
         }
     }
     
@@ -96,6 +96,34 @@ enum SecurityEventCategory: String, CaseIterable, Codable {
     }
 }
 
+// MARK: - Performance Metrics (性能指标)
+
+/// Performance metrics for audit events
+/// 审计事件的性能指标
+struct AuditPerformanceMetrics: Codable {
+    let cpuUsage: Double?
+    let memoryUsage: Double?
+    let diskUsage: Double?
+    let networkLatency: Double?
+    let executionTime: Double?
+    let timestamp: Date
+
+    init(
+        cpuUsage: Double? = nil,
+        memoryUsage: Double? = nil,
+        diskUsage: Double? = nil,
+        networkLatency: Double? = nil,
+        executionTime: Double? = nil
+    ) {
+        self.cpuUsage = cpuUsage
+        self.memoryUsage = memoryUsage
+        self.diskUsage = diskUsage
+        self.networkLatency = networkLatency
+        self.executionTime = executionTime
+        self.timestamp = Date()
+    }
+}
+
 // MARK: - Enhanced Security Event (增强安全事件)
 
 /// Enhanced security audit event with detailed tracking
@@ -116,7 +144,7 @@ struct EnhancedSecurityEvent: Identifiable, Codable {
     let metadata: [String: String]
     let correlationId: String?
     let stackTrace: String?
-    let performanceMetrics: PerformanceMetrics?
+    let performanceMetrics: AuditPerformanceMetrics?
     let securityContext: SecurityContext
     let isEncrypted: Bool
     
@@ -132,7 +160,7 @@ struct EnhancedSecurityEvent: Identifiable, Codable {
         metadata: [String: String] = [:],
         correlationId: String? = nil,
         stackTrace: String? = nil,
-        performanceMetrics: PerformanceMetrics? = nil,
+        performanceMetrics: AuditPerformanceMetrics? = nil,
         securityContext: SecurityContext = SecurityContext()
     ) {
         self.id = UUID().uuidString
@@ -160,7 +188,7 @@ struct EnhancedSecurityEvent: Identifiable, Codable {
 
 /// Performance metrics for audit events
 /// 审计事件的性能指标
-struct PerformanceMetrics: Codable {
+struct AuditAuditPerformanceMetrics: Codable {
     let executionTime: TimeInterval
     let memoryUsage: UInt64?
     let cacheHitRate: Double?
@@ -337,7 +365,7 @@ public class EnhancedSecurityAuditService: ObservableObject {
         details: [String: String] = [:],
         metadata: [String: String] = [:],
         sensitivityLevel: DataSensitivityLevel = .internal,
-        performanceMetrics: PerformanceMetrics? = nil
+        performanceMetrics: AuditPerformanceMetrics? = nil
     ) async throws {
         
         let securityContext = SecurityContext(
@@ -435,7 +463,7 @@ public class EnhancedSecurityAuditService: ObservableObject {
         
         // Log threat detection
         try? await logSecurityEvent(
-            category: .securityViolation,
+            category: SecurityEventCategory.securityViolation,
             severity: pattern.severity,
             eventName: "threat_detected",
             description: "检测到安全威胁: \(pattern.name)",
@@ -495,7 +523,7 @@ public class EnhancedSecurityAuditService: ObservableObject {
             try? await logEvent(
                 "security_action_block",
                 severity: .critical,
-                category: .securityViolation,
+                category: SecurityEventCategory.securityViolation,
                 description: "执行安全阻止操作",
                 details: ["blocked_event": event.id]
             )
@@ -505,7 +533,7 @@ public class EnhancedSecurityAuditService: ObservableObject {
                 try? await logEvent(
                     "security_action_lock_account",
                     severity: .critical,
-                    category: .securityViolation,
+                    category: SecurityEventCategory.securityViolation,
                     description: "锁定用户账户",
                     details: ["locked_user": userId]
                 )
@@ -616,7 +644,8 @@ public class EnhancedSecurityAuditService: ObservableObject {
             else { return .info }
         }
     }
-    
+
+
     // MARK: - Alert Management
     
     /// Dismiss security alert

@@ -74,7 +74,7 @@ public struct ViewPreloadPerformanceDashboard: View {
                 ToolbarItemGroup(placement: .navigationBarTrailing) {
                     Button(action: toggleMonitoring) {
                         Image(systemName: isMonitoring ? "stop.circle.fill" : "play.circle.fill")
-                            .foregroundColor(isMonitoring ? .red : .green)
+                            .foregroundColor(isMonitoring ? LopanColors.error : LopanColors.success)
                     }
                     .accessibilityLabel(isMonitoring ? "停止监控" : "开始监控")
                     
@@ -380,42 +380,42 @@ struct OverviewTab: View {
                 ViewMetricCard(
                     title: "缓存命中率",
                     value: "\(String(format: "%.1f", performanceData.cacheHitRate * 100))%",
-                    color: performanceData.cacheHitRate >= 0.8 ? .green : .orange,
+                    color: performanceData.cacheHitRate >= 0.8 ? LopanColors.success : LopanColors.warning,
                     icon: "externaldrive.fill"
                 )
                 
                 ViewMetricCard(
                     title: "视图复用率",
                     value: "\(String(format: "%.1f", performanceData.poolReuseRate * 100))%",
-                    color: performanceData.poolReuseRate >= 0.6 ? .green : .orange,
+                    color: performanceData.poolReuseRate >= 0.6 ? LopanColors.success : LopanColors.warning,
                     icon: "arrow.triangle.2.circlepath"
                 )
                 
                 ViewMetricCard(
                     title: "导航预载率",
                     value: "\(String(format: "%.1f", performanceData.navigationPreloadRate * 100))%",
-                    color: performanceData.navigationPreloadRate >= 0.7 ? .green : .orange,
+                    color: performanceData.navigationPreloadRate >= 0.7 ? LopanColors.success : LopanColors.warning,
                     icon: "arrow.right.circle.fill"
                 )
                 
                 ViewMetricCard(
                     title: "内存使用",
                     value: "\(String(format: "%.1f", performanceData.totalMemoryMB))MB",
-                    color: performanceData.totalMemoryMB < 50 ? .green : .red,
+                    color: performanceData.totalMemoryMB < 50 ? LopanColors.success : LopanColors.error,
                     icon: "memorychip.fill"
                 )
                 
                 ViewMetricCard(
                     title: "系统效率",
                     value: "\(String(format: "%.1f", performanceData.systemEfficiency * 100))%",
-                    color: performanceData.systemEfficiency >= 0.8 ? .green : .orange,
+                    color: performanceData.systemEfficiency >= 0.8 ? LopanColors.success : LopanColors.warning,
                     icon: "speedometer"
                 )
                 
                 ViewMetricCard(
                     title: "导航响应",
                     value: "\(String(format: "%.0f", performanceData.averageNavigationTime * 1000))ms",
-                    color: performanceData.averageNavigationTime < 0.05 ? .green : .orange,
+                    color: performanceData.averageNavigationTime < 0.05 ? LopanColors.success : LopanColors.warning,
                     icon: "timer"
                 )
             }
@@ -431,7 +431,7 @@ struct OverviewTab: View {
                     ForEach(performanceData.recommendations, id: \.self) { recommendation in
                         HStack {
                             Image(systemName: "lightbulb.fill")
-                                .foregroundColor(.yellow)
+                                .foregroundColor(LopanColors.warning)
                             Text(recommendation)
                                 .font(.body)
                         }
@@ -517,8 +517,8 @@ struct TestingTab: View {
                 }
                 .frame(maxWidth: .infinity)
                 .padding()
-                .background(isRunningTests ? Color.gray : Color.blue)
-                .foregroundColor(.white)
+                .background(isRunningTests ? LopanColors.secondary : LopanColors.primary)
+                .foregroundColor(LopanColors.textPrimary)
                 .cornerRadius(10)
             }
             .disabled(isRunningTests)
@@ -567,7 +567,7 @@ struct ViewMetricCard: View {
         }
         .frame(height: 120)
         .frame(maxWidth: .infinity)
-        .background(Color(.systemGray6))
+        .background(LopanColors.backgroundTertiary)
         .cornerRadius(12)
     }
 }
@@ -582,9 +582,9 @@ struct HealthRow: View {
         
         var color: Color {
             switch self {
-            case .healthy: return .green
-            case .warning: return .orange
-            case .critical: return .red
+            case .healthy: return LopanColors.success
+            case .warning: return LopanColors.warning
+            case .critical: return LopanColors.error
             }
         }
         
@@ -623,7 +623,7 @@ struct TestResultRow: View {
         VStack(alignment: .leading, spacing: 8) {
             HStack {
                 Image(systemName: test.passed ? "checkmark.circle.fill" : "xmark.circle.fill")
-                    .foregroundColor(test.passed ? .green : .red)
+                    .foregroundColor(test.passed ? LopanColors.success : LopanColors.error)
                 
                 Text(test.name)
                     .font(.headline)

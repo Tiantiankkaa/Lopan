@@ -947,14 +947,14 @@ enum DeploymentStatus: String, CaseIterable {
     
     var color: Color {
         switch self {
-        case .notStarted: return .gray
-        case .preparing: return .blue
-        case .ready: return .green
-        case .deploying: return .orange
-        case .deployed: return .green
-        case .rollingBack: return .yellow
-        case .rolledBack: return .yellow
-        case .preparationFailed, .deploymentFailed, .rollbackFailed: return .red
+        case .notStarted: return LopanColors.textSecondary
+        case .preparing: return LopanColors.primary
+        case .ready: return LopanColors.success
+        case .deploying: return LopanColors.warning
+        case .deployed: return LopanColors.success
+        case .rollingBack: return LopanColors.warning
+        case .rolledBack: return LopanColors.warning
+        case .preparationFailed, .deploymentFailed, .rollbackFailed: return LopanColors.error
         }
     }
 }
@@ -1093,10 +1093,10 @@ enum ReadinessStatus: String, CaseIterable {
     
     var color: Color {
         switch self {
-        case .pending: return .gray
-        case .passed: return .green
-        case .warning: return .yellow
-        case .failed: return .red
+        case .pending: return LopanColors.textSecondary
+        case .passed: return LopanColors.success
+        case .warning: return LopanColors.warning
+        case .failed: return LopanColors.error
         }
     }
 }

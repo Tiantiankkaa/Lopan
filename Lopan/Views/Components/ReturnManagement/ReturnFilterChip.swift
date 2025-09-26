@@ -20,9 +20,8 @@ struct ReturnFilterChip: View {
                 
             
             Button(action: {
-                withHapticFeedback(.light) {
-                    onRemove()
-                }
+                LopanHapticEngine.shared.light()
+                onRemove()
             }) {
                 Image(systemName: "xmark.circle.fill")
                     .font(.caption2)
@@ -77,12 +76,11 @@ struct ActiveFiltersIndicator: View {
                     Spacer()
                     
                     Button("清除全部") {
-                        withHapticFeedback(.light) {
-                            onClearAllFilters()
-                        }
+                        LopanHapticEngine.shared.light()
+                        onClearAllFilters()
                     }
                     .font(.caption)
-                    .foregroundColor(.red)
+                    .foregroundColor(LopanColors.error)
                     .accessibilityLabel("清除所有筛选条件")
                 }
                 
@@ -91,7 +89,7 @@ struct ActiveFiltersIndicator: View {
                         if let status = selectedReturnStatus {
                             ReturnFilterChip(
                                 title: status.displayName,
-                                color: .blue,
+                                color: LopanColors.primary,
                                 onRemove: onRemoveReturnStatus
                             )
                         }
@@ -99,7 +97,7 @@ struct ActiveFiltersIndicator: View {
                         if let customer = selectedCustomer {
                             ReturnFilterChip(
                                 title: customer.name,
-                                color: .green,
+                                color: LopanColors.success,
                                 onRemove: onRemoveCustomer
                             )
                         }
@@ -107,7 +105,7 @@ struct ActiveFiltersIndicator: View {
                         if let address = selectedAddress {
                             ReturnFilterChip(
                                 title: String(address.prefix(10)) + (address.count > 10 ? "..." : ""),
-                                color: .orange,
+                                color: LopanColors.warning,
                                 onRemove: onRemoveAddress
                             )
                         }
@@ -115,7 +113,7 @@ struct ActiveFiltersIndicator: View {
                         if isFilteringByDate {
                             ReturnFilterChip(
                                 title: selectedDate.formatted(.dateTime.month().day()),
-                                color: .purple,
+                                color: LopanColors.premium,
                                 onRemove: onRemoveDateFilter
                             )
                         }
@@ -124,24 +122,18 @@ struct ActiveFiltersIndicator: View {
                 }
             }
             .padding(.vertical, 8)
-            .background(Color(.systemGray6).opacity(0.5))
+            .background(LopanColors.backgroundTertiary.opacity(0.5))
             .cornerRadius(8)
         }
     }
 }
 
-// Helper function for haptic feedback
-func withHapticFeedback<T>(_ style: UIImpactFeedbackGenerator.FeedbackStyle, _ action: () -> T) -> T {
-    let generator = UIImpactFeedbackGenerator(style: style)
-    generator.impactOccurred()
-    return action()
-}
 
 #Preview {
     VStack(spacing: 20) {
-        ReturnFilterChip(title: "待还货", color: .blue) { }
-        ReturnFilterChip(title: "张三", color: .green) { }
-        ReturnFilterChip(title: "今天", color: .purple) { }
+        ReturnFilterChip(title: "待还货", color: LopanColors.primary) { }
+        ReturnFilterChip(title: "张三", color: LopanColors.success) { }
+        ReturnFilterChip(title: "今天", color: LopanColors.premium) { }
     }
     .padding()
 }

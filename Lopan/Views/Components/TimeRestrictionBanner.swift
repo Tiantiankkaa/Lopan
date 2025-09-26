@@ -43,11 +43,11 @@ struct TimeRestrictionBanner: View {
         var iconColor: Color {
             switch self {
             case .warning:
-                return .orange
+                return LopanColors.warning
             case .info:
-                return .blue
+                return LopanColors.primary
             case .success:
-                return .green
+                return LopanColors.success
             }
         }
         
@@ -215,7 +215,7 @@ struct MachineStatusChecker: View {
     private var statusIcon: some View {
         Image(systemName: machineService.isAnyMachineRunning ? "checkmark.circle.fill" : "xmark.circle.fill")
             .font(.system(size: 24, weight: .medium))
-            .foregroundColor(machineService.isAnyMachineRunning ? .green : .red)
+            .foregroundColor(machineService.isAnyMachineRunning ? LopanColors.success : LopanColors.error)
             .accessibilityHidden(true)
     }
     
@@ -228,7 +228,7 @@ struct MachineStatusChecker: View {
             
             Text(statusDescription)
                 .font(.system(.caption, design: .rounded))
-                .foregroundColor(machineService.isAnyMachineRunning ? .green : .red)
+                .foregroundColor(machineService.isAnyMachineRunning ? LopanColors.success : LopanColors.error)
         }
     }
     
@@ -240,7 +240,7 @@ struct MachineStatusChecker: View {
         }) {
             Image(systemName: "arrow.clockwise")
                 .font(.system(size: 16, weight: .medium))
-                .foregroundColor(.blue)
+                .foregroundColor(LopanColors.primary)
         }
         .buttonStyle(PlainButtonStyle())
         .accessibilityLabel("刷新机器状态")
@@ -287,15 +287,15 @@ struct MachineStatusChecker: View {
     // MARK: - Computed Properties (计算属性)
     
     private var backgroundColor: Color {
-        return machineService.isAnyMachineRunning ? 
-               LopanColors.success.opacity(0.1) : 
-               Color.red.opacity(0.1)
+        return machineService.isAnyMachineRunning ?
+               LopanColors.success.opacity(0.1) :
+               LopanColors.error.opacity(0.1)
     }
     
     private var borderColor: Color {
-        return machineService.isAnyMachineRunning ? 
-               LopanColors.success.opacity(0.3) : 
-               Color.red.opacity(0.3)
+        return machineService.isAnyMachineRunning ?
+               LopanColors.success.opacity(0.3) :
+               LopanColors.error.opacity(0.3)
     }
     
     private var statusDescription: String {
@@ -340,7 +340,7 @@ struct TimeRestrictionBanner_Previews: PreviewProvider {
             )
         }
         .padding()
-        .background(Color(.systemBackground))
+        .background(LopanColors.background)
     }
     
     private static func createMockMachineService() -> MachineService {

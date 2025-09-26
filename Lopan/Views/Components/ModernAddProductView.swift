@@ -32,7 +32,7 @@ struct ModernAddProductView: View {
     @State private var colorSuggestions: [String] = []
     @State private var sizeSuggestions: [String] = []
     @State private var isShowingColorPicker = false
-    @State private var customColor = Color.blue
+    @State private var customColor = LopanColors.primary
     @State private var isDraftSaved = false
     @State private var lastAutoSave = Date()
     
@@ -158,7 +158,7 @@ struct ModernAddProductView: View {
             }
         }
         .padding(.vertical, 20)
-        .background(Color.white)
+        .background(LopanColors.backgroundSecondary)
         .overlay(
             Rectangle()
                 .frame(height: 0.5)
@@ -180,7 +180,7 @@ struct ModernAddProductView: View {
                 if completedSteps.contains(step) {
                     Image(systemName: "checkmark")
                         .font(.system(size: 16, weight: .semibold))
-                        .foregroundColor(.white)
+                        .foregroundColor(LopanColors.textPrimary)
                 } else {
                     Image(systemName: step.icon)
                         .font(.system(size: 16, weight: .medium))
@@ -280,7 +280,7 @@ struct ModernAddProductView: View {
         formCard {
             HStack(spacing: 12) {
                 Image(systemName: "exclamationmark.triangle")
-                    .foregroundColor(.orange)
+                    .foregroundColor(LopanColors.warning)
                     .font(.title2)
                 
                 VStack(alignment: .leading, spacing: 4) {
@@ -297,7 +297,7 @@ struct ModernAddProductView: View {
                 Spacer()
             }
             .padding(16)
-            .background(Color.orange.opacity(0.05))
+            .background(LopanColors.warning.opacity(0.05))
             .cornerRadius(12)
         }
     }
@@ -447,8 +447,7 @@ struct ModernAddProductView: View {
     private func colorSuggestionButton(_ color: String) -> some View {
         Button(action: {
             if !colors.contains(color) {
-                let impactFeedback = UIImpactFeedbackGenerator(style: .light)
-                impactFeedback.impactOccurred()
+                LopanHapticEngine.shared.light()
                 colors.append(color)
             }
         }) {
@@ -464,7 +463,7 @@ struct ModernAddProductView: View {
                 )
                 .overlay(
                     RoundedRectangle(cornerRadius: 6)
-                        .stroke(colors.contains(color) ? LopanColors.border : Color.clear, lineWidth: 1)
+                        .stroke(colors.contains(color) ? LopanColors.border : LopanColors.clear, lineWidth: 1)
                 )
         }
         .buttonStyle(PlainButtonStyle())
@@ -581,8 +580,7 @@ struct ModernAddProductView: View {
     private func sizeSuggestionButton(_ size: String) -> some View {
         Button(action: {
             if !sizes.contains(size) {
-                let impactFeedback = UIImpactFeedbackGenerator(style: .light)
-                impactFeedback.impactOccurred()
+                LopanHapticEngine.shared.light()
                 sizes.append(size)
             }
         }) {
@@ -598,7 +596,7 @@ struct ModernAddProductView: View {
                 )
                 .overlay(
                     RoundedRectangle(cornerRadius: 6)
-                        .stroke(sizes.contains(size) ? LopanColors.border : Color.clear, lineWidth: 1)
+                        .stroke(sizes.contains(size) ? LopanColors.border : LopanColors.clear, lineWidth: 1)
                 )
         }
         .buttonStyle(PlainButtonStyle())
@@ -664,9 +662,9 @@ struct ModernAddProductView: View {
     private func formCard<Content: View>(@ViewBuilder content: () -> Content) -> some View {
         content()
             .padding(20)
-            .background(Color.white)
+            .background(LopanColors.backgroundSecondary)
             .clipShape(RoundedRectangle(cornerRadius: 16))
-            .shadow(color: Color.black.opacity(0.05), radius: 2, x: 0, y: 1)
+            .shadow(color: LopanColors.shadow, radius: 2, x: 0, y: 1)
     }
     
     private func sectionHeader(_ title: String, _ subtitle: String) -> some View {
@@ -729,7 +727,7 @@ struct ModernAddProductView: View {
         }
         .padding(.horizontal, 20)
         .padding(.vertical, 16)
-        .background(Color.white)
+        .background(LopanColors.backgroundSecondary)
         .overlay(
             Rectangle()
                 .frame(height: 0.5)

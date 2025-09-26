@@ -276,7 +276,7 @@ struct InfoCard<Content: View>: View {
         .cardPadding()
         .background(LopanColors.surface)
         .cornerRadius(LopanSpacing.md)
-        .shadow(color: .black.opacity(0.05), radius: 4, x: 0, y: 2)
+        .shadow(color: LopanColors.textPrimary.opacity(0.05), radius: 4, x: 0, y: 2)
     }
 }
 

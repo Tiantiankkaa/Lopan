@@ -814,10 +814,10 @@ enum SecuritySeverity: String, CaseIterable {
     
     var color: Color {
         switch self {
-        case .low: return .green
-        case .medium: return .yellow
-        case .high: return .orange
-        case .critical: return .red
+        case .low: return LopanColors.success
+        case .medium: return LopanColors.warning
+        case .high: return LopanColors.warning
+        case .critical: return LopanColors.error
         }
     }
 }
@@ -902,10 +902,10 @@ enum SecurityRiskLevel: String, CaseIterable {
     
     var color: Color {
         switch self {
-        case .low: return .green
-        case .medium: return .yellow
-        case .high: return .orange
-        case .critical: return .red
+        case .low: return LopanColors.success
+        case .medium: return LopanColors.warning
+        case .high: return LopanColors.warning
+        case .critical: return LopanColors.error
         }
     }
 }

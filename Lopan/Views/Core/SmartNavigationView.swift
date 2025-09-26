@@ -444,7 +444,7 @@ public struct NavigationPerformanceView: View {
                             title: "Preload Hit Rate",
                             value: "\(String(format: "%.1f", metrics.preloadHitRate * 100))%"
                         )
-                        .foregroundColor(metrics.preloadHitRate >= 0.7 ? .green : .orange)
+                        .foregroundColor(metrics.preloadHitRate >= 0.7 ? LopanColors.success : LopanColors.warning)
                         
                         MetricRow(
                             title: "Average Nav Time",
@@ -460,7 +460,7 @@ public struct NavigationPerformanceView: View {
                             title: "Performance",
                             value: metrics.isPerformingWell ? "Good" : "Needs Improvement"
                         )
-                        .foregroundColor(metrics.isPerformingWell ? .green : .orange)
+                        .foregroundColor(metrics.isPerformingWell ? LopanColors.success : LopanColors.warning)
                     }
                 }
                 

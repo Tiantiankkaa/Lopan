@@ -108,7 +108,7 @@ struct StatusNavigationBar: View {
             VStack(spacing: 4) {
                 Text(tab.title)
                     .font(.body.weight(.medium))
-                    .foregroundColor(isLocked ? .secondary.opacity(0.6) : (currentTab == tab ? .blue : .primary))
+                    .foregroundColor(isLocked ? .secondary.opacity(0.6) : (currentTab == tab ? LopanColors.primary : .primary))
                     .lineLimit(1)
                     .frame(maxWidth: .infinity)
                 
@@ -116,7 +116,7 @@ struct StatusNavigationBar: View {
                 Text("\(count(for: tab))")
                     .font(.footnote.weight(.medium))
                     .monospacedDigit()
-                    .foregroundColor(isLocked ? .secondary.opacity(0.5) : (currentTab == tab ? .blue : .secondary))
+                    .foregroundColor(isLocked ? .secondary.opacity(0.5) : (currentTab == tab ? LopanColors.primary : .secondary))
                     .contentTransition(.numericText(value: Double(count(for: tab))))
             }
             .padding(.vertical, 10)
@@ -135,13 +135,13 @@ struct StatusNavigationBar: View {
                                 )
                                 .overlay {
                                     RoundedRectangle(cornerRadius: 12)
-                                        .fill(Color.blue.opacity(0.15))
+                                        .fill(LopanColors.primary.opacity(0.15))
                                         .blendMode(.overlay)
                                 }
                                 .matchedGeometryEffect(id: "statusPill", in: namespace)
                             } else {
                                 RoundedRectangle(cornerRadius: 12)
-                                    .fill(Color.blue.opacity(0.12))
+                                    .fill(LopanColors.primary.opacity(0.12))
                                     .matchedGeometryEffect(id: "statusPill", in: namespace)
                             }
                         }
@@ -200,7 +200,7 @@ private extension StatusNavigationBar {
                 print("Selection changed to: \(selection?.displayName ?? "All")")
             }
         )
-        .background(Color(.systemGroupedBackground))
+        .background(LopanColors.backgroundSecondary)
         
         Text("Locked State:")
             .font(.headline)
@@ -216,7 +216,7 @@ private extension StatusNavigationBar {
             isLocked: true,
             onSelectionChanged: { _ in }
         )
-        .background(Color(.systemGroupedBackground))
+        .background(LopanColors.backgroundSecondary)
     }
     .padding()
 }

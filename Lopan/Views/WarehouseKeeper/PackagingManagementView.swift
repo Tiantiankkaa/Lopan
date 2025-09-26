@@ -161,14 +161,14 @@ struct PackagingManagementView: View {
                     .background(
                         RoundedRectangle(cornerRadius: LopanCornerRadius.button)
                             .fill(LopanColors.surfaceElevated)
-                            .shadow(color: .black.opacity(0.05), radius: 2, x: 0, y: 1)
+                            .shadow(color: LopanColors.textPrimary.opacity(0.05), radius: 2, x: 0, y: 1)
                     )
                     
                     // Modern add button with floating design
                     Button(action: { showingAddRecord = true }) {
                         Image(systemName: "plus")
                             .font(.system(size: 18, weight: .semibold))
-                            .foregroundStyle(.white)
+                            .foregroundStyle(LopanColors.textOnPrimary)
                     }
                     .frame(width: 48, height: 48)
                     .background(
@@ -276,7 +276,7 @@ struct PackagingManagementView: View {
                                 .font(LopanTypography.bodyMedium)
                                 .fontWeight(.medium)
                         }
-                        .foregroundStyle(.white)
+                        .foregroundStyle(LopanColors.textOnPrimary)
                         .padding(.horizontal, LopanSpacing.lg)
                         .padding(.vertical, LopanSpacing.md)
                         .background(
@@ -306,7 +306,7 @@ struct PackagingManagementView: View {
                     bottom: LopanSpacing.xs,
                     trailing: LopanSpacing.lg
                 ))
-                .listRowBackground(Color.clear)
+                .listRowBackground(LopanColors.clear)
             }
             .onDelete(perform: confirmDelete)
         }
@@ -333,7 +333,7 @@ struct PackagingStatCard: View {
         }
         .frame(maxWidth: .infinity)
         .padding(.vertical, 8)
-        .background(Color(.systemBackground))
+        .background(LopanColors.background)
         .cornerRadius(8)
     }
 }
@@ -385,7 +385,7 @@ struct PackagingRecordRow: View {
                 Text("\(record.totalItems)")
                     .font(.title2)
                     .fontWeight(.bold)
-                    .foregroundColor(.blue)
+                    .foregroundColor(LopanColors.primary)
                 Text("总数")
                     .font(.caption)
                     .foregroundColor(.secondary)
@@ -401,11 +401,11 @@ struct PackagingRecordRow: View {
     private var statusColor: Color {
         switch record.status {
         case .inProgress:
-            return .orange
+            return LopanColors.warning
         case .completed:
-            return .green
+            return LopanColors.success
         case .shipped:
-            return .blue
+            return LopanColors.primary
         }
     }
 }

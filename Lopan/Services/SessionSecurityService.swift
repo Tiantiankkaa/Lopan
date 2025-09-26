@@ -301,7 +301,7 @@ struct SessionWarningAlert: View {
             VStack(spacing: 16) {
                 Image(systemName: "clock.arrow.circlepath")
                     .font(.system(size: 40))
-                    .foregroundColor(.orange)
+                    .foregroundColor(LopanColors.warning)
                 
                 Text("会话即将过期")
                     .font(.headline)
@@ -325,7 +325,7 @@ struct SessionWarningAlert: View {
                 }
             }
             .padding(24)
-            .background(Color(UIColor.systemBackground))
+            .background(LopanColors.backgroundPrimary)
             .cornerRadius(16)
             .shadow(radius: 8)
             .padding()

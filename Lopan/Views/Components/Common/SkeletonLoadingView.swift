@@ -21,9 +21,9 @@ struct SimpleSkeletonShape: View {
             .fill(
                 LinearGradient(
                     colors: [
-                        Color(.systemGray6),
-                        Color(.systemGray5),
-                        Color(.systemGray6)
+                        LopanColors.backgroundTertiary,
+                        LopanColors.backgroundTertiary,
+                        LopanColors.backgroundTertiary
                     ],
                     startPoint: UnitPoint(x: -0.5, y: 0.5),
                     endPoint: UnitPoint(x: 1.5, y: 0.5)
@@ -60,7 +60,7 @@ struct OutOfStockSkeletonCard: View {
             HStack {
                 // Status indicator skeleton
                 Circle()
-                    .fill(Color(.systemGray5))
+                    .fill(LopanColors.backgroundTertiary)
                     .frame(width: 12, height: 12)
                 
                 // Title skeleton
@@ -71,7 +71,7 @@ struct OutOfStockSkeletonCard: View {
                 
                 // Menu button skeleton
                 Circle()
-                    .fill(Color(.systemGray5))
+                    .fill(LopanColors.backgroundTertiary)
                     .frame(width: 24, height: 24)
             }
             
@@ -103,9 +103,9 @@ struct OutOfStockSkeletonCard: View {
             }
         }
         .padding(16)
-        .background(Color(.systemBackground))
+        .background(LopanColors.background)
         .cornerRadius(12)
-        .shadow(color: .black.opacity(0.05), radius: 2, x: 0, y: 1)
+        .shadow(color: LopanColors.textPrimary.opacity(0.05), radius: 2, x: 0, y: 1)
         .accessibilityElement(children: .ignore)
         .accessibilityLabel("正在加载缺货记录")
     }
@@ -148,12 +148,12 @@ struct SearchBarSkeleton: View {
             }
             .padding(.horizontal, 12)
             .padding(.vertical, 10)
-            .background(Color(.systemGray6))
+            .background(LopanColors.backgroundTertiary)
             .cornerRadius(10)
             
             // Filter button skeleton
             RoundedRectangle(cornerRadius: 8)
-                .fill(Color(.systemGray6))
+                .fill(LopanColors.backgroundTertiary)
                 .frame(width: 44, height: 44)
         }
         .accessibilityElement(children: .ignore)
@@ -173,9 +173,9 @@ struct StatisticsCardsSkeleton: View {
                 }
                 .padding(16)
                 .frame(maxWidth: .infinity)
-                .background(Color(.systemBackground))
+                .background(LopanColors.background)
                 .cornerRadius(12)
-                .shadow(color: .black.opacity(0.05), radius: 2, x: 0, y: 1)
+                .shadow(color: LopanColors.textPrimary.opacity(0.05), radius: 2, x: 0, y: 1)
             }
         }
         .padding(.horizontal, 16)

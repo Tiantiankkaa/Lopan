@@ -25,7 +25,7 @@ struct NotificationBadge: View {
             Text(count > maxDisplayCount ? "\(maxDisplayCount)+" : "\(count)")
                 .font(.caption2)
                 .fontWeight(.bold)
-                .foregroundColor(.white)
+                .foregroundColor(LopanColors.textPrimary)
                 .padding(.horizontal, count > 9 ? 6 : 4)
                 .padding(.vertical, 2)
                 .background(LopanColors.error)
@@ -93,7 +93,7 @@ struct NotificationItemView: View {
                     }
                 }
                 .font(.caption)
-                .foregroundColor(.blue)
+                .foregroundColor(LopanColors.primary)
             }
             
             // Action buttons
@@ -111,9 +111,9 @@ struct NotificationItemView: View {
             }
         }
         .padding()
-        .background(notification.isRead ? Color(UIColor.systemBackground) : Color(UIColor.secondarySystemBackground))
+        .background(notification.isRead ? LopanColors.background : LopanColors.backgroundSecondary)
         .cornerRadius(12)
-        .shadow(color: Color.black.opacity(0.1), radius: 2, x: 0, y: 1)
+        .shadow(color: LopanColors.shadow.opacity(2), radius: 2, x: 0, y: 1)
         .onTapGesture {
             if !notification.isRead {
                 onRead()
@@ -165,22 +165,22 @@ struct ActionButtonStyle: ButtonStyle {
     private var foregroundColor: Color {
         switch style {
         case .default:
-            return .blue
+            return LopanColors.primary
         case .destructive:
-            return .red
+            return LopanColors.error
         case .cancel:
-            return .gray
+            return LopanColors.textSecondary
         }
     }
     
     private var backgroundColor: Color {
         switch style {
         case .default:
-            return .blue.opacity(0.1)
+            return LopanColors.primary.opacity(0.1)
         case .destructive:
-            return .red.opacity(0.1)
+            return LopanColors.error.opacity(0.1)
         case .cancel:
-            return .gray.opacity(0.1)
+            return LopanColors.textSecondary.opacity(0.1)
         }
     }
 }
@@ -274,14 +274,14 @@ struct NotificationListView: View {
                     selectedPriority = nil
                 }
                 .font(.caption)
-                .foregroundColor(.blue)
+                .foregroundColor(LopanColors.primary)
             }
             
             // Filter button
             Button(action: { showingFilters = true }) {
                 Image(systemName: "line.3.horizontal.decrease.circle")
                     .font(.title2)
-                    .foregroundColor(.blue)
+                    .foregroundColor(LopanColors.primary)
             }
             
             // Notification badge
@@ -290,7 +290,7 @@ struct NotificationListView: View {
             )
         }
         .padding()
-        .background(Color(UIColor.systemBackground))
+        .background(LopanColors.backgroundPrimary)
     }
     
     private func handleNotificationAction(_ action: NotificationAction, for notification: NotificationMessage) {
@@ -330,11 +330,11 @@ struct EmptyNotificationState: View {
         VStack(spacing: 16) {
             Image(systemName: hasFilter ? "line.3.horizontal.decrease.circle" : "bell.slash")
                 .font(.system(size: 48))
-                .foregroundColor(.gray)
+                .foregroundColor(LopanColors.textSecondary)
             
             Text(hasFilter ? "没有符合筛选条件的通知" : "暂无通知")
                 .font(.headline)
-                .foregroundColor(.gray)
+                .foregroundColor(LopanColors.textSecondary)
             
             if hasFilter {
                 Button("清除筛选条件", action: onClearFilters)
@@ -360,7 +360,7 @@ struct NotificationFiltersView: View {
                     ForEach(NotificationCategory.allCases, id: \.self) { category in
                         HStack {
                             Image(systemName: category.icon)
-                                .foregroundColor(.blue)
+                                .foregroundColor(LopanColors.primary)
                             
                             Text(category.displayName)
                             
@@ -368,7 +368,7 @@ struct NotificationFiltersView: View {
                             
                             if selectedCategory == category {
                                 Image(systemName: "checkmark")
-                                    .foregroundColor(.blue)
+                                    .foregroundColor(LopanColors.primary)
                             }
                         }
                         .contentShape(Rectangle())
@@ -391,7 +391,7 @@ struct NotificationFiltersView: View {
                             
                             if selectedPriority == priority {
                                 Image(systemName: "checkmark")
-                                    .foregroundColor(.blue)
+                                    .foregroundColor(LopanColors.primary)
                             }
                         }
                         .contentShape(Rectangle())
@@ -406,17 +406,23 @@ struct NotificationFiltersView: View {
             .navigationBarBackButtonHidden()
             .toolbar {
                 ToolbarItem(placement: .navigationBarLeading) {
-                    Button("重置") {
-                        selectedCategory = nil
-                        selectedPriority = nil
-                    }
-                }
-                
-                ToolbarItem(placement: .navigationBarTrailing) {
-                    Button("完成") {
+                    Button("取消") {
                         dismiss()
                     }
-                    .fontWeight(.semibold)
+                }
+
+                ToolbarItem(placement: .navigationBarTrailing) {
+                    HStack(spacing: 16) {
+                        Button("重置") {
+                            selectedCategory = nil
+                            selectedPriority = nil
+                        }
+
+                        Button("完成") {
+                            dismiss()
+                        }
+                        .fontWeight(.semibold)
+                    }
                 }
             }
         }
@@ -532,7 +538,7 @@ struct AlertItemView: View {
                     }
                     .buttonStyle(.bordered)
                     .controlSize(.small)
-                    .foregroundColor(.orange)
+                    .foregroundColor(LopanColors.warning)
                 }
                 
                 Button(showingActions ? "收起" : "详情") {
@@ -542,7 +548,7 @@ struct AlertItemView: View {
                 }
                 .buttonStyle(.plain)
                 .controlSize(.small)
-                .foregroundColor(.blue)
+                .foregroundColor(LopanColors.primary)
                 
                 Spacer()
             }
@@ -561,13 +567,13 @@ struct AlertItemView: View {
         case .emergency:
             return LopanColors.error.opacity(0.05)
         case .critical:
-            return Color.purple.opacity(0.05)
+            return LopanColors.premium.opacity(0.05)
         case .error:
             return LopanColors.error.opacity(0.03)
         case .warning:
-            return Color.orange.opacity(0.03)
+            return LopanColors.warning.opacity(0.03)
         case .info:
-            return Color(UIColor.systemBackground)
+            return LopanColors.backgroundPrimary
         }
     }
 }
@@ -586,7 +592,7 @@ struct AlertSeverityBadge: View {
                 .font(.caption2)
                 .fontWeight(.bold)
         }
-        .foregroundColor(.white)
+        .foregroundColor(LopanColors.textPrimary)
         .padding(.horizontal, 8)
         .padding(.vertical, 4)
         .background(severity.color)
@@ -730,7 +736,7 @@ struct AlertDashboardView: View {
                 
                 Text(alertService.isMonitoring ? "监控中" : "已暂停")
                     .font(.caption)
-                    .foregroundColor(alertService.isMonitoring ? .green : .orange)
+                    .foregroundColor(alertService.isMonitoring ? LopanColors.success : LopanColors.warning)
             }
             
             Spacer()
@@ -747,7 +753,7 @@ struct AlertDashboardView: View {
             .controlSize(.small)
         }
         .padding()
-        .background(Color(UIColor.systemBackground))
+        .background(LopanColors.backgroundPrimary)
     }
     
     private var alertStatistics: some View {
@@ -772,12 +778,12 @@ struct AlertDashboardView: View {
                 }
                 .background(
                     RoundedRectangle(cornerRadius: 8)
-                        .fill(selectedSeverity == severity ? severity.color.opacity(0.1) : Color.clear)
+                        .fill(selectedSeverity == severity ? severity.color.opacity(0.1) : LopanColors.clear)
                 )
             }
         }
         .padding()
-        .background(Color(UIColor.secondarySystemBackground))
+        .background(LopanColors.backgroundSecondary)
     }
     
     private var filterControls: some View {
@@ -790,8 +796,8 @@ struct AlertDashboardView: View {
                     }
                     .buttonStyle(.bordered)
                     .controlSize(.small)
-                    .foregroundColor(selectedSource == source ? .white : .blue)
-                    .background(selectedSource == source ? LopanColors.primary : Color.clear)
+                    .foregroundColor(selectedSource == source ? LopanColors.textPrimary : LopanColors.primary)
+                    .background(selectedSource == source ? LopanColors.primary : LopanColors.clear)
                 }
                 
                 Divider()
@@ -821,11 +827,11 @@ struct EmptyAlertState: View {
         VStack(spacing: 16) {
             Image(systemName: hasFilter ? "line.3.horizontal.decrease.circle" : (showingResolved ? "checkmark.circle" : "shield.checkered"))
                 .font(.system(size: 48))
-                .foregroundColor(.gray)
+                .foregroundColor(LopanColors.textSecondary)
             
             Text(emptyMessage)
                 .font(.headline)
-                .foregroundColor(.gray)
+                .foregroundColor(LopanColors.textSecondary)
                 .multilineTextAlignment(.center)
             
             if hasFilter {
@@ -885,9 +891,9 @@ struct QuickNotificationOverlay: View {
                 }
             }
             .padding()
-            .background(Color(UIColor.systemBackground))
+            .background(LopanColors.backgroundPrimary)
             .cornerRadius(12)
-            .shadow(color: Color.black.opacity(0.15), radius: 8, x: 0, y: 4)
+            .shadow(color: LopanColors.shadow.opacity(3), radius: 8, x: 0, y: 4)
             .offset(y: offset)
             .opacity(opacity)
             

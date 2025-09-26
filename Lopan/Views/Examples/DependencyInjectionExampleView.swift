@@ -231,7 +231,7 @@ struct MockCustomerOutOfStockView: View {
             .buttonStyle(.borderedProminent)
         }
         .padding()
-        .background(Color.blue.opacity(0.1))
+        .background(LopanColors.primary.opacity(0.1))
         .cornerRadius(8)
     }
 }

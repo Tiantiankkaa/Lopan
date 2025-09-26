@@ -106,10 +106,10 @@ struct RoleElevationRequest: Identifiable, Codable {
         
         var color: Color {
             switch self {
-            case .pending: return .orange
-            case .approved: return .green
-            case .rejected: return .red
-            case .expired: return .gray
+            case .pending: return LopanColors.warning
+            case .approved: return LopanColors.success
+            case .rejected: return LopanColors.error
+            case .expired: return LopanColors.textSecondary
             }
         }
     }

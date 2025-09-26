@@ -147,7 +147,7 @@ extension View {
                     Spacer()
                 }
                 .padding()
-                .background(Color.gray.opacity(0.1))
+                .background(LopanColors.secondary.opacity(0.1))
                 .cornerRadius(8)
                 .staggeredListAnimation(index: index, total: 5)
             }

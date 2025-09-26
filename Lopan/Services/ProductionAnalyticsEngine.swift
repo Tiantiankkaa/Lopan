@@ -251,9 +251,9 @@ enum AnalyticsTrend {
     
     var color: Color {
         switch self {
-        case .improving: return .green
-        case .declining: return .red
-        case .stable: return .blue
+        case .improving: return LopanColors.success
+        case .declining: return LopanColors.error
+        case .stable: return LopanColors.primary
         }
     }
     

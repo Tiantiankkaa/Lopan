@@ -103,21 +103,21 @@ struct NotificationCenterView: View {
                         Text(tab.title)
                             .font(.caption)
                     }
-                    .foregroundColor(selectedTab == tab ? .blue : .secondary)
+                    .foregroundColor(selectedTab == tab ? LopanColors.primary : LopanColors.textSecondary)
                     .frame(maxWidth: .infinity)
                     .padding(.vertical, 8)
                 }
                 .background(
                     Rectangle()
-                        .fill(selectedTab == tab ? Color.blue.opacity(0.1) : Color.clear)
+                        .fill(selectedTab == tab ? LopanColors.primary.opacity(0.1) : LopanColors.clear)
                 )
             }
         }
-        .background(Color(UIColor.systemBackground))
+        .background(LopanColors.backgroundPrimary)
         .overlay(
             Rectangle()
                 .frame(height: 0.5)
-                .foregroundColor(.secondary),
+                .foregroundColor(LopanColors.textSecondary),
             alignment: .bottom
         )
     }
@@ -130,14 +130,14 @@ struct NotificationCenterView: View {
                 NotificationListView(notificationEngine: notificationEngine)
             } else {
                 Text("通知服务不可用")
-                    .foregroundColor(.secondary)
+                    .foregroundColor(LopanColors.textSecondary)
             }
         case .alerts:
             if let alertService = getRealTimeAlertService() {
                 AlertDashboardView(alertService: alertService)
             } else {
                 Text("警报服务不可用")
-                    .foregroundColor(.secondary)
+                    .foregroundColor(LopanColors.textSecondary)
             }
         case .rules:
             NotificationRulesView()
@@ -297,7 +297,7 @@ struct NotificationRuleRow: View {
                 
                 Text(rule.description)
                     .font(.body)
-                    .foregroundColor(.secondary)
+                    .foregroundColor(LopanColors.textSecondary)
                     .lineLimit(2)
                 
                 HStack {
@@ -333,7 +333,7 @@ struct NotificationRuleRow: View {
                     if let lastTriggered = rule.lastTriggered {
                         Text("最后触发: \(lastTriggered, style: .relative)")
                             .font(.caption)
-                            .foregroundColor(.secondary)
+                            .foregroundColor(LopanColors.textSecondary)
                     }
                 }
             }
@@ -347,7 +347,7 @@ struct NotificationRuleRow: View {
                 Button("删除", action: onDelete)
                     .buttonStyle(.bordered)
                     .controlSize(.small)
-                    .foregroundColor(.red)
+                    .foregroundColor(LopanColors.error)
             }
         }
         .padding(.vertical, 4)
@@ -471,7 +471,7 @@ struct ConditionRow: View {
                 
                 Text(condition.comparisonOperator.rawValue)
                     .font(.body)
-                    .foregroundColor(.secondary)
+                    .foregroundColor(LopanColors.textSecondary)
                 
                 Text(condition.value)
                     .font(.body)
@@ -482,7 +482,7 @@ struct ConditionRow: View {
             
             Text("类型: \(condition.type.rawValue)")
                 .font(.caption)
-                .foregroundColor(.secondary)
+                .foregroundColor(LopanColors.textSecondary)
         }
         .padding(.vertical, 2)
     }
@@ -525,7 +525,7 @@ struct EditNotificationRuleView: View {
                         Text("触发次数")
                         Spacer()
                         Text("\(rule.triggerCount)")
-                            .foregroundColor(.secondary)
+                            .foregroundColor(LopanColors.textSecondary)
                     }
                     
                     if let lastTriggered = rule.lastTriggered {
@@ -533,7 +533,7 @@ struct EditNotificationRuleView: View {
                             Text("最后触发")
                             Spacer()
                             Text(lastTriggered, style: .relative)
-                                .foregroundColor(.secondary)
+                                .foregroundColor(LopanColors.textSecondary)
                         }
                     }
                     
@@ -541,7 +541,7 @@ struct EditNotificationRuleView: View {
                         Text("创建时间")
                         Spacer()
                         Text(rule.createdAt, style: .date)
-                            .foregroundColor(.secondary)
+                            .foregroundColor(LopanColors.textSecondary)
                     }
                 }
             }
@@ -649,28 +649,28 @@ struct NotificationAnalyticsView: View {
                 title: "总通知数",
                 value: "\(analytics.totalNotifications)",
                 trend: "+12%",
-                color: .blue
+                color: LopanColors.primary
             )
             
             MetricCard(
                 title: "活跃警报",
                 value: "\(analytics.activeAlerts)",
                 trend: "-5%",
-                color: .orange
+                color: LopanColors.warning
             )
             
             MetricCard(
                 title: "平均响应时间",
                 value: "\(Int(analytics.averageResponseTime))分钟",
                 trend: "-8%",
-                color: .green
+                color: LopanColors.success
             )
             
             MetricCard(
                 title: "成功传递率",
                 value: "\(Int(analytics.deliverySuccessRate * 100))%",
                 trend: "+2%",
-                color: .purple
+                color: LopanColors.primary
             )
         }
     }
@@ -682,11 +682,11 @@ struct NotificationAnalyticsView: View {
             
             // Placeholder for chart - in a real app, you'd use a charting library
             RoundedRectangle(cornerRadius: 8)
-                .fill(Color.gray.opacity(0.1))
+                .fill(LopanColors.secondary.opacity(0.1))
                 .frame(height: 200)
                 .overlay(
                     Text("传递成功率图表")
-                        .foregroundColor(.secondary)
+                        .foregroundColor(LopanColors.textSecondary)
                 )
         }
     }
@@ -698,11 +698,11 @@ struct NotificationAnalyticsView: View {
             
             // Placeholder for chart
             RoundedRectangle(cornerRadius: 8)
-                .fill(Color.gray.opacity(0.1))
+                .fill(LopanColors.secondary.opacity(0.1))
                 .frame(height: 200)
                 .overlay(
                     Text("警报频次图表")
-                        .foregroundColor(.secondary)
+                        .foregroundColor(LopanColors.textSecondary)
                 )
         }
     }
@@ -735,14 +735,14 @@ struct MetricCard: View {
             HStack {
                 Text(title)
                     .font(.caption)
-                    .foregroundColor(.secondary)
+                    .foregroundColor(LopanColors.textSecondary)
                 
                 Spacer()
                 
                 Text(trend)
                     .font(.caption)
                     .fontWeight(.semibold)
-                    .foregroundColor(trend.hasPrefix("+") ? .green : .red)
+                    .foregroundColor(trend.hasPrefix("+") ? LopanColors.success : LopanColors.error)
             }
             
             Text(value)
@@ -751,7 +751,7 @@ struct MetricCard: View {
                 .foregroundColor(color)
         }
         .padding()
-        .background(Color(UIColor.secondarySystemBackground))
+        .background(LopanColors.backgroundSecondary)
         .cornerRadius(12)
     }
 }
@@ -787,11 +787,11 @@ struct ResponseTimeRow: View {
                 Text("\(avgTime, specifier: "%.1f")分钟")
                     .font(.body)
                     .fontWeight(.semibold)
-                    .foregroundColor(isWithinTarget ? .green : .red)
+                    .foregroundColor(isWithinTarget ? LopanColors.success : LopanColors.error)
                 
                 Text("目标: \(targetTime, specifier: "%.0f")分钟")
                     .font(.caption)
-                    .foregroundColor(.secondary)
+                    .foregroundColor(LopanColors.textSecondary)
             }
         }
         .padding(.vertical, 4)
@@ -853,7 +853,7 @@ struct NotificationSettingsView: View {
                     Button("重置为默认设置") {
                         resetToDefaults()
                     }
-                    .foregroundColor(.red)
+                    .foregroundColor(LopanColors.error)
                 }
             }
             .navigationTitle("通知设置")
@@ -957,7 +957,7 @@ struct NotificationChannelSettingsView: View {
                 TextField("手机号码", text: .constant(""))
                 Text("仅紧急和严重警报会发送短信")
                     .font(.caption)
-                    .foregroundColor(.secondary)
+                    .foregroundColor(LopanColors.textSecondary)
             }
         }
         .navigationTitle("渠道配置")

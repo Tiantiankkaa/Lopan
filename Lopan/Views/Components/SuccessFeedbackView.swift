@@ -16,7 +16,7 @@ struct SuccessFeedbackView: View {
     @State private var opacity: Double = 0.0
     @State private var offset: CGFloat = 20
     
-    init(message: String, icon: String = "checkmark.circle.fill", color: Color = .green) {
+    init(message: String, icon: String = "checkmark.circle.fill", color: Color = LopanColors.success) {
         self.message = message
         self.icon = icon
         self.color = color
@@ -46,7 +46,7 @@ struct SuccessFeedbackView: View {
                         .stroke(color.opacity(0.3), lineWidth: 1)
                 )
         )
-        .shadow(color: .black.opacity(0.1), radius: 4, x: 0, y: 2)
+        .shadow(color: LopanColors.textPrimary.opacity(0.1), radius: 4, x: 0, y: 2)
         .opacity(opacity)
         .offset(y: offset)
         .onAppear {
@@ -72,7 +72,7 @@ struct SuccessFeedbackView: View {
 class ToastManager: ObservableObject {
     @Published var toasts: [ToastItem] = []
     
-    func showToast(_ message: String, icon: String = "checkmark.circle.fill", color: Color = .green) {
+    func showToast(_ message: String, icon: String = "checkmark.circle.fill", color: Color = LopanColors.success) {
         let toast = ToastItem(
             id: UUID(),
             message: message,
@@ -147,7 +147,7 @@ struct CheckmarkAnimation: View {
     let size: CGFloat
     let color: Color
     
-    init(size: CGFloat = 60, color: Color = .green) {
+    init(size: CGFloat = 60, color: Color = LopanColors.success) {
         self.size = size
         self.color = color
     }
@@ -245,7 +245,7 @@ struct LoadingToSuccessView: View {
             if isLoading {
                 ProgressView()
                     .scaleEffect(1.5)
-                    .progressViewStyle(CircularProgressViewStyle(tint: .blue))
+                    .progressViewStyle(CircularProgressViewStyle(tint: LopanColors.info))
                 
                 Text(message)
                     .font(.headline)
@@ -256,14 +256,14 @@ struct LoadingToSuccessView: View {
                 Text("操作成功")
                     .font(.headline)
                     .fontWeight(.semibold)
-                    .foregroundColor(.green)
+                    .foregroundColor(LopanColors.success)
             }
         }
         .frame(width: 200, height: 150)
         .background(
             RoundedRectangle(cornerRadius: 16)
-                .fill(Color(.systemBackground))
-                .shadow(color: .black.opacity(0.1), radius: 10, x: 0, y: 5)
+                .fill(LopanColors.background)
+                .shadow(color: LopanColors.textPrimary.opacity(0.1), radius: 10, x: 0, y: 5)
         )
         .onAppear {
             // Simulate loading completion
@@ -294,7 +294,7 @@ struct LoadingToSuccessView: View {
         SuccessFeedbackView(
             message: "批量操作完成",
             icon: "checkmark.circle.fill",
-            color: .blue
+            color: LopanColors.info
         )
         
         CheckmarkAnimation()
@@ -302,5 +302,5 @@ struct LoadingToSuccessView: View {
         LoadingToSuccessView(message: "正在删除记录...")
     }
     .padding()
-    .background(Color(.systemGroupedBackground))
+    .background(LopanColors.backgroundSecondary)
 }

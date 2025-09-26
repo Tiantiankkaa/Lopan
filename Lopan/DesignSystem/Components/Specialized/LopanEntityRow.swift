@@ -33,7 +33,7 @@ struct LopanEntityRow<Content: View>: View {
             if isBatchMode {
                 Button(action: { onToggleSelection?(!isSelected) }) {
                     Image(systemName: isSelected ? "checkmark.circle.fill" : "circle")
-                        .foregroundColor(isSelected ? .blue : .gray)
+                        .foregroundColor(isSelected ? LopanColors.primary : LopanColors.textSecondary)
                 }
                 .buttonStyle(PlainButtonStyle())
             }
@@ -48,7 +48,7 @@ struct LopanEntityRow<Content: View>: View {
                         Button(action.title) {
                             action.action()
                         }
-                        .foregroundColor(action.isDestructive ? .red : .blue)
+                        .foregroundColor(action.isDestructive ? LopanColors.error : LopanColors.primary)
                         .font(.caption)
                     }
                 }
@@ -92,7 +92,7 @@ struct LopanEntityRowAction {
                 
                 Text("13800138001")
                     .font(.caption)
-                    .foregroundColor(.blue)
+                    .foregroundColor(LopanColors.primary)
             }
         }
         
@@ -113,7 +113,7 @@ struct LopanEntityRowAction {
                 
                 Text("13900139001")
                     .font(.caption)
-                    .foregroundColor(.blue)
+                    .foregroundColor(LopanColors.primary)
             }
         }
     }

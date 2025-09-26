@@ -111,7 +111,7 @@ struct BatchManagementView: View {
         VStack(spacing: 20) {
             Image(systemName: "checkmark.seal")
                 .font(.system(size: 64))
-                .foregroundColor(.gray)
+                .foregroundColor(LopanColors.secondary)
             
             VStack(spacing: 8) {
                 Text("batch_management_pending_empty_title".localized)
@@ -120,7 +120,7 @@ struct BatchManagementView: View {
                 
                 Text("batch_management_pending_empty_subtitle".localized)
                     .font(.body)
-                    .foregroundColor(.secondary)
+                    .foregroundColor(LopanColors.textSecondary)
                     .multilineTextAlignment(.center)
             }
         }
@@ -204,14 +204,14 @@ struct BatchManagementView: View {
             .padding(.horizontal)
         }
         .padding(.vertical, 8)
-        .background(Color(UIColor.systemBackground))
+        .background(LopanColors.backgroundPrimary)
     }
     
     private var historyEmptyStateView: some View {
         VStack(spacing: 20) {
             Image(systemName: "tray")
                 .font(.system(size: 64))
-                .foregroundColor(.gray)
+                .foregroundColor(LopanColors.secondary)
             
             VStack(spacing: 8) {
                 Text("batch_management_history_empty_title".localized)
@@ -220,7 +220,7 @@ struct BatchManagementView: View {
                 
                 Text("batch_management_history_empty_subtitle".localized)
                     .font(.body)
-                    .foregroundColor(.secondary)
+                    .foregroundColor(LopanColors.textSecondary)
                     .multilineTextAlignment(.center)
             }
         }
@@ -285,7 +285,7 @@ struct PendingBatchRow: View {
                             
                             Text(String(format: "batch_management_pending_submitter".localized, snapshot.submittedByName))
                                 .font(.caption)
-                                .foregroundColor(.secondary)
+                                .foregroundColor(LopanColors.textSecondary)
                         }
                         
                         Spacer()
@@ -302,7 +302,7 @@ struct PendingBatchRow: View {
                             
                             Text(submittedAtString)
                                 .font(.caption2)
-                                .foregroundColor(.secondary)
+                                .foregroundColor(LopanColors.textSecondary)
                         }
                     }
                     
@@ -311,13 +311,13 @@ struct PendingBatchRow: View {
                         HStack {
                             Label(String(format: "batch_management_pending_products_label".localized, snapshot.products.count), systemImage: "cube.box")
                                 .font(.caption)
-                                .foregroundColor(.secondary)
+                                .foregroundColor(LopanColors.textSecondary)
                             
                             Spacer()
                             
                             Label(String(format: "batch_management_pending_stations_label".localized, snapshot.totalStationsUsed, 12), systemImage: "grid")
                                 .font(.caption)
-                                .foregroundColor(.secondary)
+                                .foregroundColor(LopanColors.textSecondary)
                         }
                         
                         // Configuration validation
@@ -358,7 +358,7 @@ struct PendingBatchRow: View {
                     onReject()
                 }
                 .buttonStyle(.bordered)
-                .foregroundColor(.red)
+                .foregroundColor(LopanColors.error)
                 .accessibilityHint("batch_management_action_reject_hint".localized)
                 
                 Button("batch_management_action_approve".localized) {
@@ -370,7 +370,7 @@ struct PendingBatchRow: View {
             }
         }
         .padding()
-        .background(Color(UIColor.secondarySystemBackground))
+        .background(LopanColors.backgroundSecondary)
         .cornerRadius(12)
         .sheet(isPresented: $showingDetail, onDismiss: {
             showingDetail = false
@@ -417,7 +417,7 @@ struct PendingBatchRow: View {
                 BatchInfoRow(label: "batch_management_info_label_submitted_at".localized, value: batch.submittedAt.formatted(.dateTime))
             }
             .padding()
-            .background(Color(UIColor.secondarySystemBackground))
+            .background(LopanColors.backgroundSecondary)
             .cornerRadius(12)
         }
     }
@@ -451,7 +451,7 @@ struct ProductPreviewCard: View {
             
             Text(String(format: "batch_management_product_card_stations".localized, product.occupiedStationsDisplay))
                 .font(.caption2)
-                .foregroundColor(.secondary)
+                .foregroundColor(LopanColors.textSecondary)
 
             if product.isDualColor {
                 Text("batch_management_product_card_dual_color".localized)
@@ -460,7 +460,7 @@ struct ProductPreviewCard: View {
             }
         }
         .padding(8)
-        .background(Color(UIColor.tertiarySystemBackground))
+        .background(LopanColors.backgroundSecondary)
         .cornerRadius(6)
         .frame(width: 80)
     }
@@ -474,7 +474,7 @@ struct StatusFilterChip: View {
     let color: Color
     let onTap: () -> Void
     
-    init(title: String, count: Int, isSelected: Bool, color: Color = .blue, onTap: @escaping () -> Void) {
+    init(title: String, count: Int, isSelected: Bool, color: Color = LopanColors.info, onTap: @escaping () -> Void) {
         self.title = title
         self.count = count
         self.isSelected = isSelected
@@ -495,14 +495,14 @@ struct StatusFilterChip: View {
                     .font(.caption)
                     .padding(.horizontal, 6)
                     .padding(.vertical, 2)
-                    .background(isSelected ? Color.white.opacity(0.3) : color.opacity(0.2))
-                    .foregroundColor(isSelected ? .white : color)
+                    .background(isSelected ? LopanColors.textPrimary.opacity(0.3) : color.opacity(0.2))
+                    .foregroundColor(isSelected ? LopanColors.textPrimary : color)
                     .cornerRadius(8)
             }
             .padding(.horizontal, 12)
             .padding(.vertical, 8)
-            .background(isSelected ? color : Color(UIColor.secondarySystemBackground))
-            .foregroundColor(isSelected ? .white : .primary)
+            .background(isSelected ? color : LopanColors.backgroundSecondary)
+            .foregroundColor(isSelected ? LopanColors.textPrimary : .primary)
             .cornerRadius(16)
         }
         .buttonStyle(.plain)
@@ -533,7 +533,7 @@ struct BatchHistoryRow: View {
                         
                         Text(String(format: "batch_management_history_submitted_at".localized, submittedAtString))
                             .font(.caption)
-                            .foregroundColor(.secondary)
+                            .foregroundColor(LopanColors.textSecondary)
                     }
                     
                         Spacer()
@@ -550,7 +550,7 @@ struct BatchHistoryRow: View {
                         
                         Text(snapshot.mode.displayName)
                             .font(.caption2)
-                            .foregroundColor(.secondary)
+                            .foregroundColor(LopanColors.textSecondary)
                     }
                 }
                 
@@ -558,13 +558,13 @@ struct BatchHistoryRow: View {
                 HStack {
                     Label(String(format: "batch_management_pending_products_label".localized, snapshot.products.count), systemImage: "cube.box")
                         .font(.caption)
-                        .foregroundColor(.secondary)
+                        .foregroundColor(LopanColors.textSecondary)
                     
                     Spacer()
                     
                     Label(String(format: "batch_management_pending_stations_label".localized, snapshot.totalStationsUsed, 12), systemImage: "grid")
                         .font(.caption)
-                        .foregroundColor(.secondary)
+                        .foregroundColor(LopanColors.textSecondary)
                 }
                 
                 // Review info (if applicable)
@@ -573,18 +573,18 @@ struct BatchHistoryRow: View {
                     HStack {
                         Text(String(format: "batch_management_history_reviewed_by".localized, reviewedByName))
                             .font(.caption2)
-                            .foregroundColor(.secondary)
+                            .foregroundColor(LopanColors.textSecondary)
                         
                         Spacer()
                         
                         Text(reviewedAtString)
                             .font(.caption2)
-                            .foregroundColor(.secondary)
+                            .foregroundColor(LopanColors.textSecondary)
                     }
                 }
             }
             .padding()
-            .background(Color(UIColor.secondarySystemBackground))
+            .background(LopanColors.backgroundSecondary)
             .cornerRadius(12)
         }
         .buttonStyle(.plain)
@@ -605,7 +605,7 @@ struct ReviewSheet: View {
     private var snapshot: BatchDetailInfo { BatchDetailInfo(from: batch) }
     
     var actionColor: Color {
-        action == .approve ? .green : .red
+        action == .approve ? LopanColors.success : LopanColors.error
     }
 
     var actionTitle: String {
@@ -632,7 +632,7 @@ struct ReviewSheet: View {
                         
                         Text(String(format: "batch_management_review_batch_label".localized, batch.batchNumber))
                             .font(.subheadline)
-                            .foregroundColor(.secondary)
+                            .foregroundColor(LopanColors.textSecondary)
                     }
                 }
                 
@@ -677,7 +677,7 @@ struct ReviewSheet: View {
                 SummaryRow(label: "batch_management_info_label_submitted_at".localized, value: detail.submittedAt.formatted(.dateTime))
             }
             .padding()
-            .background(Color(UIColor.secondarySystemBackground))
+            .background(LopanColors.backgroundSecondary)
             .cornerRadius(12)
         }
     }
@@ -692,7 +692,7 @@ struct ReviewSheet: View {
             TextEditor(text: $notes)
                 .frame(minHeight: 100)
                 .padding(8)
-                .background(Color(UIColor.secondarySystemBackground))
+                .background(LopanColors.backgroundSecondary)
                 .cornerRadius(8)
         }
     }
@@ -764,7 +764,7 @@ struct SummaryRow: View {
         HStack {
             Text(label)
                 .font(.caption)
-                .foregroundColor(.secondary)
+                .foregroundColor(LopanColors.textSecondary)
             
             Spacer()
             
@@ -833,7 +833,7 @@ struct BatchDetailView: View {
                 BatchInfoRow(label: "batch_management_info_label_submitted_at".localized, value: detail.submittedAt.formatted(.dateTime))
             }
             .padding()
-            .background(Color(UIColor.secondarySystemBackground))
+            .background(LopanColors.backgroundSecondary)
             .cornerRadius(12)
         }
     }
@@ -877,7 +877,7 @@ struct BatchDetailView: View {
                     VStack(alignment: .leading, spacing: 4) {
                         Text("batch_management_review_info_notes_title".localized)
                             .font(.caption)
-                            .foregroundColor(.secondary)
+                            .foregroundColor(LopanColors.textSecondary)
                         
                         Text(reviewNotes)
                             .font(.body)
@@ -886,7 +886,7 @@ struct BatchDetailView: View {
                 }
             }
             .padding()
-            .background(Color(UIColor.secondarySystemBackground))
+            .background(LopanColors.backgroundSecondary)
             .cornerRadius(12)
         }
     }
@@ -934,7 +934,7 @@ struct BatchDetailView: View {
                 }
             }
             .padding()
-            .background(Color(UIColor.secondarySystemBackground))
+            .background(LopanColors.backgroundSecondary)
             .cornerRadius(12)
         }
     }
@@ -949,7 +949,7 @@ struct BatchInfoRow: View {
         HStack {
             Text(label)
                 .font(.caption)
-                .foregroundColor(.secondary)
+                .foregroundColor(LopanColors.textSecondary)
             
             Spacer()
             
@@ -975,18 +975,18 @@ struct BatchProductDetailRow: View {
                 
                 Text(String(format: "batch_management_product_detail_stations".localized, product.occupiedStationsDisplay))
                     .font(.caption)
-                    .foregroundColor(.secondary)
+                    .foregroundColor(LopanColors.textSecondary)
             }
             
             VStack(alignment: .leading, spacing: 4) {
                 Text(String(format: "batch_management_product_detail_color".localized, product.primaryColorId))
                     .font(.caption)
-                    .foregroundColor(.secondary)
+                    .foregroundColor(LopanColors.textSecondary)
                 
                 if let stationCount = product.stationCount {
                     Text(String(format: "batch_management_product_detail_station_count".localized, stationCount))
                         .font(.caption)
-                        .foregroundColor(.secondary)
+                        .foregroundColor(LopanColors.textSecondary)
                 }
                 
                 if product.isDualColor {
@@ -997,7 +997,7 @@ struct BatchProductDetailRow: View {
             }
         }
         .padding()
-        .background(Color(UIColor.tertiarySystemBackground))
+        .background(LopanColors.backgroundSecondary)
         .cornerRadius(8)
     }
 }
@@ -1032,11 +1032,11 @@ struct TimelineRow: View {
                 
                 Text(subtitle)
                     .font(.caption)
-                    .foregroundColor(.secondary)
+                    .foregroundColor(LopanColors.textSecondary)
                 
                 Text(time.formatted(.dateTime.month().day().hour().minute()))
                     .font(.caption2)
-                    .foregroundColor(.secondary)
+                    .foregroundColor(LopanColors.textSecondary)
             }
             
             Spacer()

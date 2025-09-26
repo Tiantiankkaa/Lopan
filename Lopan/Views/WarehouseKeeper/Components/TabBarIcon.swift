@@ -167,7 +167,7 @@ private struct BadgeView: View {
     var body: some View {
         Text(text)
             .font(.system(size: 8, weight: .bold))
-            .foregroundColor(.white)
+            .foregroundColor(LopanColors.textPrimary)
             .padding(.horizontal, 6)
             .padding(.vertical, 2)
             .background(
@@ -250,5 +250,5 @@ struct TabQuickAction {
         }
     }
     .padding(40)
-    .background(Color(.systemBackground))
+    .background(LopanColors.background)
 }

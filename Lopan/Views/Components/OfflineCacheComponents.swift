@@ -312,14 +312,14 @@ struct OfflineStatusView: View {
         if !networkMonitor.isConnected {
             HStack(spacing: 12) {
                 Image(systemName: "wifi.slash")
-                    .foregroundColor(.orange)
+                    .foregroundColor(LopanColors.warning)
                     .accessibilityHidden(true)
                 
                 VStack(alignment: .leading, spacing: 2) {
                     Text("离线模式")
                         .font(.subheadline)
                         .fontWeight(.medium)
-                        .foregroundColor(.orange)
+                        .foregroundColor(LopanColors.warning)
                     
                     Text("显示缓存数据")
                         .font(.caption)
@@ -391,28 +391,28 @@ struct CacheManagementView: View {
                             await cacheManager.cleanExpiredCache()
                         }
                     }
-                    .foregroundColor(.blue)
+                    .foregroundColor(LopanColors.info)
                     
                     Button("清空所有缓存") {
                         showingClearAlert = true
                     }
-                    .foregroundColor(.red)
+                    .foregroundColor(LopanColors.error)
                 }
                 
                 Section("缓存状态") {
                     switch cacheManager.cacheStatus {
                     case .idle:
                         Label("正常", systemImage: "checkmark.circle")
-                            .foregroundColor(.green)
+                            .foregroundColor(LopanColors.success)
                     case .syncing:
                         Label("同步中", systemImage: "arrow.triangle.2.circlepath")
-                            .foregroundColor(.blue)
+                            .foregroundColor(LopanColors.info)
                     case .cleaning:
                         Label("清理中", systemImage: "trash")
-                            .foregroundColor(.orange)
+                            .foregroundColor(LopanColors.warning)
                     case .error(let error):
                         Label("错误: \(error.localizedDescription)", systemImage: "exclamationmark.triangle")
-                            .foregroundColor(.red)
+                            .foregroundColor(LopanColors.error)
                     }
                 }
             }
@@ -486,7 +486,7 @@ struct SyncButton: View {
             }
         }
         .disabled(!networkMonitor.isConnected || isSyncing)
-        .foregroundColor(networkMonitor.isConnected ? .blue : .gray)
+        .foregroundColor(networkMonitor.isConnected ? LopanColors.info : LopanColors.secondary)
         .accessibilityLabel(isSyncing ? "正在同步数据" : "同步数据")
         .accessibilityHint(networkMonitor.isConnected ? "轻点同步最新数据" : "无网络连接，无法同步")
     }

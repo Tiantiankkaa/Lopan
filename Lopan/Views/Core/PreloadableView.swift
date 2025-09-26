@@ -420,7 +420,7 @@ public struct PreloadPerformanceView: View {
                             Text("Cache Hit Rate")
                             Spacer()
                             Text("\(String(format: "%.1f", report.cacheHitRate * 100))%")
-                                .foregroundColor(report.cacheHitRate >= 0.8 ? .green : .orange)
+                                .foregroundColor(report.cacheHitRate >= 0.8 ? LopanColors.success : LopanColors.warning)
                         }
                         
                         HStack {
@@ -439,7 +439,7 @@ public struct PreloadPerformanceView: View {
                             Text("Efficiency")
                             Spacer()
                             Text("\(String(format: "%.1f", report.efficiency * 100))%")
-                                .foregroundColor(report.efficiency >= 0.7 ? .green : .orange)
+                                .foregroundColor(report.efficiency >= 0.7 ? LopanColors.success : LopanColors.warning)
                         }
                     }
                 }
@@ -465,7 +465,7 @@ public struct PreloadPerformanceView: View {
                         controller.clearAllPreloads()
                         updateMetrics()
                     }
-                    .foregroundColor(.red)
+                    .foregroundColor(LopanColors.error)
                     
                     Button("Refresh Metrics") {
                         updateMetrics()

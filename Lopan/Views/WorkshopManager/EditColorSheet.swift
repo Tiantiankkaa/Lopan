@@ -34,7 +34,7 @@ struct EditColorSheet: View {
                         .frame(height: 120)
                         .overlay(
                             RoundedRectangle(cornerRadius: 20)
-                                .stroke(Color.gray.opacity(0.3), lineWidth: 2)
+                                .stroke(LopanColors.secondary.opacity(0.3), lineWidth: 2)
                         )
                     
                     Text("#\(selectedColor.toHex())")
@@ -76,7 +76,7 @@ struct EditColorSheet: View {
                                     .frame(width: 20, height: 20)
                                     .overlay(
                                         Circle()
-                                            .stroke(Color.gray.opacity(0.3), lineWidth: 1)
+                                            .stroke(LopanColors.secondary.opacity(0.3), lineWidth: 1)
                                     )
                                 Text(color.hexCode)
                                     .font(.caption)
@@ -86,7 +86,7 @@ struct EditColorSheet: View {
                     }
                 }
                 .padding()
-                .background(Color(UIColor.secondarySystemBackground))
+                .background(LopanColors.backgroundSecondary)
                 .cornerRadius(12)
                 
                 Spacer()
@@ -119,6 +119,7 @@ struct EditColorSheet: View {
             .padding()
             .navigationTitle("编辑颜色")
             .navigationBarTitleDisplayMode(.inline)
+            .navigationBarBackButtonHidden()
             .toolbar {
                 ToolbarItem(placement: .navigationBarLeading) {
                     Button("取消") {

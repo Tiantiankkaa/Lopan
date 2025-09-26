@@ -163,7 +163,7 @@ struct EnhancedCustomerCard: View {
             Button(action: onSelect) {
                 ZStack {
                     Circle()
-                        .stroke(isSelected ? LopanColors.primary : Color.gray.opacity(0.3), lineWidth: 2)
+                        .stroke(isSelected ? LopanColors.primary : LopanColors.secondary.opacity(0.3), lineWidth: 2)
                         .frame(width: 22, height: 22)
                     
                     if isSelected {
@@ -173,7 +173,7 @@ struct EnhancedCustomerCard: View {
                             .overlay(
                                 Image(systemName: "checkmark")
                                     .font(.system(size: 10, weight: .bold))
-                                    .foregroundColor(.white)
+                                    .foregroundColor(LopanColors.textPrimary)
                             )
                             .scaleEffect(isSelected ? 1.0 : 0.1)
                             .animation(.spring(response: 0.3, dampingFraction: 0.6), value: isSelected)
@@ -202,7 +202,7 @@ struct EnhancedCustomerCard: View {
             } else {
                 Text(String(customer.name.prefix(1)).uppercased())
                     .font(.system(size: avatarFontSize, weight: .bold, design: .rounded))
-                    .foregroundColor(.white)
+                    .foregroundColor(LopanColors.textPrimary)
             }
             
             // 活跃状态指示器
@@ -410,7 +410,7 @@ struct EnhancedCustomerCard: View {
     }
     
     private var avatarGradient: LinearGradient {
-        let baseColor = customerPriority?.color ?? Color.orange
+        let baseColor = customerPriority?.color ?? LopanColors.warning
         return LinearGradient(
             colors: [baseColor, baseColor.opacity(0.7)],
             startPoint: .topLeading,
@@ -424,7 +424,7 @@ struct EnhancedCustomerCard: View {
         } else if isPressed {
             return LopanColors.backgroundSecondary
         } else {
-            return Color(.systemBackground)
+            return LopanColors.background
         }
     }
     
@@ -444,9 +444,9 @@ struct EnhancedCustomerCard: View {
         if selectionState.isSelected {
             return LopanColors.primary.opacity(0.2)
         } else if isPressed {
-            return Color.black.opacity(0.1)
+            return LopanColors.shadow.opacity(2)
         } else {
-            return Color.black.opacity(0.05)
+            return LopanColors.shadow
         }
     }
     
@@ -481,7 +481,7 @@ struct EnhancedCustomerCard: View {
     }
     
     private var avatarShadowColor: Color {
-        (customerPriority?.color ?? Color.orange).opacity(0.3)
+        (customerPriority?.color ?? LopanColors.warning).opacity(0.3)
     }
     
     private var customerPriority: CustomerPriority? {
@@ -503,8 +503,7 @@ struct EnhancedCustomerCard: View {
     private func handleTapGesture() {
         if selectionState.isInteractive {
             // 触觉反馈
-            let impactFeedback = UIImpactFeedbackGenerator(style: .light)
-            impactFeedback.impactOccurred()
+            LopanHapticEngine.shared.light()
             onSelect()
         }
     }
@@ -567,7 +566,7 @@ enum CustomerPriority: String, CaseIterable {
         case .vip: return LopanColors.premium
         case .high: return LopanColors.success
         case .potential: return LopanColors.info
-        case .normal: return Color.gray
+        case .normal: return LopanColors.secondary
         }
     }
 }
@@ -624,7 +623,7 @@ struct PriorityBadge: View {
         Text(priority.displayName)
             .font(size.font)
             .fontWeight(.medium)
-            .foregroundColor(.white)
+            .foregroundColor(LopanColors.textPrimary)
             .padding(size.padding)
             .background(priority.color.gradient)
             .clipShape(Capsule())
@@ -717,5 +716,5 @@ extension Date {
         )
     }
     .padding()
-    .background(Color(.systemGroupedBackground))
+    .background(LopanColors.backgroundSecondary)
 }

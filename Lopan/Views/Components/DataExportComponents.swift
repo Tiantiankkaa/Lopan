@@ -476,14 +476,14 @@ struct ExportConfigurationView: View {
                     
                     Text("留空将使用默认文件名")
                         .font(.caption)
-                        .foregroundColor(.secondary)
+                        .foregroundColor(LopanColors.textSecondary)
                         .accessibilityHidden(true)
                 }
                 
                 Section("预览") {
                     HStack {
                         Text("文件名:")
-                            .foregroundColor(.secondary)
+                            .foregroundColor(LopanColors.textSecondary)
                         Spacer()
                         Text(finalFilename)
                             .fontWeight(.medium)
@@ -552,11 +552,11 @@ struct ExportProgressView: View {
                 
                 Text("正在导出数据...")
                     .font(.headline)
-                    .foregroundColor(.primary)
+                    .foregroundColor(LopanColors.textPrimary)
                 
                 Text("\(Int(exportService.exportProgress * 100))% 完成")
                     .font(.subheadline)
-                    .foregroundColor(.secondary)
+                    .foregroundColor(LopanColors.textSecondary)
             }
             
             // Cancel button

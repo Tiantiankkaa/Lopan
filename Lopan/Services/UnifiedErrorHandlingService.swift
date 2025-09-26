@@ -57,12 +57,12 @@ enum ErrorCategory: String, CaseIterable, Codable {
     
     var color: Color {
         switch self {
-        case .authentication, .authorization: return .red
-        case .validation, .business: return .orange
-        case .system, .database: return .purple
-        case .network, .integration: return .blue
-        case .configuration: return .yellow
-        case .performance: return .green
+        case .authentication, .authorization: return LopanColors.error
+        case .validation, .business: return LopanColors.warning
+        case .system, .database: return LopanColors.primary
+        case .network, .integration: return LopanColors.primary
+        case .configuration: return LopanColors.warning
+        case .performance: return LopanColors.success
         }
     }
 }
@@ -92,12 +92,12 @@ enum ErrorSeverity: String, CaseIterable, Codable, Comparable {
     
     var color: Color {
         switch self {
-        case .trace, .debug: return .gray
-        case .info: return .blue
-        case .warning: return .orange
-        case .error: return .red
-        case .critical: return .purple
-        case .fatal: return .black
+        case .trace, .debug: return LopanColors.textSecondary
+        case .info: return LopanColors.primary
+        case .warning: return LopanColors.warning
+        case .error: return LopanColors.error
+        case .critical: return LopanColors.primary
+        case .fatal: return LopanColors.textPrimary
         }
     }
     
@@ -345,11 +345,11 @@ struct ErrorEvent: Identifiable, Codable {
         
         var color: Color {
             switch self {
-            case .new: return .red
-            case .acknowledged: return .orange
-            case .investigating: return .blue
-            case .resolved: return .green
-            case .dismissed: return .gray
+            case .new: return LopanColors.error
+            case .acknowledged: return LopanColors.warning
+            case .investigating: return LopanColors.primary
+            case .resolved: return LopanColors.success
+            case .dismissed: return LopanColors.textSecondary
             }
         }
     }

@@ -250,7 +250,7 @@ struct BatchCreationView: View {
             .padding()
             .background(
                 RoundedRectangle(cornerRadius: 12)
-                    .fill(Color(.secondarySystemBackground))
+                    .fill(LopanColors.backgroundSecondary)
             )
         }
     }
@@ -354,7 +354,7 @@ struct BatchCreationView: View {
         .padding(.vertical, 4)
         .background(
             RoundedRectangle(cornerRadius: 6)
-                .fill(Color(.tertiarySystemBackground))
+                .fill(LopanColors.backgroundTertiary)
         )
     }
     
@@ -400,7 +400,7 @@ struct BatchCreationView: View {
         .padding()
         .background(
             RoundedRectangle(cornerRadius: 12)
-                .fill(Color(.secondarySystemBackground))
+                .fill(LopanColors.backgroundSecondary)
         )
     }
     
@@ -417,7 +417,7 @@ struct BatchCreationView: View {
         .padding()
         .background(
             RoundedRectangle(cornerRadius: 12)
-                .fill(Color(.secondarySystemBackground))
+                .fill(LopanColors.backgroundSecondary)
         )
     }
     
@@ -468,7 +468,7 @@ struct BatchCreationView: View {
         .padding(.vertical, 20)
         .background(
             RoundedRectangle(cornerRadius: 12)
-                .fill(Color(.secondarySystemBackground))
+                .fill(LopanColors.backgroundSecondary)
         )
     }
     
@@ -491,7 +491,7 @@ struct BatchCreationView: View {
         .padding(.vertical, 20)
         .background(
             RoundedRectangle(cornerRadius: 12)
-                .fill(Color(.secondarySystemBackground))
+                .fill(LopanColors.backgroundSecondary)
         )
     }
     
@@ -564,7 +564,7 @@ struct BatchCreationView: View {
                     .padding(.vertical, 4)
                     .background(
                         RoundedRectangle(cornerRadius: 6)
-                            .fill(Color(.tertiarySystemBackground))
+                            .fill(LopanColors.backgroundTertiary)
                     )
                 }
                 
@@ -574,11 +574,11 @@ struct BatchCreationView: View {
         .padding()
         .background(
             RoundedRectangle(cornerRadius: 8)
-                .fill(Color(.systemBackground))
+                .fill(LopanColors.background)
         )
         .overlay(
             RoundedRectangle(cornerRadius: 8)
-                .stroke(Color(.separator), lineWidth: 0.5)
+                .stroke(LopanColors.secondary.opacity(0.3), lineWidth: 0.5)
         )
     }
     
@@ -629,7 +629,7 @@ struct BatchCreationView: View {
         .padding()
         .background(
             RoundedRectangle(cornerRadius: 12)
-                .fill(Color(.secondarySystemBackground))
+                .fill(LopanColors.backgroundSecondary)
         )
     }
     
@@ -637,7 +637,7 @@ struct BatchCreationView: View {
         HStack(spacing: 12) {
             Image(systemName: isValid ? "checkmark.circle.fill" : "xmark.circle.fill")
                 .font(.system(size: 16, weight: .medium))
-                .foregroundColor(isValid ? .green : .red)
+                .foregroundColor(isValid ? LopanColors.success : LopanColors.error)
             
             VStack(alignment: .leading, spacing: 2) {
                 Text(title)
@@ -647,7 +647,7 @@ struct BatchCreationView: View {
                 
                 Text(message)
                     .font(.caption2)
-                    .foregroundColor(isValid ? .green : .red)
+                    .foregroundColor(isValid ? LopanColors.success : LopanColors.error)
             }
             
             Spacer()
@@ -670,7 +670,7 @@ struct BatchCreationView: View {
                 .frame(maxWidth: .infinity, minHeight: 44)
                 .background(
                     RoundedRectangle(cornerRadius: 12)
-                        .fill(Color(.secondarySystemBackground))
+                        .fill(LopanColors.backgroundSecondary)
                 )
             } else {
                 Button(action: {
@@ -686,7 +686,7 @@ struct BatchCreationView: View {
                             .font(.body)
                             .fontWeight(.medium)
                     }
-                    .foregroundColor(.white)
+                    .foregroundColor(LopanColors.textPrimary)
                     .frame(maxWidth: .infinity, minHeight: 44)
                     .background(
                         RoundedRectangle(cornerRadius: 12)
@@ -699,7 +699,7 @@ struct BatchCreationView: View {
             if !canCreateBatch {
                 Text(validationMessage)
                     .font(.caption)
-                    .foregroundColor(.red)
+                    .foregroundColor(LopanColors.error)
                     .multilineTextAlignment(.center)
             }
         }
@@ -1060,14 +1060,14 @@ struct BatchCreationView: View {
                 Text("batch_creation_debug_title".localized)
                     .font(.caption)
                     .fontWeight(.bold)
-                    .foregroundColor(.white)
+                    .foregroundColor(LopanColors.textPrimary)
                 
                 Spacer()
                 
                 Button("×") {
                     showingCacheDebug = false
                 }
-                .foregroundColor(.white)
+                .foregroundColor(LopanColors.textPrimary)
                 .font(.caption)
             }
             
@@ -1076,37 +1076,37 @@ struct BatchCreationView: View {
             VStack(alignment: .leading, spacing: 4) {
                 Text(String(format: "batch_creation_debug_hit_rate".localized, metrics.hitRate * 100))
                     .font(.caption2)
-                    .foregroundColor(.white)
+                    .foregroundColor(LopanColors.textPrimary)
                 
                 Text(String(format: "batch_creation_debug_entries".localized, metrics.entries))
                     .font(.caption2)
-                    .foregroundColor(.white)
+                    .foregroundColor(LopanColors.textPrimary)
                 
                 Text(String(format: "batch_creation_debug_hits_misses".localized, metrics.hits, metrics.misses))
                     .font(.caption2)
-                    .foregroundColor(.white)
+                    .foregroundColor(LopanColors.textPrimary)
                 
                 Text(String(format: "batch_creation_debug_evictions".localized, metrics.evictions))
                     .font(.caption2)
-                    .foregroundColor(.white)
+                    .foregroundColor(LopanColors.textPrimary)
                 
                 if let warmingResults = cacheWarmingService.warmingResults {
                     Text(String(format: "batch_creation_debug_last_warming".localized, warmingResults.duration))
                         .font(.caption2)
-                        .foregroundColor(.white)
+                        .foregroundColor(LopanColors.textPrimary)
                     
                     Text(String(format: "batch_creation_debug_warmed_summary".localized, warmingResults.machinesWarmed, warmingResults.successCount, warmingResults.machinesWarmed))
                         .font(.caption2)
-                        .foregroundColor(.white)
+                        .foregroundColor(LopanColors.textPrimary)
                 }
                 
                 Divider()
-                    .background(Color.white)
+                    .background(LopanColors.textPrimary)
                 
                 Text("batch_creation_debug_state_sync_title".localized)
                     .font(.caption)
                     .fontWeight(.bold)
-                    .foregroundColor(.white)
+                    .foregroundColor(LopanColors.textPrimary)
                 
                 let inconsistencies = synchronizationService.detectedInconsistencies
                 let highCount = inconsistencies.filter { $0.severity == .high }.count
@@ -1115,45 +1115,45 @@ struct BatchCreationView: View {
                 
                 Text(String(format: "batch_creation_debug_state_sync_issues".localized, highCount, mediumCount, lowCount))
                     .font(.caption2)
-                    .foregroundColor(.white)
+                    .foregroundColor(LopanColors.textPrimary)
                 
                 if let lastScan = synchronizationService.lastScanTime {
                     let timeAgo = Date().timeIntervalSince(lastScan)
                     Text(String(format: "batch_creation_debug_last_scan".localized, timeAgo))
                         .font(.caption2)
-                        .foregroundColor(.white)
+                        .foregroundColor(LopanColors.textPrimary)
                 }
                 
                 Divider()
-                    .background(Color.white)
+                    .background(LopanColors.textPrimary)
                 
                 Text("batch_creation_debug_system_health_title".localized)
                     .font(.caption)
                     .fontWeight(.bold)
-                    .foregroundColor(.white)
+                    .foregroundColor(LopanColors.textPrimary)
 
                 if let healthReport = systemMonitoringService.currentHealthReport {
                     Text(String(format: "batch_creation_debug_system_status".localized, healthReport.overallStatus.displayName))
                         .font(.caption2)
-                        .foregroundColor(.white)
+                        .foregroundColor(LopanColors.textPrimary)
                     
                     Text(String(format: "batch_creation_debug_system_score".localized, healthReport.overallScore * 100))
                         .font(.caption2)
-                        .foregroundColor(.white)
+                        .foregroundColor(LopanColors.textPrimary)
                     
                     Text(String(format: "batch_creation_debug_system_critical".localized, healthReport.criticalIssues.count))
                         .font(.caption2)
-                        .foregroundColor(.white)
+                        .foregroundColor(LopanColors.textPrimary)
                 }
 
                 let securityAnalytics = enhancedSecurityService.getSecurityAnalytics()
                 Text(String(format: "batch_creation_debug_security_status".localized, securityAnalytics.riskLevel.displayName))
                     .font(.caption2)
-                    .foregroundColor(.white)
+                    .foregroundColor(LopanColors.textPrimary)
                 
                 Text(String(format: "batch_creation_debug_security_alerts".localized, securityAnalytics.activeAlerts))
                     .font(.caption2)
-                    .foregroundColor(.white)
+                    .foregroundColor(LopanColors.textPrimary)
                 
                 HStack(spacing: 8) {
                     Button("batch_creation_debug_action_warm_cache".localized) {
@@ -1165,7 +1165,7 @@ struct BatchCreationView: View {
                     .padding(.horizontal, 6)
                     .padding(.vertical, 2)
                     .background(LopanColors.info)
-                    .foregroundColor(.white)
+                    .foregroundColor(LopanColors.textPrimary)
                     .cornerRadius(4)
                     
                     Button("batch_creation_debug_action_clear_cache".localized) {
@@ -1175,7 +1175,7 @@ struct BatchCreationView: View {
                     .padding(.horizontal, 6)
                     .padding(.vertical, 2)
                     .background(LopanColors.error)
-                    .foregroundColor(.white)
+                    .foregroundColor(LopanColors.textPrimary)
                     .cornerRadius(4)
                     
                     Button("batch_creation_debug_action_sync_scan".localized) {
@@ -1187,7 +1187,7 @@ struct BatchCreationView: View {
                     .padding(.horizontal, 6)
                     .padding(.vertical, 2)
                     .background(LopanColors.warning)
-                    .foregroundColor(.white)
+                    .foregroundColor(LopanColors.textPrimary)
                     .cornerRadius(4)
                 }
                 
@@ -1201,7 +1201,7 @@ struct BatchCreationView: View {
                     .padding(.horizontal, 6)
                     .padding(.vertical, 2)
                     .background(LopanColors.premium)
-                    .foregroundColor(.white)
+                    .foregroundColor(LopanColors.textPrimary)
                     .cornerRadius(4)
                     
                     Button("batch_processing_action_view_all".localized) {
@@ -1211,7 +1211,7 @@ struct BatchCreationView: View {
                     .padding(.horizontal, 6)
                     .padding(.vertical, 2)
                     .background(LopanColors.success)
-                    .foregroundColor(.white)
+                    .foregroundColor(LopanColors.textPrimary)
                     .cornerRadius(4)
                 }
             }
@@ -1219,7 +1219,7 @@ struct BatchCreationView: View {
         .padding(8)
         .background(
             RoundedRectangle(cornerRadius: 8)
-                .fill(Color.black.opacity(0.8))
+                .fill(LopanColors.shadow.opacity(16))
         )
         .frame(maxWidth: 200)
         .padding(.trailing, 16)

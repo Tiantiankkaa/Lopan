@@ -228,8 +228,8 @@ public class BatchCacheService: ObservableObject {
     
     // MARK: - Cache Statistics (缓存统计)
     
-    func getCacheStatistics() -> CacheStatistics {
-        return CacheStatistics(
+    func getCacheStatistics() -> BatchCacheStatistics {
+        return BatchCacheStatistics(
             batchCacheSize: batchCache.count,
             machineStatusCacheSize: machineStatusCache.count,
             conflictCheckCacheSize: conflictCheckCache.count,
@@ -369,7 +369,7 @@ struct ConflictCheckKey {
     }
 }
 
-struct CacheStatistics {
+struct BatchCacheStatistics {
     let batchCacheSize: Int
     let machineStatusCacheSize: Int
     let conflictCheckCacheSize: Int

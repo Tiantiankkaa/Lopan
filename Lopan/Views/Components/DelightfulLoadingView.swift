@@ -70,7 +70,7 @@ struct DelightfulLoadingView: View {
                 // Center logo or icon
                 Image(systemName: "cube.box")
                     .font(.title)
-                    .foregroundColor(.blue)
+                    .foregroundColor(LopanColors.info)
                     .scaleEffect(pulseScale)
             }
             
@@ -105,8 +105,8 @@ struct DelightfulLoadingView: View {
         .padding(.vertical, 8)
         .background(
             RoundedRectangle(cornerRadius: 20)
-                .fill(Color(.systemBackground))
-                .shadow(color: .black.opacity(0.1), radius: 4, x: 0, y: 2)
+                .fill(LopanColors.background)
+                .shadow(color: LopanColors.textPrimary.opacity(0.1), radius: 4, x: 0, y: 2)
         )
     }
     
@@ -237,17 +237,17 @@ struct SimpleSkeletonLoadingView: View {
         .padding(16)
         .background(
             RoundedRectangle(cornerRadius: 16)
-                .fill(Color(.systemBackground))
-                .shadow(color: .black.opacity(0.05), radius: 2, x: 0, y: 1)
+                .fill(LopanColors.background)
+                .shadow(color: LopanColors.textPrimary.opacity(0.05), radius: 2, x: 0, y: 1)
         )
     }
     
     private var shimmerGradient: LinearGradient {
         LinearGradient(
             colors: [
-                Color(.systemGray5),
-                Color(.systemGray4),
-                Color(.systemGray5)
+                LopanColors.backgroundTertiary,
+                LopanColors.secondary,
+                LopanColors.backgroundTertiary
             ],
             startPoint: .leading,
             endPoint: .trailing
@@ -266,7 +266,7 @@ struct SimplePullToRefreshIndicator: View {
         VStack(spacing: 8) {
             ZStack {
                 Circle()
-                    .stroke(Color(.systemGray4), lineWidth: 2)
+                    .stroke(LopanColors.secondary, lineWidth: 2)
                     .frame(width: 30, height: 30)
                 
                 Circle()
@@ -278,7 +278,7 @@ struct SimplePullToRefreshIndicator: View {
                 if pullProgress >= 1.0 {
                     Image(systemName: "arrow.clockwise")
                         .font(.system(size: 14, weight: .bold))
-                        .foregroundColor(.blue)
+                        .foregroundColor(LopanColors.info)
                         .rotationEffect(.degrees(rotationAngle))
                 }
             }
@@ -311,5 +311,5 @@ struct SimplePullToRefreshIndicator: View {
         
         SimpleSkeletonLoadingView(itemCount: 3)
     }
-    .background(Color(.systemGroupedBackground))
+    .background(LopanColors.backgroundSecondary)
 }

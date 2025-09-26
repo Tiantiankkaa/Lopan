@@ -77,7 +77,7 @@ struct CommonDateNavigationBar: View {
                     .padding(.vertical, 8)
                     .background(
                         RoundedRectangle(cornerRadius: 12)
-                            .fill(Color(.systemGray6))
+                            .fill(LopanColors.backgroundTertiary)
                     )
                 }
                 .frame(minHeight: 44) // Ensure touch target

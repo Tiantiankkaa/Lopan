@@ -44,7 +44,7 @@ struct ModernDashboardCard: View {
     var body: some View {
         Button(action: {
             if isEnabled {
-                HapticFeedback.medium()
+                LopanHapticEngine.shared.medium()
                 onTap()
             }
         }) {
@@ -75,7 +75,7 @@ struct ModernDashboardCard: View {
         .overlay(
             isEnabled ? nil : 
             RoundedRectangle(cornerRadius: LopanCornerRadius.card)
-                .fill(Color.black.opacity(0.05))
+                .fill(LopanColors.shadow)
         )
         .accessibilityElement()
         .accessibilityLabel(title)
@@ -282,9 +282,9 @@ struct LoadingDashboardCard: View {
                 .fill(
                     LinearGradient(
                         colors: [
-                            Color.clear,
-                            Color.white.opacity(0.3),
-                            Color.clear
+                            LopanColors.clear,
+                            LopanColors.textPrimary.opacity(0.3),
+                            LopanColors.clear
                         ],
                         startPoint: .leading,
                         endPoint: .trailing

@@ -33,18 +33,18 @@ struct MachineApprovalStatusView: View {
             } else if let errorMessage = errorMessage {
                 HStack {
                     Image(systemName: "exclamationmark.triangle.fill")
-                        .foregroundColor(.orange)
+                        .foregroundColor(LopanColors.warning)
                     Text(errorMessage)
                         .font(.caption)
                         .foregroundColor(.secondary)
                 }
                 .padding()
-                .background(Color.orange.opacity(0.1))
+                .background(LopanColors.warning.opacity(0.1))
                 .cornerRadius(8)
             } else if approvalBatches.isEmpty {
                 HStack {
                     Image(systemName: "checkmark.circle.fill")
-                        .foregroundColor(.green)
+                        .foregroundColor(LopanColors.success)
                     VStack(alignment: .leading, spacing: 2) {
                         Text("暂无待审批批次")
                             .font(.subheadline)
@@ -56,7 +56,7 @@ struct MachineApprovalStatusView: View {
                     Spacer()
                 }
                 .padding()
-                .background(Color.green.opacity(0.1))
+                .background(LopanColors.success.opacity(0.1))
                 .cornerRadius(8)
             } else {
                 VStack(spacing: 8) {
@@ -72,7 +72,7 @@ struct MachineApprovalStatusView: View {
                             showingAllBatches = true
                         }
                         .font(.caption)
-                        .foregroundColor(.blue)
+                        .foregroundColor(LopanColors.info)
                         .padding(.top, 4)
                     }
                 }
@@ -186,12 +186,12 @@ struct ApprovalBatchCompactRow: View {
                         HStack(spacing: 3) {
                             Image(systemName: batch.status.iconName)
                                 .font(.caption2)
-                                .foregroundColor(.white)
+                                .foregroundColor(LopanColors.textPrimary)
                             
                             Text(batch.status.displayName)
                                 .font(.caption2)
                                 .fontWeight(.medium)
-                                .foregroundColor(.white)
+                                .foregroundColor(LopanColors.textPrimary)
                         }
                         .padding(.horizontal, 8)
                         .padding(.vertical, 3)
@@ -201,10 +201,10 @@ struct ApprovalBatchCompactRow: View {
                         
                         Text(batch.mode.displayName)
                             .font(.caption2)
-                            .foregroundColor(.blue)
+                            .foregroundColor(LopanColors.info)
                             .padding(.horizontal, 6)
                             .padding(.vertical, 1)
-                            .background(Color.blue.opacity(0.1))
+                            .background(LopanColors.primary.opacity(0.1))
                             .cornerRadius(3)
                         
                         // Show shift information for shift-aware batches
@@ -212,15 +212,15 @@ struct ApprovalBatchCompactRow: View {
                             HStack(spacing: 2) {
                                 Image(systemName: shift == .morning ? "sun.min" : "moon")
                                     .font(.caption2)
-                                    .foregroundColor(shift == .morning ? .orange : .indigo)
+                                    .foregroundColor(shift == .morning ? LopanColors.warning : LopanColors.info)
                                 
                                 Text(shift.displayName)
                                     .font(.caption2)
-                                    .foregroundColor(shift == .morning ? .orange : .indigo)
+                                    .foregroundColor(shift == .morning ? LopanColors.warning : LopanColors.info)
                             }
                             .padding(.horizontal, 4)
                             .padding(.vertical, 1)
-                            .background((shift == .morning ? Color.orange : Color.indigo).opacity(0.1))
+                            .background((shift == .morning ? LopanColors.warning : LopanColors.primary).opacity(0.1))
                             .cornerRadius(3)
                         }
                         
@@ -228,10 +228,10 @@ struct ApprovalBatchCompactRow: View {
                         if batch.allowsColorModificationOnly {
                             Image(systemName: "paintpalette")
                                 .font(.caption2)
-                                .foregroundColor(.orange)
+                                .foregroundColor(LopanColors.warning)
                                 .padding(.horizontal, 3)
                                 .padding(.vertical, 1)
-                                .background(Color.orange.opacity(0.1))
+                                .background(LopanColors.warning.opacity(0.1))
                                 .cornerRadius(3)
                         }
                         
@@ -254,7 +254,7 @@ struct ApprovalBatchCompactRow: View {
         .buttonStyle(PlainButtonStyle())
         .padding(.horizontal, 12)
         .padding(.vertical, 8)
-        .background(Color(UIColor.tertiarySystemBackground))
+        .background(LopanColors.backgroundSecondary)
         .cornerRadius(6)
     }
     

@@ -209,7 +209,7 @@ struct iOS26CompliancePreview<Content: View>: View {
 
             HStack {
                 Button("主要操作") {
-                    HapticFeedback.light()
+                    LopanHapticEngine.shared.light()
                 }
                 .foregroundColor(LopanColors.textOnPrimary)
                 .padding(.horizontal, LopanSpacing.md)
@@ -218,7 +218,7 @@ struct iOS26CompliancePreview<Content: View>: View {
                 .cornerRadius(8)
 
                 Button("次要操作") {
-                    HapticFeedback.light()
+                    LopanHapticEngine.shared.light()
                 }
                 .foregroundColor(LopanColors.textPrimary)
                 .padding(.horizontal, LopanSpacing.md)

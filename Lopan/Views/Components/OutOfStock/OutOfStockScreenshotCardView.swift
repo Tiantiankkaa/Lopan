@@ -18,9 +18,9 @@ struct OutOfStockScreenshotCardView: View {
         VStack(spacing: 0) {
             cardContent
         }
-        .background(Color(.systemBackground))
+        .background(LopanColors.background)
         .cornerRadius(12)
-        .shadow(color: .black.opacity(0.05), radius: 2, x: 0, y: 1)
+        .shadow(color: LopanColors.textPrimary.opacity(0.05), radius: 2, x: 0, y: 1)
         .onTapGesture {
             onTap()
         }
@@ -46,7 +46,7 @@ struct OutOfStockScreenshotCardView: View {
             HStack(spacing: 8) {
                 Image(systemName: "location.fill")
                     .font(.system(size: 14))
-                    .foregroundColor(.gray)
+                    .foregroundColor(LopanColors.secondary)
                 
                 Text(item.customerAddress)
                     .font(.system(size: 15))
@@ -60,7 +60,7 @@ struct OutOfStockScreenshotCardView: View {
             HStack(spacing: 8) {
                 Image(systemName: "shippingbox.fill")
                     .font(.system(size: 14))
-                    .foregroundColor(.orange)
+                    .foregroundColor(LopanColors.warning)
                 
                 Text(formatProductName(item.productDisplayName))
                     .font(.system(size: 15))
@@ -71,14 +71,14 @@ struct OutOfStockScreenshotCardView: View {
                 
                 Image(systemName: "chevron.right")
                     .font(.system(size: 12))
-                    .foregroundColor(.gray)
+                    .foregroundColor(LopanColors.secondary)
             }
             
             // Quantity row
             HStack(spacing: 8) {
                 Image(systemName: "number")
                     .font(.system(size: 14))
-                    .foregroundColor(.blue)
+                    .foregroundColor(LopanColors.info)
                 
                 Text("缺货数量: \(item.quantity)")
                     .font(.system(size: 15))
@@ -93,7 +93,7 @@ struct OutOfStockScreenshotCardView: View {
                 HStack(spacing: 4) {
                     Image(systemName: "clock")
                         .font(.system(size: 12))
-                        .foregroundColor(.gray)
+                        .foregroundColor(LopanColors.secondary)
                     
                     Text("录入时间: \(formattedDate(item.requestDate))")
                         .font(.system(size: 13))
@@ -107,11 +107,11 @@ struct OutOfStockScreenshotCardView: View {
                     HStack(spacing: 4) {
                         Image(systemName: "checkmark.circle.fill")
                             .font(.system(size: 12))
-                            .foregroundColor(.green)
+                            .foregroundColor(LopanColors.success)
                         
                         Text("完成: \(formattedDate(completionDate))")
                             .font(.system(size: 13))
-                            .foregroundColor(.green)
+                            .foregroundColor(LopanColors.success)
                     }
                 }
             }
@@ -123,11 +123,11 @@ struct OutOfStockScreenshotCardView: View {
         HStack(spacing: 6) {
             Image(systemName: "checkmark.circle.fill")
                 .font(.system(size: 12))
-                .foregroundColor(.white)
+                .foregroundColor(LopanColors.textPrimary)
             
             Text(item.status.displayName)
                 .font(.system(size: 13, weight: .medium))
-                .foregroundColor(.white)
+                .foregroundColor(LopanColors.textPrimary)
         }
         .padding(.horizontal, 12)
         .padding(.vertical, 6)
@@ -137,9 +137,9 @@ struct OutOfStockScreenshotCardView: View {
     
     private var statusColor: Color {
         switch item.status {
-        case .pending: return .orange
-        case .completed: return .green
-        case .returned: return .red
+        case .pending: return LopanColors.warning
+        case .completed: return LopanColors.success
+        case .returned: return LopanColors.error
         }
     }
     

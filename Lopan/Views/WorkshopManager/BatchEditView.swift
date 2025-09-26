@@ -175,7 +175,7 @@ struct BatchEditView: View {
         VStack(spacing: 16) {
             Image(systemName: "exclamationmark.triangle")
                 .font(.system(size: 48))
-                .foregroundColor(.red)
+                .foregroundColor(LopanColors.error)
             
             Text("加载失败")
                 .font(.headline)
@@ -202,7 +202,7 @@ struct BatchEditView: View {
         VStack(spacing: 16) {
             Image(systemName: "doc.questionmark")
                 .font(.system(size: 48))
-                .foregroundColor(.gray)
+                .foregroundColor(LopanColors.secondary)
             
             Text("批次不存在")
                 .font(.headline)
@@ -430,7 +430,7 @@ struct BatchEditView: View {
                         HStack(spacing: 6) {
                             Image(systemName: shift == .morning ? "sun.min" : "moon")
                                 .font(.system(size: 14, weight: .medium))
-                                .foregroundColor(shift == .morning ? .orange : .indigo)
+                                .foregroundColor(shift == .morning ? LopanColors.warning : LopanColors.roleWorkshopTechnician)
                             
                             Text(shift.displayName)
                                 .font(.body)
@@ -466,7 +466,7 @@ struct BatchEditView: View {
         .padding()
         .background(
             RoundedRectangle(cornerRadius: 12)
-                .fill(Color(.secondarySystemBackground))
+                .fill(LopanColors.backgroundSecondary)
         )
     }
     
@@ -498,7 +498,7 @@ struct BatchEditView: View {
             RoundedRectangle(cornerRadius: 4)
                 .fill(LopanColors.warning.opacity(0.2))
         )
-        .foregroundColor(.orange)
+        .foregroundColor(LopanColors.warning)
     }
     
     // MARK: - Execution Info Card (执行信息卡片)
@@ -510,7 +510,7 @@ struct BatchEditView: View {
                     HStack(spacing: 6) {
                         Image(systemName: batchInfo.isAutoCompleted ? "clock.arrow.circlepath" : "person.fill")
                             .font(.system(size: 16, weight: .medium))
-                            .foregroundColor(batchInfo.isAutoCompleted ? .blue : .green)
+                            .foregroundColor(batchInfo.isAutoCompleted ? LopanColors.primary : LopanColors.success)
                         
                         Text(executionInfo.type)
                             .font(.headline)
@@ -528,7 +528,7 @@ struct BatchEditView: View {
                 if batchInfo.isAutoCompleted {
                     Image(systemName: "checkmark.seal.fill")
                         .font(.system(size: 20))
-                        .foregroundColor(.blue)
+                        .foregroundColor(LopanColors.primary)
                 }
             }
             
@@ -551,7 +551,7 @@ struct BatchEditView: View {
         .padding()
         .background(
             RoundedRectangle(cornerRadius: 12)
-                .fill(Color(.secondarySystemBackground))
+                .fill(LopanColors.backgroundSecondary)
         )
         .overlay(
             RoundedRectangle(cornerRadius: 12)
@@ -572,7 +572,7 @@ struct BatchEditView: View {
                 HStack(spacing: 6) {
                     Image(systemName: batchInfo.shift == .morning ? "sun.min" : "moon")
                         .font(.caption)
-                        .foregroundColor(batchInfo.shift == .morning ? .orange : .indigo)
+                        .foregroundColor(batchInfo.shift == .morning ? LopanColors.warning : LopanColors.roleWorkshopTechnician)
                     
                     Text(batchInfo.shift?.timeRangeDisplay ?? "未知班次")
                         .font(.caption)
@@ -640,7 +640,7 @@ struct BatchEditView: View {
             HStack(spacing: 4) {
                 Image(systemName: "timer")
                     .font(.caption)
-                    .foregroundColor(.blue)
+                    .foregroundColor(LopanColors.primary)
                 
                 Text("运行时长")
                     .font(.caption)
@@ -653,7 +653,7 @@ struct BatchEditView: View {
             Text(duration)
                 .font(.caption)
                 .fontWeight(.bold)
-                .foregroundColor(.blue)
+                .foregroundColor(LopanColors.primary)
                 .padding(.horizontal, 8)
                 .padding(.vertical, 2)
                 .background(
@@ -696,7 +696,7 @@ struct BatchEditView: View {
         .padding(.vertical, 20)
         .background(
             RoundedRectangle(cornerRadius: 12)
-                .fill(Color(.secondarySystemBackground))
+                .fill(LopanColors.backgroundSecondary)
         )
     }
     
@@ -733,11 +733,11 @@ struct BatchEditView: View {
         .padding()
         .background(
             RoundedRectangle(cornerRadius: 12)
-                .fill(Color(.secondarySystemBackground))
+                .fill(LopanColors.backgroundSecondary)
         )
         .overlay(
             RoundedRectangle(cornerRadius: 12)
-                .stroke(hasConfigChanged(at: index) ? LopanColors.primary : Color.clear, lineWidth: 2)
+                .stroke(hasConfigChanged(at: index) ? LopanColors.primary : LopanColors.clear, lineWidth: 2)
         )
     }
     
@@ -761,7 +761,7 @@ struct BatchEditView: View {
                             RoundedRectangle(cornerRadius: 4)
                                 .fill(LopanColors.success.opacity(0.2))
                         )
-                        .foregroundColor(.green)
+                        .foregroundColor(LopanColors.success)
                 }
             }
             
@@ -789,7 +789,7 @@ struct BatchEditView: View {
                     .padding(.vertical, 4)
                     .background(
                         RoundedRectangle(cornerRadius: 6)
-                            .fill(Color(.tertiarySystemBackground))
+                            .fill(LopanColors.backgroundTertiary)
                     )
                 }
             }
@@ -831,7 +831,7 @@ struct BatchEditView: View {
                 .padding(.vertical, 4)
                 .background(
                     RoundedRectangle(cornerRadius: 6)
-                        .fill(Color(.tertiarySystemBackground))
+                        .fill(LopanColors.backgroundTertiary)
                 )
             }
         }
@@ -846,7 +846,7 @@ struct BatchEditView: View {
             Text("已修改")
                 .font(.caption2)
                 .fontWeight(.medium)
-                .foregroundColor(.blue)
+                .foregroundColor(LopanColors.primary)
         }
     }
     
@@ -858,7 +858,7 @@ struct BatchEditView: View {
             VStack(spacing: 24) {
                 Image(systemName: "slider.horizontal.3")
                     .font(.system(size: 60))
-                    .foregroundColor(.blue)
+                    .foregroundColor(LopanColors.primary)
                 
                 Text("前往生产配置")
                     .font(.title2)
@@ -897,7 +897,7 @@ struct BatchEditView: View {
         HStack(spacing: 8) {
             Image(systemName: icon)
                 .font(.system(size: 16, weight: .medium))
-                .foregroundColor(.blue)
+                .foregroundColor(LopanColors.primary)
             
             Text(title)
                 .font(.headline)
@@ -936,7 +936,7 @@ struct BatchEditView: View {
     }
     
     private func colorForId(_ colorId: String) -> Color {
-        availableColors.first { $0.id == colorId }?.swiftUIColor ?? .gray
+        availableColors.first { $0.id == colorId }?.swiftUIColor ?? LopanColors.secondary
     }
     
     private func colorNameForId(_ colorId: String) -> String {

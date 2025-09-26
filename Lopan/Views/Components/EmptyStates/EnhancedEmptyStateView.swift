@@ -201,11 +201,11 @@ struct EmptyStateActionButton: View {
     private var buttonTextColor: Color {
         switch action.style {
         case .primary:
-            return .white
+            return LopanColors.textOnPrimary
         case .secondary:
             return .accentColor
         case .destructive:
-            return .white
+            return LopanColors.textOnPrimary
         }
     }
     
@@ -214,9 +214,9 @@ struct EmptyStateActionButton: View {
         case .primary:
             return .accentColor
         case .secondary:
-            return Color.accentColor.opacity(0.1)
+            return LopanColors.primary.opacity(0.1)
         case .destructive:
-            return .red
+            return LopanColors.error
         }
     }
 }

@@ -13,6 +13,10 @@ struct UserManagementView: View {
     @Query private var users: [User]
     @State private var searchText = ""
     @State private var selectedRole: UserRole? = nil
+    @State private var isLoading = false
+    @State private var isRefreshing = false
+    @StateObject private var searchThrottler = LopanPerformanceUtils.Throttler()
+    @StateObject private var memoryManager = LopanPerformanceUtils.MemoryManager.shared
     
     var filteredUsers: [User] {
         var filtered = users
@@ -98,7 +102,7 @@ struct UserFilterChip: View {
                 .padding(.horizontal, 12)
                 .padding(.vertical, 6)
                 .background(isSelected ? LopanColors.primary : LopanColors.secondaryLight)
-                .foregroundColor(isSelected ? .white : .primary)
+                .foregroundColor(isSelected ? LopanColors.textPrimary : .primary)
                 .cornerRadius(16)
         }
     }
@@ -180,7 +184,7 @@ struct UserRowView: View {
                     
                     Text(user.isActive ? "活跃" : "非活跃")
                         .font(.caption2)
-                        .foregroundColor(user.isActive ? .green : .red)
+                        .foregroundColor(user.isActive ? LopanColors.success : LopanColors.error)
                 }
             }
             
@@ -255,10 +259,10 @@ struct MultiRolePickerView: View {
                                         Spacer()
                                         if selectedRoles.contains(role) {
                                             Image(systemName: "checkmark.circle.fill")
-                                                .foregroundColor(.blue)
+                                                .foregroundColor(LopanColors.primary)
                                         } else {
                                             Image(systemName: "circle")
-                                                .foregroundColor(.gray)
+                                                .foregroundColor(LopanColors.secondary)
                                         }
                                     }
                                 }
@@ -276,7 +280,7 @@ struct MultiRolePickerView: View {
                                         Spacer()
                                         if role == primaryRole {
                                             Image(systemName: "star.fill")
-                                                .foregroundColor(.yellow)
+                                                .foregroundColor(LopanColors.warning)
                                         }
                                     }
                                 }
@@ -351,10 +355,10 @@ struct RoleSelectionView: View {
                             Spacer()
                             if selectedRoles.contains(role) {
                                 Image(systemName: "checkmark.circle.fill")
-                                    .foregroundColor(.blue)
+                                    .foregroundColor(LopanColors.primary)
                             } else {
                                 Image(systemName: "circle")
-                                    .foregroundColor(.gray)
+                                    .foregroundColor(LopanColors.secondary)
                             }
                         }
                     }
@@ -371,7 +375,7 @@ struct RoleSelectionView: View {
                                 Spacer()
                                 if role == primaryRole {
                                     Image(systemName: "star.fill")
-                                        .foregroundColor(.yellow)
+                                        .foregroundColor(LopanColors.warning)
                                 }
                             }
                         }

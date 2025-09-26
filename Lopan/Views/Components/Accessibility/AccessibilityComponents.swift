@@ -139,8 +139,8 @@ struct AccessibleCard<Content: View>: View {
         .padding()
         .background(
             RoundedRectangle(cornerRadius: 12)
-                .fill(Color(.systemBackground))
-                .shadow(color: .black.opacity(0.1), radius: 2, x: 0, y: 1)
+                .fill(LopanColors.background)
+                .shadow(color: LopanColors.textPrimary.opacity(0.1), radius: 2, x: 0, y: 1)
         )
         .accessibilityElement(children: .combine)
         .accessibilityLabel(accessibilityLabel ?? "")
@@ -234,32 +234,32 @@ struct AccessibleToggle: View {
 struct AccessibleColors {
     /// Primary text color with proper contrast
     static var primaryText: Color {
-        Color.primary
+        LopanColors.textPrimary
     }
     
     /// Secondary text color with WCAG AA compliance
     static var secondaryText: Color {
-        Color.secondary
+        LopanColors.textSecondary
     }
     
     /// Button background ensuring 3:1 contrast minimum
     static var buttonBackground: Color {
-        Color.accentColor
+        LopanColors.primary
     }
     
     /// Error color with proper contrast
     static var error: Color {
-        Color.red
+        LopanColors.error
     }
     
     /// Success color with proper contrast
     static var success: Color {
-        Color.green
+        LopanColors.success
     }
     
     /// Warning color with proper contrast
     static var warning: Color {
-        Color.orange
+        LopanColors.warning
     }
     
     /// Check if color combination meets WCAG AA standard

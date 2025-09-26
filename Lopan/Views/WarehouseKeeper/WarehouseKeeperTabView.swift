@@ -179,7 +179,7 @@ struct WarehouseKeeperTabView: View {
     
     private func performSearch() {
         // Implement search functionality based on selected tab
-        HapticFeedback.light()
+        LopanHapticEngine.shared.light()
         
         switch selectedTab {
         case .packaging:
@@ -421,17 +421,17 @@ private struct ProductInfoView: View {
 
 private class TabHapticController {
     func selectionChanged() {
-        HapticFeedback.selection()
+        LopanHapticEngine.shared.selection()
     }
     
     func impact(_ style: UIImpactFeedbackGenerator.FeedbackStyle = .medium) {
         switch style {
         case .light:
-            HapticFeedback.light()
+            LopanHapticEngine.shared.light()
         case .heavy:
-            HapticFeedback.heavy()
+            LopanHapticEngine.shared.heavy()
         default:
-            HapticFeedback.medium()
+            LopanHapticEngine.shared.medium()
         }
     }
 }

@@ -100,7 +100,7 @@ struct AddProductView: View {
                     .background(
                         RoundedRectangle(cornerRadius: 16)
                             .fill(LopanColors.surface)
-                            .shadow(color: Color.black.opacity(0.05), radius: 2, x: 0, y: 1)
+                            .shadow(color: LopanColors.shadow, radius: 2, x: 0, y: 1)
                     )
                     
                     // Product Image Section  
@@ -162,7 +162,7 @@ struct AddProductView: View {
                     .background(
                         RoundedRectangle(cornerRadius: 16)
                             .fill(LopanColors.surface)
-                            .shadow(color: Color.black.opacity(0.05), radius: 2, x: 0, y: 1)
+                            .shadow(color: LopanColors.shadow, radius: 2, x: 0, y: 1)
                     )
                     
                     // Product Sizes Section
@@ -221,7 +221,7 @@ struct AddProductView: View {
                     .background(
                         RoundedRectangle(cornerRadius: 16)
                             .fill(LopanColors.surface)
-                            .shadow(color: Color.black.opacity(0.05), radius: 2, x: 0, y: 1)
+                            .shadow(color: LopanColors.shadow, radius: 2, x: 0, y: 1)
                     )
                 }
                 .padding(20)

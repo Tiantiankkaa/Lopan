@@ -95,7 +95,7 @@ struct ColorContrastTest: View {
             Text("错误状态").foregroundColor(.red)
             Text("成功状态").foregroundColor(.green)
         }
-        .background(Color(.systemBackground))
+        .background(LopanColors.background)
     }
 }
 ```

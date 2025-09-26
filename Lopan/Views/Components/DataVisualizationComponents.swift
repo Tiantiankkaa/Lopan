@@ -21,7 +21,7 @@ struct ChartDataPoint: Identifiable {
     let color: Color
     let date: Date?
     
-    init(x: Double, y: Double, label: String = "", category: String = "default", color: Color = .blue, date: Date? = nil) {
+    init(x: Double, y: Double, label: String = "", category: String = "default", color: Color = LopanColors.primary, date: Date? = nil) {
         self.x = x
         self.y = y
         self.label = label
@@ -57,7 +57,7 @@ struct BarChartItem: Identifiable {
     let color: Color
     let subCategory: String?
     
-    init(category: String, value: Double, color: Color = .blue, subCategory: String? = nil) {
+    init(category: String, value: Double, color: Color = LopanColors.primary, subCategory: String? = nil) {
         self.category = category
         self.value = value
         self.color = color
@@ -84,7 +84,7 @@ struct AnalyticsSurface<Content: View>: View {
                 RoundedRectangle(cornerRadius: LopanCornerRadius.card, style: .continuous)
                     .stroke(LopanColors.border.opacity(0.08), lineWidth: 1)
             )
-            .shadow(color: Color.black.opacity(0.05), radius: 12, x: 0, y: 6)
+            .shadow(color: LopanColors.shadow, radius: 12, x: 0, y: 6)
     }
 
     @ViewBuilder
@@ -899,7 +899,7 @@ struct LegacyPieChart: View {
             }
             
             Circle()
-                .fill(Color(.systemBackground))
+                .fill(LopanColors.background)
                 .frame(width: 60, height: 60)
         }
     }

@@ -510,7 +510,7 @@ public struct PoolPerformanceView: View {
                     if let stats = poolStats {
                         MetricRow(title: "Total Views", value: "\(stats.totalViews)")
                         MetricRow(title: "Reuse Rate", value: "\(String(format: "%.1f", stats.reuseRate * 100))%")
-                            .foregroundColor(stats.reuseRate >= 0.6 ? .green : .orange)
+                            .foregroundColor(stats.reuseRate >= 0.6 ? LopanColors.success : LopanColors.warning)
                         MetricRow(title: "Efficiency", value: "\(String(format: "%.1f", stats.efficiency * 100))%")
                         MetricRow(title: "Active Pools", value: "\(stats.poolCount)")
                     }
@@ -519,10 +519,10 @@ public struct PoolPerformanceView: View {
                 Section("Memory Usage") {
                     if let memory = memoryUsage {
                         MetricRow(title: "Total Memory", value: "\(String(format: "%.1f", memory.totalMemoryMB))MB")
-                            .foregroundColor(memory.isOverLimit ? .red : .primary)
+                            .foregroundColor(memory.isOverLimit ? LopanColors.error : .primary)
                         MetricRow(title: "Status", value: memory.status)
-                            .foregroundColor(memory.status == "Over Limit" ? .red : 
-                                           memory.status == "High" ? .orange : .green)
+                            .foregroundColor(memory.status == "Over Limit" ? LopanColors.error : 
+                                           memory.status == "High" ? LopanColors.warning : LopanColors.success)
                     }
                 }
                 
@@ -557,7 +557,7 @@ public struct PoolPerformanceView: View {
                         poolManager.clearAllPools()
                         refreshData()
                     }
-                    .foregroundColor(.red)
+                    .foregroundColor(LopanColors.error)
                     
                     Button("Refresh Data") {
                         refreshData()

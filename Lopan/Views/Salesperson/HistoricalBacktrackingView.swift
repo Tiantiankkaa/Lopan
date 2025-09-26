@@ -198,7 +198,7 @@ struct HistoricalBacktrackingView: View {
             }
         }
         .padding(.vertical)
-        .background(Color(.systemGroupedBackground))
+        .background(LopanColors.backgroundSecondary)
     }
     
     private var statisticsView: some View {
@@ -235,7 +235,7 @@ struct HistoricalBacktrackingView: View {
             .padding(.horizontal)
         }
         .padding(.vertical)
-        .background(Color(.systemBackground))
+        .background(LopanColors.background)
     }
     
     private var auditLogsList: some View {

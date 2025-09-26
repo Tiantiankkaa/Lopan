@@ -187,7 +187,7 @@ struct SmartFormSystem: View {
                         ForEach(group.fields, id: \.id) { field in
                             Text("Field: \(field.id)")
                                 .padding()
-                                .background(Color.gray.opacity(0.1))
+                                .background(LopanColors.secondary.opacity(0.1))
                                 .cornerRadius(8)
                         }
                     }
@@ -218,7 +218,7 @@ struct SmartFormSystem: View {
                     .foregroundColor(LopanColors.textSecondary)
                     .padding(.horizontal, 20)
                     .padding(.vertical, 12)
-                    .background(Color(.systemGray5))
+                    .background(LopanColors.backgroundTertiary)
                     .clipShape(Capsule())
                 }
                 .transition(.move(edge: .leading).combined(with: .opacity))
@@ -238,12 +238,12 @@ struct SmartFormSystem: View {
                             .font(.callout)
                     }
                 }
-                .foregroundColor(.white)
+                .foregroundColor(LopanColors.textPrimary)
                 .padding(.horizontal, 24)
                 .padding(.vertical, 12)
                 .background(
                     Capsule()
-                        .fill(canProceedToNextStep ? LopanColors.primary : Color.gray)
+                        .fill(canProceedToNextStep ? LopanColors.primary : LopanColors.disabled)
                 )
             }
             .disabled(!canProceedToNextStep)
@@ -253,8 +253,8 @@ struct SmartFormSystem: View {
         .padding(.vertical, 16)
         .background(
             Rectangle()
-                .fill(Color(.systemBackground))
-                .shadow(color: .black.opacity(0.1), radius: 4, x: 0, y: -2)
+                .fill(LopanColors.background)
+                .shadow(color: LopanColors.textPrimary.opacity(0.1), radius: 4, x: 0, y: -2)
         )
     }
     
@@ -267,7 +267,7 @@ struct SmartFormSystem: View {
                 .foregroundColor(LopanColors.textSecondary)
                 .padding(.horizontal, 24)
                 .padding(.vertical, 12)
-                .background(Color(.systemGray6))
+                .background(LopanColors.backgroundTertiary)
                 .clipShape(Capsule())
             
             Button(action: submitForm) {
@@ -275,19 +275,19 @@ struct SmartFormSystem: View {
                     if isFormSubmitting {
                         ProgressView()
                             .scaleEffect(0.8)
-                            .progressViewStyle(CircularProgressViewStyle(tint: .white))
+                            .progressViewStyle(CircularProgressViewStyle(tint: LopanColors.textOnPrimary))
                     }
                     
                     Text(isFormSubmitting ? "提交中..." : "提交")
                         .font(.callout)
                         .fontWeight(.medium)
                 }
-                .foregroundColor(.white)
+                .foregroundColor(LopanColors.textPrimary)
                 .padding(.horizontal, 24)
                 .padding(.vertical, 12)
                 .background(
                     Capsule()
-                        .fill(isFormValid ? LopanColors.primary : Color.gray)
+                        .fill(isFormValid ? LopanColors.primary : LopanColors.disabled)
                 )
             }
             .disabled(!isFormValid || isFormSubmitting)
@@ -296,8 +296,8 @@ struct SmartFormSystem: View {
         .padding(.vertical, 16)
         .background(
             Rectangle()
-                .fill(Color(.systemBackground))
-                .shadow(color: .black.opacity(0.1), radius: 4, x: 0, y: -2)
+                .fill(LopanColors.background)
+                .shadow(color: LopanColors.textPrimary.opacity(0.1), radius: 4, x: 0, y: -2)
         )
     }
     
@@ -351,7 +351,7 @@ struct SmartFormSystem: View {
             .padding(.bottom, keyboardHeight + 20)
         }
         .background(
-            Color.black.opacity(0.3)
+            LopanColors.shadow.opacity(6)
                 .ignoresSafeArea()
                 .onTapGesture {
                     showingSmartSuggestions = false
@@ -362,7 +362,7 @@ struct SmartFormSystem: View {
     // MARK: - Submission Loading Overlay
     private var submissionLoadingOverlay: some View {
         ZStack {
-            Color.black.opacity(0.5)
+            LopanColors.shadow.opacity(10)
                 .ignoresSafeArea()
             
             VStack(spacing: 16) {
@@ -372,18 +372,18 @@ struct SmartFormSystem: View {
                 
                 Text("正在提交表单...")
                     .font(.headline)
-                    .foregroundColor(.white)
+                    .foregroundColor(LopanColors.textPrimary)
                 
                 Text("请稍候，系统正在处理您的信息")
                     .font(.callout)
-                    .foregroundColor(.white.opacity(0.8))
+                    .foregroundColor(LopanColors.textOnPrimary.opacity(0.8))
                     .multilineTextAlignment(.center)
             }
             .padding(32)
             .background(
                 RoundedRectangle(cornerRadius: 16)
-                    .fill(Color(.systemBackground))
-                    .shadow(color: .black.opacity(0.2), radius: 12, x: 0, y: 6)
+                    .fill(LopanColors.background)
+                    .shadow(color: LopanColors.textPrimary.opacity(0.2), radius: 12, x: 0, y: 6)
             )
         }
     }
@@ -580,7 +580,7 @@ struct SteppedProgressIndicator: View {
             GeometryReader { geometry in
                 ZStack(alignment: .leading) {
                     Rectangle()
-                        .fill(Color(.systemGray5))
+                        .fill(LopanColors.backgroundTertiary)
                         .frame(height: 4)
                         .clipShape(Capsule())
                     
@@ -740,7 +740,7 @@ struct SmartFormField: View {
             .padding(.vertical, 12)
             .background(
                 RoundedRectangle(cornerRadius: 8)
-                    .fill(Color(.systemGray6))
+                    .fill(LopanColors.backgroundTertiary)
             )
             
         case .toggle:
@@ -810,7 +810,7 @@ struct SmartFormField: View {
         } else if isFocused {
             return LopanColors.primary
         } else {
-            return Color(.systemGray4)
+            return LopanColors.secondary
         }
     }
 }
@@ -826,7 +826,7 @@ struct SmartTextFieldStyle: TextFieldStyle {
             .padding(.vertical, 12)
             .background(
                 RoundedRectangle(cornerRadius: 8)
-                    .fill(Color(.systemBackground))
+                    .fill(LopanColors.background)
                     .overlay(
                         RoundedRectangle(cornerRadius: 8)
                             .stroke(borderColor, lineWidth: isFocused ? 2 : 1)
@@ -841,7 +841,7 @@ struct SmartTextFieldStyle: TextFieldStyle {
         } else if isFocused {
             return LopanColors.primary
         } else {
-            return Color(.systemGray4)
+            return LopanColors.secondary
         }
     }
 }
@@ -1107,7 +1107,7 @@ struct SmartSuggestionsPanel: View {
                         .padding(12)
                         .background(
                             RoundedRectangle(cornerRadius: 8)
-                                .fill(Color(.systemGray6))
+                                .fill(LopanColors.backgroundTertiary)
                         )
                     }
                     .buttonStyle(PlainButtonStyle())
@@ -1117,8 +1117,8 @@ struct SmartSuggestionsPanel: View {
         .padding(20)
         .background(
             RoundedRectangle(cornerRadius: 16)
-                .fill(Color(.systemBackground))
-                .shadow(color: .black.opacity(0.1), radius: 12, x: 0, y: 6)
+                .fill(LopanColors.background)
+                .shadow(color: LopanColors.textPrimary.opacity(0.1), radius: 12, x: 0, y: 6)
         )
     }
 }

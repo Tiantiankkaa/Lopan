@@ -67,10 +67,10 @@ enum InconsistencySeverity: String, CaseIterable {
     
     var color: Color {
         switch self {
-        case .low: return .blue
-        case .medium: return .orange
-        case .high: return .red
-        case .critical: return .purple
+        case .low: return LopanColors.primary
+        case .medium: return LopanColors.warning
+        case .high: return LopanColors.error
+        case .critical: return LopanColors.primary
         }
     }
 }

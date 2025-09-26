@@ -59,11 +59,11 @@ struct OutOfStockCardView: View {
             .fill(
                 LinearGradient(
                     colors: isSelected ? [
-                        Color.blue.opacity(0.1),
-                        Color.blue.opacity(0.05)
+                        LopanColors.primary.opacity(0.1),
+                        LopanColors.primary.opacity(0.05)
                     ] : [
-                        Color(.systemBackground),
-                        Color(.systemGray6).opacity(0.3)
+                        LopanColors.backgroundPrimary,
+                        LopanColors.backgroundSecondary.opacity(0.3)
                     ],
                     startPoint: .topLeading,
                     endPoint: .bottomTrailing
@@ -72,12 +72,12 @@ struct OutOfStockCardView: View {
             .overlay(
                 RoundedRectangle(cornerRadius: 16)
                     .stroke(
-                        isSelected ? Color.blue.opacity(0.6) : Color(.systemGray4).opacity(0.3),
+                        isSelected ? LopanColors.primary.opacity(0.6) : LopanColors.secondary.opacity(0.3),
                         lineWidth: isSelected ? 2 : 1
                     )
             )
             .shadow(
-                color: isSelected ? Color.blue.opacity(0.2) : Color.black.opacity(0.08),
+                color: isSelected ? LopanColors.primary.opacity(0.2) : LopanColors.shadow.opacity(1.6),
                 radius: isSelected ? 8 : 4,
                 x: 0,
                 y: isSelected ? 4 : 2
@@ -157,17 +157,17 @@ struct OutOfStockCardView: View {
             
             Text(String(item.customerDisplayName.prefix(1)))
                 .font(.title3.weight(.bold))
-                .foregroundColor(.white)
+                .foregroundColor(LopanColors.textPrimary)
         }
         .overlay(
             Circle()
-                .stroke(Color.white, lineWidth: 2)
-                .shadow(color: .black.opacity(0.1), radius: 2, x: 0, y: 1)
+                .stroke(LopanColors.textPrimary, lineWidth: 2)
+                .shadow(color: LopanColors.textPrimary.opacity(0.1), radius: 2, x: 0, y: 1)
         )
     }
     
     private var customerAvatarColor: Color {
-        let colors: [Color] = [.blue, .green, .orange, .purple, .pink, .indigo]
+        let colors: [Color] = [LopanColors.primary, LopanColors.success, LopanColors.warning, LopanColors.primary, LopanColors.error, LopanColors.primary]
         let hash = abs(item.customerDisplayName.hashValue)
         return colors[hash % colors.count]
     }
@@ -193,9 +193,9 @@ struct OutOfStockCardView: View {
     
     private var statusColor: Color {
         switch item.status {
-        case .pending: return .orange
-        case .completed: return .green
-        case .returned: return .green
+        case .pending: return LopanColors.warning
+        case .completed: return LopanColors.success
+        case .returned: return LopanColors.success
         }
     }
     
@@ -222,7 +222,7 @@ struct OutOfStockCardView: View {
         HStack(spacing: 12) {
             Image(systemName: "cube.box")
                 .symbolRenderingMode(.palette)
-                .foregroundStyle(Color.blue)
+                .foregroundStyle(LopanColors.primary)
                 .imageScale(.medium)
                 .frame(width: 20)
             
@@ -245,7 +245,7 @@ struct OutOfStockCardView: View {
         HStack(spacing: 12) {
             Image(systemName: "number.circle")
                 .imageScale(.medium)
-                .foregroundColor(.green)
+                .foregroundColor(LopanColors.success)
                 .frame(width: 20)
             
             VStack(alignment: .leading, spacing: 2) {
@@ -254,14 +254,14 @@ struct OutOfStockCardView: View {
                     .foregroundColor(.secondary)
                 
                 HStack(spacing: 16) {
-                    quantityChip("缺货", "\(item.quantity)", .orange)
+                    quantityChip("缺货", "\(item.quantity)", LopanColors.warning)
                     
                     if item.returnQuantity > 0 {
-                        quantityChip("已退", "\(item.returnQuantity)", .blue)
+                        quantityChip("已退", "\(item.returnQuantity)", LopanColors.primary)
                     }
                     
                     if item.remainingQuantity > 0 && item.returnQuantity > 0 {
-                        quantityChip("剩余", "\(item.remainingQuantity)", .red)
+                        quantityChip("剩余", "\(item.remainingQuantity)", LopanColors.error)
                     }
                 }
             }
@@ -292,7 +292,7 @@ struct OutOfStockCardView: View {
         HStack(alignment: .top, spacing: 12) {
             Image(systemName: "note.text")
                 .imageScale(.medium)
-                .foregroundColor(.purple)
+                .foregroundColor(LopanColors.primary)
                 .frame(width: 20)
             
             VStack(alignment: .leading, spacing: 2) {
@@ -345,13 +345,13 @@ struct OutOfStockCardView: View {
     
     private var returnStatusColor: Color {
         if item.isFullyReturned {
-            return .green
+            return LopanColors.success
         } else if item.hasPartialReturn {
-            return .blue
+            return LopanColors.primary
         } else if item.needsReturn {
-            return .orange
+            return LopanColors.warning
         } else {
-            return .gray
+            return LopanColors.textSecondary
         }
     }
     
@@ -378,13 +378,13 @@ struct OutOfStockCardView: View {
                         
                         ZStack {
                             Circle()
-                                .fill(isSelected ? Color.blue : Color(.systemGray5))
+                                .fill(isSelected ? LopanColors.primary : LopanColors.backgroundTertiary)
                                 .frame(width: 24, height: 24)
                             
                             if isSelected {
                                 Image(systemName: "checkmark")
                                     .font(.caption.weight(.bold))
-                                    .foregroundColor(.white)
+                                    .foregroundColor(LopanColors.textPrimary)
                             }
                         }
                         .scaleEffect(isSelected ? 1.1 : 1.0)
@@ -438,7 +438,7 @@ struct OutOfStockCardView: View {
     }
     
     private func handleTap() {
-        playImpact(.light, intensity: 0.6)
+        LopanHapticEngine.shared.light()
         
         withAnimation(.easeInOut(duration: 0.1)) {
             cardScale = 0.95
@@ -453,7 +453,7 @@ struct OutOfStockCardView: View {
     }
     
     private func handleLongPress() {
-        playImpact(.heavy, intensity: 0.8)
+        LopanHapticEngine.shared.heavy()
         
         withAnimation(.spring(response: 0.3, dampingFraction: 0.6)) {
             cardScale = 1.05
@@ -470,7 +470,7 @@ struct OutOfStockCardView: View {
     
     private func handleSwipeRight() {
         // Swipe right - Quick mark as completed or edit
-        playImpact(.medium, intensity: 0.7)
+        LopanHapticEngine.shared.medium()
         
         withAnimation(.spring(response: 0.3, dampingFraction: 0.6)) {
             cardOffset = 100
@@ -497,7 +497,7 @@ struct OutOfStockCardView: View {
     
     private func handleSwipeLeft() {
         // Swipe left - Quick delete or archive
-        playImpact(.rigid, intensity: 0.9)
+        LopanHapticEngine.shared.heavy()
         
         withAnimation(.spring(response: 0.3, dampingFraction: 0.6)) {
             cardOffset = -100
@@ -517,15 +517,6 @@ struct OutOfStockCardView: View {
         print("Quick action: Delete item - \(item.id)")
     }
 
-    private func playImpact(_ style: UIImpactFeedbackGenerator.FeedbackStyle, intensity: CGFloat = 1.0) {
-        if #available(iOS 17.0, *) {
-            let generator = UIImpactFeedbackGenerator(style: style)
-            generator.prepare()
-            generator.impactOccurred(intensity: intensity)
-        } else {
-            UIImpactFeedbackGenerator(style: style).impactOccurred()
-        }
-    }
 
     private var accessibilityLabel: Text {
         Text("客户 \(item.customerDisplayName)，状态 \(item.status.displayName)")
@@ -602,7 +593,7 @@ struct OutOfStockCardView_Previews: PreviewProvider {
             )
         }
         .padding()
-        .background(Color(.systemGray6))
+        .background(LopanColors.backgroundTertiary)
     }
     
     static var sampleItem: CustomerOutOfStock {

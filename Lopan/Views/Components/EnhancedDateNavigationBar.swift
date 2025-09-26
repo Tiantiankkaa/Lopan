@@ -106,9 +106,9 @@ struct EnhancedDateNavigationBar: View {
                         .font(.system(size: 18, weight: .medium))
                         .foregroundColor(LopanColors.primary)
                         .frame(width: 36, height: 36)
-                        .background(Color.white)
+                        .background(LopanColors.backgroundSecondary)
                         .clipShape(Circle())
-                        .shadow(color: Color.black.opacity(0.1), radius: 2, x: 0, y: 1)
+                        .shadow(color: LopanColors.shadow.opacity(2), radius: 2, x: 0, y: 1)
                 }
                 .accessibilityLabel("排序")
                 .accessibilityValue(sortOrder.displayName)
@@ -125,11 +125,11 @@ struct EnhancedDateNavigationBar: View {
         }
         .padding(.horizontal, 16)
         .padding(.vertical, 8)
-        .background(Color.white)
+        .background(LopanColors.backgroundSecondary)
         .overlay(
             Rectangle()
                 .frame(height: 0.5)
-                .foregroundColor(Color(.systemGray5)),
+                .foregroundColor(LopanColors.backgroundTertiary),
             alignment: .bottom
         )
         .animation(.spring(response: 0.6, dampingFraction: 0.8), value: dateFilterMode)
@@ -187,10 +187,10 @@ struct EnhancedDateNavigationBar: View {
                     .strokeBorder(
                         LinearGradient(
                             colors: [
-                                Color.white.opacity(0.3),
-                                Color.white.opacity(0.1),
-                                Color.clear,
-                                Color.white.opacity(0.05)
+                                LopanColors.textPrimary.opacity(0.3),
+                                LopanColors.textPrimary.opacity(0.1),
+                                LopanColors.clear,
+                                LopanColors.textPrimary.opacity(0.05)
                             ],
                             startPoint: .topLeading,
                             endPoint: .bottomTrailing
@@ -337,6 +337,6 @@ extension View {
         )
     }
     .padding()
-    .background(Color(.systemGroupedBackground))
+    .background(LopanColors.backgroundSecondary)
 }
 #endif

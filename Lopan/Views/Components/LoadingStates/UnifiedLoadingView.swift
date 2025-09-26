@@ -220,9 +220,9 @@ struct SkeletonRow: View {
     private var skeletonGradient: LinearGradient {
         LinearGradient(
             colors: [
-                Color(.systemGray5),
-                Color(.systemGray4),
-                Color(.systemGray5)
+                LopanColors.backgroundTertiary,
+                LopanColors.secondary,
+                LopanColors.backgroundTertiary
             ],
             startPoint: .leading,
             endPoint: .trailing
@@ -256,7 +256,7 @@ struct InlineLoadingIndicator: View {
             .padding(.vertical, 6)
             .background(
                 Capsule()
-                    .fill(Color(.systemGray6))
+                    .fill(LopanColors.backgroundTertiary)
             )
             .accessibilityElement(children: .combine)
             .accessibilityLabel(message ?? "正在加载")
@@ -324,25 +324,25 @@ struct LoadingOverlay<Content: View>: View {
             
             if isLoading {
                 Rectangle()
-                    .fill(Color.black.opacity(0.3))
+                    .fill(LopanColors.shadow.opacity(6))
                     .ignoresSafeArea()
                 
                 VStack(spacing: 16) {
                     ProgressView()
                         .scaleEffect(1.2)
-                        .progressViewStyle(CircularProgressViewStyle(tint: .white))
+                        .progressViewStyle(CircularProgressViewStyle(tint: LopanColors.textOnPrimary))
                     
                     DynamicText(
                         type.message,
                         style: .subheadline,
                         alignment: .center
                     )
-                    .foregroundColor(.white)
+                    .foregroundColor(LopanColors.textPrimary)
                 }
                 .padding(24)
                 .background(
                     RoundedRectangle(cornerRadius: 12)
-                        .fill(Color.black.opacity(0.7))
+                        .fill(LopanColors.shadow.opacity(14))
                 )
                 .accessibilityElement(children: .combine)
                 .accessibilityLabel(type.accessibilityLabel)

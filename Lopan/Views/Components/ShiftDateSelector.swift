@@ -95,12 +95,12 @@ struct ShiftDateSelector: View {
             .frame(maxWidth: .infinity, minHeight: 60)
             .background(
                 RoundedRectangle(cornerRadius: 12)
-                    .fill(isSelected ? Color.blue : Color(.systemGray6))
+                    .fill(isSelected ? LopanColors.primary : LopanColors.backgroundTertiary)
             )
-            .foregroundColor(isSelected ? .white : .primary)
+            .foregroundColor(isSelected ? LopanColors.textOnPrimary : LopanColors.textPrimary)
             .overlay(
                 RoundedRectangle(cornerRadius: 12)
-                    .stroke(isSelected ? Color.blue : Color.clear, lineWidth: 2)
+                    .stroke(isSelected ? LopanColors.primary : LopanColors.clear, lineWidth: 2)
             )
         }
         .disabled(isDisabled)
@@ -174,7 +174,7 @@ struct ShiftDateSelector: View {
     private var timeRestrictionBanner: some View {
         HStack(spacing: 12) {
             Image(systemName: "clock.badge.exclamationmark")
-                .foregroundColor(.orange)
+                .foregroundColor(LopanColors.warning)
                 .font(.system(size: 20, weight: .medium))
             
             VStack(alignment: .leading, spacing: 2) {
@@ -194,11 +194,11 @@ struct ShiftDateSelector: View {
         .padding(.vertical, 8)
         .background(
             RoundedRectangle(cornerRadius: 8)
-                .fill(Color.orange.opacity(0.1))
+                .fill(LopanColors.warning.opacity(0.1))
         )
         .overlay(
             RoundedRectangle(cornerRadius: 8)
-                .stroke(Color.orange.opacity(0.3), lineWidth: 1)
+                .stroke(LopanColors.warning.opacity(0.3), lineWidth: 1)
         )
         .accessibilityElement(children: .combine)
         .accessibilityLabel("时间限制提醒: \(cutoffInfo.restrictionMessage ?? "")")
@@ -233,11 +233,11 @@ struct ShiftDateSelector: View {
     
     private func backgroundColorForShift(shift: Shift, isSelected: Bool, isAvailable: Bool) -> Color {
         if !isAvailable {
-            return Color(.systemGray6).opacity(0.5)
+            return LopanColors.backgroundTertiary.opacity(0.5)
         } else if isSelected {
-            return shift == .morning ? Color.orange : Color.indigo
+            return shift == .morning ? LopanColors.warning : LopanColors.primary
         } else {
-            return Color(.systemGray6)
+            return LopanColors.backgroundTertiary
         }
     }
     
@@ -245,7 +245,7 @@ struct ShiftDateSelector: View {
         if !isAvailable {
             return .secondary
         } else if isSelected {
-            return .white
+            return LopanColors.textOnPrimary
         } else {
             return .primary
         }
@@ -253,9 +253,9 @@ struct ShiftDateSelector: View {
     
     private func borderColorForShift(isSelected: Bool, isAvailable: Bool) -> Color {
         if isSelected && isAvailable {
-            return Color.blue
+            return LopanColors.primary
         } else {
-            return Color.clear
+            return LopanColors.clear
         }
     }
     

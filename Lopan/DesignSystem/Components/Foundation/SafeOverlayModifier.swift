@@ -18,16 +18,16 @@ struct SafeOverlayModifier: ViewModifier {
             .overlay(
                 isPresented ? 
                 ZStack {
-                    Color.black.opacity(0.3)
+                    LopanColors.shadow.opacity(6)
                         .ignoresSafeArea(.container, edges: .all)
                     
                     overlayContent
                         .padding(.horizontal)
                         .safeAreaInset(edge: .top, spacing: 0) {
-                            Color.clear.frame(height: 44) // Navigation bar space
+                            LopanColors.clear.frame(height: 44) // Navigation bar space
                         }
                         .safeAreaInset(edge: .bottom, spacing: 0) {
-                            Color.clear.frame(height: 34) // Tab bar space
+                            LopanColors.clear.frame(height: 34) // Tab bar space
                         }
                 }
                 .zIndex(999)
@@ -74,27 +74,27 @@ struct ProcessingOverlay: View {
         VStack(spacing: 16) {
             ProgressView()
                 .scaleEffect(1.5)
-                .progressViewStyle(CircularProgressViewStyle(tint: .white))
+                .progressViewStyle(CircularProgressViewStyle(tint: LopanColors.textOnPrimary))
             
             Text(message)
                 .font(.headline)
-                .foregroundColor(.white)
+                .foregroundColor(LopanColors.textPrimary)
             
             if let progress = progress {
                 ProgressView(value: progress)
-                    .progressViewStyle(LinearProgressViewStyle(tint: .white))
+                    .progressViewStyle(LinearProgressViewStyle(tint: LopanColors.textOnPrimary))
                     .frame(width: 200)
             }
             
             if let statusMessage = statusMessage {
                 Text(statusMessage)
                     .font(.subheadline)
-                    .foregroundColor(.white)
+                    .foregroundColor(LopanColors.textPrimary)
                     .multilineTextAlignment(.center)
             }
         }
         .padding(32)
-        .background(Color.black.opacity(0.8))
+        .background(LopanColors.shadow.opacity(16))
         .cornerRadius(16)
         .transition(.asymmetric(
             insertion: .opacity.combined(with: .scale(scale: 0.8)),

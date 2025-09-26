@@ -102,7 +102,7 @@ struct WorkshopManagerDashboard: View {
                 }
                 .tag(4)
         }
-        .accentColor(.blue)
+        .accentColor(LopanColors.primary)
         .onAppear {
             // Initialize workbench context when entering workshop manager dashboard
             navigationService?.setCurrentWorkbenchContext(.workshopManager)
@@ -114,7 +114,7 @@ struct WorkshopManagerDashboard: View {
         VStack(spacing: 20) {
             Image(systemName: "exclamationmark.triangle.fill")
                 .font(.system(size: 60))
-                .foregroundColor(.orange)
+                .foregroundColor(LopanColors.warning)
             
             Text("访问权限不足")
                 .font(.title)
@@ -123,18 +123,18 @@ struct WorkshopManagerDashboard: View {
             Text("您没有访问车间管理系统的权限。请联系管理员获取相应权限。")
                 .font(.body)
                 .multilineTextAlignment(.center)
-                .foregroundColor(.secondary)
+                .foregroundColor(LopanColors.textSecondary)
                 .padding(.horizontal, 40)
             
             if authService.currentUser == nil {
                 Text("用户未登录或正在登出")
                     .font(.caption)
-                    .foregroundColor(.red)
+                    .foregroundColor(LopanColors.error)
                     .padding(.top, 10)
             }
         }
         .frame(maxWidth: .infinity, maxHeight: .infinity)
-        .background(Color(.systemBackground))
+        .background(LopanColors.background)
     }
     
     // MARK: - Helper Methods

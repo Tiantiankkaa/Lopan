@@ -310,7 +310,7 @@ struct QuickActionMenu: View {
     
     private func handleAction(_ action: QuickAction) {
         // Add haptic feedback
-        HapticFeedback.medium()
+        LopanHapticEngine.shared.medium()
         
         // Log action for analytics
         Task {
@@ -351,7 +351,7 @@ struct QuickActionMenu: View {
     
     private func refreshData() {
         isLoading = true
-        HapticFeedback.light()
+        LopanHapticEngine.shared.light()
         
         Task {
             // Simulate data refresh
@@ -360,7 +360,7 @@ struct QuickActionMenu: View {
             await MainActor.run {
                 isLoading = false
                 // Show success feedback
-                HapticFeedback.success()
+                LopanHapticEngine.shared.success()
             }
         }
     }

@@ -125,12 +125,12 @@ public struct QuickStatCard: View {
         .frame(maxWidth: .infinity, alignment: .leading)
         .background(
             RoundedRectangle(cornerRadius: cardCornerRadius)
-                .fill(isSelected ? color : Color(.systemBackground))
+                .fill(isSelected ? color : LopanColors.background)
                 .shadow(color: shadowColor, radius: shadowRadius, x: 0, y: shadowY)
         )
         .overlay(
             RoundedRectangle(cornerRadius: cardCornerRadius)
-                .stroke(isSelected ? color.opacity(0.9) : Color.clear, lineWidth: isSelected ? 2 : 0)
+                .stroke(isSelected ? color.opacity(0.9) : LopanColors.clear, lineWidth: isSelected ? 2 : 0)
         )
         .opacity(isLocked ? 0.8 : 1.0)
         .animation(.spring(response: 0.2, dampingFraction: 0.85), value: isSelected)
@@ -195,7 +195,7 @@ public struct QuickStatCard: View {
         }
     }
     .padding()
-    .background(Color(.systemGroupedBackground))
+    .background(LopanColors.backgroundSecondary)
 }
 
 #Preview("QuickStatCard - Locked State") {
@@ -217,7 +217,7 @@ public struct QuickStatCard: View {
         )
     }
     .padding()
-    .background(Color(.systemGroupedBackground))
+    .background(LopanColors.backgroundSecondary)
 }
 
 #Preview("QuickStatCard - Dynamic Type XL") {
@@ -238,6 +238,6 @@ public struct QuickStatCard: View {
         )
     }
     .padding()
-    .background(Color(.systemGroupedBackground))
+    .background(LopanColors.backgroundSecondary)
     .environment(\.dynamicTypeSize, .xxxLarge)
 }

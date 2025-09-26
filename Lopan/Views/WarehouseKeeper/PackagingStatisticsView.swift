@@ -136,7 +136,7 @@ struct PackagingStatisticsView: View {
                             .datePickerStyle(CompactDatePickerStyle())
                     }
                     .padding()
-                    .background(Color(.systemGroupedBackground))
+                    .background(LopanColors.backgroundSecondary)
                     .cornerRadius(12)
                     
                     // Overall statistics cards
@@ -144,10 +144,10 @@ struct PackagingStatisticsView: View {
                         GridItem(.flexible()),
                         GridItem(.flexible())
                     ], spacing: 12) {
-                        StatisticCard(title: "总包装数", value: "\(overallStats.totalPackages)", color: .blue, icon: "cube.box")
-                        StatisticCard(title: "总产品数", value: "\(overallStats.totalItems)", color: .green, icon: "number")
-                        StatisticCard(title: "记录数", value: "\(overallStats.recordCount)", color: .purple, icon: "doc.text")
-                        StatisticCard(title: "款式数", value: "\(overallStats.uniqueStyles)", color: .orange, icon: "shirt")
+                        StatisticCard(title: "总包装数", value: "\(overallStats.totalPackages)", color: LopanColors.info, icon: "cube.box")
+                        StatisticCard(title: "总产品数", value: "\(overallStats.totalItems)", color: LopanColors.success, icon: "number")
+                        StatisticCard(title: "记录数", value: "\(overallStats.recordCount)", color: LopanColors.accent, icon: "doc.text")
+                        StatisticCard(title: "款式数", value: "\(overallStats.uniqueStyles)", color: LopanColors.warning, icon: "shirt")
                     }
                     
                     // Daily trend chart
@@ -162,17 +162,17 @@ struct PackagingStatisticsView: View {
                                     x: .value("日期", stat.date),
                                     y: .value("包装数", stat.totalPackages)
                                 )
-                                .foregroundStyle(.blue)
+                                .foregroundStyle(LopanColors.info)
                                 
                                 AreaMark(
                                     x: .value("日期", stat.date),
                                     y: .value("包装数", stat.totalPackages)
                                 )
-                                .foregroundStyle(.blue.opacity(0.1))
+                                .foregroundStyle(LopanColors.info.opacity(0.1))
                             }
                             .frame(height: 200)
                             .padding()
-                            .background(Color(.systemBackground))
+                            .background(LopanColors.background)
                             .cornerRadius(12)
                         }
                     }
@@ -189,7 +189,7 @@ struct PackagingStatisticsView: View {
                             }
                         }
                         .padding()
-                        .background(Color(.systemBackground))
+                        .background(LopanColors.background)
                         .cornerRadius(12)
                     }
                     
@@ -212,7 +212,7 @@ struct PackagingStatisticsView: View {
                             }
                         }
                         .padding()
-                        .background(Color(.systemBackground))
+                        .background(LopanColors.background)
                         .cornerRadius(12)
                     }
                     
@@ -221,7 +221,7 @@ struct PackagingStatisticsView: View {
                         VStack(spacing: 16) {
                             Image(systemName: "chart.bar")
                                 .font(.system(size: 50))
-                                .foregroundColor(.gray)
+                                .foregroundColor(LopanColors.secondary)
                             Text("所选时间范围内暂无数据")
                                 .font(.headline)
                                 .foregroundColor(.secondary)
@@ -264,7 +264,7 @@ struct StatisticCard: View {
                 .foregroundColor(.secondary)
         }
         .padding()
-        .background(Color(.systemBackground))
+        .background(LopanColors.background)
         .cornerRadius(12)
     }
 }

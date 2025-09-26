@@ -925,12 +925,12 @@ enum OverallHealthStatus: String, CaseIterable {
     
     var color: Color {
         switch self {
-        case .unknown: return .gray
-        case .healthy: return .green
-        case .warning: return .yellow
-        case .degraded: return .orange
-        case .critical: return .red
-        case .stopped: return .gray
+        case .unknown: return LopanColors.textSecondary
+        case .healthy: return LopanColors.success
+        case .warning: return LopanColors.warning
+        case .degraded: return LopanColors.warning
+        case .critical: return LopanColors.error
+        case .stopped: return LopanColors.textSecondary
         }
     }
 }
@@ -963,10 +963,10 @@ enum HealthStatus: String, CaseIterable {
     
     var color: Color {
         switch self {
-        case .healthy: return .green
-        case .warning: return .yellow
-        case .critical: return .orange
-        case .failing: return .red
+        case .healthy: return LopanColors.success
+        case .warning: return LopanColors.warning
+        case .critical: return LopanColors.warning
+        case .failing: return LopanColors.error
         }
     }
 }
@@ -1079,10 +1079,10 @@ enum AlertPriority: String, CaseIterable {
     
     var color: Color {
         switch self {
-        case .low: return .green
-        case .medium: return .yellow
-        case .high: return .orange
-        case .critical: return .red
+        case .low: return LopanColors.success
+        case .medium: return LopanColors.warning
+        case .high: return LopanColors.warning
+        case .critical: return LopanColors.error
         }
     }
 }

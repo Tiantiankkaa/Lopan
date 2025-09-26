@@ -130,20 +130,20 @@ struct PermissionManagementView: View {
                                 .font(.caption)
                                 .fontWeight(.medium)
                         }
-                        .foregroundColor(selectedTab == tab ? .blue : .secondary)
+                        .foregroundColor(selectedTab == tab ? LopanColors.primary : LopanColors.textSecondary)
                         .frame(maxWidth: .infinity)
                         .padding(.vertical, 12)
                         .padding(.horizontal, 8)
                     }
                     .background(
                         Rectangle()
-                            .fill(selectedTab == tab ? LopanColors.primary.opacity(0.1) : Color.clear)
+                            .fill(selectedTab == tab ? LopanColors.primary.opacity(0.1) : LopanColors.clear)
                     )
                 }
             }
             .padding(.horizontal)
         }
-        .background(Color(UIColor.systemBackground))
+        .background(LopanColors.backgroundPrimary)
         .overlay(
             Rectangle()
                 .frame(height: 0.5)
@@ -262,7 +262,7 @@ struct RoleCard: View {
                 HStack {
                     Label("\(permissionCount)", systemImage: "key")
                         .font(.caption)
-                        .foregroundColor(.blue)
+                        .foregroundColor(LopanColors.primary)
                     
                     Spacer()
                     
@@ -274,7 +274,7 @@ struct RoleCard: View {
                 HStack {
                     Label(getRoleLevel(role), systemImage: "arrow.up.right")
                         .font(.caption)
-                        .foregroundColor(.green)
+                        .foregroundColor(LopanColors.success)
                     
                     Spacer()
                     
@@ -302,9 +302,9 @@ struct RoleCard: View {
             }
         }
         .padding()
-        .background(Color(UIColor.secondarySystemBackground))
+        .background(LopanColors.backgroundSecondary)
         .cornerRadius(12)
-        .shadow(color: Color.black.opacity(0.1), radius: 2, x: 0, y: 1)
+        .shadow(color: LopanColors.shadow.opacity(2), radius: 2, x: 0, y: 1)
     }
     
     private func getRoleLevel(_ role: UserRole) -> String {
@@ -382,8 +382,8 @@ struct PermissionMatrixView: View {
                 }
                 .buttonStyle(.bordered)
                 .controlSize(.small)
-                .foregroundColor(selectedCategory == nil ? .white : .blue)
-                .background(selectedCategory == nil ? LopanColors.primary : Color.clear)
+                .foregroundColor(selectedCategory == nil ? LopanColors.textPrimary : LopanColors.primary)
+                .background(selectedCategory == nil ? LopanColors.primary : LopanColors.clear)
                 
                 ForEach(PermissionCategory.allCases, id: \.self) { category in
                     Button(selectedCategory == category ? "\(category.displayName) ✓" : category.displayName) {
@@ -391,8 +391,8 @@ struct PermissionMatrixView: View {
                     }
                     .buttonStyle(.bordered)
                     .controlSize(.small)
-                    .foregroundColor(selectedCategory == category ? .white : .blue)
-                    .background(selectedCategory == category ? LopanColors.primary : Color.clear)
+                    .foregroundColor(selectedCategory == category ? LopanColors.textPrimary : LopanColors.primary)
+                    .background(selectedCategory == category ? LopanColors.primary : LopanColors.clear)
                 }
             }
             .padding(.horizontal)
@@ -419,7 +419,7 @@ struct PermissionMatrixView: View {
             }
         }
         .padding(.vertical, 12)
-        .background(Color(UIColor.systemGray6))
+        .background(LopanColors.backgroundSecondary)
     }
 }
 
@@ -457,7 +457,7 @@ struct PermissionRow: View {
             }
         }
         .padding(.vertical, 8)
-        .background(Color(UIColor.systemBackground))
+        .background(LopanColors.backgroundPrimary)
         .overlay(
             Rectangle()
                 .frame(height: 0.5)
@@ -481,7 +481,7 @@ struct PermissionCheckbox: View {
     var body: some View {
         Button(action: togglePermission) {
             Image(systemName: hasPermission ? "checkmark.square.fill" : "square")
-                .foregroundColor(hasPermission ? .blue : .gray)
+                .foregroundColor(hasPermission ? LopanColors.primary : LopanColors.textSecondary)
                 .font(.title3)
         }
         .disabled(isLoading)
@@ -624,7 +624,7 @@ struct RoleAssignmentRow: View {
                     if !assignment.isValid {
                         Text("已失效")
                             .font(.caption)
-                            .foregroundColor(.white)
+                            .foregroundColor(LopanColors.textPrimary)
                             .padding(.horizontal, 6)
                             .padding(.vertical, 2)
                             .background(LopanColors.error)
@@ -644,7 +644,7 @@ struct RoleAssignmentRow: View {
                     if let expiresAt = assignment.expiresAt {
                         Text("• 过期于: \(expiresAt, style: .date)")
                             .font(.caption)
-                            .foregroundColor(.orange)
+                            .foregroundColor(LopanColors.warning)
                     }
                 }
                 
@@ -665,7 +665,7 @@ struct RoleAssignmentRow: View {
                     }
                     .buttonStyle(.bordered)
                     .controlSize(.small)
-                    .foregroundColor(.red)
+                    .foregroundColor(LopanColors.error)
                 }
                 
                 Button("详情") {
@@ -820,7 +820,7 @@ struct ElevationRequestRow: View {
                 
                 Text(request.status.displayName)
                     .font(.caption)
-                    .foregroundColor(.white)
+                    .foregroundColor(LopanColors.textPrimary)
                     .padding(.horizontal, 8)
                     .padding(.vertical, 4)
                     .background(request.status.color)
@@ -855,7 +855,7 @@ struct ElevationRequestRow: View {
                         }
                         .buttonStyle(.bordered)
                         .controlSize(.small)
-                        .foregroundColor(.red)
+                        .foregroundColor(LopanColors.error)
                     }
                 }
             }

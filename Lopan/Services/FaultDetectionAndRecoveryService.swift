@@ -670,10 +670,10 @@ enum FaultSeverity: String, CaseIterable, Codable {
     
     var color: Color {
         switch self {
-        case .low: return .green
-        case .medium: return .yellow
-        case .high: return .orange
-        case .critical: return .red
+        case .low: return LopanColors.success
+        case .medium: return LopanColors.warning
+        case .high: return LopanColors.warning
+        case .critical: return LopanColors.error
         }
     }
 }
@@ -703,13 +703,13 @@ enum SystemHealthStatus: String, CaseIterable {
     
     var color: Color {
         switch self {
-        case .unknown: return .gray
-        case .healthy: return .green
-        case .degraded: return .yellow
-        case .unhealthy: return .orange
-        case .critical: return .red
-        case .monitoring: return .blue
-        case .stopped: return .gray
+        case .unknown: return LopanColors.textSecondary
+        case .healthy: return LopanColors.success
+        case .degraded: return LopanColors.warning
+        case .unhealthy: return LopanColors.warning
+        case .critical: return LopanColors.error
+        case .monitoring: return LopanColors.primary
+        case .stopped: return LopanColors.textSecondary
         }
     }
 }

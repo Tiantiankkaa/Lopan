@@ -339,15 +339,17 @@ class DataExportEngine: ObservableObject {
             fileURL = try await writeDataToFile(transformedData, configuration: configuration)
             
             // Step 5: Apply compression if needed
-            if configuration.compression != .none {
+            if configuration.compression != .none,
+               let currentFileURL = fileURL {
                 updateProgress(jobId: jobId, step: 5, stepName: "压缩文件")
-                fileURL = try await compressFile(fileURL!, compression: configuration.compression)
+                fileURL = try await compressFile(currentFileURL, compression: configuration.compression)
             }
-            
+
             // Step 6: Apply encryption if needed
-            if let encryptionConfig = configuration.encryption {
+            if let encryptionConfig = configuration.encryption,
+               let currentFileURL = fileURL {
                 updateProgress(jobId: jobId, step: 6, stepName: "加密文件")
-                fileURL = try await encryptFile(fileURL!, encryption: encryptionConfig)
+                fileURL = try await encryptFile(currentFileURL, encryption: encryptionConfig)
             }
             
             // Step 7: Finalize
@@ -359,8 +361,8 @@ class DataExportEngine: ObservableObject {
         }
         
         let endTime = Date()
-        let fileSize = fileURL != nil ? getFileSize(for: fileURL!) : 0
-        let checksum = fileURL != nil ? calculateChecksum(fileURL!) : nil
+        let fileSize = fileURL.map { getFileSize(for: $0) } ?? 0
+        let checksum = fileURL.flatMap { calculateChecksum($0) }
         
         // Create result
         let result = ExportResult(

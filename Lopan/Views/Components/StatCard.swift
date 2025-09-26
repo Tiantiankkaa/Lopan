@@ -52,15 +52,15 @@ struct StatCard: View {
         }
         .frame(maxWidth: .infinity)
         .padding()
-        .background(Color(UIColor.secondarySystemBackground))
+        .background(LopanColors.backgroundSecondary)
         .cornerRadius(12)
     }
 }
 
 #Preview {
     HStack {
-        StatCard(title: "总数量", count: 42, color: .blue)
-        StatCard(title: "利用率", value: "85.2%", color: .green)
+        StatCard(title: "总数量", count: 42, color: LopanColors.info)
+        StatCard(title: "利用率", value: "85.2%", color: LopanColors.success)
     }
     .padding()
 }

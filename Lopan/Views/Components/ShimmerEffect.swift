@@ -18,9 +18,9 @@ struct ShimmerEffect: ViewModifier {
                     .fill(
                         LinearGradient(
                             gradient: Gradient(colors: [
-                                Color.clear,
-                                Color.white.opacity(0.4),
-                                Color.clear
+                                LopanColors.clear,
+                                LopanColors.textPrimary.opacity(0.4),
+                                LopanColors.clear
                             ]),
                             startPoint: .leading,
                             endPoint: .trailing

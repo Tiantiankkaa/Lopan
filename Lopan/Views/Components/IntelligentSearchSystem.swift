@@ -116,7 +116,7 @@ struct IntelligentSearchSystem: View {
         .overlay(searchBarBorder)
         .scaleEffect(searchFieldScale)
         .shadow(
-            color: isSearchFieldFocused ? LopanColors.primary.opacity(0.1) : Color.clear,
+            color: isSearchFieldFocused ? LopanColors.primary.opacity(0.1) : LopanColors.clear,
             radius: isSearchFieldFocused ? 8 : 0,
             x: 0,
             y: isSearchFieldFocused ? 4 : 0
@@ -195,8 +195,8 @@ struct IntelligentSearchSystem: View {
         RoundedRectangle(cornerRadius: 16)
             .fill(
                 isSearchFieldFocused
-                ? Color(.systemBackground)
-                : Color(.systemGray6)
+                ? LopanColors.background
+                : LopanColors.backgroundTertiary
             )
     }
     
@@ -205,7 +205,7 @@ struct IntelligentSearchSystem: View {
             .stroke(
                 isSearchFieldFocused
                 ? LopanColors.primary.opacity(0.3)
-                : Color.clear,
+                : LopanColors.clear,
                 lineWidth: isSearchFieldFocused ? 1.5 : 0
             )
     }
@@ -221,9 +221,9 @@ struct IntelligentSearchSystem: View {
                 searchHistoryList
             }
         }
-        .background(Color(.systemBackground))
+        .background(LopanColors.background)
         .clipShape(RoundedRectangle(cornerRadius: 12))
-        .shadow(color: .black.opacity(0.1), radius: 8, x: 0, y: 4)
+        .shadow(color: LopanColors.textPrimary.opacity(0.1), radius: 8, x: 0, y: 4)
         .offset(y: suggestionsOffset)
         .animation(.spring(response: 0.4, dampingFraction: 0.8), value: suggestionsOffset)
     }
@@ -247,7 +247,7 @@ struct IntelligentSearchSystem: View {
             }
             .padding(.horizontal, 16)
             .padding(.vertical, 8)
-            .background(Color(.systemGray6))
+            .background(LopanColors.backgroundTertiary)
             
             ForEach(currentSuggestions.prefix(5), id: \.id) { suggestion in
                 SuggestionRow(
@@ -279,7 +279,7 @@ struct IntelligentSearchSystem: View {
             }
             .padding(.horizontal, 16)
             .padding(.vertical, 8)
-            .background(Color(.systemGray6))
+            .background(LopanColors.backgroundTertiary)
             
             ForEach(searchAnalytics.recentSearches.prefix(5), id: \.id) { historyItem in
                 SearchHistoryRow(
@@ -312,7 +312,7 @@ struct IntelligentSearchSystem: View {
                     .font(.subheadline)
                     .foregroundColor(LopanColors.textSecondary)
                     .padding()
-                    .background(Color(.systemGray6))
+                    .background(LopanColors.backgroundTertiary)
                     .clipShape(RoundedRectangle(cornerRadius: 8))
             }
             
@@ -324,7 +324,7 @@ struct IntelligentSearchSystem: View {
                         Text("取消")
                     }
                     .font(.body)
-                    .foregroundColor(.white)
+                    .foregroundColor(LopanColors.textPrimary)
                     .padding(.horizontal, 20)
                     .padding(.vertical, 12)
                     .background(LopanColors.textSecondary)
@@ -337,7 +337,7 @@ struct IntelligentSearchSystem: View {
                         Text(voiceSearchEngine.isListening ? "停止" : "开始")
                     }
                     .font(.body)
-                    .foregroundColor(.white)
+                    .foregroundColor(LopanColors.textPrimary)
                     .padding(.horizontal, 20)
                     .padding(.vertical, 12)
                     .background(voiceSearchEngine.isListening ? LopanColors.error : LopanColors.primary)
@@ -346,9 +346,9 @@ struct IntelligentSearchSystem: View {
             }
         }
         .padding(24)
-        .background(Color(.systemBackground))
+        .background(LopanColors.background)
         .clipShape(RoundedRectangle(cornerRadius: 20))
-        .shadow(color: .black.opacity(0.15), radius: 12, x: 0, y: 6)
+        .shadow(color: LopanColors.textPrimary.opacity(0.15), radius: 12, x: 0, y: 6)
     }
     
     private var voiceSearchStatusText: String {
@@ -613,7 +613,7 @@ struct SuggestionRow: View {
         .buttonStyle(PlainButtonStyle())
         .background(
             Rectangle()
-                .fill(Color.clear)
+                .fill(LopanColors.clear)
                 .contentShape(Rectangle())
         )
     }
@@ -691,7 +691,7 @@ struct VoiceWaveformView: View {
                 RoundedRectangle(cornerRadius: 2)
                     .fill(
                         LinearGradient(
-                            colors: isListening ? [LopanColors.primary, LopanColors.info] : [Color.gray.opacity(0.3)],
+                            colors: isListening ? [LopanColors.primary, LopanColors.info] : [LopanColors.secondary.opacity(0.3)],
                             startPoint: .bottom,
                             endPoint: .top
                         )

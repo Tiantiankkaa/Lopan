@@ -33,7 +33,7 @@ struct CommonCircularButton: View {
         icon: String,
         size: CGFloat = 44, // HIG compliant default
         backgroundColor: Color = .accentColor,
-        foregroundColor: Color = .white,
+        foregroundColor: Color = LopanColors.textOnPrimary,
         accessibilityLabel: String,
         accessibilityHint: String? = nil,
         action: @escaping () -> Void
@@ -85,17 +85,17 @@ struct CommonFilterButton: View {
         Button(action: action) {
             ZStack {
                 Circle()
-                    .fill(hasActiveFilters ? Color.accentColor : Color(.systemGray5))
+                    .fill(hasActiveFilters ? LopanColors.primary : LopanColors.backgroundSecondary)
                     .frame(width: 44, height: 44) // HIG compliant size
                 
                 Image(systemName: "line.3.horizontal.decrease.circle")
                     .font(.system(size: 20, weight: .medium))
-                    .foregroundColor(hasActiveFilters ? .white : .primary)
+                    .foregroundColor(hasActiveFilters ? LopanColors.textOnPrimary : LopanColors.textPrimary)
                     .accessibilityHidden(true)
                 
                 if hasActiveFilters {
                     Circle()
-                        .fill(Color.red)
+                        .fill(LopanColors.error)
                         .frame(width: 10, height: 10)
                         .offset(x: 14, y: -14)
                         .accessibilityHidden(true) // Badge is decorative
@@ -195,7 +195,7 @@ struct CommonIconButton: View {
             )
             CommonCircularButton(
                 icon: "trash",
-                backgroundColor: .red,
+                backgroundColor: LopanColors.error,
                 accessibilityLabel: "删除",
                 accessibilityHint: "删除选中的项目",
                 action: {}
@@ -204,7 +204,7 @@ struct CommonIconButton: View {
         }
         
         HStack(spacing: 15) {
-            CommonTextButton(title: "取消", color: .orange, action: {})
+            CommonTextButton(title: "取消", color: LopanColors.warning, action: {})
             CommonIconButton(
                 icon: "checkmark.circle",
                 accessibilityLabel: "确认",
@@ -213,7 +213,7 @@ struct CommonIconButton: View {
             )
             CommonIconButton(
                 icon: "trash",
-                color: .red,
+                color: LopanColors.error,
                 isDisabled: true,
                 accessibilityLabel: "删除（不可用）",
                 accessibilityHint: "删除功能当前不可用",

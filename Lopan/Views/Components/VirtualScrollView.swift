@@ -50,7 +50,7 @@ struct VirtualScrollView<Content: View, Item: Identifiable & Equatable>: View {
                         }
                         .background(
                             GeometryReader { itemGeometry in
-                                Color.clear
+                                LopanColors.clear
                                     .onAppear {
                                         updateScrollOffset(itemGeometry.frame(in: .named("scroll")).minY)
                                     }
@@ -309,7 +309,7 @@ struct LazyLoadingModifier: ViewModifier {
         content
             .background(
                 GeometryReader { geometry in
-                    Color.clear
+                    LopanColors.clear
                         .onAppear {
                             if !hasAppeared {
                                 hasAppeared = true
@@ -344,7 +344,7 @@ struct VirtualScrollView_Previews: PreviewProvider {
                 Spacer()
             }
             .padding()
-            .background(Color(.systemGray6))
+            .background(LopanColors.backgroundTertiary)
             .cornerRadius(8)
             .padding(.horizontal)
         }

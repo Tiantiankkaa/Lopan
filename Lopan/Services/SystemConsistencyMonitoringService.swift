@@ -71,11 +71,11 @@ enum ConsistencyHealthStatus: String, CaseIterable {
     
     var color: Color {
         switch self {
-        case .excellent: return .green
-        case .good: return .blue
-        case .warning: return .orange
-        case .critical: return .red
-        case .unknown: return .gray
+        case .excellent: return LopanColors.success
+        case .good: return LopanColors.primary
+        case .warning: return LopanColors.warning
+        case .critical: return LopanColors.error
+        case .unknown: return LopanColors.textSecondary
         }
     }
     

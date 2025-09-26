@@ -86,14 +86,9 @@ struct CustomerGroupedReturnView: View {
         }
         .navigationTitle("按客户分组还货")
         .navigationBarTitleDisplayMode(.inline)
-        .background(Color(.systemGroupedBackground))
+        .background(LopanColors.backgroundSecondary)
         .animation(.spring(response: 0.6, dampingFraction: 0.8), value: isSelectionMode)
         .toolbar {
-            ToolbarItem(placement: .navigationBarLeading) {
-                Button("返回") { 
-                    dismiss() 
-                }
-            }
             ToolbarItem(placement: .navigationBarTrailing) {
                 if !isSelectionMode {
                     Button("选择") {
@@ -157,9 +152,8 @@ struct CustomerGroupedReturnView: View {
                 
                 if !searchText.isEmpty {
                     Button(action: {
-                        withHapticFeedback(.light) {
-                            searchText = ""
-                        }
+                        LopanHapticEngine.shared.light()
+                        searchText = ""
                     }) {
                         Image(systemName: "xmark.circle.fill")
                             .foregroundColor(.secondary)
@@ -181,8 +175,8 @@ struct CustomerGroupedReturnView: View {
         .padding(16)
         .background(
             RoundedRectangle(cornerRadius: 16)
-                .fill(Color(.systemBackground))
-                .shadow(color: .black.opacity(0.05), radius: 4, x: 0, y: 1)
+                .fill(LopanColors.background)
+                .shadow(color: LopanColors.textPrimary.opacity(0.05), radius: 4, x: 0, y: 1)
         )
     }
     
@@ -190,10 +184,9 @@ struct CustomerGroupedReturnView: View {
         VStack(spacing: 12) {
             HStack {
                 Button("取消") {
-                    withHapticFeedback(.light) {
-                        isSelectionMode = false
-                        selectedCustomerGroups.removeAll()
-                    }
+                    LopanHapticEngine.shared.light()
+                    isSelectionMode = false
+                    selectedCustomerGroups.removeAll()
                 }
                 .foregroundColor(LopanColors.error)
                 
@@ -206,9 +199,8 @@ struct CustomerGroupedReturnView: View {
                 Spacer()
                 
                 Button("处理") {
-                    withHapticFeedback(.medium) {
-                        showingBatchProcessing = true
-                    }
+                    LopanHapticEngine.shared.medium()
+                    showingBatchProcessing = true
                 }
                 .foregroundColor(selectedCustomerGroups.isEmpty ? LopanColors.textSecondary : LopanColors.primary)
                 .disabled(selectedCustomerGroups.isEmpty)
@@ -291,8 +283,8 @@ struct CustomerGroupedReturnView: View {
         }
         .background(
             RoundedRectangle(cornerRadius: 16)
-                .fill(Color(.systemBackground))
-                .shadow(color: .black.opacity(0.05), radius: 4, x: 0, y: 1)
+                .fill(LopanColors.background)
+                .shadow(color: LopanColors.textPrimary.opacity(0.05), radius: 4, x: 0, y: 1)
         )
         .padding(.horizontal, 2)
     }
@@ -341,12 +333,11 @@ struct CustomerGroupedReturnView: View {
     }
     
     private func toggleSelection(for group: CustomerReturnGroup, isSelected: Bool) {
-        withHapticFeedback(.light) {
-            if isSelected {
-                selectedCustomerGroups.insert(group.customer.id)
-            } else {
-                selectedCustomerGroups.remove(group.customer.id)
-            }
+        LopanHapticEngine.shared.light()
+        if isSelected {
+            selectedCustomerGroups.insert(group.customer.id)
+        } else {
+            selectedCustomerGroups.remove(group.customer.id)
         }
     }
     
@@ -494,7 +485,7 @@ struct EnhancedCustomerGroupRowView: View {
         .padding(16)
         .background(
             RoundedRectangle(cornerRadius: 12)
-                .fill(isSelected ? LopanColors.primary.opacity(0.05) : Color(.systemBackground))
+                .fill(isSelected ? LopanColors.primary.opacity(0.05) : LopanColors.background)
         )
         .overlay(
             RoundedRectangle(cornerRadius: 12)

@@ -163,7 +163,7 @@ struct SystemConfigurationView: View {
                     if configurationService.pendingChangeRequests.count > 0 {
                         Text("\(configurationService.pendingChangeRequests.count) 个待审核请求")
                             .font(.caption2)
-                            .foregroundColor(.orange)
+                            .foregroundColor(LopanColors.warning)
                     }
                 }
             }
@@ -174,7 +174,7 @@ struct SystemConfigurationView: View {
         .padding()
         .background(
             RoundedRectangle(cornerRadius: 12)
-                .fill(Color(.secondarySystemBackground))
+                .fill(LopanColors.backgroundSecondary)
         )
         .padding(.horizontal)
     }
@@ -250,7 +250,7 @@ struct ConfigurationCategoryView: View {
             HStack {
                 Image(systemName: category.icon)
                     .font(.title2)
-                    .foregroundColor(.blue)
+                    .foregroundColor(LopanColors.primary)
                 
                 VStack(alignment: .leading, spacing: 2) {
                     Text(category.displayName)
@@ -272,7 +272,7 @@ struct ConfigurationCategoryView: View {
             }
         }
         .padding()
-        .background(Color(.tertiarySystemBackground))
+        .background(LopanColors.backgroundTertiary)
         .sheet(isPresented: $showingAdvancedOptions) {
             AdvancedCategoryOptionsView(
                 category: category,
@@ -295,7 +295,7 @@ struct ConfigurationCategoryView: View {
         .padding(.vertical, 8)
         .background(
             RoundedRectangle(cornerRadius: 8)
-                .fill(Color(.systemGray6))
+                .fill(LopanColors.backgroundTertiary)
         )
         .padding(.horizontal)
     }
@@ -356,7 +356,7 @@ struct ConfigurationItemView: View {
                         
                         if definition.isRequired {
                             Text("*")
-                                .foregroundColor(.red)
+                                .foregroundColor(LopanColors.error)
                                 .font(.caption)
                         }
                         
@@ -366,14 +366,14 @@ struct ConfigurationItemView: View {
                                 .padding(.horizontal, 6)
                                 .padding(.vertical, 2)
                                 .background(LopanColors.warning.opacity(0.2))
-                                .foregroundColor(.orange)
+                                .foregroundColor(LopanColors.warning)
                                 .cornerRadius(4)
                         }
                         
                         if definition.isSensitive {
                             Image(systemName: "lock.fill")
                                 .font(.caption)
-                                .foregroundColor(.orange)
+                                .foregroundColor(LopanColors.warning)
                         }
                         
                         Spacer()
@@ -401,7 +401,7 @@ struct ConfigurationItemView: View {
                             .padding(.horizontal, 4)
                             .padding(.vertical, 1)
                             .background(LopanColors.primary.opacity(0.1))
-                            .foregroundColor(.blue)
+                            .foregroundColor(LopanColors.primary)
                             .cornerRadius(3)
                     }
                 }
@@ -430,7 +430,7 @@ struct ConfigurationItemView: View {
         .padding()
         .background(
             RoundedRectangle(cornerRadius: 12)
-                .fill(Color(.systemBackground))
+                .fill(LopanColors.background)
                 .shadow(radius: 1)
         )
         .onTapGesture {
@@ -575,7 +575,7 @@ struct ConfigurationEditSheet: View {
                                     .padding(.horizontal, 6)
                                     .padding(.vertical, 2)
                                     .background(LopanColors.warning.opacity(0.2))
-                                    .foregroundColor(.orange)
+                                    .foregroundColor(LopanColors.warning)
                                     .cornerRadius(4)
                             }
                         }
@@ -607,7 +607,7 @@ struct ConfigurationEditSheet: View {
                             let rule = definition.validationRules[index]
                             HStack {
                                 Image(systemName: "checkmark.circle")
-                                    .foregroundColor(.green)
+                                    .foregroundColor(LopanColors.success)
                                     .font(.caption)
                                 
                                 Text(rule.errorMessage)
@@ -824,7 +824,7 @@ struct ConfigurationDetailsSheet: View {
                                         .padding(.horizontal, 8)
                                         .padding(.vertical, 4)
                                         .background(LopanColors.primary.opacity(0.1))
-                                        .foregroundColor(.blue)
+                                        .foregroundColor(LopanColors.primary)
                                         .cornerRadius(6)
                                 }
                             }
@@ -854,7 +854,7 @@ struct ConfigurationDetailsSheet: View {
                     Button("重置为默认值") {
                         showingResetConfirmation = true
                     }
-                    .foregroundColor(.orange)
+                    .foregroundColor(LopanColors.warning)
                     .disabled(definition.isReadOnly)
                 }
             }
@@ -899,28 +899,28 @@ struct ConfigurationOverviewWidget: View {
                 title: "总配置项",
                 value: "\(configurationService.configurationDefinitions.count)",
                 icon: "gear",
-                color: .blue
+                color: LopanColors.primary
             )
             
             OverviewItem(
                 title: "待审核",
                 value: "\(configurationService.pendingChangeRequests.count)",
                 icon: "clock",
-                color: .orange
+                color: LopanColors.warning
             )
             
             OverviewItem(
                 title: "已修改",
                 value: "\(configurationService.currentSettings.count)",
                 icon: "pencil",
-                color: .green
+                color: LopanColors.success
             )
             
             OverviewItem(
                 title: "分类",
                 value: "\(ConfigurationCategory.allCases.count)",
                 icon: "folder",
-                color: .purple
+                color: LopanColors.primary
             )
         }
     }
@@ -964,7 +964,7 @@ struct PropertyRow: View {
             Text(title)
             Spacer()
             Image(systemName: isEnabled ? "checkmark.circle.fill" : "xmark.circle")
-                .foregroundColor(isEnabled ? .green : .gray)
+                .foregroundColor(isEnabled ? LopanColors.success : LopanColors.textSecondary)
         }
     }
 }
@@ -990,7 +990,7 @@ struct AdvancedCategoryOptionsView: View {
                     Button("批量重置") {
                         bulkReset()
                     }
-                    .foregroundColor(.orange)
+                    .foregroundColor(LopanColors.warning)
                     
                     Button("导出分类配置") {
                         showingExport = true
@@ -1067,7 +1067,7 @@ struct SecuritySettingsView: View {
                             } else {
                                 Text("从未扫描")
                                     .font(.body)
-                                    .foregroundColor(.orange)
+                                    .foregroundColor(LopanColors.warning)
                             }
                         }
                         
@@ -1129,7 +1129,7 @@ struct ConfigurationChangeRequestsView: View {
                     VStack {
                         Image(systemName: "checkmark.circle")
                             .font(.system(size: 48))
-                            .foregroundColor(.green)
+                            .foregroundColor(LopanColors.success)
                         
                         Text("暂无待审核请求")
                             .font(.title3)
@@ -1291,7 +1291,7 @@ struct HistoryRecordRow: View {
                 
                 Text(record.oldValue.displayValue)
                     .font(.caption)
-                    .foregroundColor(.red)
+                    .foregroundColor(LopanColors.error)
                 
                 Text("→")
                     .font(.caption)
@@ -1299,7 +1299,7 @@ struct HistoryRecordRow: View {
                 
                 Text(record.newValue.displayValue)
                     .font(.caption)
-                    .foregroundColor(.green)
+                    .foregroundColor(LopanColors.success)
             }
             
             if !record.reason.isEmpty {
@@ -1351,7 +1351,7 @@ struct ChangeRequestDetailsView: View {
                             Text(request.proposedValue.displayValue)
                                 .font(.body)
                                 .fontWeight(.medium)
-                                .foregroundColor(.blue)
+                                .foregroundColor(LopanColors.primary)
                         }
                     }
                 }
@@ -1384,7 +1384,7 @@ struct ChangeRequestDetailsView: View {
                                 rejectRequest()
                             }
                             .buttonStyle(.bordered)
-                            .foregroundColor(.red)
+                            .foregroundColor(LopanColors.error)
                             .disabled(isProcessing || reviewNotes.isEmpty)
                         }
                     }
@@ -1440,12 +1440,12 @@ struct EncryptionSetupView: View {
                 Section("加密设置") {
                     if securityService.encryptionStatus.isEnabled {
                         Text("配置加密当前已启用")
-                            .foregroundColor(.green)
+                            .foregroundColor(LopanColors.success)
                         
                         Button("禁用加密") {
                             disableEncryption()
                         }
-                        .foregroundColor(.red)
+                        .foregroundColor(LopanColors.error)
                         .disabled(isProcessing)
                     } else {
                         SecureField("主密码", text: $masterPassword)
@@ -1549,7 +1549,7 @@ struct SecurityScanView: View {
                     VStack(spacing: 20) {
                         Image(systemName: "shield.checkered")
                             .font(.system(size: 64))
-                            .foregroundColor(.blue)
+                            .foregroundColor(LopanColors.primary)
                         
                         Text("配置安全扫描")
                             .font(.title2)
@@ -1644,7 +1644,7 @@ struct SecurityScanResultView: View {
             Section("发现的问题 (\(result.findings.count))") {
                 if result.findings.isEmpty {
                     Text("未发现安全问题")
-                        .foregroundColor(.green)
+                        .foregroundColor(LopanColors.success)
                         .italic()
                 } else {
                     ForEach(result.findings) { finding in
@@ -1657,7 +1657,7 @@ struct SecurityScanResultView: View {
                 ForEach(result.recommendations, id: \.self) { recommendation in
                     HStack {
                         Image(systemName: "lightbulb")
-                            .foregroundColor(.yellow)
+                            .foregroundColor(LopanColors.warning)
                             .font(.caption)
                         
                         Text(recommendation)
@@ -1690,7 +1690,7 @@ struct SecurityFindingRow: View {
                 if let config = finding.affectedConfiguration {
                     Text("影响配置: \(config)")
                         .font(.caption2)
-                        .foregroundColor(.blue)
+                        .foregroundColor(LopanColors.primary)
                 }
             }
             

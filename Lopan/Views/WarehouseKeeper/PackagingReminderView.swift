@@ -105,7 +105,7 @@ struct PackagingReminderView: View {
                         ReminderStatCard(
                             title: "已过期",
                             count: reminderStats.overdue,
-                            color: .red,
+                            color: LopanColors.error,
                             icon: "exclamationmark.triangle.fill"
                         ) {
                             selectedFilter = .overdue
@@ -114,7 +114,7 @@ struct PackagingReminderView: View {
                         ReminderStatCard(
                             title: "今日到期",
                             count: reminderStats.dueToday,
-                            color: .orange,
+                            color: LopanColors.warning,
                             icon: "calendar.badge.clock"
                         ) {
                             selectedFilter = .dueToday
@@ -123,7 +123,7 @@ struct PackagingReminderView: View {
                         ReminderStatCard(
                             title: "明日到期",
                             count: reminderStats.dueTomorrow,
-                            color: .blue,
+                            color: LopanColors.primary,
                             icon: "calendar"
                         ) {
                             selectedFilter = .dueTomorrow
@@ -132,7 +132,7 @@ struct PackagingReminderView: View {
                         ReminderStatCard(
                             title: "需要提醒",
                             count: reminderStats.needsReminder,
-                            color: .purple,
+                            color: LopanColors.premium,
                             icon: "bell.fill"
                         ) {
                             selectedFilter = .needsReminder
@@ -141,7 +141,7 @@ struct PackagingReminderView: View {
                     .padding(.horizontal)
                 }
                 .padding(.vertical)
-                .background(Color(.systemGroupedBackground))
+                .background(LopanColors.backgroundSecondary)
                 
                 // Filter picker
                 Picker("筛选", selection: $selectedFilter) {
@@ -158,7 +158,7 @@ struct PackagingReminderView: View {
                     VStack(spacing: 16) {
                         Image(systemName: getEmptyStateIcon())
                             .font(.system(size: 50))
-                            .foregroundColor(.gray)
+                            .foregroundColor(LopanColors.secondary)
                         Text(getEmptyStateMessage())
                             .font(.headline)
                             .foregroundColor(.secondary)
@@ -272,7 +272,7 @@ struct ReminderStatCard: View {
             }
             .padding()
             .frame(width: 100)
-            .background(Color(.systemBackground))
+            .background(LopanColors.background)
             .cornerRadius(12)
         }
         .buttonStyle(PlainButtonStyle())
@@ -317,17 +317,17 @@ struct PackagingReminderRow: View {
                     if let dueDate = record.dueDate {
                         Label(formatDueDate(dueDate), systemImage: "calendar")
                             .font(.caption)
-                            .foregroundColor(record.isOverdue ? .red : .secondary)
+                            .foregroundColor(record.isOverdue ? LopanColors.error : .secondary)
                     }
                 }
                 
                 if record.isOverdue {
                     HStack {
                         Image(systemName: "exclamationmark.triangle.fill")
-                            .foregroundColor(.red)
+                            .foregroundColor(LopanColors.error)
                         Text("已过期")
                             .font(.caption)
-                            .foregroundColor(.red)
+                            .foregroundColor(LopanColors.error)
                     }
                 }
             }
@@ -336,7 +336,7 @@ struct PackagingReminderRow: View {
                if record.needsReminder {
                    Button(action: onSendReminder) {
                        Image(systemName: "bell.fill")
-                           .foregroundColor(.white)
+                           .foregroundColor(LopanColors.textPrimary)
                            .frame(width: 32, height: 32)
                             .background(LopanColors.premium)
                             .cornerRadius(8)

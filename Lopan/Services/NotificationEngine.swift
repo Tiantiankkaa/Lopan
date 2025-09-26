@@ -32,11 +32,11 @@ enum NotificationPriority: String, CaseIterable, Codable {
     
     var color: Color {
         switch self {
-        case .low: return .gray
-        case .medium: return .blue
-        case .high: return .orange
-        case .urgent: return .red
-        case .critical: return .purple
+        case .low: return LopanColors.textSecondary
+        case .medium: return LopanColors.primary
+        case .high: return LopanColors.warning
+        case .urgent: return LopanColors.error
+        case .critical: return LopanColors.primary
         }
     }
     

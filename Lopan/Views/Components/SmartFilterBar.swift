@@ -95,7 +95,7 @@ struct SmartFilterBar: View {
             }
             .background(filterBarBackground)
             .clipShape(RoundedRectangle(cornerRadius: 16))
-            .shadow(color: .black.opacity(0.08), radius: 8, x: 0, y: 4)
+            .shadow(color: LopanColors.textPrimary.opacity(0.08), radius: 8, x: 0, y: 4)
             .scaleEffect(filterBarScale)
             .animation(.spring(response: 0.4, dampingFraction: 0.8), value: isFilterBarVisible)
             .animation(.easeInOut(duration: 0.3), value: activeFilters)
@@ -291,8 +291,8 @@ struct SmartFilterBar: View {
             .fill(
                 LinearGradient(
                     colors: [
-                        Color(.systemBackground),
-                        Color(.systemBackground).opacity(0.95)
+                        LopanColors.background,
+                        LopanColors.background.opacity(0.95)
                     ],
                     startPoint: .topLeading,
                     endPoint: .bottomTrailing
@@ -497,7 +497,7 @@ struct FilterCategoryButton: View {
                     Text("\(activeFiltersCount)")
                         .font(.caption2)
                         .fontWeight(.bold)
-                        .foregroundColor(.white)
+                        .foregroundColor(LopanColors.textPrimary)
                         .padding(.horizontal, 6)
                         .padding(.vertical, 2)
                         .background(LopanColors.primary)
@@ -505,12 +505,12 @@ struct FilterCategoryButton: View {
                         .transition(.scale.combined(with: .opacity))
                 }
             }
-            .foregroundColor(isSelected ? .white : LopanColors.textPrimary)
+            .foregroundColor(isSelected ? LopanColors.textOnPrimary : LopanColors.textPrimary)
             .padding(.horizontal, 12)
             .padding(.vertical, 8)
             .background(
                 Capsule()
-                    .fill(isSelected ? LopanColors.primary : Color(.systemGray5))
+                    .fill(isSelected ? LopanColors.primary : LopanColors.backgroundTertiary)
             )
             .scaleEffect(isPressed ? 0.95 : 1.0)
             .animation(.spring(response: 0.3, dampingFraction: 0.7), value: isPressed)
@@ -559,7 +559,7 @@ struct ActiveFilterPill: View {
             }
             .buttonStyle(PlainButtonStyle())
         }
-        .foregroundColor(.white)
+        .foregroundColor(LopanColors.textPrimary)
         .padding(.horizontal, 10)
         .padding(.vertical, 6)
         .background(
@@ -721,7 +721,7 @@ struct SavedFiltersView: View {
                 }
                 .frame(maxWidth: .infinity)
                 .padding(.vertical, 40)
-                .listRowBackground(Color.clear)
+                .listRowBackground(LopanColors.clear)
             } else {
                 ForEach(savedFilters, id: \.id) { filter in
                     SavedFilterRow(

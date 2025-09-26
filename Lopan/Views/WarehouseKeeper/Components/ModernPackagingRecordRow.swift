@@ -161,7 +161,7 @@ struct ModernPackagingRecordRow: View {
                 .fill(
                     LinearGradient(
                         colors: [
-                            Color.clear,
+                            LopanColors.clear,
                             LopanColors.roleWarehouseKeeper.opacity(0.02)
                         ],
                         startPoint: .topLeading,

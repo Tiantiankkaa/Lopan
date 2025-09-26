@@ -143,7 +143,7 @@ struct BatchProcessingView: View {
     private var scrollableContent: some View {
         ScrollView {
             GeometryReader { geometry in
-                Color.clear.preference(key: BatchScrollOffsetPreferenceKey.self, value: geometry.frame(in: .named("scroll")).minY)
+                LopanColors.clear.preference(key: BatchScrollOffsetPreferenceKey.self, value: geometry.frame(in: .named("scroll")).minY)
             }
             .frame(height: 0)
             
@@ -613,7 +613,7 @@ struct BatchProcessingView: View {
             )
             .overlay(
                 RoundedRectangle(cornerRadius: LopanCornerRadius.card, style: .continuous)
-                    .stroke(hasSelectedMachines ? Color.clear : LopanColors.info, lineWidth: hasSelectedMachines ? 0 : 1)
+                    .stroke(hasSelectedMachines ? LopanColors.clear : LopanColors.info, lineWidth: hasSelectedMachines ? 0 : 1)
             )
         }
         .disabled(!hasSelectedMachines)
@@ -694,7 +694,7 @@ struct BatchProcessingView: View {
         NavigationStack {
             List(currentBatches, id: \.id) { batch in
                 batchPreviewCard(batch: batch)
-                    .listRowBackground(Color.clear)
+                    .listRowBackground(LopanColors.clear)
                     .listRowSeparator(.hidden)
             }
             .listStyle(.plain)

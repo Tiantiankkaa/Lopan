@@ -179,9 +179,9 @@ struct LopanSearchBar: View {
                 }
             }
         }
-        .background(Color.white)
+        .background(LopanColors.backgroundSecondary)
         .cornerRadius(12)
-        .shadow(color: Color.black.opacity(0.1), radius: 4, x: 0, y: 2)
+        .shadow(color: LopanColors.shadow.opacity(2), radius: 4, x: 0, y: 2)
         .padding(.horizontal, searchBarPadding)
         .padding(.top, 4)
         .transition(.move(edge: .top).combined(with: .opacity))
@@ -264,11 +264,11 @@ struct LopanSearchBar: View {
         Group {
             switch style {
             case .standard:
-                Color(.systemGray6)
+                LopanColors.backgroundTertiary
             case .prominent:
-                Color.white
+                LopanColors.backgroundSecondary
             case .compact:
-                Color(.systemGray6)
+                LopanColors.backgroundTertiary
             }
         }
     }
@@ -284,11 +284,11 @@ struct LopanSearchBar: View {
     private var shadowColor: Color {
         switch style {
         case .standard:
-            return Color.black.opacity(0.05)
+            return LopanColors.shadow
         case .prominent:
-            return isFocused ? LopanColors.primary.opacity(0.15) : Color.black.opacity(0.08)
+            return isFocused ? LopanColors.primary.opacity(0.15) : LopanColors.shadow.opacity(1.6)
         case .compact:
-            return Color.clear
+            return LopanColors.clear
         }
     }
     
@@ -311,7 +311,7 @@ struct LopanSearchBar: View {
     // MARK: - Actions
     
     private func clearSearch() {
-        HapticFeedback.light()
+        LopanHapticEngine.shared.light()
         
         withAnimation(.easeInOut(duration: 0.2)) {
             searchText = ""
@@ -330,7 +330,7 @@ struct LopanSearchBar: View {
     }
     
     private func selectSuggestion(_ suggestion: String) {
-        HapticFeedback.light()
+        LopanHapticEngine.shared.light()
         
         withAnimation(.easeInOut(duration: 0.2)) {
             searchText = suggestion
@@ -370,8 +370,7 @@ struct LopanSearchBar: View {
             return
         }
         
-        let impactFeedback = UIImpactFeedbackGenerator(style: .medium)
-        impactFeedback.impactOccurred()
+        LopanHapticEngine.shared.medium()
         
         isVoiceSearching = true
         
@@ -460,54 +459,317 @@ struct LopanSearchBar: View {
     }
 }
 
-#Preview {
+// MARK: - Dynamic Type Previews
+
+#Preview("Default Size") {
     @Previewable @State var searchText = ""
-    
-    let sampleSuggestions = ["iPhone 15 Pro", "iPhone 15", "Samsung Galaxy S24", "华为 Mate 60", "小米 14 Pro"]
-    
-    return VStack(spacing: 24) {
-        VStack(alignment: .leading, spacing: 8) {
-            Text("Prominent Style with Voice Search")
+
+    let sampleSuggestions = ["生产订单", "客户管理", "产品验收", "质量检查", "库存管理"]
+
+    return ScrollView {
+        VStack(spacing: 24) {
+            Text("Search Bar Variants")
                 .font(.headline)
-                .foregroundColor(.primary)
-            
-            LopanSearchBar(
-                searchText: $searchText,
-                placeholder: "搜索产品名称、颜色或尺寸...",
-                suggestions: sampleSuggestions,
-                style: .prominent,
-                showVoiceSearch: true
-            )
+                .padding(.bottom)
+
+            VStack(alignment: .leading, spacing: 8) {
+                Text("Prominent Style with Voice Search")
+                    .font(.subheadline)
+                    .foregroundColor(.secondary)
+
+                LopanSearchBar(
+                    searchText: $searchText,
+                    placeholder: "搜索产品名称、客户信息...",
+                    suggestions: sampleSuggestions,
+                    style: .prominent,
+                    showVoiceSearch: true
+                )
+            }
+
+            VStack(alignment: .leading, spacing: 8) {
+                Text("Standard Style with Suggestions")
+                    .font(.subheadline)
+                    .foregroundColor(.secondary)
+
+                LopanSearchBar(
+                    searchText: .constant(""),
+                    placeholder: "标准搜索样式",
+                    suggestions: sampleSuggestions,
+                    style: .standard
+                )
+            }
+
+            VStack(alignment: .leading, spacing: 8) {
+                Text("Compact Style")
+                    .font(.subheadline)
+                    .foregroundColor(.secondary)
+
+                LopanSearchBar(
+                    searchText: .constant(""),
+                    placeholder: "紧凑搜索样式",
+                    suggestions: [],
+                    style: .compact
+                )
+            }
         }
-        
-        VStack(alignment: .leading, spacing: 8) {
-            Text("Standard Style")
-                .font(.headline)
-                .foregroundColor(.primary)
-            
-            LopanSearchBar(
-                searchText: .constant(""),
-                placeholder: "标准搜索样式",
-                suggestions: sampleSuggestions,
-                style: .standard
-            )
-        }
-        
-        VStack(alignment: .leading, spacing: 8) {
-            Text("Compact Style")
-                .font(.headline)
-                .foregroundColor(.primary)
-            
-            LopanSearchBar(
-                searchText: .constant(""),
-                placeholder: "紧凑搜索样式",
-                suggestions: [],
-                style: .compact
-            )
-        }
-        
-        Spacer()
+        .padding()
     }
-    .padding()
-    .background(Color(.systemGray6))
+    .environment(\.dynamicTypeSize, .large)
+}
+
+#Preview("Extra Large") {
+    @Previewable @State var searchText = "生产"
+
+    let sampleSuggestions = [
+        "Production Manufacturing Orders for Quality Control",
+        "Customer Information Database Management",
+        "Product Quality Inspection and Validation",
+        "Manufacturing Process Quality Assurance",
+        "Inventory Stock Management System"
+    ]
+
+    return ScrollView {
+        VStack(spacing: 28) {
+            Text("Search Bar Preview at Extra Large Size")
+                .font(.title2)
+                .padding(.bottom)
+
+            VStack(alignment: .leading, spacing: 12) {
+                Text("Prominent Style for Manufacturing Search")
+                    .font(.headline)
+                    .foregroundColor(.primary)
+
+                LopanSearchBar(
+                    searchText: $searchText,
+                    placeholder: "Search manufacturing orders, customer information, and quality reports...",
+                    suggestions: sampleSuggestions,
+                    style: .prominent,
+                    showVoiceSearch: true
+                )
+            }
+
+            VStack(alignment: .leading, spacing: 12) {
+                Text("Standard Style for Production Database")
+                    .font(.headline)
+                    .foregroundColor(.primary)
+
+                LopanSearchBar(
+                    searchText: .constant(""),
+                    placeholder: "Search production database for orders and specifications",
+                    suggestions: sampleSuggestions,
+                    style: .standard
+                )
+            }
+        }
+        .padding()
+    }
+    .environment(\.dynamicTypeSize, .xLarge)
+}
+
+#Preview("Accessibility 3") {
+    @Previewable @State var searchText = "质量检查"
+
+    let sampleSuggestions = [
+        "Quality Control Dashboard for Manufacturing Excellence",
+        "Production Order Management System with Batch Tracking",
+        "Customer Information Database for Manufacturing Orders",
+        "Product Quality Inspection Reports and Validation Systems",
+        "Manufacturing Process Monitoring and Control Interface"
+    ]
+
+    return ScrollView {
+        VStack(spacing: 32) {
+            Text("Search Bar Preview at AX3 Size")
+                .font(.title2)
+                .padding(.bottom)
+
+            VStack(alignment: .leading, spacing: 16) {
+                Text("Prominent Manufacturing Search with Voice Input Support")
+                    .font(.headline)
+                    .foregroundColor(.primary)
+                    .fixedSize(horizontal: false, vertical: true)
+
+                LopanSearchBar(
+                    searchText: $searchText,
+                    placeholder: "Search comprehensive manufacturing database including customer orders, product specifications, and quality control reports...",
+                    suggestions: sampleSuggestions,
+                    style: .prominent,
+                    showVoiceSearch: true
+                )
+            }
+
+            VStack(alignment: .leading, spacing: 16) {
+                Text("Standard Production Database Search Interface")
+                    .font(.headline)
+                    .foregroundColor(.primary)
+                    .fixedSize(horizontal: false, vertical: true)
+
+                LopanSearchBar(
+                    searchText: .constant(""),
+                    placeholder: "Standard search interface for production database with intelligent suggestions",
+                    suggestions: sampleSuggestions,
+                    style: .standard
+                )
+            }
+        }
+        .padding()
+    }
+    .environment(\.dynamicTypeSize, .accessibility3)
+}
+
+#Preview("Accessibility 5 (Maximum)") {
+    @Previewable @State var searchText = ""
+
+    let sampleSuggestions = [
+        "Search Database",
+        "Customer Orders",
+        "Quality Reports",
+        "Production Data"
+    ]
+
+    return ScrollView {
+        VStack(spacing: 36) {
+            Text("Maximum Accessibility Size")
+                .font(.largeTitle)
+                .padding(.bottom)
+
+            VStack(alignment: .leading, spacing: 20) {
+                Text("Search System")
+                    .font(.title)
+                    .fontWeight(.semibold)
+
+                LopanSearchBar(
+                    searchText: $searchText,
+                    placeholder: "Search everything...",
+                    suggestions: sampleSuggestions,
+                    style: .prominent,
+                    showVoiceSearch: true
+                )
+            }
+
+            VStack(alignment: .leading, spacing: 20) {
+                Text("Simple Search")
+                    .font(.title)
+                    .fontWeight(.semibold)
+
+                LopanSearchBar(
+                    searchText: .constant(""),
+                    placeholder: "Find items...",
+                    suggestions: [],
+                    style: .compact
+                )
+            }
+        }
+        .padding()
+    }
+    .environment(\.dynamicTypeSize, .accessibility5)
+}
+
+#Preview("Dark Mode - AX3") {
+    @Previewable @State var searchText = "夜班生产"
+
+    let sampleSuggestions = [
+        "Night Shift Production Orders and Quality Control Systems",
+        "After-Hours Manufacturing Process Management Dashboard",
+        "Night Operations Customer Service and Order Processing",
+        "Dark Mode Quality Inspection and Validation Interface",
+        "Night Shift Manufacturing Equipment Monitoring System"
+    ]
+
+    return ScrollView {
+        VStack(spacing: 32) {
+            Text("Dark Mode Search Bar Preview")
+                .font(.title2)
+                .padding(.bottom)
+
+            VStack(alignment: .leading, spacing: 16) {
+                Text("Night Shift Manufacturing Search with Voice Input")
+                    .font(.headline)
+                    .foregroundColor(.primary)
+                    .fixedSize(horizontal: false, vertical: true)
+
+                LopanSearchBar(
+                    searchText: $searchText,
+                    placeholder: "Search night shift production data, after-hours quality reports, and manufacturing status...",
+                    suggestions: sampleSuggestions,
+                    style: .prominent,
+                    showVoiceSearch: true
+                )
+            }
+
+            VStack(alignment: .leading, spacing: 16) {
+                Text("Standard Dark Mode Production Search")
+                    .font(.headline)
+                    .foregroundColor(.primary)
+                    .fixedSize(horizontal: false, vertical: true)
+
+                LopanSearchBar(
+                    searchText: .constant(""),
+                    placeholder: "Search dark mode production interface with intelligent filtering",
+                    suggestions: sampleSuggestions,
+                    style: .standard
+                )
+            }
+        }
+        .padding()
+    }
+    .preferredColorScheme(.dark)
+    .environment(\.dynamicTypeSize, .accessibility3)
+}
+
+#Preview("Interactive States") {
+    @Previewable @State var searchText1 = ""
+    @Previewable @State var searchText2 = "生产订单"
+
+    let sampleSuggestions = ["生产订单", "客户管理", "质量检查", "库存管理"]
+
+    return ScrollView {
+        VStack(spacing: 24) {
+            Text("Search Bar Interactive States")
+                .font(.headline)
+                .padding(.bottom)
+
+            VStack(alignment: .leading, spacing: 12) {
+                Text("Empty State with Voice Search")
+                    .font(.subheadline)
+                    .foregroundColor(.secondary)
+
+                LopanSearchBar(
+                    searchText: $searchText1,
+                    placeholder: "搭载语音搜索的空状态",
+                    suggestions: sampleSuggestions,
+                    style: .prominent,
+                    showVoiceSearch: true
+                )
+            }
+
+            VStack(alignment: .leading, spacing: 12) {
+                Text("Filled State with Clear Button")
+                    .font(.subheadline)
+                    .foregroundColor(.secondary)
+
+                LopanSearchBar(
+                    searchText: $searchText2,
+                    placeholder: "搜索...",
+                    suggestions: sampleSuggestions,
+                    style: .standard
+                )
+            }
+
+            VStack(alignment: .leading, spacing: 12) {
+                Text("Compact Style - No Suggestions")
+                    .font(.subheadline)
+                    .foregroundColor(.secondary)
+
+                LopanSearchBar(
+                    searchText: .constant("紧凑搜索"),
+                    placeholder: "紧凑模式",
+                    suggestions: [],
+                    style: .compact
+                )
+            }
+        }
+        .padding()
+    }
+    .environment(\.dynamicTypeSize, .xLarge)
 }

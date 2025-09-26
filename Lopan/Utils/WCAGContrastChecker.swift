@@ -155,19 +155,19 @@ extension WCAGContrastChecker {
         var variants: [String: Color] = [:]
 
         // High contrast text colors
-        variants["textPrimaryHighContrast"] = Color.black
-        variants["textSecondaryHighContrast"] = Color.black.opacity(0.8)
-        variants["textTertiaryHighContrast"] = Color.black.opacity(0.6)
+        variants["textPrimaryHighContrast"] = LopanColors.textPrimary
+        variants["textSecondaryHighContrast"] = LopanColors.textPrimary.opacity(0.8)
+        variants["textTertiaryHighContrast"] = LopanColors.textPrimary.opacity(0.6)
 
         // High contrast background colors
-        variants["backgroundHighContrast"] = Color.white
-        variants["surfaceHighContrast"] = Color.white
+        variants["backgroundHighContrast"] = LopanColors.backgroundPrimary
+        variants["surfaceHighContrast"] = LopanColors.backgroundPrimary
 
         // High contrast semantic colors
-        variants["successHighContrast"] = Color.green.opacity(0.9)
-        variants["warningHighContrast"] = Color.orange.opacity(0.9)
-        variants["errorHighContrast"] = Color.red.opacity(0.9)
-        variants["infoHighContrast"] = Color.blue.opacity(0.9)
+        variants["successHighContrast"] = LopanColors.success.opacity(0.9)
+        variants["warningHighContrast"] = LopanColors.warning.opacity(0.9)
+        variants["errorHighContrast"] = LopanColors.error.opacity(0.9)
+        variants["infoHighContrast"] = LopanColors.info.opacity(0.9)
 
         return variants
     }

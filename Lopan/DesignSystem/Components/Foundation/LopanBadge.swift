@@ -62,6 +62,103 @@ struct LopanBadge: View {
     }
 }
 
+// MARK: - Dynamic Type Previews
+
+#Preview("Default Size") {
+    VStack(spacing: 16) {
+        HStack {
+            LopanBadge("Pending", style: .warning)
+            LopanBadge("Completed", style: .success)
+            LopanBadge("Error", style: .error)
+        }
+
+        HStack {
+            LopanBadge("Small Badge", style: .primary, size: .small)
+            LopanBadge("Medium Badge", style: .secondary, size: .medium)
+            LopanBadge("Large Badge", style: .neutral, size: .large)
+        }
+
+        HStack {
+            LopanBadge.count(5, style: .primary)
+            LopanBadge.count(25, style: .warning)
+            LopanBadge.count(150, style: .error)
+        }
+    }
+    .padding()
+    .environment(\.dynamicTypeSize, .large)
+}
+
+#Preview("Extra Large") {
+    VStack(spacing: 16) {
+        HStack {
+            LopanBadge("Pending Request", style: .warning)
+            LopanBadge("Completed Successfully", style: .success)
+        }
+
+        HStack {
+            LopanBadge("High Priority Manufacturing Order", style: .error, size: .large)
+        }
+
+        HStack {
+            LopanBadge.count(99, style: .primary, size: .medium)
+        }
+    }
+    .padding()
+    .environment(\.dynamicTypeSize, .xLarge)
+}
+
+#Preview("Accessibility 3") {
+    VStack(spacing: 20) {
+        Text("Badge Preview at AX3 Size")
+            .font(.title2)
+            .padding(.bottom)
+
+        LopanBadge("Production Status: Pending Review", style: .warning, size: .large)
+        LopanBadge("Quality Check: Approved", style: .success, size: .large)
+        LopanBadge("Critical Alert: Immediate Action Required", style: .error, size: .large)
+
+        Divider()
+
+        HStack {
+            LopanBadge.count(5, style: .primary, size: .large)
+            LopanBadge.count(99, style: .warning, size: .large)
+        }
+    }
+    .padding()
+    .environment(\.dynamicTypeSize, .accessibility3)
+}
+
+#Preview("Accessibility 5 (Maximum)") {
+    VStack(spacing: 24) {
+        Text("Maximum Accessibility Size")
+            .font(.largeTitle)
+            .padding(.bottom)
+
+        LopanBadge("Status Update", style: .primary, size: .large)
+        LopanBadge("Priority Alert", style: .error, size: .large)
+
+        LopanBadge.count(42, style: .success, size: .large)
+    }
+    .padding()
+    .environment(\.dynamicTypeSize, .accessibility5)
+}
+
+#Preview("Dark Mode - AX3") {
+    VStack(spacing: 20) {
+        LopanBadge("Dark Mode Badge", style: .primary, size: .large)
+        LopanBadge("Warning Badge", style: .warning, size: .large)
+        LopanBadge("Success Badge", style: .success, size: .large)
+
+        HStack {
+            LopanBadge.count(15, style: .secondary, size: .medium)
+            LopanBadge.count(99, style: .error, size: .medium)
+        }
+    }
+    .padding()
+    .preferredColorScheme(.dark)
+    .environment(\.dynamicTypeSize, .accessibility3)
+}
+
 // MARK: - Badge Styles
 extension LopanBadge {
     enum BadgeStyle {
@@ -91,7 +188,7 @@ extension LopanBadge {
             case .neutral:
                 return LopanColors.surface
             case .outline:
-                return Color.clear
+                return LopanColors.clear
             }
         }
         
@@ -111,7 +208,7 @@ extension LopanBadge {
             case .outline:
                 return LopanColors.primary
             default:
-                return Color.clear
+                return LopanColors.clear
             }
         }
         

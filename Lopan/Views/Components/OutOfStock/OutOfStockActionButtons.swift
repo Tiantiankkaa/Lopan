@@ -36,20 +36,20 @@ struct OutOfStockActionButtons: View {
             Button(action: onSelectAll) {
                 Image(systemName: "checkmark.circle")
                     .font(.title3)
-                    .foregroundColor(.blue)
+                    .foregroundColor(LopanColors.info)
             }
             
             Button(action: onDelete) {
                 Image(systemName: "trash")
                     .font(.title3)
-                    .foregroundColor(.red)
+                    .foregroundColor(LopanColors.error)
             }
             .disabled(selectedItemsCount == 0)
             
             Button(action: onExitSelection) {
                 Text("取消")
                     .font(.system(size: 16, weight: .medium))
-                    .foregroundColor(.orange)
+                    .foregroundColor(LopanColors.warning)
             }
         }
     }
@@ -60,16 +60,16 @@ struct OutOfStockActionButtons: View {
             Button(action: onShowFilter) {
                 ZStack {
                     Circle()
-                        .fill(hasActiveFilters ? Color.blue : Color(.systemGray5))
+                        .fill(hasActiveFilters ? LopanColors.primary : LopanColors.backgroundSecondary)
                         .frame(width: 36, height: 36)
                     
                     Image(systemName: "line.3.horizontal.decrease.circle")
                         .font(.system(size: 18, weight: .medium))
-                        .foregroundColor(hasActiveFilters ? .white : .primary)
+                        .foregroundColor(hasActiveFilters ? LopanColors.textOnPrimary : LopanColors.textPrimary)
                     
                     if hasActiveFilters {
                         Circle()
-                            .fill(Color.red)
+                            .fill(LopanColors.error)
                             .frame(width: 8, height: 8)
                             .offset(x: 12, y: -12)
                     }
@@ -79,12 +79,12 @@ struct OutOfStockActionButtons: View {
             // Add button
             Button(action: onAdd) {
                 Circle()
-                    .fill(Color.blue)
+                    .fill(LopanColors.primary)
                     .frame(width: 36, height: 36)
                     .overlay(
                         Image(systemName: "plus")
                             .font(.system(size: 18, weight: .bold))
-                            .foregroundColor(.white)
+                            .foregroundColor(LopanColors.textPrimary)
                     )
             }
         }

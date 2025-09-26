@@ -295,11 +295,11 @@ struct ConfigurationChangeRequest: Identifiable, Codable {
         
         var color: Color {
             switch self {
-            case .pending: return .orange
-            case .approved: return .green
-            case .rejected: return .red
-            case .implemented: return .blue
-            case .cancelled: return .gray
+            case .pending: return LopanColors.warning
+            case .approved: return LopanColors.success
+            case .rejected: return LopanColors.error
+            case .implemented: return LopanColors.primary
+            case .cancelled: return LopanColors.textSecondary
             }
         }
     }
@@ -321,10 +321,10 @@ struct ConfigurationChangeRequest: Identifiable, Codable {
         
         var color: Color {
             switch self {
-            case .low: return .green
-            case .medium: return .yellow
-            case .high: return .orange
-            case .critical: return .red
+            case .low: return LopanColors.success
+            case .medium: return LopanColors.warning
+            case .high: return LopanColors.warning
+            case .critical: return LopanColors.error
             }
         }
     }
@@ -372,10 +372,10 @@ enum ConfigurationEnvironment: String, CaseIterable, Codable {
     
     var color: Color {
         switch self {
-        case .development: return .blue
-        case .testing: return .orange
-        case .staging: return .yellow
-        case .production: return .red
+        case .development: return LopanColors.primary
+        case .testing: return LopanColors.warning
+        case .staging: return LopanColors.warning
+        case .production: return LopanColors.error
         }
     }
 }

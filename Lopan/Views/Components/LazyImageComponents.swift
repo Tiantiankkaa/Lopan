@@ -186,7 +186,7 @@ struct LazyImageView: View {
 struct LoadingPlaceholder: View {
     var body: some View {
         Rectangle()
-            .fill(Color.gray.opacity(0.3))
+            .fill(LopanColors.secondary.opacity(0.3))
             .overlay(
                 ProgressView()
                     .scaleEffect(0.8)
@@ -201,11 +201,11 @@ struct ErrorPlaceholder: View {
     
     var body: some View {
         Rectangle()
-            .fill(Color.gray.opacity(0.2))
+            .fill(LopanColors.secondary.opacity(0.2))
             .overlay(
                 Image(systemName: placeholder)
                     .font(.system(size: 24))
-                    .foregroundColor(.gray)
+                    .foregroundColor(LopanColors.secondary)
                     .accessibilityLabel("图片占位符")
             )
     }
@@ -366,7 +366,7 @@ struct MemoryOptimizedImagePicker: View {
                     )
                 } else {
                     Rectangle()
-                        .fill(Color.gray.opacity(0.3))
+                        .fill(LopanColors.secondary.opacity(0.3))
                         .frame(width: 100, height: 100)
                         .cornerRadius(8)
                         .overlay(
@@ -376,7 +376,7 @@ struct MemoryOptimizedImagePicker: View {
                                 Text("添加图片")
                                     .font(.caption)
                             }
-                            .foregroundColor(.gray)
+                            .foregroundColor(LopanColors.secondary)
                         )
                 }
             }

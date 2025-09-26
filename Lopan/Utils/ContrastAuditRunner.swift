@@ -19,7 +19,7 @@ struct ContrastAuditRunner: View {
             }
             .padding()
             .background(LopanColors.primary)
-            .foregroundColor(.white)
+            .foregroundColor(LopanColors.textOnPrimary)
             .cornerRadius(8)
 
             if let result = auditResult {

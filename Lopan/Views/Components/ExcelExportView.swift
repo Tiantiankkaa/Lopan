@@ -28,7 +28,7 @@ struct ExcelExportView: View {
                 VStack(spacing: 10) {
                     Image(systemName: "square.and.arrow.up")
                         .font(.system(size: 60))
-                        .foregroundColor(.green)
+                        .foregroundColor(LopanColors.success)
                     
                     Text("Excel 导出")
                         .font(.title)
@@ -52,7 +52,7 @@ struct ExcelExportView: View {
                             Text("\(dataType == .customers ? customers.count : products.count)")
                                 .font(.title2)
                                 .fontWeight(.bold)
-                                .foregroundColor(.blue)
+                                .foregroundColor(LopanColors.primary)
                         }
                         
                         Spacer()
@@ -64,12 +64,12 @@ struct ExcelExportView: View {
                             Text("CSV")
                                 .font(.title2)
                                 .fontWeight(.bold)
-                                .foregroundColor(.green)
+                                .foregroundColor(LopanColors.success)
                         }
                     }
                 }
                 .padding()
-                .background(Color.gray.opacity(0.1))
+                .background(LopanColors.secondary.opacity(0.1))
                 .cornerRadius(12)
                 
                 // Export Options
@@ -87,7 +87,7 @@ struct ExcelExportView: View {
                     .foregroundColor(.secondary)
                 }
                 .padding()
-                .background(Color.gray.opacity(0.1))
+                .background(LopanColors.secondary.opacity(0.1))
                 .cornerRadius(12)
                 
                 // Export Button
@@ -96,7 +96,7 @@ struct ExcelExportView: View {
                         if isExporting {
                             ProgressView()
                                 .scaleEffect(0.8)
-                                .foregroundColor(.white)
+                                .foregroundColor(LopanColors.textPrimary)
                         } else {
                             Image(systemName: "square.and.arrow.up")
                         }
@@ -104,8 +104,8 @@ struct ExcelExportView: View {
                     }
                     .frame(maxWidth: .infinity)
                     .padding()
-                    .background(isExporting ? Color.gray : Color.green)
-                    .foregroundColor(.white)
+                    .background(isExporting ? LopanColors.disabled : LopanColors.success)
+                    .foregroundColor(LopanColors.textPrimary)
                     .cornerRadius(10)
                 }
                 .disabled(isExporting)
@@ -120,13 +120,13 @@ struct ExcelExportView: View {
                     VStack(alignment: .leading, spacing: 10) {
                         HStack {
                             Image(systemName: result.success ? "checkmark.circle.fill" : "xmark.circle.fill")
-                                .foregroundColor(result.success ? .green : .red)
+                                .foregroundColor(result.success ? LopanColors.success : LopanColors.error)
                             Text(result.message)
                                 .fontWeight(.medium)
                         }
                     }
                     .padding()
-                    .background(result.success ? Color.green.opacity(0.1) : Color.red.opacity(0.1))
+                    .background(result.success ? LopanColors.success.opacity(0.1) : LopanColors.error.opacity(0.1))
                     .cornerRadius(12)
                 }
                 

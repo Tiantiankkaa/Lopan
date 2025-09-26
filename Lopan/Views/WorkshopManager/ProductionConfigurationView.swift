@@ -238,7 +238,7 @@ struct ProductionConfigurationView: View {
         HStack {
             Image(systemName: "exclamationmark.triangle.fill")
                 .font(.title2)
-                .foregroundColor(.orange)
+                .foregroundColor(LopanColors.warning)
             
             VStack(alignment: .leading, spacing: 4) {
                 Text("请选择生产设备")
@@ -277,7 +277,7 @@ struct ProductionConfigurationView: View {
                 if !viewModel.canCreateBatch {
                     Text(viewModel.batchCreationDisabledReason)
                         .font(.caption)
-                        .foregroundColor(.orange)
+                        .foregroundColor(LopanColors.warning)
                         .multilineTextAlignment(.center)
                 }
             }
@@ -500,21 +500,21 @@ struct MachineCard: View {
             
             Image(systemName: "gearshape.2.fill")
                 .font(.title)
-                .foregroundColor(isSelected ? .white : statusColor)
+                .foregroundColor(isSelected ? LopanColors.textOnPrimary : statusColor)
             
             VStack(spacing: 2) {
                 Text(machine.status.displayName)
                     .font(.caption2)
-                    .foregroundColor(isSelected ? .white.opacity(0.8) : .secondary)
+                    .foregroundColor(isSelected ? LopanColors.textOnPrimary.opacity(0.8) : .secondary)
                 
                 Text("\(machine.availableStations.count) 工位可用")
                     .font(.caption2)
-                    .foregroundColor(isSelected ? .white.opacity(0.8) : .secondary)
+                    .foregroundColor(isSelected ? LopanColors.textOnPrimary.opacity(0.8) : .secondary)
             }
         }
         .frame(width: 100, height: 100)
         .background(isSelected ? LopanColors.primary : LopanColors.backgroundSecondary)
-        .foregroundColor(isSelected ? .white : .primary)
+        .foregroundColor(isSelected ? LopanColors.textOnPrimary : .primary)
         .cornerRadius(12)
         .onTapGesture {
             onTap()
@@ -525,7 +525,7 @@ struct MachineCard: View {
         switch machine.status {
         case .running: return LopanColors.success
         case .stopped: return LopanColors.textSecondary
-        case .maintenance: return .orange
+        case .maintenance: return LopanColors.warning
         case .error: return LopanColors.error
         }
     }
@@ -550,12 +550,12 @@ struct ProductionModeCard: View {
                 Text("最多 \(mode.maxProducts) 个产品")
                     .font(.caption)
             }
-            .foregroundColor(isSelected ? .white.opacity(0.8) : .secondary)
+            .foregroundColor(isSelected ? LopanColors.textOnPrimary.opacity(0.8) : .secondary)
         }
         .frame(maxWidth: .infinity)
         .padding()
         .background(isSelected ? LopanColors.primary : LopanColors.backgroundSecondary)
-        .foregroundColor(isSelected ? .white : .primary)
+        .foregroundColor(isSelected ? LopanColors.textOnPrimary : .primary)
         .cornerRadius(12)
         .onTapGesture {
             onTap()
@@ -910,7 +910,7 @@ struct AddProductSheet: View {
                 if products.isEmpty {
                     VStack(spacing: 8) {
                         Image(systemName: "exclamationmark.triangle")
-                            .foregroundColor(.orange)
+                            .foregroundColor(LopanColors.warning)
                         Text("暂无可用产品")
                             .font(.caption)
                             .foregroundColor(.secondary)
@@ -1020,7 +1020,7 @@ struct AddProductSheet: View {
                     .frame(maxWidth: .infinity)
                     .padding(.vertical, 8)
                     .background(selectedStationCount == count ? LopanColors.primary : LopanColors.secondaryLight)
-                    .foregroundColor(selectedStationCount == count ? .white : .primary)
+                    .foregroundColor(selectedStationCount == count ? LopanColors.textOnPrimary : .primary)
                     .cornerRadius(8)
                 }
                 
@@ -1031,7 +1031,7 @@ struct AddProductSheet: View {
                 .frame(maxWidth: .infinity)
                 .padding(.vertical, 8)
                 .background(selectedStationCount == -1 ? LopanColors.primary : LopanColors.secondaryLight)
-                .foregroundColor(selectedStationCount == -1 ? .white : .primary)
+                .foregroundColor(selectedStationCount == -1 ? LopanColors.textOnPrimary : .primary)
                 .cornerRadius(8)
             }
             
@@ -1057,7 +1057,7 @@ struct AddProductSheet: View {
                             }
                             .frame(height: 40)
                             .background(selectedStations.contains(station) ? LopanColors.primary : LopanColors.secondaryLight)
-                            .foregroundColor(selectedStations.contains(station) ? .white : .primary)
+                            .foregroundColor(selectedStations.contains(station) ? LopanColors.textOnPrimary : .primary)
                             .cornerRadius(8)
                         }
                     }
@@ -1302,7 +1302,7 @@ struct AddProductSheet: View {
                     }
                     .frame(height: 40)
                     .background(selectedStations.contains(station) ? LopanColors.primary : LopanColors.secondaryLight)
-                    .foregroundColor(selectedStations.contains(station) ? .white : .primary)
+                    .foregroundColor(selectedStations.contains(station) ? LopanColors.textOnPrimary : .primary)
                     .cornerRadius(8)
                 }
             }
@@ -1718,7 +1718,7 @@ struct StationPreviewIndicator: View {
     
     private var textColor: Color {
         if isSelected {
-            return .white
+            return LopanColors.textOnPrimary
         } else if isAvailable {
             return LopanColors.textSecondary
         } else {
@@ -2397,7 +2397,7 @@ struct BatchDetailsSheet: View {
                                 HStack(spacing: 4) {
                                     Image(systemName: "info.circle")
                                         .font(.caption)
-                                        .foregroundColor(.orange)
+                                        .foregroundColor(LopanColors.warning)
                                     
                                     Text("执行日期已锁定为批次提交日期，仅可修改执行时间")
                                         .font(.caption)
@@ -2450,7 +2450,7 @@ struct BatchDetailsSheet: View {
                             }
                         }
                         .padding()
-                        .background(Color(.tertiarySystemBackground))
+                        .background(LopanColors.backgroundTertiary)
                         .cornerRadius(8)
                         
                         // Action Buttons

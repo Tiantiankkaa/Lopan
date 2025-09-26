@@ -32,11 +32,11 @@ enum AlertSeverity: String, CaseIterable, Codable {
     
     var color: Color {
         switch self {
-        case .info: return .blue
-        case .warning: return .orange
-        case .error: return .red
-        case .critical: return .purple
-        case .emergency: return .black
+        case .info: return LopanColors.primary
+        case .warning: return LopanColors.warning
+        case .error: return LopanColors.error
+        case .critical: return LopanColors.primary
+        case .emergency: return LopanColors.textPrimary
         }
     }
     
@@ -113,12 +113,12 @@ enum AlertStatus: String, CaseIterable, Codable {
     
     var color: Color {
         switch self {
-        case .active: return .red
-        case .acknowledged: return .orange
-        case .investigating: return .blue
-        case .resolved: return .green
-        case .suppressed: return .gray
-        case .escalated: return .purple
+        case .active: return LopanColors.error
+        case .acknowledged: return LopanColors.warning
+        case .investigating: return LopanColors.primary
+        case .resolved: return LopanColors.success
+        case .suppressed: return LopanColors.textSecondary
+        case .escalated: return LopanColors.primary
         }
     }
 }

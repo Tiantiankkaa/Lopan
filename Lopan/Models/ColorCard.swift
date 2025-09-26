@@ -31,7 +31,7 @@ public final class ColorCard {
     
     // MARK: - Computed Properties
     var swiftUIColor: Color {
-        return Color(hex: hexCode) ?? .gray
+        return Color(hex: hexCode) ?? LopanColors.secondary
     }
     
     var displayName: String {

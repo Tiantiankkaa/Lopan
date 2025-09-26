@@ -70,7 +70,7 @@ struct ExcelImportView: View {
         VStack(spacing: 10) {
             Image(systemName: "square.and.arrow.down")
                 .font(.system(size: 60))
-                .foregroundColor(.blue)
+                .foregroundColor(LopanColors.info)
             
             Text("Excel 导入")
                 .font(.title)
@@ -102,7 +102,7 @@ struct ExcelImportView: View {
             .foregroundColor(.secondary)
         }
         .padding()
-        .background(Color.gray.opacity(0.1))
+        .background(LopanColors.secondary.opacity(0.1))
         .cornerRadius(12)
     }
     
@@ -115,8 +115,8 @@ struct ExcelImportView: View {
                 }
                 .frame(maxWidth: .infinity)
                 .padding()
-                .background(Color.blue)
-                .foregroundColor(.white)
+                .background(LopanColors.primary)
+                .foregroundColor(LopanColors.textPrimary)
                 .cornerRadius(10)
             }
             
@@ -127,8 +127,8 @@ struct ExcelImportView: View {
                 }
                 .frame(maxWidth: .infinity)
                 .padding()
-                .background(Color.green)
-                .foregroundColor(.white)
+                .background(LopanColors.success)
+                .foregroundColor(LopanColors.textPrimary)
                 .cornerRadius(10)
             }
             .disabled(isImporting)
@@ -141,7 +141,7 @@ struct ExcelImportView: View {
                 VStack(alignment: .leading, spacing: 10) {
                     HStack {
                         Image(systemName: result.success ? "checkmark.circle.fill" : "xmark.circle.fill")
-                            .foregroundColor(result.success ? .green : .red)
+                            .foregroundColor(result.success ? LopanColors.success : LopanColors.error)
                         Text(result.message)
                             .fontWeight(.medium)
                     }
@@ -156,13 +156,13 @@ struct ExcelImportView: View {
                                 ForEach(errors.prefix(5), id: \.self) { error in
                                     Text("• \(error)")
                                         .font(.caption)
-                                        .foregroundColor(.red)
+                                        .foregroundColor(LopanColors.error)
                                 }
                                 
                                 if errors.count > 5 {
                                     Text("... 还有 \(errors.count - 5) 个错误")
                                         .font(.caption)
-                                        .foregroundColor(.orange)
+                                        .foregroundColor(LopanColors.warning)
                                 }
                             }
                         }
@@ -170,7 +170,7 @@ struct ExcelImportView: View {
                     }
                 }
                 .padding()
-                .background(result.success ? Color.green.opacity(0.1) : Color.red.opacity(0.1))
+                .background(result.success ? LopanColors.success.opacity(0.1) : LopanColors.error.opacity(0.1))
                 .cornerRadius(12)
             }
         }

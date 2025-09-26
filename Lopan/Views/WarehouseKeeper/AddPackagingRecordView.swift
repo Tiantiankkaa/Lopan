@@ -134,7 +134,7 @@ struct AddPackagingRecordView: View {
                         Spacer()
                         Text("\(totalPackages * stylesPerPackage)")
                             .fontWeight(.bold)
-                            .foregroundColor(.blue)
+                            .foregroundColor(LopanColors.primary)
                     }
                 }
                 

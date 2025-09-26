@@ -240,7 +240,7 @@ struct MachineDetailView: View {
                         .frame(width: 40, height: 40)
                         .overlay(
                             Image(systemName: machine.status.iconName)
-                                .foregroundColor(.white)
+                                .foregroundColor(LopanColors.textPrimary)
                                 .font(.title3)
                         )
                     
@@ -271,7 +271,7 @@ struct MachineDetailView: View {
             }
         }
         .padding()
-        .background(Color(UIColor.secondarySystemBackground))
+        .background(LopanColors.backgroundSecondary)
         .cornerRadius(12)
     }
     
@@ -296,7 +296,7 @@ struct MachineDetailView: View {
             }
         }
         .padding()
-        .background(Color(UIColor.secondarySystemBackground))
+        .background(LopanColors.backgroundSecondary)
         .cornerRadius(12)
     }
     
@@ -314,7 +314,7 @@ struct MachineDetailView: View {
                     Text("\(machine.currentProductionCount)")
                         .font(.title)
                         .fontWeight(.bold)
-                        .foregroundColor(.blue)
+                        .foregroundColor(LopanColors.primary)
                     Text("今日产量")
                         .font(.caption)
                         .foregroundColor(.secondary)
@@ -326,7 +326,7 @@ struct MachineDetailView: View {
                     Text("\(machine.errorCount)")
                         .font(.title)
                         .fontWeight(.bold)
-                        .foregroundColor(.red)
+                        .foregroundColor(LopanColors.error)
                     Text("故障次数")
                         .font(.caption)
                         .foregroundColor(.secondary)
@@ -338,7 +338,7 @@ struct MachineDetailView: View {
                     Text("\(Int(machine.utilizationRate * 100))%")
                         .font(.title)
                         .fontWeight(.bold)
-                        .foregroundColor(.green)
+                        .foregroundColor(LopanColors.success)
                     Text("利用率")
                         .font(.caption)
                         .foregroundColor(.secondary)
@@ -346,7 +346,7 @@ struct MachineDetailView: View {
             }
         }
         .padding()
-        .background(Color(UIColor.secondarySystemBackground))
+        .background(LopanColors.backgroundSecondary)
         .cornerRadius(12)
     }
     
@@ -367,7 +367,7 @@ struct MachineDetailView: View {
             }
             .foregroundColor(.primary)
             .padding()
-            .background(Color(UIColor.secondarySystemBackground))
+            .background(LopanColors.backgroundSecondary)
             .cornerRadius(12)
         }
         .buttonStyle(PlainButtonStyle())
@@ -393,7 +393,7 @@ struct MachineDetailView: View {
             }
         }
         .padding()
-        .background(Color(UIColor.secondarySystemBackground))
+        .background(LopanColors.backgroundSecondary)
         .cornerRadius(12)
     }
     
@@ -417,7 +417,7 @@ struct MachineDetailView: View {
                             }
                         }
                         .font(.caption)
-                        .foregroundColor(.blue)
+                        .foregroundColor(LopanColors.primary)
                     }
                 }
                 
@@ -481,7 +481,7 @@ struct MachineDetailView: View {
                 VStack(spacing: 16) {
                     Image(systemName: "chart.bar.xaxis")
                         .font(.system(size: 48))
-                        .foregroundColor(.gray)
+                        .foregroundColor(LopanColors.textSecondary)
                     
                     Text("生产历史功能")
                         .font(.headline)
@@ -524,10 +524,10 @@ struct MachineDetailView: View {
     
     private var statusColor: Color {
         switch machine.status {
-        case .running: return .green
-        case .stopped: return .gray
-        case .maintenance: return .orange
-        case .error: return .red
+        case .running: return LopanColors.success
+        case .stopped: return LopanColors.textSecondary
+        case .maintenance: return LopanColors.warning
+        case .error: return LopanColors.error
         }
     }
     
@@ -599,7 +599,7 @@ struct StationCard: View {
             .frame(maxWidth: .infinity, alignment: .leading)
         }
         .padding()
-        .background(Color(UIColor.tertiarySystemBackground))
+        .background(LopanColors.backgroundSecondary)
         .cornerRadius(8)
         .onTapGesture {
             onTap()
@@ -608,10 +608,10 @@ struct StationCard: View {
     
     private var statusColor: Color {
         switch station.status {
-        case .running: return .green
-        case .idle: return .gray
-        case .blocked: return .orange
-        case .maintenance: return .red
+        case .running: return LopanColors.success
+        case .idle: return LopanColors.textSecondary
+        case .blocked: return LopanColors.warning
+        case .maintenance: return LopanColors.error
         }
     }
 }
@@ -633,7 +633,7 @@ struct SelectableStationCard: View {
                 
                 if isSelectionMode {
                     Image(systemName: isSelected ? "checkmark.circle.fill" : "circle")
-                        .foregroundColor(isSelected ? .blue : .gray)
+                        .foregroundColor(isSelected ? LopanColors.primary : LopanColors.textSecondary)
                         .font(.title2)
                 } else {
                     Circle()
@@ -656,11 +656,11 @@ struct SelectableStationCard: View {
         .padding()
         .background(
             RoundedRectangle(cornerRadius: 8)
-                .fill(isSelected ? LopanColors.primary.opacity(0.1) : Color(UIColor.tertiarySystemBackground))
+                .fill(isSelected ? LopanColors.primary.opacity(0.1) : LopanColors.backgroundSecondary)
         )
         .overlay(
             RoundedRectangle(cornerRadius: 8)
-                .stroke(isSelected ? LopanColors.primary : Color.clear, lineWidth: 2)
+                .stroke(isSelected ? LopanColors.primary : LopanColors.clear, lineWidth: 2)
         )
         .onTapGesture {
             onTap()
@@ -669,10 +669,10 @@ struct SelectableStationCard: View {
     
     private var statusColor: Color {
         switch station.status {
-        case .running: return .green
-        case .idle: return .gray
-        case .blocked: return .orange
-        case .maintenance: return .red
+        case .running: return LopanColors.success
+        case .idle: return LopanColors.textSecondary
+        case .blocked: return LopanColors.warning
+        case .maintenance: return LopanColors.error
         }
     }
 }
@@ -697,7 +697,7 @@ struct GunCard: View {
             HStack(spacing: 8) {
                 if let hexCode = gun.currentColorHex {
                     Circle()
-                        .fill(Color(hex: hexCode) ?? .gray)
+                        .fill(Color(hex: hexCode) ?? LopanColors.secondary)
                         .frame(width: 24, height: 24)
                         .overlay(
                             Circle()
@@ -720,7 +720,7 @@ struct GunCard: View {
             }
         }
         .padding()
-        .background(Color(UIColor.secondarySystemBackground))
+        .background(LopanColors.backgroundSecondary)
         .cornerRadius(8)
     }
 }

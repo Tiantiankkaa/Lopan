@@ -196,7 +196,7 @@ struct AdministratorDashboardView: View {
                     
                     HStack(spacing: 4) {
                         Circle()
-                            .fill(Color.green)
+                            .fill(LopanColors.success)
                             .frame(width: 8, height: 8)
                         
                         Text("系统正常")
@@ -212,7 +212,7 @@ struct AdministratorDashboardView: View {
         .padding()
         .background(
             RoundedRectangle(cornerRadius: 12)
-                .fill(Color(.secondarySystemBackground))
+                .fill(LopanColors.backgroundSecondary)
         )
         .padding(.horizontal)
     }
@@ -233,7 +233,7 @@ struct AdministratorDashboardView: View {
             .padding(.horizontal)
         }
         .padding(.vertical, 12)
-        .background(Color(.systemGray6))
+        .background(LopanColors.backgroundTertiary)
     }
     
     // MARK: - Content View (内容视图)
@@ -297,7 +297,7 @@ struct AdministratorDashboardView: View {
             }
             .font(.headline)
             .fontWeight(.medium)
-            .foregroundColor(.white)
+            .foregroundColor(LopanColors.textPrimary)
             .frame(maxWidth: .infinity)
             .padding()
             .background(
@@ -317,7 +317,7 @@ struct AdministratorDashboardView: View {
             }
             .font(.headline)
             .fontWeight(.medium)
-            .foregroundColor(.white)
+            .foregroundColor(LopanColors.textPrimary)
             .frame(maxWidth: .infinity)
             .padding()
             .background(
@@ -346,7 +346,7 @@ struct AdministratorDashboardView: View {
             }
             .font(.headline)
             .fontWeight(.medium)
-            .foregroundColor(.white)
+            .foregroundColor(LopanColors.textPrimary)
             .frame(maxWidth: .infinity)
             .padding()
             .background(
@@ -376,7 +376,7 @@ struct AdministratorDashboardView: View {
             }
             .font(.headline)
             .fontWeight(.medium)
-            .foregroundColor(.white)
+            .foregroundColor(LopanColors.textPrimary)
             .frame(maxWidth: .infinity)
             .padding()
             .background(
@@ -415,12 +415,12 @@ struct AdministratorTabButton: View {
                     .font(.caption)
                     .fontWeight(.medium)
             }
-            .foregroundColor(isSelected ? .blue : .secondary)
+            .foregroundColor(isSelected ? LopanColors.primary : .secondary)
             .padding(.horizontal, 16)
             .padding(.vertical, 8)
             .background(
                 RoundedRectangle(cornerRadius: 20)
-                    .fill(isSelected ? LopanColors.primary.opacity(0.1) : Color.clear)
+                    .fill(isSelected ? LopanColors.primary.opacity(0.1) : LopanColors.clear)
             )
         }
         .buttonStyle(PlainButtonStyle())
@@ -439,28 +439,28 @@ struct SystemOverviewWidget: View {
                 title: "总批次",
                 value: "\(systemMetrics.batches)",
                 icon: "list.clipboard",
-                color: .blue
+                color: LopanColors.primary
             )
             
             OverviewMetricItem(
                 title: "活跃机台",
                 value: "\(systemMetrics.machines)",
                 icon: "gearshape.2",
-                color: .green
+                color: LopanColors.success
             )
             
             OverviewMetricItem(
                 title: "系统用户",
                 value: "\(systemMetrics.users)",
                 icon: "person.3",
-                color: .orange
+                color: LopanColors.warning
             )
             
             OverviewMetricItem(
                 title: "系统警报",
                 value: "\(systemMetrics.alerts)",
                 icon: "exclamationmark.triangle",
-                color: systemMetrics.alerts > 0 ? .red : .gray
+                color: systemMetrics.alerts > 0 ? LopanColors.error : LopanColors.textSecondary
             )
         }
         .task {
@@ -536,13 +536,13 @@ struct SystemMetricsWidget: View {
                 Text("99.9% 可用性")
                     .font(.caption)
                     .fontWeight(.medium)
-                    .foregroundColor(.green)
+                    .foregroundColor(LopanColors.success)
             }
         }
         .padding()
         .background(
             RoundedRectangle(cornerRadius: 12)
-                .fill(Color(.secondarySystemBackground))
+                .fill(LopanColors.backgroundSecondary)
         )
     }
 }
@@ -562,7 +562,7 @@ struct RecentActivitiesWidget: View {
                 ForEach(1...3, id: \.self) { index in
                     HStack {
                         Image(systemName: "clock.fill")
-                            .foregroundColor(.blue)
+                            .foregroundColor(LopanColors.primary)
                             .font(.caption)
                         
                         Text("系统活动 \(index)")
@@ -581,7 +581,7 @@ struct RecentActivitiesWidget: View {
         .padding()
         .background(
             RoundedRectangle(cornerRadius: 12)
-                .fill(Color(.secondarySystemBackground))
+                .fill(LopanColors.backgroundSecondary)
         )
     }
 }
@@ -603,11 +603,11 @@ struct SystemAlertsWidget: View {
                 if securityService.securityAlerts.isEmpty {
                     Text("无警报")
                         .font(.caption)
-                        .foregroundColor(.green)
+                        .foregroundColor(LopanColors.success)
                 } else {
                     Text("\(securityService.securityAlerts.count) 个警报")
                         .font(.caption)
-                        .foregroundColor(.red)
+                        .foregroundColor(LopanColors.error)
                 }
             }
             
@@ -641,7 +641,7 @@ struct SystemAlertsWidget: View {
         .padding()
         .background(
             RoundedRectangle(cornerRadius: 12)
-                .fill(Color(.secondarySystemBackground))
+                .fill(LopanColors.backgroundSecondary)
         )
     }
     
@@ -670,28 +670,28 @@ struct QuickActionsWidget: View {
                 QuickActionButton(
                     title: "数据分析",
                     icon: "chart.line.uptrend.xyaxis",
-                    color: .blue,
+                    color: LopanColors.primary,
                     action: onViewAnalytics
                 )
                 
                 QuickActionButton(
                     title: "生成报告",
                     icon: "doc.text.fill",
-                    color: .green,
+                    color: LopanColors.success,
                     action: onGenerateReport
                 )
                 
                 QuickActionButton(
                     title: "系统检查",
                     icon: "gear.circle.fill",
-                    color: .orange,
+                    color: LopanColors.warning,
                     action: onSystemCheck
                 )
                 
                 QuickActionButton(
                     title: "用户管理",
                     icon: "person.3.fill",
-                    color: .purple,
+                    color: LopanColors.primary,
                     action: onManageUsers
                 )
             }
@@ -699,7 +699,7 @@ struct QuickActionsWidget: View {
         .padding()
         .background(
             RoundedRectangle(cornerRadius: 12)
-                .fill(Color(.secondarySystemBackground))
+                .fill(LopanColors.backgroundSecondary)
         )
     }
 }
@@ -729,7 +729,7 @@ struct QuickActionButton: View {
             .padding()
             .background(
                 RoundedRectangle(cornerRadius: 8)
-                    .fill(Color(.tertiarySystemBackground))
+                    .fill(LopanColors.backgroundTertiary)
             )
         }
         .buttonStyle(PlainButtonStyle())
@@ -756,14 +756,14 @@ struct AnalyticsPreviewWidget: View {
                     .frame(maxWidth: .infinity, minHeight: 100)
                     .background(
                         RoundedRectangle(cornerRadius: 8)
-                            .fill(Color(.tertiarySystemBackground))
+                            .fill(LopanColors.backgroundTertiary)
                     )
             }
         }
         .padding()
         .background(
             RoundedRectangle(cornerRadius: 12)
-                .fill(Color(.secondarySystemBackground))
+                .fill(LopanColors.backgroundSecondary)
         )
     }
 }
@@ -786,14 +786,14 @@ struct RecentReportsWidget: View {
                     .frame(maxWidth: .infinity, minHeight: 60)
                     .background(
                         RoundedRectangle(cornerRadius: 8)
-                            .fill(Color(.tertiarySystemBackground))
+                            .fill(LopanColors.backgroundTertiary)
                     )
             } else {
                 VStack(spacing: 8) {
                     ForEach(reportGenerator.recentReports.prefix(3)) { report in
                         HStack {
                             Image(systemName: report.configuration.type.icon)
-                                .foregroundColor(.blue)
+                                .foregroundColor(LopanColors.primary)
                                 .font(.caption)
                             
                             Text(report.configuration.type.displayName)
@@ -814,7 +814,7 @@ struct RecentReportsWidget: View {
         .padding()
         .background(
             RoundedRectangle(cornerRadius: 12)
-                .fill(Color(.secondarySystemBackground))
+                .fill(LopanColors.backgroundSecondary)
         )
     }
     
@@ -845,7 +845,7 @@ struct SystemHealthOverviewWidget: View {
                             Text(String(format: "%.0f", report.overallScore * 100))
                                 .font(.caption)
                                 .fontWeight(.bold)
-                                .foregroundColor(.white)
+                                .foregroundColor(LopanColors.textPrimary)
                         )
                     
                     VStack(alignment: .leading, spacing: 4) {
@@ -870,7 +870,7 @@ struct SystemHealthOverviewWidget: View {
         .padding()
         .background(
             RoundedRectangle(cornerRadius: 12)
-                .fill(Color(.secondarySystemBackground))
+                .fill(LopanColors.backgroundSecondary)
         )
     }
 }

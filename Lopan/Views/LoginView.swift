@@ -100,7 +100,7 @@ struct LoginView: View {
                                 HStack {
                                     if authService.isLoading {
                                         ProgressView()
-                                            .progressViewStyle(CircularProgressViewStyle(tint: .white))
+                                            .progressViewStyle(CircularProgressViewStyle(tint: LopanColors.textOnPrimary))
                                             .scaleEffect(0.8)
                                     } else {
                                         Image(systemName: "message.fill")
@@ -110,7 +110,7 @@ struct LoginView: View {
                                 .frame(maxWidth: .infinity)
                                 .padding()
                                 .background(LopanColors.primary)
-                                .foregroundColor(.white)
+                                .foregroundColor(LopanColors.textPrimary)
                                 .cornerRadius(10)
                             }
                             .disabled(wechatId.isEmpty || name.isEmpty || authService.isLoading)
@@ -240,8 +240,8 @@ struct DemoLoginView: View {
                 }
                 .frame(maxWidth: .infinity)
                 .padding()
-                .background((isLoggingIn || authService.isLoading) ? Color.gray : LopanColors.primary)
-                .foregroundColor(.white)
+                .background((isLoggingIn || authService.isLoading) ? LopanColors.disabled : LopanColors.primary)
+                .foregroundColor(LopanColors.textPrimary)
                 .cornerRadius(10)
                 .disabled(isLoggingIn || authService.isLoading)
                 .padding(.horizontal)
@@ -261,7 +261,7 @@ struct DemoLoginView: View {
                 if let errorMessage = loginError {
                     Text(errorMessage)
                         .font(.caption)
-                        .foregroundColor(.red)
+                        .foregroundColor(LopanColors.error)
                         .padding(.horizontal)
                         .multilineTextAlignment(.center)
                 }
@@ -327,8 +327,8 @@ struct SMSLoginView: View {
                 }
                 .frame(maxWidth: .infinity)
                 .padding()
-                .background(phoneNumber.count >= 11 && !name.isEmpty ? LopanColors.success : Color.gray)
-                .foregroundColor(.white)
+                .background(phoneNumber.count >= 11 && !name.isEmpty ? LopanColors.success : LopanColors.disabled)
+                .foregroundColor(LopanColors.textPrimary)
                 .cornerRadius(10)
                 .disabled(phoneNumber.count < 11 || name.isEmpty || authService.isLoading)
                 .padding(.horizontal)
@@ -371,7 +371,7 @@ struct SMSVerificationView: View {
                 
                 Text("演示模式：请输入 1234")
                     .font(.caption)
-                    .foregroundColor(.orange)
+                    .foregroundColor(LopanColors.warning)
                     .padding(.horizontal)
                 
                 TextField("请输入验证码", text: $verificationCode)
@@ -388,8 +388,8 @@ struct SMSVerificationView: View {
                 }
                 .frame(maxWidth: .infinity)
                 .padding()
-                .background(verificationCode.count >= 4 ? LopanColors.success : Color.gray)
-                .foregroundColor(.white)
+                .background(verificationCode.count >= 4 ? LopanColors.success : LopanColors.disabled)
+                .foregroundColor(LopanColors.textPrimary)
                 .cornerRadius(10)
                 .disabled(verificationCode.count < 4 || authService.isLoading)
                 .padding(.horizontal)
@@ -404,7 +404,7 @@ struct SMSVerificationView: View {
                     print("重新发送验证码")
                 }
                 .font(.caption)
-                .foregroundColor(.blue)
+                .foregroundColor(LopanColors.info)
                 
                 Spacer()
             }

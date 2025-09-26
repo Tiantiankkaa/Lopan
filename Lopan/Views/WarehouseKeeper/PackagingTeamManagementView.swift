@@ -43,15 +43,15 @@ struct PackagingTeamManagementView: View {
                     }
                     .padding(.horizontal)
                     .padding(.vertical, 8)
-                    .background(Color(.systemGray6))
+                    .background(LopanColors.backgroundTertiary)
                     .cornerRadius(10)
                     
                     Button(action: { showingAddTeam = true }) {
                         Image(systemName: "plus")
                             .font(.title2)
-                            .foregroundColor(.white)
+                            .foregroundColor(LopanColors.textPrimary)
                             .frame(width: 40, height: 40)
-                            .background(Color.blue)
+                            .background(LopanColors.primary)
                             .cornerRadius(10)
                     }
                 }
@@ -63,7 +63,7 @@ struct PackagingTeamManagementView: View {
                     VStack(spacing: 16) {
                         Image(systemName: "person.2")
                             .font(.system(size: 50))
-                            .foregroundColor(.gray)
+                            .foregroundColor(LopanColors.secondary)
                         Text(searchText.isEmpty ? "暂无包装团队" : "未找到匹配的团队")
                             .font(.headline)
                             .foregroundColor(.secondary)
@@ -143,7 +143,7 @@ struct PackagingTeamRow: View {
                         .foregroundColor(.primary)
                     Spacer()
                     Circle()
-                        .fill(team.isActive ? Color.green : Color.gray)
+                        .fill(team.isActive ? LopanColors.success : LopanColors.secondary)
                         .frame(width: 8, height: 8)
                 }
                 
@@ -165,8 +165,8 @@ struct PackagingTeamRow: View {
                                     .font(.caption)
                                     .padding(.horizontal, 6)
                                     .padding(.vertical, 2)
-                                    .background(Color.blue.opacity(0.1))
-                                    .foregroundColor(.blue)
+                                    .background(LopanColors.primary.opacity(0.1))
+                                    .foregroundColor(LopanColors.info)
                                     .cornerRadius(4)
                             }
                             if team.specializedStyles.count > 3 {
@@ -236,7 +236,7 @@ struct AddPackagingTeamView: View {
                                 removeMember(member)
                             }) {
                                 Image(systemName: "minus.circle.fill")
-                                    .foregroundColor(.red)
+                                    .foregroundColor(LopanColors.error)
                             }
                         }
                     }
@@ -254,7 +254,7 @@ struct AddPackagingTeamView: View {
                                 }) {
                                     HStack {
                                         Image(systemName: selectedStyles.contains(product.id) ? "checkmark.circle.fill" : "circle")
-                                            .foregroundColor(selectedStyles.contains(product.id) ? .blue : .gray)
+                                            .foregroundColor(selectedStyles.contains(product.id) ? LopanColors.info : LopanColors.secondary)
                                         Text(product.name)
                                             .foregroundColor(.primary)
                                         Spacer()
@@ -386,7 +386,7 @@ struct EditPackagingTeamView: View {
                                 removeMember(member)
                             }) {
                                 Image(systemName: "minus.circle.fill")
-                                    .foregroundColor(.red)
+                                    .foregroundColor(LopanColors.error)
                             }
                         }
                     }
@@ -404,7 +404,7 @@ struct EditPackagingTeamView: View {
                                 }) {
                                     HStack {
                                         Image(systemName: selectedStyles.contains(product.id) ? "checkmark.circle.fill" : "circle")
-                                            .foregroundColor(selectedStyles.contains(product.id) ? .blue : .gray)
+                                            .foregroundColor(selectedStyles.contains(product.id) ? LopanColors.info : LopanColors.secondary)
                                         Text(product.name)
                                             .foregroundColor(.primary)
                                         Spacer()

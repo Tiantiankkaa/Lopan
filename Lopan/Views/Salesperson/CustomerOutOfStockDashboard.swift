@@ -316,8 +316,8 @@ struct CustomerOutOfStockDashboard: View {
             // Background gradient with keyboard dismissal
             LinearGradient(
                 colors: [
-                    Color(.systemBackground),
-                    Color(.systemGray6).opacity(0.5)
+                    LopanColors.background,
+                    LopanColors.backgroundTertiary.opacity(0.5)
                 ],
                 startPoint: .top,
                 endPoint: .bottom
@@ -510,7 +510,7 @@ struct CustomerOutOfStockDashboard: View {
                         title: "总计",
                         value: "\(getTotalCount())", // Show filtered total when filters are active
                         icon: "list.bullet.rectangle.fill",
-                        color: .blue,
+                        color: LopanColors.primary,
                         trend: nil,
                         associatedStatus: nil,
                         isSelected: dashboardState.selectedStatusTab == nil,
@@ -522,7 +522,7 @@ struct CustomerOutOfStockDashboard: View {
                         title: "待处理",
                         value: "\(dashboardState.statusCounts[.pending] ?? 0)",
                         icon: "clock.fill",
-                        color: .orange,
+                        color: LopanColors.warning,
                         trend: .stable,
                         associatedStatus: .pending,
                         isSelected: dashboardState.selectedStatusTab == .pending,
@@ -534,7 +534,7 @@ struct CustomerOutOfStockDashboard: View {
                         title: "已完成",
                         value: "\(dashboardState.statusCounts[.completed] ?? 0)",
                         icon: "checkmark.circle.fill",
-                        color: .green,
+                        color: LopanColors.success,
                         trend: .up,
                         associatedStatus: .completed,
                         isSelected: dashboardState.selectedStatusTab == .completed,
@@ -546,7 +546,7 @@ struct CustomerOutOfStockDashboard: View {
                         title: "已退货",
                         value: "\(dashboardState.statusCounts[.returned] ?? 0)",
                         icon: "arrow.uturn.left",
-                        color: .red,
+                        color: LopanColors.error,
                         trend: (dashboardState.statusCounts[.returned] ?? 0) > 0 ? .up : nil,
                         associatedStatus: .returned,
                         isSelected: dashboardState.selectedStatusTab == .returned,
@@ -605,7 +605,7 @@ struct CustomerOutOfStockDashboard: View {
                 .padding(.vertical, 10)
                 .background(
                     RoundedRectangle(cornerRadius: 12)
-                        .fill(Color(.systemGray6))
+                        .fill(LopanColors.backgroundTertiary)
                 )
                 
                 // Filter button with indicator
@@ -616,11 +616,11 @@ struct CustomerOutOfStockDashboard: View {
                     ZStack {
                         Image(systemName: "line.3.horizontal.decrease.circle.fill")
                             .font(.title2)
-                            .foregroundColor(dashboardState.hasActiveFilters ? .blue : .secondary)
+                            .foregroundColor(dashboardState.hasActiveFilters ? LopanColors.primary : .secondary)
                         
                         if dashboardState.hasActiveFilters {
                             Circle()
-                                .fill(Color.red)
+                                .fill(LopanColors.error)
                                 .frame(width: 8, height: 8)
                                 .offset(x: 8, y: -8)
                         }
@@ -758,7 +758,7 @@ struct CustomerOutOfStockDashboard: View {
             }
             .overlay(
                 // Invisible anchor at top for scrolling
-                Color.clear
+                LopanColors.clear
                     .frame(height: 1)
                     .id("top")
                     .offset(y: -8),
@@ -1427,7 +1427,7 @@ struct CustomerOutOfStockDashboard: View {
     }
 
     private func playStatusSelectionFeedback() {
-        HapticFeedback.light()
+        LopanHapticEngine.shared.light()
     }
 
     // MARK: - Phase 5 View Preloading Methods
@@ -1924,114 +1924,6 @@ struct CustomerOutOfStockDashboard: View {
 
 // MARK: - Supporting Views (Placeholders)
 
-private struct QuickStatCard: View {
-    let title: String
-    let value: String
-    let icon: String
-    let color: Color
-    let trend: Trend?
-    let associatedStatus: OutOfStockStatus?
-    let isSelected: Bool
-    let isLocked: Bool
-    let onTap: () -> Void
-    
-    private var cardCornerRadius: CGFloat { 12 }
-
-    enum Trend {
-        case up, down, stable
-
-        var icon: String {
-            switch self {
-            case .up: return "arrow.up.right"
-            case .down: return "arrow.down.right"
-            case .stable: return "minus"
-            }
-        }
-        
-        var color: Color {
-            switch self {
-            case .up: return .green
-            case .down: return .red
-            case .stable: return .gray
-            }
-        }
-    }
-
-    var body: some View {
-        Button(action: onTap) {
-            cardContent
-        }
-        .buttonStyle(.plain)
-        .contentShape(RoundedRectangle(cornerRadius: cardCornerRadius))
-        .allowsHitTesting(!isLocked)
-        .accessibilityElement(children: .ignore)
-        .accessibilityLabel(Text(title))
-        .accessibilityValue(Text(value))
-        .accessibilityHint(Text("切换状态筛选"))
-    }
-
-    @ViewBuilder
-    private var cardContent: some View {
-        VStack(spacing: 8) {
-            HStack {
-                Image(systemName: icon)
-                    .imageScale(.medium)
-                    .foregroundStyle(isSelected ? Color.white : (isLocked ? color.opacity(0.4) : color))
-
-                Spacer()
-
-                if let trend = trend {
-                    Image(systemName: trend.icon)
-                        .font(.caption2)
-                        .foregroundStyle(isSelected ? Color.white.opacity(0.85) : (isLocked ? trend.color.opacity(0.4) : trend.color))
-                }
-            }
-
-            VStack(spacing: 2) {
-                Text(value)
-                    .font(.title3.weight(.semibold))
-                    .monospacedDigit()
-                    .foregroundStyle(isSelected ? Color.white : (isLocked ? Color.secondary : Color.primary))
-                    .minimumScaleFactor(0.7)
-
-                Text(title)
-                    .font(.footnote)
-                    .foregroundStyle(isSelected ? Color.white.opacity(0.9) : Color.secondary)
-                    .lineLimit(1)
-            }
-            .frame(maxWidth: .infinity)
-        }
-        .padding(12)
-        .frame(maxWidth: .infinity, alignment: .leading)
-        .background(
-            RoundedRectangle(cornerRadius: cardCornerRadius)
-                .fill(isSelected ? color : Color(.systemBackground))
-                .shadow(color: shadowColor, radius: shadowRadius, x: 0, y: shadowY)
-        )
-        .overlay(
-            RoundedRectangle(cornerRadius: cardCornerRadius)
-                .stroke(isSelected ? color.opacity(0.9) : Color.clear, lineWidth: isSelected ? 2 : 0)
-        )
-        .opacity(isLocked ? 0.8 : 1.0)
-        .animation(.spring(response: 0.2, dampingFraction: 0.85), value: isSelected)
-    }
-
-    private var shadowColor: Color {
-        if isSelected {
-            return color.opacity(0.28)
-        }
-        return LopanColors.textPrimary.opacity(isLocked ? 0.03 : 0.06)
-    }
-
-    private var shadowRadius: CGFloat {
-        isSelected ? 8 : (isLocked ? 2 : 4)
-    }
-
-    private var shadowY: CGFloat {
-        isSelected ? 4 : (isLocked ? 1 : 2)
-    }
-}
-
 // MARK: - Date Picker Content
 
 private struct DatePickerContent: View {
@@ -2089,7 +1981,7 @@ private struct ActiveFiltersView: View {
                 if !searchText.isEmpty {
                     FilterChip(
                         title: "搜索: \(searchText)",
-                        color: .blue,
+                        color: LopanColors.primary,
                         onRemove: { onRemove("search") }
                     )
                 }
@@ -2098,7 +1990,7 @@ private struct ActiveFiltersView: View {
                 if let dateRange = filters.dateRange {
                     FilterChip(
                         title: "\(dateRange.displayText)",
-                        color: .green,
+                        color: LopanColors.success,
                         onRemove: { onRemove("dateRange") }
                     )
                 }
@@ -2107,7 +1999,7 @@ private struct ActiveFiltersView: View {
                 if let customer = filters.customer {
                     FilterChip(
                         title: "客户: \(customer.name)",
-                        color: .purple,
+                        color: LopanColors.primary,
                         onRemove: { onRemove("customer") }
                     )
                 }
@@ -2116,7 +2008,7 @@ private struct ActiveFiltersView: View {
                 if let product = filters.product {
                     FilterChip(
                         title: "产品: \(product.name)",
-                        color: .orange,
+                        color: LopanColors.warning,
                         onRemove: { onRemove("product") }
                     )
                 }
@@ -2125,7 +2017,7 @@ private struct ActiveFiltersView: View {
                 if let status = filters.status {
                     FilterChip(
                         title: "状态: \(status.displayName)",
-                        color: .red,
+                        color: LopanColors.error,
                         onRemove: { onRemove("status") }
                     )
                 }
@@ -2159,15 +2051,15 @@ private struct ActiveFiltersView: View {
                 .padding(.vertical, 6)
                 .background(
                     Capsule()
-                        .fill(Color.red.opacity(0.1))
+                        .fill(LopanColors.error.opacity(0.1))
                 )
         }
         .padding(.horizontal, 16)
         .padding(.vertical, 8)
         .background(
             RoundedRectangle(cornerRadius: 12)
-                .fill(Color(.systemBackground))
-                .shadow(color: .black.opacity(0.05), radius: 4, x: 0, y: 2)
+                .fill(LopanColors.background)
+                .shadow(color: LopanColors.textPrimary.opacity(0.05), radius: 4, x: 0, y: 2)
         )
     }
 }
@@ -2195,7 +2087,7 @@ private struct OutOfStockItemCard: View {
             // Selection indicator
             if isSelectionMode {
                 Image(systemName: isSelected ? "checkmark.circle.fill" : "circle")
-                    .foregroundColor(isSelected ? .blue : .gray)
+                    .foregroundColor(isSelected ? LopanColors.primary : LopanColors.textSecondary)
                     .font(.title2)
                     .transition(.scale.combined(with: .opacity))
             }
@@ -2301,7 +2193,7 @@ private struct OutOfStockItemCard: View {
         .padding(16)
         .background(
             RoundedRectangle(cornerRadius: 16)
-                .fill(Color(.systemBackground))
+                .fill(LopanColors.background)
                 .shadow(
                     color: isSelected ? LopanColors.info.opacity(0.3) : LopanColors.textPrimary.opacity(0.06),
                     radius: isSelected ? 8 : 4,
@@ -2312,7 +2204,7 @@ private struct OutOfStockItemCard: View {
         .overlay(
             RoundedRectangle(cornerRadius: 16)
                 .stroke(
-                    isSelected ? LopanColors.info : Color.clear,
+                    isSelected ? LopanColors.info : LopanColors.clear,
                     lineWidth: isSelected ? 2 : 0
                 )
         )
@@ -2329,11 +2221,11 @@ private struct OutOfStockItemCard: View {
     private var statusColor: Color {
         switch item.status {
         case .pending:
-            return .orange
+            return LopanColors.warning
         case .completed:
-            return .green
+            return LopanColors.success
         case .returned:
-            return .red
+            return LopanColors.error
         }
     }
 }

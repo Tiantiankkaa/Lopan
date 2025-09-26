@@ -184,7 +184,7 @@ struct MachineRow: View {
         switch machine.status {
         case .running: return LopanColors.success
         case .stopped: return LopanColors.textSecondary
-        case .maintenance: return .orange
+        case .maintenance: return LopanColors.warning
         case .error: return LopanColors.error
         }
     }
@@ -204,7 +204,7 @@ struct MachineRow: View {
                                 .padding(.horizontal, 8)
                                 .padding(.vertical, 2)
                                 .background(LopanColors.warning.opacity(0.2))
-                                .foregroundColor(.orange)
+                                .foregroundColor(LopanColors.warning)
                                 .cornerRadius(4)
                         }
                     }

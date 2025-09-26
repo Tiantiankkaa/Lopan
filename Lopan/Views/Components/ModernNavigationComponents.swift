@@ -7,25 +7,157 @@
 
 import SwiftUI
 
-// MARK: - Modern Navigation Wrapper for iOS 16+ compatibility
-struct ModernNavigationView<Content: View>: View {
-    let content: Content
-    
-    init(@ViewBuilder content: () -> Content) {
-        self.content = content()
+// MARK: - Modern Navigation Wrapper - Replaced with LopanNavigationService
+/// This component has been replaced by LopanUniversalNavigation from LopanNavigationService
+/// All new navigation should use the centralized LopanNavigationService pattern
+
+// MARK: - Navigation Button Components
+
+/// Modern navigation button with haptic feedback and accessibility
+struct LopanNavigationButton: View {
+    let title: String
+    let destination: String? // Will be converted to NavigationDestination when available
+    let systemImage: String?
+    let action: (() -> Void)?
+    let style: ButtonStyle
+
+    enum ButtonStyle {
+        case plain
+        case bordered
+        case prominent
     }
-    
+
+    init(
+        _ title: String,
+        destination: String? = nil,
+        systemImage: String? = nil,
+        style: ButtonStyle = .plain,
+        action: (() -> Void)? = nil
+    ) {
+        self.title = title
+        self.destination = destination
+        self.systemImage = systemImage
+        self.style = style
+        self.action = action
+    }
+
     var body: some View {
-        if #available(iOS 16.0, *) {
-            NavigationStack {
-                content
+        Button(action: performAction) {
+            HStack(spacing: 8) {
+                if let systemImage = systemImage {
+                    Image(systemName: systemImage)
+                }
+                Text(title)
             }
-        } else {
-            NavigationStack {
-                content
-            }
-            .navigationViewStyle(StackNavigationViewStyle())
         }
+        .modifier(ButtonStyleModifier(style: style))
+        .lopanAccessibility(
+            role: .navigation,
+            label: title,
+            hint: "点击导航到\(title)"
+        )
+    }
+
+    private func performAction() {
+        LopanHapticEngine.shared.perform(.navigationTap)
+
+        // For now, just perform the action - navigation destination handling will be implemented later
+        action?()
+    }
+}
+
+/// Navigation toolbar with consistent styling
+struct LopanNavigationToolbar: View {
+    let title: String
+    let leadingItems: [NavigationToolbarItem]
+    let trailingItems: [NavigationToolbarItem]
+
+    init(
+        title: String,
+        leadingItems: [NavigationToolbarItem] = [],
+        trailingItems: [NavigationToolbarItem] = []
+    ) {
+        self.title = title
+        self.leadingItems = leadingItems
+        self.trailingItems = trailingItems
+    }
+
+    var body: some View {
+        HStack {
+            HStack(spacing: 16) {
+                ForEach(leadingItems) { item in
+                    navigationToolbarButton(for: item)
+                }
+            }
+
+            Spacer()
+
+            Text(title)
+                .lopanTitleMedium()
+                .foregroundColor(LopanColors.textPrimary)
+                .lopanAccessibility(
+                    role: .navigation,
+                    label: "页面标题",
+                    value: title
+                )
+
+            Spacer()
+
+            HStack(spacing: 16) {
+                ForEach(trailingItems) { item in
+                    navigationToolbarButton(for: item)
+                }
+            }
+        }
+        .padding(.horizontal, LopanSpacing.md)
+        .frame(height: 44)
+        .background(LopanColors.surface)
+    }
+
+    @ViewBuilder
+    private func navigationToolbarButton(for item: NavigationToolbarItem) -> some View {
+        Button(action: item.action) {
+            if let systemImage = item.systemImage {
+                Image(systemName: systemImage)
+                    .font(.system(size: 16, weight: .medium))
+            } else {
+                Text(item.title)
+                    .lopanBodyMedium()
+            }
+        }
+        .foregroundColor(item.isDestructive ? LopanColors.error : LopanColors.primary)
+        .lopanAccessibility(
+            role: .button,
+            label: item.title,
+            hint: item.accessibilityHint
+        )
+        .lopanMinimumTouchTarget()
+        .onTapGesture {
+            LopanHapticEngine.shared.perform(.buttonTap)
+        }
+    }
+}
+
+struct NavigationToolbarItem: Identifiable {
+    let id = UUID()
+    let title: String
+    let systemImage: String?
+    let isDestructive: Bool
+    let accessibilityHint: String
+    let action: () -> Void
+
+    init(
+        title: String,
+        systemImage: String? = nil,
+        isDestructive: Bool = false,
+        accessibilityHint: String? = nil,
+        action: @escaping () -> Void
+    ) {
+        self.title = title
+        self.systemImage = systemImage
+        self.isDestructive = isDestructive
+        self.accessibilityHint = accessibilityHint ?? "点击\(title)"
+        self.action = action
     }
 }
 
@@ -105,7 +237,7 @@ struct ErrorStateView: View {
         VStack(spacing: 16) {
             Image(systemName: "exclamationmark.triangle")
                 .font(.system(size: 48))
-                .foregroundColor(.red)
+                .foregroundColor(LopanColors.error)
                 .accessibilityHidden(true)
             
             Text(title)
@@ -120,14 +252,22 @@ struct ErrorStateView: View {
             }
             
             if let retryAction = retryAction {
-                Button(action: retryAction) {
+                Button(action: {
+                    LopanHapticEngine.shared.perform(.buttonTap)
+                    retryAction()
+                }) {
                     HStack {
                         Image(systemName: "arrow.clockwise")
                         Text("重试")
                     }
                 }
                 .foregroundColor(LopanColors.info)
-                .accessibilityLabel("重试")
+                .lopanAccessibility(
+                    role: .button,
+                    label: "重试",
+                    hint: "点击重新加载内容"
+                )
+                .lopanMinimumTouchTarget()
             }
         }
         .padding()
@@ -180,13 +320,21 @@ struct EmptyStateView: View {
             }
             
             if let actionTitle = actionTitle, let action = action {
-                Button(action: action) {
+                Button(action: {
+                    LopanHapticEngine.shared.perform(.primaryAction)
+                    action()
+                }) {
                     HStack {
                         Image(systemName: "plus.circle")
                         Text(actionTitle)
                     }
                 }
-                .accessibilityLabel(actionTitle)
+                .lopanAccessibility(
+                    role: .button,
+                    label: actionTitle,
+                    hint: "点击执行\(actionTitle)"
+                )
+                .lopanMinimumTouchTarget()
             }
         }
         .padding()
@@ -230,10 +378,16 @@ struct AccessibleSearchBar: View {
                 
                 if !text.isEmpty {
                     Button("清除") {
+                        LopanHapticEngine.shared.perform(.buttonTap)
                         text = ""
                     }
                     .foregroundColor(.secondary)
-                    .accessibilityLabel("清除搜索")
+                    .lopanAccessibility(
+                        role: .button,
+                        label: "清除搜索",
+                        hint: "点击清空搜索内容"
+                    )
+                    .lopanMinimumTouchTarget()
                 }
             }
             .padding(.horizontal)
@@ -266,7 +420,7 @@ struct AccessibleFormField<Content: View>: View {
                 
                 if isRequired {
                     Text("*")
-                        .foregroundColor(.red)
+                        .foregroundColor(LopanColors.error)
                         .accessibilityLabel("必填项")
                 }
             }
@@ -279,6 +433,22 @@ struct AccessibleFormField<Content: View>: View {
 
 // MARK: - Additional UI Components
 // Extensions for adaptiveBackground are in DarkModeComponents.swift
+
+// MARK: - Button Style Modifier
+private struct ButtonStyleModifier: ViewModifier {
+    let style: LopanNavigationButton.ButtonStyle
+
+    func body(content: Content) -> some View {
+        switch style {
+        case .plain:
+            content.buttonStyle(PlainButtonStyle())
+        case .bordered:
+            content.buttonStyle(BorderedButtonStyle())
+        case .prominent:
+            content.buttonStyle(BorderedProminentButtonStyle())
+        }
+    }
+}
 
 // MARK: - Modern Sheet Extension
 extension View {

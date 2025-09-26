@@ -106,7 +106,7 @@ struct ColorManagementView: View {
                         .padding(.vertical, 12)
                         .background(LopanColors.primary)
                         .cornerRadius(25)
-                        .shadow(color: .black.opacity(0.2), radius: 8, x: 0, y: 4)
+                        .shadow(color: LopanColors.textPrimary.opacity(0.2), radius: 8, x: 0, y: 4)
                     }
                 }
                 .padding(.horizontal, 16)
@@ -121,7 +121,7 @@ struct ColorManagementView: View {
         VStack(spacing: 20) {
             Image(systemName: "paintpalette")
                 .font(.system(size: 64))
-                .foregroundColor(.gray)
+                .foregroundColor(LopanColors.secondary)
             
             VStack(spacing: 8) {
                 Text("暂无颜色卡")
@@ -148,7 +148,7 @@ struct ColorManagementView: View {
         VStack(spacing: 16) {
             Image(systemName: "magnifyingglass")
                 .font(.system(size: 48))
-                .foregroundColor(.gray)
+                .foregroundColor(LopanColors.secondary)
             
             Text("未找到匹配的颜色")
                 .font(.headline)
@@ -233,7 +233,7 @@ struct ColorCardView: View {
                     .padding(.horizontal, 8)
                     .padding(.vertical, 2)
                     .background(LopanColors.warning.opacity(0.2))
-                    .foregroundColor(.orange)
+                    .foregroundColor(LopanColors.warning)
                     .cornerRadius(4)
             }
         }
@@ -321,6 +321,7 @@ struct AddColorSheet: View {
             .padding()
             .navigationTitle("添加颜色")
             .navigationBarTitleDisplayMode(.inline)
+            .navigationBarBackButtonHidden()
             .toolbar {
                 ToolbarItem(placement: .navigationBarLeading) {
                     Button("取消") {

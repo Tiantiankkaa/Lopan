@@ -293,13 +293,13 @@ struct PermissionStatusIndicator: View {
             } else if let result = permissionResult {
                 HStack(spacing: 4) {
                     Image(systemName: result.isGranted ? "checkmark.shield" : "xmark.shield")
-                        .foregroundColor(result.isGranted ? .green : .red)
+                        .foregroundColor(result.isGranted ? LopanColors.success : LopanColors.error)
                         .font(compact ? .caption : .body)
                     
                     if !compact {
                         Text(result.isGranted ? "有权限" : "无权限")
                             .font(.caption)
-                            .foregroundColor(result.isGranted ? .green : .red)
+                            .foregroundColor(result.isGranted ? LopanColors.success : LopanColors.error)
                     }
                 }
                 .help(result.reason)
@@ -381,7 +381,7 @@ struct PermissionCategoryRow: View {
             Button(action: { isExpanded.toggle() }) {
                 HStack {
                     Image(systemName: category.icon)
-                        .foregroundColor(.blue)
+                        .foregroundColor(LopanColors.info)
                         .font(.caption)
                     
                     Text(category.displayName)

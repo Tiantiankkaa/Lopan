@@ -50,8 +50,8 @@ public final class SmartSuggestionService: ObservableObject, Sendable {
     }
 
     /// Generate contextual actions based on current app state
-    public func generateContextualActions(for context: AppContext) async {
-        let actions = await processAppContext(context)
+    public func generateContextualActions(for context: AIAppContext) async {
+        let actions = await processAIAppContext(context)
 
         await MainActor.run {
             self.contextualActions = actions
@@ -107,7 +107,7 @@ public final class SmartSuggestionService: ObservableObject, Sendable {
         return suggestions.sorted { $0.confidence > $1.confidence }.prefix(5).map { $0 }
     }
 
-    private func processAppContext(_ context: AppContext) async -> [ContextualAction] {
+    private func processAIAppContext(_ context: AIAppContext) async -> [ContextualAction] {
         var actions: [ContextualAction] = []
 
         switch context.currentView {
@@ -253,7 +253,7 @@ public final class SmartSuggestionService: ObservableObject, Sendable {
 
     // MARK: - Action Generators
 
-    private func generateCustomerActions(_ context: AppContext) async -> [ContextualAction] {
+    private func generateCustomerActions(_ context: AIAppContext) async -> [ContextualAction] {
         return [
             ContextualAction(
                 id: UUID().uuidString,
@@ -274,7 +274,7 @@ public final class SmartSuggestionService: ObservableObject, Sendable {
         ]
     }
 
-    private func generateProductionActions(_ context: AppContext) async -> [ContextualAction] {
+    private func generateProductionActions(_ context: AIAppContext) async -> [ContextualAction] {
         return [
             ContextualAction(
                 id: UUID().uuidString,
@@ -287,7 +287,7 @@ public final class SmartSuggestionService: ObservableObject, Sendable {
         ]
     }
 
-    private func generateInventoryActions(_ context: AppContext) async -> [ContextualAction] {
+    private func generateInventoryActions(_ context: AIAppContext) async -> [ContextualAction] {
         return [
             ContextualAction(
                 id: UUID().uuidString,
@@ -300,7 +300,7 @@ public final class SmartSuggestionService: ObservableObject, Sendable {
         ]
     }
 
-    private func generateSalespersonActions(_ context: AppContext) async -> [ContextualAction] {
+    private func generateSalespersonActions(_ context: AIAppContext) async -> [ContextualAction] {
         return [
             ContextualAction(
                 id: UUID().uuidString,
@@ -424,7 +424,7 @@ public struct SuggestionContext: Sendable {
 }
 
 @available(iOS 26.0, *)
-public struct AppContext: Sendable {
+public struct AIAppContext: Sendable {
     public let currentView: ViewType
     public let userRole: UserRole
     public let data: [String: Any]

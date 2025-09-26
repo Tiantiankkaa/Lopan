@@ -61,9 +61,9 @@ struct DateNavigationBar: View {
                     Image(systemName: "chevron.left")
                         .font(.title3)
                         .fontWeight(.medium)
-                        .foregroundColor(.blue)
+                        .foregroundColor(LopanColors.info)
                         .frame(width: 44, height: 44)
-                        .background(Color(.systemGray6))
+                        .background(LopanColors.backgroundTertiary)
                         .clipShape(Circle())
                 }
                 .buttonStyle(PlainButtonStyle())
@@ -92,9 +92,9 @@ struct DateNavigationBar: View {
                     Image(systemName: "chevron.right")
                         .font(.title3)
                         .fontWeight(.medium)
-                        .foregroundColor(canNavigateNext ? .blue : .gray)
+                        .foregroundColor(canNavigateNext ? LopanColors.info : LopanColors.secondary)
                         .frame(width: 44, height: 44)
-                        .background(Color(.systemGray6))
+                        .background(LopanColors.backgroundTertiary)
                         .clipShape(Circle())
                 }
                 .buttonStyle(PlainButtonStyle())
@@ -106,11 +106,11 @@ struct DateNavigationBar: View {
         }
         .padding(.horizontal, 16)
         .padding(.vertical, 8)
-        .background(Color(.systemGray6).opacity(0.7))
+        .background(LopanColors.backgroundTertiary.opacity(0.7))
         .overlay(
             Rectangle()
                 .frame(height: 0.5)
-                .foregroundColor(Color(.systemGray4)),
+                .foregroundColor(LopanColors.secondary),
             alignment: .bottom
         )
     }
@@ -185,5 +185,5 @@ extension View {
             }
         )
     }
-    .background(Color(.systemGroupedBackground))
+    .background(LopanColors.backgroundSecondary)
 }

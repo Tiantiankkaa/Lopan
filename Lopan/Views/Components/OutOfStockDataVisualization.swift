@@ -26,17 +26,17 @@ struct LiquidDataCard<Content: View>: View {
             switch self {
             case .low: return [LopanColors.primary.opacity(0.1), LopanColors.primary.opacity(0.05)]
             case .normal: return [LopanColors.success.opacity(0.1), LopanColors.success.opacity(0.05)]
-            case .high: return [Color.orange.opacity(0.1), Color.orange.opacity(0.05)]
+            case .high: return [LopanColors.warning.opacity(0.1), LopanColors.warning.opacity(0.05)]
             case .critical: return [LopanColors.error.opacity(0.1), LopanColors.error.opacity(0.05)]
             }
         }
         
         var accentColor: Color {
             switch self {
-            case .low: return .blue
-            case .normal: return .green
-            case .high: return .orange
-            case .critical: return .red
+            case .low: return LopanColors.primary
+            case .normal: return LopanColors.success
+            case .high: return LopanColors.warning
+            case .critical: return LopanColors.error
             }
         }
     }
@@ -77,7 +77,7 @@ struct LiquidDataCard<Content: View>: View {
                                 )
                         )
                         .shadow(color: priority.accentColor.opacity(0.1), radius: 8, x: 0, y: 4)
-                        .shadow(color: .black.opacity(0.05), radius: 16, x: 0, y: 8)
+                        .shadow(color: LopanColors.shadow, radius: 16, x: 0, y: 8)
                     
                     // Animated glow effect
                     RoundedRectangle(cornerRadius: 20)
@@ -191,7 +191,7 @@ struct AnimatedStatsChart: View {
                             path.move(to: CGPoint(x: 0, y: y))
                             path.addLine(to: CGPoint(x: chartWidth, y: y))
                         }
-                        .stroke(Color.gray.opacity(0.2), lineWidth: 0.5)
+                        .stroke(LopanColors.secondary.opacity(0.2), lineWidth: 0.5)
                     }
                     
                     // Data bars
@@ -273,10 +273,10 @@ struct PerformanceIndicator: View {
         
         var color: Color {
             switch self {
-            case .performance: return .blue
-            case .cache: return .green
-            case .memory: return .orange
-            case .network: return .purple
+            case .performance: return LopanColors.primary
+            case .cache: return LopanColors.success
+            case .memory: return LopanColors.warning
+            case .network: return LopanColors.textSecondary
             }
         }
         
@@ -296,9 +296,9 @@ struct PerformanceIndicator: View {
     
     private var statusColor: Color {
         switch normalizedValue {
-        case 0.9...:  return .green
-        case 0.7..<0.9: return .yellow
-        default: return .red
+        case 0.9...:  return LopanColors.success
+        case 0.7..<0.9: return LopanColors.warning
+        default: return LopanColors.error
         }
     }
     
@@ -376,8 +376,8 @@ struct PerformanceIndicator: View {
         .padding(16)
         .background(
             RoundedRectangle(cornerRadius: 16)
-                .fill(Color(.systemBackground))
-                .shadow(color: .black.opacity(0.05), radius: 4, x: 0, y: 2)
+                .fill(LopanColors.background)
+                .shadow(color: LopanColors.textPrimary.opacity(0.05), radius: 4, x: 0, y: 2)
         )
         .onAppear {
             withAnimation(.easeInOut(duration: 1.5)) {
@@ -498,9 +498,9 @@ struct TrendDataPoint {
         
         var color: Color {
             switch self {
-            case .up: return .green
-            case .down: return .red
-            case .stable: return .blue
+            case .up: return LopanColors.success
+            case .down: return LopanColors.error
+            case .stable: return LopanColors.primary
             }
         }
     }
@@ -565,7 +565,7 @@ struct DataFlowAnimation: View {
                     y: CGFloat.random(in: -2...2)
                 ),
                 size: CGFloat.random(in: 2...8),
-                color: [LopanColors.primary, LopanColors.success, Color.purple, Color.orange].randomElement()!,
+                color: [LopanColors.primary, LopanColors.success, LopanColors.premium, LopanColors.warning].randomElement()!,
                 lifespan: Double.random(in: 2...5),
                 scale: CGFloat.random(in: 0.5...1.5),
                 blur: CGFloat.random(in: 0...2)
@@ -589,7 +589,7 @@ struct DataFlowAnimation: View {
                     position: CGPoint(x: 0, y: CGFloat.random(in: 0...200)),
                     velocity: CGPoint(x: CGFloat.random(in: 1...3), y: CGFloat.random(in: -1...1)),
                     size: CGFloat.random(in: 2...8),
-                    color: [LopanColors.primary, LopanColors.success, Color.purple, Color.orange].randomElement()!,
+                    color: [LopanColors.primary, LopanColors.success, LopanColors.premium, LopanColors.warning].randomElement()!,
                     lifespan: Double.random(in: 2...5),
                     scale: 1.0,
                     blur: 0
@@ -622,7 +622,7 @@ private struct DataParticle: Identifiable {
                 VStack(alignment: .leading, spacing: 12) {
                     HStack {
                         Image(systemName: "exclamationmark.triangle.fill")
-                            .foregroundColor(.orange)
+                            .foregroundColor(LopanColors.warning)
                         Text("紧急缺货")
                             .font(.headline)
                             .fontWeight(.semibold)
@@ -642,7 +642,7 @@ private struct DataParticle: Identifiable {
                         Text("87%")
                             .font(.title3)
                             .fontWeight(.bold)
-                            .foregroundColor(.orange)
+                            .foregroundColor(LopanColors.warning)
                     }
                 }
             }
@@ -650,9 +650,9 @@ private struct DataParticle: Identifiable {
             // Animated Stats Chart Example
             AnimatedStatsChart(
                 data: [
-                    OutOfStockDataPoint(category: "待处理", value: 45, color: .orange),
-                    OutOfStockDataPoint(category: "已完成", value: 123, color: .green),
-                    OutOfStockDataPoint(category: "已退货", value: 12, color: .red)
+                    OutOfStockDataPoint(category: "待处理", value: 45, color: LopanColors.warning),
+                    OutOfStockDataPoint(category: "已完成", value: 123, color: LopanColors.success),
+                    OutOfStockDataPoint(category: "已退货", value: 12, color: LopanColors.error)
                 ],
                 title: "状态分布",
                 maxValue: 150
@@ -692,10 +692,10 @@ private struct DataParticle: Identifiable {
             // Data Flow Animation
             DataFlowAnimation(isActive: true)
                 .frame(height: 100)
-                .background(Color.black.opacity(0.05))
+                .background(LopanColors.shadow)
                 .cornerRadius(12)
         }
         .padding(20)
     }
-    .background(Color(.systemGroupedBackground))
+    .background(LopanColors.backgroundSecondary)
 }

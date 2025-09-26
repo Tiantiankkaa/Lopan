@@ -28,11 +28,11 @@ public enum OutOfStockStatus: String, CaseIterable, Codable {
     var color: Color {
         switch self {
         case .pending:
-            return .orange
+            return LopanColors.warning
         case .completed:
-            return .green
+            return LopanColors.success
         case .returned:
-            return .red
+            return LopanColors.error
         }
     }
 }

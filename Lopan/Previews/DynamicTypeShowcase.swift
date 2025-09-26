@@ -204,19 +204,19 @@ struct DynamicTypeComponentTest<Content: View>: View {
                 Text("XL")
                     .font(.caption2)
                     .padding(4)
-                    .background(Color.blue.opacity(0.2))
+                    .background(LopanColors.info.opacity(0.2))
                     .cornerRadius(4)
 
                 Text("AX3")
                     .font(.caption2)
                     .padding(4)
-                    .background(Color.orange.opacity(0.2))
+                    .background(LopanColors.warning.opacity(0.2))
                     .cornerRadius(4)
 
                 Text("AX5")
                     .font(.caption2)
                     .padding(4)
-                    .background(Color.red.opacity(0.2))
+                    .background(LopanColors.error.opacity(0.2))
                     .cornerRadius(4)
 
                 Spacer()

@@ -39,7 +39,7 @@ struct BatchOutOfStockCreationView: View {
     var body: some View {
         NavigationStack {
             ZStack {
-                Color(.systemGroupedBackground).ignoresSafeArea()
+                LopanColors.backgroundSecondary.ignoresSafeArea()
                 
                 ScrollView {
                     LazyVStack(spacing: 16) {
@@ -75,7 +75,7 @@ struct BatchOutOfStockCreationView: View {
                     Button("取消") { 
                         dismiss() 
                     }
-                    .foregroundColor(.red)
+                    .foregroundColor(LopanColors.error)
                 }
                 ToolbarItem(placement: .navigationBarTrailing) {
                     Button("保存") {
@@ -83,7 +83,7 @@ struct BatchOutOfStockCreationView: View {
                     }
                     .disabled(!isValidForSave || isLoading)
                     .fontWeight(.semibold)
-                    .foregroundColor(isValidForSave ? .blue : .gray)
+                    .foregroundColor(isValidForSave ? LopanColors.primary : LopanColors.textSecondary)
                 }
             }
             .sheet(isPresented: $showingCustomerPicker) {
@@ -179,15 +179,15 @@ struct BatchOutOfStockCreationView: View {
             .buttonStyle(PlainButtonStyle())
         }
         .padding(20)
-        .background(Color(.systemBackground))
+        .background(LopanColors.background)
         .cornerRadius(16)
-        .shadow(color: .black.opacity(0.08), radius: 8, x: 0, y: 2)
+        .shadow(color: LopanColors.textPrimary.opacity(0.08), radius: 8, x: 0, y: 2)
     }
     
     private var productItemsHeader: some View {
         HStack {
             Image(systemName: "cube.box.fill")
-                .foregroundColor(.orange)
+                .foregroundColor(LopanColors.warning)
                 .font(.title2)
             Text("产品列表")
                 .font(.headline)
@@ -325,9 +325,9 @@ struct ProductItemCard: View {
                 quantityAndNotesSection
             }
         }
-        .background(Color(.systemBackground))
+        .background(LopanColors.background)
         .cornerRadius(16)
-        .shadow(color: .black.opacity(0.08), radius: 6, x: 0, y: 2)
+        .shadow(color: LopanColors.textPrimary.opacity(0.08), radius: 6, x: 0, y: 2)
         .scaleEffect(isDeleting ? 0.95 : 1.0)
         .opacity(isDeleting ? 0.7 : 1.0)
         .sheet(isPresented: $showingProductPicker) {
@@ -378,7 +378,7 @@ struct ProductItemCard: View {
                         isDeleting = true
                     }
                     
-                    HapticFeedback.medium()
+                    LopanHapticEngine.shared.medium()
                     
                     DispatchQueue.main.asyncAfter(deadline: .now() + 0.2) {
                         onDelete()
@@ -386,7 +386,7 @@ struct ProductItemCard: View {
                 }) {
                     Image(systemName: "trash.circle.fill")
                         .font(.title2)
-                        .foregroundColor(.red)
+                        .foregroundColor(LopanColors.error)
                 }
                 .buttonStyle(PlainButtonStyle())
             }
@@ -465,7 +465,7 @@ struct ProductItemCard: View {
                     .overlay(
                         Image(systemName: item.product == nil ? "plus" : "photo")
                             .font(.title3)
-                            .foregroundColor(item.product == nil ? .blue : .gray)
+                            .foregroundColor(item.product == nil ? LopanColors.primary : LopanColors.textSecondary)
                     )
             }
         }
@@ -489,7 +489,7 @@ struct ProductItemCard: View {
         VStack(alignment: .leading, spacing: 12) {
             HStack {
                 Image(systemName: "number.circle.fill")
-                    .foregroundColor(.green)
+                    .foregroundColor(LopanColors.success)
                 Text("数量")
                     .font(.headline)
                     .fontWeight(.medium)
@@ -502,7 +502,7 @@ struct ProductItemCard: View {
                     ForEach([1, 5, 10], id: \.self) { quickValue in
                         Button(action: {
                             guard index >= 0 && index < productItems.count else { return }
-                            HapticFeedback.light()
+                            LopanHapticEngine.shared.light()
                             
                             withAnimation(.easeInOut(duration: 0.2)) {
                                 productItems[index].quantity = String(quickValue)
@@ -511,7 +511,7 @@ struct ProductItemCard: View {
                             Text("\(quickValue)")
                                 .font(.subheadline)
                                 .fontWeight(.medium)
-                                .foregroundColor(Int(item.quantity) == quickValue ? .white : .blue)
+                                .foregroundColor(Int(item.quantity) == quickValue ? LopanColors.textPrimary : LopanColors.primary)
                                 .frame(width: 32, height: 32)
                                 .background(Int(item.quantity) == quickValue ? LopanColors.info : LopanColors.info.opacity(0.1))
                                 .clipShape(Circle())
@@ -528,7 +528,7 @@ struct ProductItemCard: View {
                         guard index >= 0 && index < productItems.count else { return }
                         let currentValue = Int(productItems[index].quantity) ?? 0
                         if currentValue > 1 {
-                            HapticFeedback.light()
+                            LopanHapticEngine.shared.light()
                             
                             withAnimation(.easeInOut(duration: 0.15)) {
                                 quantityButtonScale = 0.9
@@ -544,7 +544,7 @@ struct ProductItemCard: View {
                     }) {
                         Image(systemName: "minus.circle.fill")
                             .font(.title2)
-                            .foregroundColor((Int(item.quantity) ?? 0) <= 1 ? .gray : .red)
+                            .foregroundColor((Int(item.quantity) ?? 0) <= 1 ? LopanColors.secondary : LopanColors.error)
                     }
                     .scaleEffect(quantityButtonScale)
                     .disabled((Int(item.quantity) ?? 0) <= 1)
@@ -569,7 +569,7 @@ struct ProductItemCard: View {
                         guard index >= 0 && index < productItems.count else { return }
                         let currentValue = Int(productItems[index].quantity) ?? 0
                         
-                        HapticFeedback.light()
+                        LopanHapticEngine.shared.light()
                         
                         withAnimation(.easeInOut(duration: 0.15)) {
                             quantityButtonScale = 0.9
@@ -765,7 +765,7 @@ internal struct CustomerRow: View {
                 
                 if isSelected {
                     Image(systemName: "checkmark.circle.fill")
-                        .foregroundColor(.blue)
+                        .foregroundColor(LopanColors.primary)
                 }
             }
             .contentShape(Rectangle())
@@ -802,7 +802,7 @@ internal struct ProductRow: View {
                 
                 if isSelected {
                     Image(systemName: "checkmark.circle.fill")
-                        .foregroundColor(.blue)
+                        .foregroundColor(LopanColors.primary)
                 }
             }
             .contentShape(Rectangle())

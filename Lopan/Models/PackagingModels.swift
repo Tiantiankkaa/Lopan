@@ -48,13 +48,13 @@ enum PackagingPriority: String, CaseIterable, Codable {
     var color: Color {
         switch self {
         case .low:
-            return .gray
+            return LopanColors.secondary
         case .medium:
-            return .blue
+            return LopanColors.info
         case .high:
-            return .orange
+            return LopanColors.warning
         case .urgent:
-            return .red
+            return LopanColors.error
         }
     }
 }

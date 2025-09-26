@@ -163,7 +163,7 @@ struct BatchOperationsController: View {
                             .font(.subheadline)
                             .fontWeight(.medium)
                     }
-                    .foregroundColor(.white)
+                    .foregroundColor(LopanColors.textPrimary)
                     .padding(.horizontal, 16)
                     .padding(.vertical, 8)
                     .background(LopanColors.primary)
@@ -176,22 +176,21 @@ struct BatchOperationsController: View {
         }
         .padding(.horizontal, 20)
         .padding(.vertical, 16)
-        .background(Color.white)
+        .background(LopanColors.backgroundPrimary)
         .overlay(
             Rectangle()
                 .frame(height: 0.5)
                 .foregroundColor(LopanColors.border),
             alignment: .bottom
         )
-        .shadow(color: Color.black.opacity(0.05), radius: 2, x: 0, y: 1)
+        .shadow(color: LopanColors.shadow, radius: 2, x: 0, y: 1)
     }
     
     private var selectAllToggleButton: some View {
         let isAllSelected = selectedItems.count == filteredItems.count && !filteredItems.isEmpty
         
         return Button(action: {
-            let impactFeedback = UIImpactFeedbackGenerator(style: .light)
-            impactFeedback.impactOccurred()
+            LopanHapticEngine.shared.light()
             
             Task { @MainActor in
                 if isAllSelected {
@@ -316,7 +315,7 @@ struct BatchOperationsController: View {
             }
             .padding(.horizontal, 20)
             .padding(.vertical, 16)
-            .background(Color.white)
+            .background(LopanColors.backgroundPrimary)
             .contentShape(Rectangle())
         }
         .buttonStyle(PlainButtonStyle())
@@ -332,8 +331,7 @@ struct BatchOperationsController: View {
     // MARK: - Actions
     
     private func exitBatchMode() {
-        let impactFeedback = UIImpactFeedbackGenerator(style: .light)
-        impactFeedback.impactOccurred()
+        LopanHapticEngine.shared.light()
         
         withAnimation(.easeInOut(duration: 0.3)) {
             isBatchMode = false

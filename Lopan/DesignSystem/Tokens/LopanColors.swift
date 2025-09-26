@@ -9,54 +9,75 @@ import SwiftUI
 
 /// Semantic color system for Lopan production management app
 /// Following iOS 2025 design trends with adaptive dark/light mode support
-struct LopanColors {
-    
+public struct LopanColors {
+
     // MARK: - Primary Colors
-    static let primary = Color.blue 
-    static let primaryLight = Color.blue.opacity(0.3)
-    static let primaryDark = Color.blue.opacity(0.8)
+    public static let primary = Color.adaptive(
+        light: Color(red: 0.0, green: 0.5, blue: 1.0),
+        dark: Color(red: 0.2, green: 0.6, blue: 1.0)
+    )
+    static let primaryLight = primary.opacity(0.3)
+    static let primaryDark = primary.opacity(0.8)
     
     // MARK: - Secondary Colors
-    static let secondary = Color.gray
-    static let secondaryLight = Color.gray.opacity(0.3)
-    static let secondaryDark = Color.gray.opacity(0.8)
+    public static let secondary = Color.adaptive(
+        light: Color(red: 0.5, green: 0.5, blue: 0.5),
+        dark: Color(red: 0.7, green: 0.7, blue: 0.7)
+    )
+    static let secondaryLight = secondary.opacity(0.3)
+    static let secondaryDark = secondary.opacity(0.8)
     
     // MARK: - Accent Colors
-    static let accent = Color.orange
-    static let accentLight = Color.orange.opacity(0.3)
-    static let accentDark = Color.orange.opacity(0.8)
+    static let accent = Color.adaptive(
+        light: Color(red: 1.0, green: 0.6, blue: 0.0),
+        dark: Color(red: 1.0, green: 0.7, blue: 0.2)
+    )
+    static let accentLight = accent.opacity(0.3)
+    static let accentDark = accent.opacity(0.8)
     
     // MARK: - Semantic Colors
-    static let success = Color.green
-    static let successLight = Color.green.opacity(0.3)
-    static let successDark = Color.green.opacity(0.8)
+    public static let success = Color.adaptive(
+        light: Color(red: 0.0, green: 0.7, blue: 0.0),
+        dark: Color(red: 0.2, green: 0.8, blue: 0.2)
+    )
+    static let successLight = success.opacity(0.3)
+    static let successDark = success.opacity(0.8)
     
-    static let warning = Color.orange
-    static let warningLight = Color.orange.opacity(0.3)
-    static let warningDark = Color.orange.opacity(0.8)
+    public static let warning = Color.adaptive(
+        light: Color(red: 1.0, green: 0.6, blue: 0.0),
+        dark: Color(red: 1.0, green: 0.7, blue: 0.2)
+    )
+    static let warningLight = warning.opacity(0.3)
+    static let warningDark = warning.opacity(0.8)
     
-    static let error = Color.red
-    static let errorLight = Color.red.opacity(0.3)
-    static let errorDark = Color.red.opacity(0.8)
+    public static let error = Color.adaptive(
+        light: Color(red: 0.9, green: 0.0, blue: 0.0),
+        dark: Color(red: 1.0, green: 0.3, blue: 0.3)
+    )
+    static let errorLight = error.opacity(0.3)
+    static let errorDark = error.opacity(0.8)
     
-    static let info = Color.blue
-    static let infoLight = Color.blue.opacity(0.3)
-    static let infoDark = Color.blue.opacity(0.8)
+    public static let info = Color.adaptive(
+        light: Color(red: 0.0, green: 0.4, blue: 0.8),
+        dark: Color(red: 0.3, green: 0.6, blue: 1.0)
+    )
+    static let infoLight = info.opacity(0.3)
+    static let infoDark = info.opacity(0.8)
     
     // MARK: - Neutral Colors
-    static let background = Color(UIColor.systemBackground)
+    public static let background = Color(UIColor.systemBackground)
     static let backgroundPrimary = Color(UIColor.systemBackground)
-    static let backgroundSecondary = Color(UIColor.secondarySystemBackground)
-    static let backgroundTertiary = Color(UIColor.tertiarySystemBackground)
+    public static let backgroundSecondary = Color(UIColor.secondarySystemBackground)
+    public static let backgroundTertiary = Color(UIColor.tertiarySystemBackground)
     
-    static let surface = Color(UIColor.systemBackground)
-    static let surfaceElevated = Color(UIColor.secondarySystemBackground)
+    public static let surface = Color(UIColor.systemBackground)
+    public static let surfaceElevated = Color(UIColor.secondarySystemBackground)
     
     // MARK: - Text Colors
-    static let textPrimary = Color(UIColor.label)
-    static let textSecondary = Color(UIColor.secondaryLabel)
+    public static let textPrimary = Color(UIColor.label)
+    public static let textSecondary = Color(UIColor.secondaryLabel)
     static let textTertiary = Color(UIColor.tertiaryLabel)
-    static let textOnPrimary = Color.white
+    public static let textOnPrimary = Color.white
     static let textOnDark = Color.white
     
     // MARK: - Border Colors
@@ -65,8 +86,8 @@ struct LopanColors {
     static let borderStrong = Color(UIColor.separator).opacity(0.8)
 
     // MARK: - Utility Colors
-    static let clear = Color.clear
-    static let shadow = Color.black.opacity(0.05)
+    public static let clear = Color.clear
+    public static let shadow = Color.black.opacity(0.05)
     
     // MARK: - Glass Morphism (iOS 26 Liquid Glass trend) - WCAG Compliant
     static let glassMorphism = Color.adaptive(
@@ -100,17 +121,29 @@ struct LopanColors {
     static let statusOnHold = secondary
     
     // MARK: - Role-based Colors
-    static let roleAdministrator = Color.purple
-    static let roleSalesperson = Color.blue
-    static let roleWarehouseKeeper = Color.orange
-    static let roleWorkshopManager = Color.green
-    static let roleEVATechnician = Color.cyan
-    static let roleWorkshopTechnician = Color.indigo
+    static let roleAdministrator = Color.adaptive(
+        light: Color(red: 0.6, green: 0.0, blue: 0.8),
+        dark: Color(red: 0.8, green: 0.4, blue: 1.0)
+    )
+    static let roleSalesperson = primary
+    static let roleWarehouseKeeper = warning
+    static let roleWorkshopManager = success
+    static let roleEVATechnician = Color.adaptive(
+        light: Color(red: 0.0, green: 0.7, blue: 0.8),
+        dark: Color(red: 0.3, green: 0.9, blue: 1.0)
+    )
+    static let roleWorkshopTechnician = Color.adaptive(
+        light: Color(red: 0.3, green: 0.0, blue: 0.8),
+        dark: Color(red: 0.5, green: 0.3, blue: 1.0)
+    )
     
     // MARK: - Premium Colors
-    static let premium = Color.purple
-    static let premiumLight = Color.purple.opacity(0.3)
-    static let premiumDark = Color.purple.opacity(0.8)
+    static let premium = Color.adaptive(
+        light: Color(red: 0.6, green: 0.0, blue: 0.8),
+        dark: Color(red: 0.8, green: 0.4, blue: 1.0)
+    )
+    static let premiumLight = premium.opacity(0.3)
+    static let premiumDark = premium.opacity(0.8)
 
     // MARK: - WCAG AA High Contrast Colors (4.5:1 ratio guaranteed)
     struct HighContrast {

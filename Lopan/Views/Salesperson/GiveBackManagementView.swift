@@ -74,7 +74,7 @@ struct GiveBackManagementView: View {
         }
         .navigationTitle("return_goods_management".localized)
         .navigationBarTitleDisplayMode(.inline)
-        .background(Color(.systemGroupedBackground))
+        .background(LopanColors.backgroundSecondary)
         .accessibilityElement(children: .contain)
         .accessibilityLabel("还货管理界面")
         .accessibilityHint("包含过滤器、统计信息和还货记录列表")
@@ -170,8 +170,8 @@ struct GiveBackManagementView: View {
         .padding(16)
         .background(
             RoundedRectangle(cornerRadius: 16)
-                .fill(Color(.systemBackground))
-                .shadow(color: .black.opacity(0.05), radius: 6, x: 0, y: 2)
+                .fill(LopanColors.background)
+                .shadow(color: LopanColors.textPrimary.opacity(0.05), radius: 6, x: 0, y: 2)
         )
     }
     
@@ -396,9 +396,8 @@ struct GiveBackManagementView: View {
                     isEditing: isEditing,
                     selectedItems: selectedItems,
                     onItemSelection: { item in
-                        withHapticFeedback(.light) {
-                            toggleItemSelection(item)
-                        }
+                        LopanHapticEngine.shared.light()
+                        toggleItemSelection(item)
                     },
                     onItemTap: { item in
                         // Navigate to detail view
@@ -409,8 +408,8 @@ struct GiveBackManagementView: View {
         }
         .background(
             RoundedRectangle(cornerRadius: 16)
-                .fill(Color(.systemBackground))
-                .shadow(color: .black.opacity(0.05), radius: 6, x: 0, y: 2)
+                .fill(LopanColors.background)
+                .shadow(color: LopanColors.textPrimary.opacity(0.05), radius: 6, x: 0, y: 2)
         )
     }
     
@@ -485,18 +484,16 @@ struct GiveBackManagementView: View {
     }
     
     private func selectReturnStatus(_ status: ReturnStatus?) {
-        withHapticFeedback(.light) {
-            selectedReturnStatus = status
-        }
+        LopanHapticEngine.shared.light()
+        selectedReturnStatus = status
     }
     
     private func clearAllFilters() {
-        withHapticFeedback(.medium) {
-            selectedReturnStatus = nil
-            selectedCustomer = nil
-            selectedAddress = nil
-            isFilteringByDate = false
-        }
+        LopanHapticEngine.shared.medium()
+        selectedReturnStatus = nil
+        selectedCustomer = nil
+        selectedAddress = nil
+        isFilteringByDate = false
     }
     
     private func updateSearch() {

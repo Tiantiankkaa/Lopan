@@ -73,7 +73,7 @@ struct ExecutionTimeSheet: View {
         HStack {
             Image(systemName: "clock.badge.checkmark")
                 .font(.system(size: 24, weight: .medium))
-                .foregroundColor(.blue)
+                .foregroundColor(LopanColors.info)
             
             VStack(alignment: .leading, spacing: 4) {
                 Text("执行批次")
@@ -116,7 +116,7 @@ struct ExecutionTimeSheet: View {
                         HStack(spacing: 4) {
                             Image(systemName: shift == .morning ? "sun.min" : "moon")
                                 .font(.caption)
-                                .foregroundColor(shift == .morning ? .orange : .indigo)
+                                .foregroundColor(shift == .morning ? LopanColors.warning : LopanColors.premium)
                             
                             Text("\(formatDate(targetDate)) \(shift.displayName)")
                                 .font(.body)
@@ -127,7 +127,7 @@ struct ExecutionTimeSheet: View {
                         Text(shift.timeRangeDisplay)
                             .font(.caption2)
                             .fontWeight(.medium)
-                            .foregroundColor(.blue)
+                            .foregroundColor(LopanColors.info)
                     }
                 }
             }
@@ -135,7 +135,7 @@ struct ExecutionTimeSheet: View {
         .padding()
         .background(
             RoundedRectangle(cornerRadius: 12)
-                .fill(Color(.secondarySystemBackground))
+                .fill(LopanColors.backgroundSecondary)
         )
     }
     
@@ -162,7 +162,7 @@ struct ExecutionTimeSheet: View {
                         .foregroundColor(.primary)
                         .padding(.horizontal, 12)
                         .padding(.vertical, 6)
-                        .background(Color.secondary.opacity(0.1))
+                        .background(LopanColors.secondary.opacity(0.1))
                         .cornerRadius(8)
                 }
                 
@@ -170,7 +170,7 @@ struct ExecutionTimeSheet: View {
                 HStack(spacing: 4) {
                     Image(systemName: "info.circle")
                         .font(.caption)
-                        .foregroundColor(.orange)
+                        .foregroundColor(LopanColors.warning)
                     
                     Text("执行日期已锁定为批次提交日期，仅可修改执行时间")
                         .font(.caption)
@@ -200,7 +200,7 @@ struct ExecutionTimeSheet: View {
             .padding()
             .background(
                 RoundedRectangle(cornerRadius: 12)
-                    .fill(Color(.tertiarySystemBackground))
+                    .fill(LopanColors.backgroundTertiary)
             )
         }
     }
@@ -233,7 +233,7 @@ struct ExecutionTimeSheet: View {
         .padding()
         .background(
             RoundedRectangle(cornerRadius: 12)
-                .fill(Color(.secondarySystemBackground))
+                .fill(LopanColors.backgroundSecondary)
         )
     }
     
@@ -241,7 +241,7 @@ struct ExecutionTimeSheet: View {
         HStack(spacing: 8) {
             Image(systemName: isValid ? "checkmark.circle.fill" : "xmark.circle.fill")
                 .font(.system(size: 14, weight: .medium))
-                .foregroundColor(isValid ? .green : .red)
+                .foregroundColor(isValid ? LopanColors.success : LopanColors.error)
             
             Text(title)
                 .font(.caption)
@@ -251,7 +251,7 @@ struct ExecutionTimeSheet: View {
             
             Text(message)
                 .font(.caption2)
-                .foregroundColor(isValid ? .green : .red)
+                .foregroundColor(isValid ? LopanColors.success : LopanColors.error)
         }
     }
     
@@ -265,15 +265,15 @@ struct ExecutionTimeSheet: View {
                 Text("取消")
                     .font(.body)
                     .fontWeight(.medium)
-                    .foregroundColor(.red)
+                    .foregroundColor(LopanColors.error)
                     .frame(maxWidth: .infinity, minHeight: 44)
                     .background(
                         RoundedRectangle(cornerRadius: 12)
-                            .fill(Color.red.opacity(0.1))
+                            .fill(LopanColors.error.opacity(0.1))
                     )
                     .overlay(
                         RoundedRectangle(cornerRadius: 12)
-                            .stroke(Color.red.opacity(0.5), lineWidth: 1)
+                            .stroke(LopanColors.error.opacity(0.5), lineWidth: 1)
                     )
             }
             
@@ -288,11 +288,11 @@ struct ExecutionTimeSheet: View {
                         .font(.body)
                         .fontWeight(.medium)
                 }
-                .foregroundColor(.white)
+                .foregroundColor(LopanColors.textPrimary)
                 .frame(maxWidth: .infinity, minHeight: 44)
                 .background(
                     RoundedRectangle(cornerRadius: 12)
-                        .fill(canConfirm ? Color.blue : Color.gray)
+                        .fill(canConfirm ? LopanColors.primary : LopanColors.secondary)
                 )
             }
             .disabled(!canConfirm)

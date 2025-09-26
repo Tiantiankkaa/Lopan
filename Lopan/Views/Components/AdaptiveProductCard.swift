@@ -245,7 +245,7 @@ struct AdaptiveProductCard: View {
                         Circle()
                             .fill(colorForName(color))
                             .frame(width: 10, height: 10)
-                            .overlay(Circle().stroke(Color.black.opacity(0.15), lineWidth: 0.5))
+                            .overlay(Circle().stroke(LopanColors.border, lineWidth: 0.5))
                         
                         LopanBadge(color, style: .neutral, size: .small)
                     }
@@ -253,7 +253,7 @@ struct AdaptiveProductCard: View {
                     Circle()
                         .fill(colorForName(color))
                         .frame(width: 12, height: 12)
-                        .overlay(Circle().stroke(Color.black.opacity(0.15), lineWidth: 0.5))
+                        .overlay(Circle().stroke(LopanColors.border, lineWidth: 0.5))
                 }
             }
             
@@ -355,7 +355,7 @@ struct AdaptiveProductCard: View {
             } else if isPressed {
                 LopanColors.backgroundSecondary
             } else {
-                Color.white
+                LopanColors.backgroundSecondary
             }
         }
     }
@@ -373,9 +373,9 @@ struct AdaptiveProductCard: View {
         if selectionState.isSelected {
             return LopanColors.primary.opacity(0.15)
         } else if isPressed {
-            return Color.black.opacity(0.1)
+            return LopanColors.shadow.opacity(2)
         } else {
-            return Color.black.opacity(0.05)
+            return LopanColors.shadow
         }
     }
     
@@ -461,23 +461,23 @@ struct AdaptiveProductCard: View {
     private func colorForName(_ colorName: String) -> Color {
         let lowercased = colorName.lowercased()
         switch lowercased {
-        case "红色", "红", "red": return .red
-        case "蓝色", "蓝", "blue": return .blue
-        case "绿色", "绿", "green": return .green
-        case "黄色", "黄", "yellow": return .yellow
-        case "橙色", "橙", "orange": return .orange
-        case "紫色", "紫", "purple": return .purple
-        case "粉色", "粉", "pink": return .pink
-        case "黑色", "黑", "black": return .black
-        case "白色", "白", "white": return .white
-        case "灰色", "灰", "gray", "grey": return .gray
-        case "棕色", "棕", "brown": return Color(.systemBrown)
-        case "深蓝色", "深蓝", "navy", "dark blue": return Color(.systemBlue).opacity(0.7)
-        case "浅蓝色", "浅蓝", "light blue": return Color(.systemBlue).opacity(0.3)
-        case "军绿色", "军绿", "olive": return Color(.systemGreen).opacity(0.6)
-        case "米色", "米", "beige": return Color(.systemBrown).opacity(0.3)
-        case "格子": return Color(.systemGray2)
-        default: return Color(.systemGray3)
+        case "红色", "红", "red": return LopanColors.error
+        case "蓝色", "蓝", "blue": return LopanColors.primary
+        case "绿色", "绿", "green": return LopanColors.success
+        case "黄色", "黄", "yellow": return LopanColors.warning
+        case "橙色", "橙", "orange": return LopanColors.accent
+        case "紫色", "紫", "purple": return LopanColors.premium
+        case "粉色", "粉", "pink": return LopanColors.accent.opacity(0.7)
+        case "黑色", "黑", "black": return LopanColors.textPrimary
+        case "白色", "白", "white": return LopanColors.textOnPrimary
+        case "灰色", "灰", "gray", "grey": return LopanColors.secondary
+        case "棕色", "棕", "brown": return LopanColors.secondary
+        case "深蓝色", "深蓝", "navy", "dark blue": return LopanColors.primary.opacity(0.7)
+        case "浅蓝色", "浅蓝", "light blue": return LopanColors.primary.opacity(0.3)
+        case "军绿色", "军绿", "olive": return LopanColors.success.opacity(0.6)
+        case "米色", "米", "beige": return LopanColors.secondary.opacity(0.3)
+        case "格子": return LopanColors.secondary
+        default: return LopanColors.secondary
         }
     }
 }
@@ -573,6 +573,6 @@ struct AsyncImageView: View {
         Spacer()
     }
     .padding()
-    .background(Color(.systemGray6))
+    .background(LopanColors.backgroundTertiary)
 }
 

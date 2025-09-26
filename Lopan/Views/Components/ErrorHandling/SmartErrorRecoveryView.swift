@@ -274,7 +274,7 @@ struct SmartErrorRecoveryView: View {
             actionButtonsSection
         }
         .padding(24)
-        .background(Color(.systemGray6))
+        .background(LopanColors.backgroundTertiary)
         .cornerRadius(16)
         .accessibilityElement(children: .contain)
         .accessibilityLabel("错误信息: \(error.title)")
@@ -284,7 +284,7 @@ struct SmartErrorRecoveryView: View {
         VStack(spacing: 16) {
             Image(systemName: error.icon)
                 .font(.system(size: 48, weight: .thin))
-                .foregroundColor(.red)
+                .foregroundColor(LopanColors.error)
                 .accessibilityHidden(true)
             
             VStack(spacing: 8) {
@@ -321,7 +321,7 @@ struct SmartErrorRecoveryView: View {
                     style: .caption2,
                     alignment: .center
                 )
-                .foregroundColor(.orange)
+                .foregroundColor(LopanColors.warning)
                 .padding(.horizontal)
             }
         }
@@ -497,11 +497,11 @@ struct ErrorActionButton: View {
     private var buttonTextColor: Color {
         switch action.style {
         case .primary:
-            return .white
+            return LopanColors.textOnPrimary
         case .secondary:
             return .accentColor
         case .destructive:
-            return .white
+            return LopanColors.textOnPrimary
         }
     }
     
@@ -510,9 +510,9 @@ struct ErrorActionButton: View {
         case .primary:
             return .accentColor
         case .secondary:
-            return Color.accentColor.opacity(0.1)
+            return LopanColors.primary.opacity(0.1)
         case .destructive:
-            return .red
+            return LopanColors.error
         }
     }
 }
@@ -528,7 +528,7 @@ struct InlineErrorView: View {
         HStack(spacing: 12) {
             Image(systemName: error.icon)
                 .font(.system(size: 16))
-                .foregroundColor(.red)
+                .foregroundColor(LopanColors.error)
                 .accessibilityHidden(true)
             
             VStack(alignment: .leading, spacing: 2) {
@@ -569,10 +569,10 @@ struct InlineErrorView: View {
         .padding(12)
         .background(
             RoundedRectangle(cornerRadius: 8)
-                .fill(Color.red.opacity(0.1))
+                .fill(LopanColors.error.opacity(0.1))
                 .overlay(
                     RoundedRectangle(cornerRadius: 8)
-                        .stroke(Color.red.opacity(0.3), lineWidth: 1)
+                        .stroke(LopanColors.error.opacity(0.3), lineWidth: 1)
                 )
         )
         .accessibilityElement(children: .combine)

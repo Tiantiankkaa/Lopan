@@ -83,7 +83,6 @@ struct AdvancedSearchBar: View {
                 .textFieldStyle(RoundedBorderTextFieldStyle())
                 .accessibilityLabel("搜索输入框")
                 .accessibilityValue(searchViewModel.searchText.isEmpty ? "空白" : searchViewModel.searchText)
-                .dynamicTypeSize(.large...(.accessibility5))
             
             // Clear button
             if !searchViewModel.searchText.isEmpty {
@@ -141,7 +140,7 @@ struct GenericFilterChip<T: Hashable & CustomStringConvertible>: View {
                     Button(action: { onClear?() }) {
                         Image(systemName: "xmark.circle.fill")
                             .font(.caption)
-                            .foregroundColor(.white.opacity(0.8))
+                            .foregroundColor(LopanColors.textOnPrimary.opacity(0.8))
                     }
                     .accessibilityLabel("清除\(title)筛选")
                 }
@@ -161,7 +160,6 @@ struct GenericFilterChip<T: Hashable & CustomStringConvertible>: View {
         .accessibilityElement(children: .combine)
         .accessibilityLabel(accessibilityLabel)
         .accessibilityHint("轻点以\(isActive ? "取消" : "应用")\(title)筛选")
-        .dynamicTypeSize(.large...(.accessibility5))
     }
     
     private var displayText: String {
@@ -173,15 +171,15 @@ struct GenericFilterChip<T: Hashable & CustomStringConvertible>: View {
     }
     
     private var backgroundColor: Color {
-        isActive ? .blue : Color(.systemGray5)
+        isActive ? LopanColors.info : LopanColors.backgroundTertiary
     }
     
     private var foregroundColor: Color {
-        isActive ? .white : .primary
+        isActive ? LopanColors.textOnPrimary : .primary
     }
     
     private var borderColor: Color {
-        isActive ? .blue : Color(.systemGray4)
+        isActive ? LopanColors.info : LopanColors.secondary
     }
     
     private var accessibilityLabel: String {
@@ -236,9 +234,8 @@ struct FilterBar<T: Hashable & CustomStringConvertible>: View {
                         onClearAll?()
                     }
                     .font(.subheadline)
-                    .foregroundColor(.red)
+                    .foregroundColor(LopanColors.error)
                     .accessibilityLabel("清除所有筛选")
-                    .dynamicTypeSize(.large...(.accessibility5))
                 }
             }
             .padding(.horizontal)
@@ -288,7 +285,7 @@ struct SortOption<T: Hashable & CustomStringConvertible>: View {
                 
                 if currentValue as? AnyHashable == value as? AnyHashable {
                     Image(systemName: ascending ? "chevron.up" : "chevron.down")
-                        .foregroundColor(.blue)
+                        .foregroundColor(LopanColors.info)
                         .accessibilityLabel(ascending ? "升序" : "降序")
                 }
             }
@@ -297,7 +294,6 @@ struct SortOption<T: Hashable & CustomStringConvertible>: View {
         .accessibilityLabel("\(title)排序")
         .accessibilityValue(currentValue as? AnyHashable == value as? AnyHashable ? (ascending ? "升序" : "降序") : "未选中")
         .accessibilityHint("轻点选择排序方式")
-        .dynamicTypeSize(.large...(.accessibility5))
     }
 }
 
@@ -354,13 +350,12 @@ struct SearchAndFilterContainer<Content: View>: View {
                         .font(.caption)
                         .accessibilityHidden(true)
                 }
-                .foregroundColor(.blue)
+                .foregroundColor(LopanColors.info)
             }
             .accessibilityLabel("筛选选项")
             .accessibilityValue(isFilterExpanded ? "已展开" : "已收起")
             .accessibilityHint("轻点以\(isFilterExpanded ? "收起" : "展开")筛选选项")
             .padding(.horizontal)
-            .dynamicTypeSize(.large...(.accessibility5))
             
             // Filter content
             if isFilterExpanded {
@@ -371,7 +366,7 @@ struct SearchAndFilterContainer<Content: View>: View {
                     ))
             }
         }
-        .background(Color(.systemGray6))
+        .background(LopanColors.backgroundTertiary)
         .cornerRadius(12)
         .padding(.horizontal)
     }
@@ -457,7 +452,7 @@ struct DebouncedSearchField: View {
         }
         .padding(.horizontal)
         .padding(.vertical, 8)
-        .background(Color(.systemGray6))
+        .background(LopanColors.backgroundTertiary)
         .cornerRadius(10)
     }
 }

@@ -71,7 +71,7 @@ struct VirtualizedListView<Item: Identifiable, Content: View>: View {
                 }
                 .background(
                     GeometryReader { scrollGeometry in
-                        Color.clear
+                        LopanColors.clear
                             .onAppear {
                                 updateContentHeight(scrollGeometry.size.height)
                             }
@@ -259,7 +259,7 @@ struct OptimizedOutOfStockCard: View {
         )
         .background(
             GeometryReader { geometry in
-                Color.clear
+                LopanColors.clear
                     .onAppear {
                         let height = geometry.size.height
                         if height != cardHeight {
@@ -289,16 +289,16 @@ struct ListPerformanceMonitor: View {
                 .foregroundColor(.secondary)
             
             HStack {
-                performanceMetric("FPS", value: fps, unit: "", color: fps > 55 ? .green : fps > 45 ? .orange : .red)
-                performanceMetric("内存", value: memoryUsage, unit: "MB", color: memoryUsage < 100 ? .green : .orange)
-                performanceMetric("渲染", value: renderTime, unit: "ms", color: renderTime < 16 ? .green : .orange)
+                performanceMetric("FPS", value: fps, unit: "", color: fps > 55 ? LopanColors.success : fps > 45 ? LopanColors.warning : LopanColors.error)
+                performanceMetric("内存", value: memoryUsage, unit: "MB", color: memoryUsage < 100 ? LopanColors.success : LopanColors.warning)
+                performanceMetric("渲染", value: renderTime, unit: "ms", color: renderTime < 16 ? LopanColors.success : LopanColors.warning)
             }
         }
         .padding(.horizontal, 8)
         .padding(.vertical, 4)
         .background(
             RoundedRectangle(cornerRadius: 6)
-                .fill(Color(.systemBackground).opacity(0.8))
+                .fill(LopanColors.background.opacity(0.8))
         )
         .onAppear {
             startPerformanceMonitoring()

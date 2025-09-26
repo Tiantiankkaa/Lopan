@@ -37,7 +37,7 @@ struct OutOfStockTestingView: View {
         VStack(spacing: 12) {
             Image(systemName: "testtube.2")
                 .font(.title)
-                .foregroundColor(.blue)
+                .foregroundColor(LopanColors.primary)
             
             Text("缺货管理界面测试套件")
                 .font(.title2)
@@ -52,7 +52,7 @@ struct OutOfStockTestingView: View {
         .padding()
         .background(
             RoundedRectangle(cornerRadius: 16)
-                .fill(Color.blue.opacity(0.1))
+                .fill(LopanColors.primary.opacity(0.1))
         )
     }
     
@@ -70,7 +70,7 @@ struct OutOfStockTestingView: View {
                     title: "空数据",
                     description: "测试无缺货记录的情况",
                     icon: "tray",
-                    color: .gray,
+                    color: LopanColors.textSecondary,
                     action: { testViewModel.testEmptyState() }
                 )
                 
@@ -78,7 +78,7 @@ struct OutOfStockTestingView: View {
                     title: "大量数据",
                     description: "测试1000+记录的性能",
                     icon: "chart.bar.fill",
-                    color: .orange,
+                    color: LopanColors.warning,
                     action: { testViewModel.testLargeDataset() }
                 )
                 
@@ -86,7 +86,7 @@ struct OutOfStockTestingView: View {
                     title: "筛选结果为空",
                     description: "测试筛选后无结果",
                     icon: "line.3.horizontal.decrease",
-                    color: .purple,
+                    color: LopanColors.primary,
                     action: { testViewModel.testEmptyFilterResults() }
                 )
                 
@@ -94,7 +94,7 @@ struct OutOfStockTestingView: View {
                     title: "网络错误",
                     description: "测试网络异常处理",
                     icon: "wifi.slash",
-                    color: .red,
+                    color: LopanColors.error,
                     action: { testViewModel.testNetworkError() }
                 )
             }
@@ -187,12 +187,12 @@ struct OutOfStockTestingView: View {
                     Text("启动缺货管理界面")
                         .fontWeight(.semibold)
                 }
-                .foregroundColor(.white)
+                .foregroundColor(LopanColors.textPrimary)
                 .frame(maxWidth: .infinity)
                 .frame(height: 50)
                 .background(
                     LinearGradient(
-                        colors: [Color.blue, Color.blue.opacity(0.8)],
+                        colors: [LopanColors.primary, LopanColors.primary.opacity(0.8)],
                         startPoint: .leading,
                         endPoint: .trailing
                     )
@@ -206,12 +206,12 @@ struct OutOfStockTestingView: View {
                     Text("运行所有测试")
                         .fontWeight(.medium)
                 }
-                .foregroundColor(.green)
+                .foregroundColor(LopanColors.success)
                 .frame(maxWidth: .infinity)
                 .frame(height: 44)
                 .overlay(
                     RoundedRectangle(cornerRadius: 12)
-                        .stroke(Color.green, lineWidth: 1.5)
+                        .stroke(LopanColors.success, lineWidth: 1.5)
                 )
             }
             
@@ -221,12 +221,12 @@ struct OutOfStockTestingView: View {
                     Text("生成测试报告")
                         .fontWeight(.medium)
                 }
-                .foregroundColor(.orange)
+                .foregroundColor(LopanColors.warning)
                 .frame(maxWidth: .infinity)
                 .frame(height: 44)
                 .overlay(
                     RoundedRectangle(cornerRadius: 12)
-                        .stroke(Color.orange, lineWidth: 1.5)
+                        .stroke(LopanColors.warning, lineWidth: 1.5)
                 )
             }
         }
@@ -238,7 +238,7 @@ struct OutOfStockTestingView: View {
         HStack(spacing: 8) {
             Image(systemName: icon)
                 .font(.title3)
-                .foregroundColor(.blue)
+                .foregroundColor(LopanColors.primary)
             
             Text(title)
                 .font(.title3)
@@ -331,13 +331,13 @@ struct PerformanceTestRow: View {
                     action()
                 }
                 .font(.caption)
-                .foregroundColor(.blue)
+                .foregroundColor(LopanColors.primary)
             }
         }
         .padding()
         .background(
             RoundedRectangle(cornerRadius: 12)
-                .fill(Color(.systemGray6))
+                .fill(LopanColors.backgroundSecondary)
         )
     }
 }
@@ -368,24 +368,24 @@ struct AccessibilityTestRow: View {
                 if let passed = isPassed {
                     Image(systemName: passed ? "checkmark.circle.fill" : "xmark.circle.fill")
                         .font(.title3)
-                        .foregroundColor(passed ? .green : .red)
+                        .foregroundColor(passed ? LopanColors.success : LopanColors.error)
                 } else {
                     Image(systemName: "questionmark.circle")
                         .font(.title3)
-                        .foregroundColor(.gray)
+                        .foregroundColor(LopanColors.textSecondary)
                 }
                 
                 Button("测试") {
                     action()
                 }
                 .font(.caption)
-                .foregroundColor(.blue)
+                .foregroundColor(LopanColors.primary)
             }
         }
         .padding()
         .background(
             RoundedRectangle(cornerRadius: 12)
-                .fill(Color(.systemGray6))
+                .fill(LopanColors.backgroundSecondary)
         )
     }
 }
@@ -525,14 +525,14 @@ struct PerformanceResult {
     }
     
     var color: Color {
-        guard let score = score else { return .gray }
+        guard let score = score else { return LopanColors.textSecondary }
         
         if score < 16 {
-            return .green
+            return LopanColors.success
         } else if score < 33 {
-            return .orange
+            return LopanColors.warning
         } else {
-            return .red
+            return LopanColors.error
         }
     }
 }

@@ -50,11 +50,11 @@ struct EnhancedOutOfStockSkeletonCard: View {
                 HStack(spacing: 12) {
                     // Product icon placeholder
                     Circle()
-                        .fill(Color(.systemGray5))
+                        .fill(LopanColors.backgroundTertiary)
                         .frame(width: 16, height: 16)
                         .overlay(
                             Circle()
-                                .stroke(Color.blue.opacity(0.3), lineWidth: 1)
+                                .stroke(LopanColors.primary.opacity(0.3), lineWidth: 1)
                                 .scaleEffect(breathingScale)
                         )
                     
@@ -84,16 +84,16 @@ struct EnhancedOutOfStockSkeletonCard: View {
         .padding(16)
         .background(
             RoundedRectangle(cornerRadius: 16)
-                .fill(Color(.systemBackground))
+                .fill(LopanColors.background)
                 .overlay(
                     // Shimmer overlay
                     RoundedRectangle(cornerRadius: 16)
                         .fill(
                             LinearGradient(
                                 colors: [
-                                    Color.clear,
-                                    Color.white.opacity(0.4),
-                                    Color.clear
+                                    LopanColors.clear,
+                                    LopanColors.textPrimary.opacity(0.4),
+                                    LopanColors.clear
                                 ],
                                 startPoint: .leading,
                                 endPoint: .trailing
@@ -102,7 +102,7 @@ struct EnhancedOutOfStockSkeletonCard: View {
                         .offset(x: shimmerOffset)
                         .clipped()
                 )
-                .shadow(color: .black.opacity(0.05), radius: 4, x: 0, y: 2)
+                .shadow(color: LopanColors.textPrimary.opacity(0.05), radius: 4, x: 0, y: 2)
         )
         .overlay(
             // Border animation
@@ -110,7 +110,7 @@ struct EnhancedOutOfStockSkeletonCard: View {
                 .trim(from: 0.0, to: strokeProgress)
                 .stroke(
                     LinearGradient(
-                        colors: [Color.blue.opacity(0.3), Color.blue.opacity(0.6), Color.blue.opacity(0.3)],
+                        colors: [LopanColors.primary.opacity(0.3), LopanColors.primary.opacity(0.6), LopanColors.primary.opacity(0.3)],
                         startPoint: .topLeading,
                         endPoint: .bottomTrailing
                     ),
@@ -158,9 +158,9 @@ struct EnhancedOutOfStockSkeletonCard: View {
             .fill(
                 LinearGradient(
                     colors: [
-                        Color(.systemGray6),
-                        Color(.systemGray5),
-                        Color(.systemGray6)
+                        LopanColors.backgroundTertiary,
+                        LopanColors.backgroundTertiary,
+                        LopanColors.backgroundTertiary
                     ],
                     startPoint: .leading,
                     endPoint: .trailing
@@ -235,11 +235,11 @@ struct EnhancedSkeletonStatsCards: View {
             // Icon row with spacer (matching real QuickStatCard layout)
             HStack {
                 RoundedRectangle(cornerRadius: 8)
-                    .fill(Color(.systemGray5))
+                    .fill(LopanColors.backgroundTertiary)
                     .frame(width: 20, height: 20)
                     .overlay(
                         RoundedRectangle(cornerRadius: 8)
-                            .stroke(Color.blue.opacity(0.3), lineWidth: 1)
+                            .stroke(LopanColors.primary.opacity(0.3), lineWidth: 1)
                             .scaleEffect(1.0 + animationPhase * 0.05)
                     )
                 
@@ -247,7 +247,7 @@ struct EnhancedSkeletonStatsCards: View {
                 
                 // Trend indicator skeleton (optional placeholder)
                 Circle()
-                    .fill(Color(.systemGray6))
+                    .fill(LopanColors.backgroundTertiary)
                     .frame(width: 10, height: 10)
             }
             
@@ -257,7 +257,7 @@ struct EnhancedSkeletonStatsCards: View {
                 RoundedRectangle(cornerRadius: 8)
                     .fill(
                         LinearGradient(
-                            colors: [Color(.systemGray6), Color(.systemGray5), Color(.systemGray6)],
+                            colors: [LopanColors.backgroundTertiary, LopanColors.backgroundTertiary, LopanColors.backgroundTertiary],
                             startPoint: .leading,
                             endPoint: .trailing
                         )
@@ -267,7 +267,7 @@ struct EnhancedSkeletonStatsCards: View {
                         Rectangle()
                             .fill(
                                 LinearGradient(
-                                    colors: [Color.clear, Color.white.opacity(0.3), Color.clear],
+                                    colors: [LopanColors.clear, LopanColors.textPrimary.opacity(0.3), LopanColors.clear],
                                     startPoint: .leading,
                                     endPoint: .trailing
                                 )
@@ -278,7 +278,7 @@ struct EnhancedSkeletonStatsCards: View {
                 
                 // Title skeleton (wider to match real text)
                 RoundedRectangle(cornerRadius: 4)
-                    .fill(Color(.systemGray6))
+                    .fill(LopanColors.backgroundTertiary)
                     .frame(width: 50, height: 10)
             }
         }
@@ -286,12 +286,12 @@ struct EnhancedSkeletonStatsCards: View {
         .frame(maxWidth: .infinity) // Expand to fill available width like real cards
         .background(
             RoundedRectangle(cornerRadius: 12)
-                .fill(Color(.systemBackground))
-                .shadow(color: .black.opacity(0.05), radius: 4, x: 0, y: 2)
+                .fill(LopanColors.background)
+                .shadow(color: LopanColors.textPrimary.opacity(0.05), radius: 4, x: 0, y: 2)
         )
         .overlay(
             RoundedRectangle(cornerRadius: 12)
-                .stroke(Color.blue.opacity(0.2), lineWidth: 1)
+                .stroke(LopanColors.primary.opacity(0.2), lineWidth: 1)
                 .scaleEffect(1.0 + animationPhase * 0.02)
         )
         .scaleEffect(1.0 - animationPhase * 0.01)
@@ -316,5 +316,5 @@ struct EnhancedSkeletonStatsCards: View {
         }
         .padding()
     }
-    .background(Color(.systemBackground))
+    .background(LopanColors.background)
 }

@@ -32,7 +32,7 @@ struct WorkbenchSelectorView: View {
                                 .foregroundColor(LopanColors.info)
                                 .padding(.horizontal, 8)
                                 .padding(.vertical, 2)
-                                .background(Color.blue.opacity(0.1))
+                                .background(LopanColors.primary.opacity(0.1))
                                 .cornerRadius(4)
                         }
                     }
@@ -107,8 +107,8 @@ struct WorkbenchSelectorView: View {
                                     }
                                     .frame(maxWidth: .infinity)
                                     .padding()
-                                    .background(Color.orange)
-                                    .foregroundColor(.white)
+                                    .background(LopanColors.warning)
+                                    .foregroundColor(LopanColors.textPrimary)
                                     .cornerRadius(10)
                                     
                                     // 完全退出登录按钮
@@ -118,8 +118,8 @@ struct WorkbenchSelectorView: View {
                                     }
                                     .frame(maxWidth: .infinity)
                                     .padding()
-                                    .background(Color.red)
-                                    .foregroundColor(.white)
+                                    .background(LopanColors.error)
+                                    .foregroundColor(LopanColors.textPrimary)
                                     .cornerRadius(10)
                                 }
                             }
@@ -130,7 +130,7 @@ struct WorkbenchSelectorView: View {
                     VStack(spacing: 16) {
                         Image(systemName: "person.crop.circle.badge.xmark")
                             .font(.system(size: 40))
-                            .foregroundColor(.gray)
+                            .foregroundColor(LopanColors.secondary)
                         
                         Text("未登录")
                             .font(.headline)
@@ -203,13 +203,13 @@ struct WorkbenchCard: View {
                         .foregroundColor(LopanColors.info)
                         .padding(.horizontal, 8)
                         .padding(.vertical, 2)
-                        .background(Color.blue.opacity(0.1))
+                        .background(LopanColors.primary.opacity(0.1))
                         .cornerRadius(4)
                 }
             }
             .frame(maxWidth: .infinity)
             .padding()
-            .background(isCurrentRole ? Color.blue.opacity(0.1) : Color.gray.opacity(0.1))
+            .background(isCurrentRole ? LopanColors.primary.opacity(0.1) : LopanColors.secondary.opacity(0.1))
             .cornerRadius(12)
         }
         .buttonStyle(PlainButtonStyle())
@@ -238,19 +238,19 @@ struct WorkbenchCard: View {
     private func colorForRole(_ role: UserRole) -> Color {
         switch role {
         case .salesperson:
-            return .blue
+            return LopanColors.roleSalesperson
         case .warehouseKeeper:
-            return .orange
+            return LopanColors.roleWarehouseKeeper
         case .workshopManager:
-            return .green
+            return LopanColors.roleWorkshopManager
         case .evaGranulationTechnician:
-            return .cyan
+            return LopanColors.primary
         case .workshopTechnician:
-            return .purple
+            return LopanColors.roleWorkshopTechnician
         case .administrator:
-            return .red
+            return LopanColors.roleAdministrator
         case .unauthorized:
-            return .gray
+            return LopanColors.secondary
         }
     }
 }

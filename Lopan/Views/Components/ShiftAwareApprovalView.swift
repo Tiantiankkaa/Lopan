@@ -144,7 +144,7 @@ struct ShiftAwareApprovalView: View {
             HStack {
                 Image(systemName: "doc.text.magnifyingglass")
                     .font(.system(size: 28, weight: .medium))
-                    .foregroundColor(.blue)
+                    .foregroundColor(LopanColors.primary)
                 
                 VStack(alignment: .leading, spacing: 4) {
                     Text("批次审批")
@@ -216,7 +216,7 @@ struct ShiftAwareApprovalView: View {
                         Text(batch.mode.displayName)
                             .font(.body)
                             .fontWeight(.medium)
-                            .foregroundColor(.blue)
+                            .foregroundColor(LopanColors.primary)
                     }
                 }
                 
@@ -251,7 +251,7 @@ struct ShiftAwareApprovalView: View {
             .padding()
             .background(
                 RoundedRectangle(cornerRadius: 12)
-                    .fill(Color(.secondarySystemBackground))
+                    .fill(LopanColors.backgroundSecondary)
             )
         }
     }
@@ -283,7 +283,7 @@ struct ShiftAwareApprovalView: View {
                     HStack(spacing: 8) {
                         Image(systemName: "calendar")
                             .font(.system(size: 16, weight: .medium))
-                            .foregroundColor(.blue)
+                            .foregroundColor(LopanColors.primary)
                         
                         Text(formatFullDate(targetDate))
                             .font(.body)
@@ -303,7 +303,7 @@ struct ShiftAwareApprovalView: View {
                     HStack(spacing: 8) {
                         Image(systemName: shift == .morning ? "sun.min" : "moon")
                             .font(.system(size: 16, weight: .medium))
-                            .foregroundColor(shift == .morning ? .orange : .indigo)
+                            .foregroundColor(shift == .morning ? LopanColors.warning : LopanColors.primary)
                         
                         Text(shift.displayName)
                             .font(.body)
@@ -324,7 +324,7 @@ struct ShiftAwareApprovalView: View {
         .padding()
         .background(
             RoundedRectangle(cornerRadius: 12)
-                .fill(Color(.secondarySystemBackground))
+                .fill(LopanColors.backgroundSecondary)
         )
     }
     
@@ -344,7 +344,7 @@ struct ShiftAwareApprovalView: View {
             HStack(spacing: 12) {
                 Image(systemName: cutoffInfo.hasRestriction ? "clock.badge.exclamationmark" : "checkmark.circle")
                     .font(.system(size: 16, weight: .medium))
-                    .foregroundColor(cutoffInfo.hasRestriction ? .orange : .green)
+                    .foregroundColor(cutoffInfo.hasRestriction ? LopanColors.warning : LopanColors.success)
                 
                 VStack(alignment: .leading, spacing: 2) {
                     Text(cutoffInfo.hasRestriction ? "时间限制模式" : "正常时间模式")
@@ -372,7 +372,7 @@ struct ShiftAwareApprovalView: View {
                     .padding(.vertical, 2)
                     .background(
                         RoundedRectangle(cornerRadius: 4)
-                            .fill(Color(.tertiarySystemBackground))
+                            .fill(LopanColors.backgroundTertiary)
                     )
             }
             .padding(.horizontal, 12)
@@ -398,13 +398,13 @@ struct ShiftAwareApprovalView: View {
             HStack(spacing: 12) {
                 Image(systemName: "paintpalette")
                     .font(.system(size: 16, weight: .medium))
-                    .foregroundColor(.orange)
+                    .foregroundColor(LopanColors.warning)
                 
                 VStack(alignment: .leading, spacing: 2) {
                     Text("仅限颜色修改")
                         .font(.caption)
                         .fontWeight(.medium)
-                        .foregroundColor(.orange)
+                        .foregroundColor(LopanColors.warning)
                     
                     Text("此批次仅允许修改产品颜色配置")
                         .font(.caption2)
@@ -445,7 +445,7 @@ struct ShiftAwareApprovalView: View {
             .padding()
             .background(
                 RoundedRectangle(cornerRadius: 12)
-                    .fill(Color(.secondarySystemBackground))
+                    .fill(LopanColors.backgroundSecondary)
             )
         }
     }
@@ -469,7 +469,7 @@ struct ShiftAwareApprovalView: View {
             VStack(spacing: 8) {
                 Image(systemName: machine.isOperational ? "gearshape.fill" : "gearshape")
                     .font(.system(size: 24, weight: .medium))
-                    .foregroundColor(machine.isOperational ? .green : .orange)
+                    .foregroundColor(machine.isOperational ? LopanColors.success : LopanColors.warning)
                 
                 Circle()
                     .fill(machine.isOperational ? LopanColors.success : LopanColors.warning)
@@ -489,10 +489,10 @@ struct ShiftAwareApprovalView: View {
                     Text(machine.isOperational ? "运行正常" : "需要维护")
                         .font(.caption)
                         .fontWeight(.medium)
-                        .foregroundColor(machine.isOperational ? .green : .orange)
+                        .foregroundColor(machine.isOperational ? LopanColors.success : LopanColors.warning)
                     
                     Circle()
-                        .fill(Color(.separator))
+                        .fill(LopanColors.secondary.opacity(0.3))
                         .frame(width: 2, height: 2)
                     
                     Text("\(machine.stations.count)工位 · \(machine.totalGuns)喷枪")
@@ -506,17 +506,17 @@ struct ShiftAwareApprovalView: View {
             if !machine.isOperational {
                 Image(systemName: "exclamationmark.triangle")
                     .font(.system(size: 16, weight: .medium))
-                    .foregroundColor(.orange)
+                    .foregroundColor(LopanColors.warning)
             }
         }
         .padding()
         .background(
             RoundedRectangle(cornerRadius: 12)
-                .fill(Color(.secondarySystemBackground))
+                .fill(LopanColors.backgroundSecondary)
         )
         .overlay(
             RoundedRectangle(cornerRadius: 12)
-                .stroke(machine.isOperational ? Color.clear : LopanColors.warning.opacity(0.5), lineWidth: 1)
+                .stroke(machine.isOperational ? LopanColors.clear : LopanColors.warning.opacity(0.5), lineWidth: 1)
         )
     }
     
@@ -534,7 +534,7 @@ struct ShiftAwareApprovalView: View {
         .padding()
         .background(
             RoundedRectangle(cornerRadius: 12)
-                .fill(Color(.secondarySystemBackground))
+                .fill(LopanColors.backgroundSecondary)
         )
     }
     
@@ -574,7 +574,7 @@ struct ShiftAwareApprovalView: View {
         .padding(.vertical, 20)
         .background(
             RoundedRectangle(cornerRadius: 12)
-                .fill(Color(.secondarySystemBackground))
+                .fill(LopanColors.backgroundSecondary)
         )
     }
     
@@ -583,7 +583,7 @@ struct ShiftAwareApprovalView: View {
             Text("\(index + 1)")
                 .font(.caption)
                 .fontWeight(.bold)
-                .foregroundColor(.white)
+                .foregroundColor(LopanColors.textPrimary)
                 .frame(width: 20, height: 20)
                 .background(
                     Circle()
@@ -636,7 +636,7 @@ struct ShiftAwareApprovalView: View {
             if batch.allowsColorModificationOnly {
                 Image(systemName: "paintpalette")
                     .font(.caption)
-                    .foregroundColor(.orange)
+                    .foregroundColor(LopanColors.warning)
                     .padding(4)
                     .background(
                         Circle()
@@ -647,11 +647,11 @@ struct ShiftAwareApprovalView: View {
         .padding()
         .background(
             RoundedRectangle(cornerRadius: 8)
-                .fill(Color(.systemBackground))
+                .fill(LopanColors.background)
         )
         .overlay(
             RoundedRectangle(cornerRadius: 8)
-                .stroke(Color(.separator), lineWidth: 0.5)
+                .stroke(LopanColors.secondary.opacity(0.3), lineWidth: 0.5)
         )
     }
     
@@ -688,7 +688,7 @@ struct ShiftAwareApprovalView: View {
                 .frame(maxWidth: .infinity, minHeight: 50)
                 .background(
                     RoundedRectangle(cornerRadius: 12)
-                        .fill(Color(.secondarySystemBackground))
+                        .fill(LopanColors.backgroundSecondary)
                 )
             } else {
                 HStack(spacing: 12) {
@@ -704,7 +704,7 @@ struct ShiftAwareApprovalView: View {
                                 .font(.body)
                                 .fontWeight(.medium)
                         }
-                        .foregroundColor(.red)
+                        .foregroundColor(LopanColors.error)
                         .frame(maxWidth: .infinity, minHeight: 44)
                         .background(
                             RoundedRectangle(cornerRadius: 12)
@@ -728,7 +728,7 @@ struct ShiftAwareApprovalView: View {
                                 .font(.body)
                                 .fontWeight(.medium)
                         }
-                        .foregroundColor(.white)
+                        .foregroundColor(LopanColors.textPrimary)
                         .frame(maxWidth: .infinity, minHeight: 44)
                         .background(
                             RoundedRectangle(cornerRadius: 12)
@@ -787,7 +787,7 @@ struct ShiftAwareApprovalView: View {
         .padding()
         .background(
             RoundedRectangle(cornerRadius: 12)
-                .fill(Color(.tertiarySystemBackground))
+                .fill(LopanColors.backgroundTertiary)
         )
     }
     
@@ -795,7 +795,7 @@ struct ShiftAwareApprovalView: View {
         HStack(spacing: 8) {
             Image(systemName: isValid ? "checkmark.circle.fill" : "xmark.circle.fill")
                 .font(.system(size: 12, weight: .medium))
-                .foregroundColor(isValid ? .green : .red)
+                .foregroundColor(isValid ? LopanColors.success : LopanColors.error)
             
             Text(title)
                 .font(.caption2)
@@ -806,7 +806,7 @@ struct ShiftAwareApprovalView: View {
             
             Text(message)
                 .font(.caption2)
-                .foregroundColor(isValid ? .green : .red)
+                .foregroundColor(isValid ? LopanColors.success : LopanColors.error)
         }
     }
     
@@ -821,7 +821,7 @@ struct ShiftAwareApprovalView: View {
                 HStack {
                     Image(systemName: "clock.badge.exclamationmark")
                         .font(.system(size: 20, weight: .medium))
-                        .foregroundColor(.orange)
+                        .foregroundColor(LopanColors.warning)
                     
                     VStack(alignment: .leading, spacing: 4) {
                         Text("待执行")
@@ -846,7 +846,7 @@ struct ShiftAwareApprovalView: View {
                             HStack(spacing: 4) {
                                 Image(systemName: shift == .morning ? "sun.min" : "moon")
                                     .font(.caption)
-                                    .foregroundColor(shift == .morning ? .orange : .indigo)
+                                    .foregroundColor(shift == .morning ? LopanColors.warning : LopanColors.primary)
                                 
                                 Text("\(formatFullDate(targetDate)) \(shift.displayName)")
                                     .font(.body)
@@ -865,20 +865,20 @@ struct ShiftAwareApprovalView: View {
                             Text(shift.timeRangeDisplay)
                                 .font(.body)
                                 .fontWeight(.medium)
-                                .foregroundColor(.blue)
+                                .foregroundColor(LopanColors.primary)
                         }
                     }
                     .padding()
                     .background(
                         RoundedRectangle(cornerRadius: 8)
-                            .fill(Color(.tertiarySystemBackground))
+                            .fill(LopanColors.backgroundTertiary)
                     )
                 }
             }
             .padding()
             .background(
                 RoundedRectangle(cornerRadius: 12)
-                    .fill(Color(.secondarySystemBackground))
+                    .fill(LopanColors.backgroundSecondary)
             )
             
             // Execute button
@@ -897,9 +897,9 @@ struct ShiftAwareApprovalView: View {
                     
                     Text("设置执行时间")
                         .font(.caption)
-                        .foregroundColor(.white.opacity(0.8))
+                        .foregroundColor(LopanColors.textOnPrimary.opacity(0.8))
                 }
-                .foregroundColor(.white)
+                .foregroundColor(LopanColors.textPrimary)
                 .padding()
                 .background(
                     RoundedRectangle(cornerRadius: 12)
@@ -915,7 +915,7 @@ struct ShiftAwareApprovalView: View {
         HStack(spacing: 8) {
             Image(systemName: icon)
                 .font(.system(size: 16, weight: .medium))
-                .foregroundColor(.blue)
+                .foregroundColor(LopanColors.primary)
             
             Text(title)
                 .font(.headline)

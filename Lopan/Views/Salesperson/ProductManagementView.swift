@@ -196,9 +196,9 @@ struct ProductManagementView: View {
                 .foregroundColor(LopanColors.primary)
         }
         .frame(width: 44, height: 44)
-        .background(Color.white)
+        .background(LopanColors.backgroundSecondary)
         .clipShape(RoundedRectangle(cornerRadius: 12))
-        .shadow(color: Color.black.opacity(0.05), radius: 2, x: 0, y: 1)
+        .shadow(color: LopanColors.shadow, radius: 2, x: 0, y: 1)
         .disabled(filteredProducts.isEmpty)
         .accessibilityLabel("批量操作模式")
         .accessibilityHint("启用批量选择和操作功能")
@@ -320,14 +320,14 @@ struct ProductManagementView: View {
                         clearSearch()
                     }
                     .buttonStyle(.borderedProminent)
-                    .foregroundColor(.white)
+                    .foregroundColor(LopanColors.textPrimary)
                     .tint(LopanColors.primary)
                 } else {
                     Button("添加产品") {
                         showingAddProduct = true
                     }
                     .buttonStyle(.borderedProminent)
-                    .foregroundColor(.white)
+                    .foregroundColor(LopanColors.textPrimary)
                     .tint(LopanColors.primary)
                     
                     Button("导入产品") {
@@ -386,7 +386,7 @@ struct ProductManagementView: View {
                     .font(.callout)
                     .fontWeight(.medium)
             }
-            .foregroundColor(.white)
+            .foregroundColor(LopanColors.textPrimary)
             .padding(.horizontal, 16)
             .padding(.vertical, 10)
             .background(LopanColors.primary.opacity(0.9))
@@ -402,7 +402,7 @@ struct ProductManagementView: View {
         }) {
             Image(systemName: showingSmartActions ? "plus" : "plus")
                 .font(.system(size: 24, weight: .medium))
-                .foregroundColor(.white)
+                .foregroundColor(LopanColors.textPrimary)
                 .frame(width: 56, height: 56)
                 .background(LopanColors.primary)
                 .clipShape(Circle())
@@ -520,7 +520,7 @@ struct ProductManagementView: View {
             }
             .padding(.horizontal, 20)
             .padding(.vertical, 16)
-            .background(Color.white)
+            .background(LopanColors.backgroundSecondary)
             .contentShape(Rectangle())
         }
         .buttonStyle(PlainButtonStyle())
@@ -535,7 +535,7 @@ struct ProductManagementView: View {
     // MARK: - Action Functions
     
     private func toggleBatchMode() {
-        HapticFeedback.medium()
+        LopanHapticEngine.shared.medium()
         
         withAnimation(.easeInOut(duration: 0.3)) {
             isBatchMode.toggle()
@@ -554,7 +554,7 @@ struct ProductManagementView: View {
     }
     
     private func clearSearch() {
-        HapticFeedback.light()
+        LopanHapticEngine.shared.light()
         
         withAnimation(.easeInOut(duration: 0.2)) {
             searchText = ""
@@ -641,7 +641,7 @@ struct ProductManagementView: View {
     
     private func toggleProductSelection(_ product: Product) {
         if isBatchMode {
-            HapticFeedback.light()
+            LopanHapticEngine.shared.light()
             
             if selectedProducts.contains(product.id) {
                 selectedProducts.remove(product.id)
@@ -701,23 +701,23 @@ struct ProductRowView: View {
     private func colorForName(_ colorName: String) -> Color {
         let lowercased = colorName.lowercased()
         switch lowercased {
-        case "红色", "红", "red": return .red
-        case "蓝色", "蓝", "blue": return .blue
-        case "绿色", "绿", "green": return .green
-        case "黄色", "黄", "yellow": return .yellow
-        case "橙色", "橙", "orange": return .orange
-        case "紫色", "紫", "purple": return .purple
-        case "粉色", "粉", "pink": return .pink
-        case "黑色", "黑", "black": return .black
-        case "白色", "白", "white": return .white
-        case "灰色", "灰", "gray", "grey": return .gray
-        case "棕色", "棕", "brown": return Color(.systemBrown)
-        case "深蓝色", "深蓝", "navy", "dark blue": return Color(.systemBlue).opacity(0.7)
-        case "浅蓝色", "浅蓝", "light blue": return Color(.systemBlue).opacity(0.3)
-        case "军绿色", "军绿", "olive": return Color(.systemGreen).opacity(0.6)
-        case "米色", "米", "beige": return Color(.systemBrown).opacity(0.3)
-        case "格子": return Color(.systemGray2)
-        default: return Color(.systemGray3)
+        case "红色", "红", "red": return LopanColors.error
+        case "蓝色", "蓝", "blue": return LopanColors.primary
+        case "绿色", "绿", "green": return LopanColors.success
+        case "黄色", "黄", "yellow": return LopanColors.warning
+        case "橙色", "橙", "orange": return LopanColors.warning
+        case "紫色", "紫", "purple": return LopanColors.premium
+        case "粉色", "粉", "pink": return LopanColors.accent
+        case "黑色", "黑", "black": return LopanColors.textPrimary
+        case "白色", "白", "white": return LopanColors.backgroundPrimary
+        case "灰色", "灰", "gray", "grey": return LopanColors.secondary
+        case "棕色", "棕", "brown": return LopanColors.secondary
+        case "深蓝色", "深蓝", "navy", "dark blue": return LopanColors.primary.opacity(0.7)
+        case "浅蓝色", "浅蓝", "light blue": return LopanColors.primary.opacity(0.3)
+        case "军绿色", "军绿", "olive": return LopanColors.success.opacity(0.6)
+        case "米色", "米", "beige": return LopanColors.secondary.opacity(0.3)
+        case "格子": return LopanColors.secondary
+        default: return LopanColors.secondary
         }
     }
     
@@ -778,7 +778,7 @@ struct ProductRowView: View {
                                 .fill(colorForName(color))
                                 .frame(width: 12, height: 12)
                                 .overlay(
-                                    Circle().stroke(Color.black.opacity(0.2), lineWidth: 0.5)
+                                    Circle().stroke(LopanColors.border, lineWidth: 0.5)
                                 )
                             LopanBadge(color, style: .neutral, size: .small)
                         }
@@ -817,9 +817,9 @@ struct ProductRowView: View {
     
     private var backgroundView: some View {
         RoundedRectangle(cornerRadius: 12)
-            .fill(isSelected ? LopanColors.primary.opacity(0.1) : Color.white)
+            .fill(isSelected ? LopanColors.primary.opacity(0.1) : LopanColors.backgroundSecondary)
             .shadow(
-                color: isSelected ? LopanColors.primary.opacity(0.2) : Color.black.opacity(0.05),
+                color: isSelected ? LopanColors.primary.opacity(0.2) : LopanColors.shadow,
                 radius: isSelected ? 8 : 2,
                 x: 0,
                 y: isSelected ? 4 : 1
@@ -974,8 +974,8 @@ struct ProductDetailView: View {
         .padding(20)
         .background(
             RoundedRectangle(cornerRadius: 16)
-                .fill(Color.white)
-                .shadow(color: Color.black.opacity(0.05), radius: 2, x: 0, y: 1)
+                .fill(LopanColors.backgroundSecondary)
+                .shadow(color: LopanColors.shadow, radius: 2, x: 0, y: 1)
         )
     }
     
@@ -1010,8 +1010,8 @@ struct ProductDetailView: View {
         .padding(20)
         .background(
             RoundedRectangle(cornerRadius: 16)
-                .fill(Color.white)
-                .shadow(color: Color.black.opacity(0.05), radius: 2, x: 0, y: 1)
+                .fill(LopanColors.backgroundSecondary)
+                .shadow(color: LopanColors.shadow, radius: 2, x: 0, y: 1)
         )
     }
 }
@@ -1066,15 +1066,15 @@ struct EditProductView: View {
                                                 .font(.caption)
                                                 .padding(.horizontal, 8)
                                                 .padding(.vertical, 4)
-                                                .background(Color.blue.opacity(0.1))
-                                                .foregroundColor(.blue)
+                                                .background(LopanColors.primary.opacity(0.1))
+                                                .foregroundColor(LopanColors.primary)
                                                 .cornerRadius(6)
                                             
                                             Button("×") {
                                                 removeColor(color)
                                             }
                                             .font(.caption)
-                                            .foregroundColor(.red)
+                                            .foregroundColor(LopanColors.error)
                                         }
                                     }
                                 }
@@ -1093,12 +1093,12 @@ struct EditProductView: View {
                                 .cornerRadius(8)
                         } else {
                             RoundedRectangle(cornerRadius: 8)
-                                .fill(Color.gray.opacity(0.2))
+                                .fill(LopanColors.secondary.opacity(0.2))
                                 .frame(width: 80, height: 80)
                                 .overlay(
                                     Image(systemName: "photo")
                                         .font(.title2)
-                                        .foregroundColor(.gray)
+                                        .foregroundColor(LopanColors.secondary)
                                 )
                         }
                         
@@ -1112,7 +1112,7 @@ struct EditProductView: View {
                                     imageData = nil
                                     selectedImage = nil
                                 }
-                                .foregroundColor(.red)
+                                .foregroundColor(LopanColors.error)
                             }
                         }
                     }
@@ -1137,7 +1137,7 @@ struct EditProductView: View {
                             Button("删除") {
                                 sizes.removeAll { $0 == size }
                             }
-                            .foregroundColor(.red)
+                            .foregroundColor(LopanColors.error)
                         }
                     }
                 }

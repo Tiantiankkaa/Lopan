@@ -61,7 +61,7 @@ struct SystemHealthDashboard: View {
             HStack {
                 Image(systemName: "heart.text.square")
                     .font(.system(size: 24, weight: .medium))
-                    .foregroundColor(.red)
+                    .foregroundColor(LopanColors.error)
                 
                 VStack(alignment: .leading, spacing: 4) {
                     Text("系统健康状态")
@@ -82,11 +82,11 @@ struct SystemHealthDashboard: View {
                     Text(monitoringService.isMonitoring ? "监控中" : "已停止")
                         .font(.caption)
                         .fontWeight(.medium)
-                        .foregroundColor(monitoringService.isMonitoring ? .green : .red)
+                        .foregroundColor(monitoringService.isMonitoring ? LopanColors.success : LopanColors.error)
                     
                     HStack(spacing: 4) {
                         Circle()
-                            .fill(monitoringService.isMonitoring ? Color.green : Color.red)
+                            .fill(monitoringService.isMonitoring ? LopanColors.success : LopanColors.error)
                             .frame(width: 8, height: 8)
                         
                         Text(monitoringService.autoRepairEnabled ? "自动修复" : "手动模式")
@@ -99,7 +99,7 @@ struct SystemHealthDashboard: View {
         .padding()
         .background(
             RoundedRectangle(cornerRadius: 12)
-                .fill(Color(.secondarySystemBackground))
+                .fill(LopanColors.backgroundSecondary)
         )
     }
     
@@ -127,7 +127,7 @@ struct SystemHealthDashboard: View {
                                     Text(String(format: "%.0f", report.overallScore * 100))
                                         .font(.title2)
                                         .fontWeight(.bold)
-                                        .foregroundColor(.white)
+                                        .foregroundColor(LopanColors.textPrimary)
                                 )
                             
                             Text(report.overallStatus.displayName)
@@ -139,7 +139,7 @@ struct SystemHealthDashboard: View {
                         VStack(alignment: .leading, spacing: 6) {
                             HStack {
                                 Image(systemName: "exclamationmark.triangle.fill")
-                                    .foregroundColor(.red)
+                                    .foregroundColor(LopanColors.error)
                                     .font(.caption)
                                 
                                 Text("严重问题: \(report.criticalIssues.count)")
@@ -159,7 +159,7 @@ struct SystemHealthDashboard: View {
                             
                             HStack {
                                 Image(systemName: "clock")
-                                    .foregroundColor(.gray)
+                                    .foregroundColor(LopanColors.textSecondary)
                                     .font(.caption)
                                 
                                 Text("检查时间: \(formatTime(report.timestamp))")
@@ -177,21 +177,21 @@ struct SystemHealthDashboard: View {
                             title: "机台利用率",
                             value: "\(String(format: "%.1f", report.systemMetrics.machineUtilization * 100))%",
                             icon: "gearshape.2",
-                            color: report.systemMetrics.machineUtilization >= 0.7 ? .green : .orange
+                            color: report.systemMetrics.machineUtilization >= 0.7 ? LopanColors.success : LopanColors.warning
                         )
                         
                         systemMetricCard(
                             title: "缓存命中率",
                             value: "\(String(format: "%.1f", report.systemMetrics.cacheHitRate * 100))%",
                             icon: "memorychip",
-                            color: report.systemMetrics.cacheHitRate >= 0.8 ? .green : .orange
+                            color: report.systemMetrics.cacheHitRate >= 0.8 ? LopanColors.success : LopanColors.warning
                         )
                         
                         systemMetricCard(
                             title: "状态不一致",
                             value: "\(report.systemMetrics.inconsistencyCount)",
                             icon: "exclamationmark.triangle",
-                            color: report.systemMetrics.inconsistencyCount == 0 ? .green : .red
+                            color: report.systemMetrics.inconsistencyCount == 0 ? LopanColors.success : LopanColors.error
                         )
                     }
                 }
@@ -199,7 +199,7 @@ struct SystemHealthDashboard: View {
                 VStack(spacing: 12) {
                     Image(systemName: "heart.slash")
                         .font(.system(size: 40))
-                        .foregroundColor(.gray)
+                        .foregroundColor(LopanColors.textSecondary)
                     
                     Text("暂无健康数据")
                         .font(.headline)
@@ -214,7 +214,7 @@ struct SystemHealthDashboard: View {
         .padding()
         .background(
             RoundedRectangle(cornerRadius: 12)
-                .fill(Color(.secondarySystemBackground))
+                .fill(LopanColors.backgroundSecondary)
         )
     }
     
@@ -243,14 +243,14 @@ struct SystemHealthDashboard: View {
                     .frame(maxWidth: .infinity, minHeight: 100)
                     .background(
                         RoundedRectangle(cornerRadius: 8)
-                            .fill(Color(.tertiarySystemBackground))
+                            .fill(LopanColors.backgroundTertiary)
                     )
             }
         }
         .padding()
         .background(
             RoundedRectangle(cornerRadius: 12)
-                .fill(Color(.secondarySystemBackground))
+                .fill(LopanColors.backgroundSecondary)
         )
     }
     
@@ -269,18 +269,18 @@ struct SystemHealthDashboard: View {
             if let metrics = monitoringService.currentHealthReport?.systemMetrics {
                 VStack(spacing: 8) {
                     metricsRow(label: "总机台数", value: "\(metrics.totalMachines)", icon: "rectangle.3.group")
-                    metricsRow(label: "活跃机台", value: "\(metrics.activeMachines)", icon: "circle.fill", color: .green)
-                    metricsRow(label: "运行中机台", value: "\(metrics.runningMachines)", icon: "play.circle.fill", color: .blue)
+                    metricsRow(label: "活跃机台", value: "\(metrics.activeMachines)", icon: "circle.fill", color: LopanColors.success)
+                    metricsRow(label: "运行中机台", value: "\(metrics.runningMachines)", icon: "play.circle.fill", color: LopanColors.primary)
                     metricsRow(label: "总批次数", value: "\(metrics.totalBatches)", icon: "square.stack.3d.down.right")
-                    metricsRow(label: "活跃批次", value: "\(metrics.activeBatches)", icon: "square.fill", color: .orange)
-                    metricsRow(label: "已完成批次", value: "\(metrics.completedBatches)", icon: "checkmark.square.fill", color: .green)
+                    metricsRow(label: "活跃批次", value: "\(metrics.activeBatches)", icon: "square.fill", color: LopanColors.warning)
+                    metricsRow(label: "已完成批次", value: "\(metrics.completedBatches)", icon: "checkmark.square.fill", color: LopanColors.success)
                     
                     if metrics.averageProcessingTime > 0 {
                         metricsRow(
                             label: "平均处理时间",
                             value: formatDuration(metrics.averageProcessingTime),
                             icon: "clock.fill",
-                            color: .purple
+                            color: LopanColors.primary
                         )
                     }
                 }
@@ -289,7 +289,7 @@ struct SystemHealthDashboard: View {
         .padding()
         .background(
             RoundedRectangle(cornerRadius: 12)
-                .fill(Color(.secondarySystemBackground))
+                .fill(LopanColors.backgroundSecondary)
         )
     }
     
@@ -322,14 +322,14 @@ struct SystemHealthDashboard: View {
                     .frame(maxWidth: .infinity, minHeight: 60)
                     .background(
                         RoundedRectangle(cornerRadius: 8)
-                            .fill(Color(.tertiarySystemBackground))
+                            .fill(LopanColors.backgroundTertiary)
                     )
             }
         }
         .padding()
         .background(
             RoundedRectangle(cornerRadius: 12)
-                .fill(Color(.secondarySystemBackground))
+                .fill(LopanColors.backgroundSecondary)
         )
     }
     
@@ -355,7 +355,7 @@ struct SystemHealthDashboard: View {
         .padding(.vertical, 8)
         .background(
             RoundedRectangle(cornerRadius: 8)
-                .fill(Color(.tertiarySystemBackground))
+                .fill(LopanColors.backgroundTertiary)
         )
     }
     
@@ -397,7 +397,7 @@ struct SystemHealthDashboard: View {
         .padding()
         .background(
             RoundedRectangle(cornerRadius: 8)
-                .fill(Color(.tertiarySystemBackground))
+                .fill(LopanColors.backgroundTertiary)
         )
         .onTapGesture {
             if !results.isEmpty {
@@ -450,12 +450,12 @@ struct SystemHealthDashboard: View {
                 Text("\(report.criticalIssues.count)")
                     .font(.caption2)
                     .fontWeight(.medium)
-                    .foregroundColor(.white)
+                    .foregroundColor(LopanColors.textPrimary)
                     .padding(.horizontal, 6)
                     .padding(.vertical, 2)
                     .background(
                         RoundedRectangle(cornerRadius: 8)
-                            .fill(Color.red)
+                            .fill(LopanColors.error)
                     )
             }
         }
@@ -532,7 +532,7 @@ struct HealthCheckDetailView: View {
                     .padding()
                     .background(
                         RoundedRectangle(cornerRadius: 12)
-                            .fill(Color(.secondarySystemBackground))
+                            .fill(LopanColors.backgroundSecondary)
                     )
                     
                     // Details section
@@ -545,7 +545,7 @@ struct HealthCheckDetailView: View {
                             ForEach(healthCheck.details, id: \.self) { detail in
                                 HStack(alignment: .top, spacing: 8) {
                                     Circle()
-                                        .fill(Color.blue)
+                                        .fill(LopanColors.primary)
                                         .frame(width: 6, height: 6)
                                         .padding(.top, 6)
                                     
@@ -558,7 +558,7 @@ struct HealthCheckDetailView: View {
                         .padding()
                         .background(
                             RoundedRectangle(cornerRadius: 12)
-                                .fill(Color(.secondarySystemBackground))
+                                .fill(LopanColors.backgroundSecondary)
                         )
                     }
                     
@@ -573,7 +573,7 @@ struct HealthCheckDetailView: View {
                                 HStack(alignment: .top, spacing: 8) {
                                     Image(systemName: "lightbulb.fill")
                                         .font(.caption)
-                                        .foregroundColor(.orange)
+                                        .foregroundColor(LopanColors.warning)
                                         .padding(.top, 2)
                                     
                                     Text(recommendation)
@@ -585,7 +585,7 @@ struct HealthCheckDetailView: View {
                         .padding()
                         .background(
                             RoundedRectangle(cornerRadius: 12)
-                                .fill(Color(.secondarySystemBackground))
+                                .fill(LopanColors.backgroundSecondary)
                         )
                     }
                     

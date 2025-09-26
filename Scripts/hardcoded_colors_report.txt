@@ -1,0 +1,32 @@
+Hardcoded Colors Report - 2025年 9月25日 星期四 14时14分53秒 WAT
+=======================================
+📈 Found        0 hardcoded color instances
+
+📁 Grouping by file:
+===================
+✅ No hardcoded colors found!
+
+🛠️  Suggested Replacements:
+============================
+
+Common Color Replacements:
+.red → LopanColors.error
+.green → LopanColors.success
+.blue → LopanColors.primary
+.orange → LopanColors.warning
+.gray → LopanColors.secondary
+.purple → LopanColors.premium
+.yellow → LopanColors.warning (or create specific yellow semantic)
+.pink → LopanColors.accent (or create specific semantic)
+.cyan → LopanColors.info (or create specific semantic)
+.indigo → LopanColors.roleWorkshopTechnician
+
+Context-specific Replacements:
+Status indicators → LopanColors.statusPending, statusCompleted, etc.
+Role badges → LopanColors.roleAdministrator, roleSalesperson, etc.
+Background colors → LopanColors.background, surface, surfaceElevated
+Text colors → LopanColors.textPrimary, textSecondary
+Border colors → Consider LopanColors.border (if needed)
+
+🎯 Priority Files (Top 10):
+============================

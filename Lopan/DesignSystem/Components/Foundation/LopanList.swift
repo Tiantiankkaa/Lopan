@@ -42,7 +42,7 @@ struct LopanList<Content: View>: View {
             if isLoading {
                 ProgressView("加载中...")
                     .frame(maxWidth: .infinity, maxHeight: .infinity)
-                    .background(Color(.systemBackground))
+                    .background(LopanColors.background)
             } else if isEmpty {
                 ContentUnavailableView(
                     emptyStateTitle,

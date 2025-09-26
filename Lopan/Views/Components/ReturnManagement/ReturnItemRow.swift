@@ -27,13 +27,13 @@ struct EnhancedReturnGoodsRowView: View {
     
     private var returnStatusColor: Color {
         if item.isFullyReturned {
-            return .green
+            return LopanColors.success
         } else if item.hasPartialReturn {
-            return .blue
+            return LopanColors.info
         } else if item.needsReturn {
-            return .orange
+            return LopanColors.warning
         } else {
-            return .gray
+            return LopanColors.secondary
         }
     }
     
@@ -54,12 +54,11 @@ struct EnhancedReturnGoodsRowView: View {
             // Selection Button (in editing mode)
             if isEditing {
                 Button(action: {
-                    withHapticFeedback(.light) {
-                        onSelect()
-                    }
+                    LopanHapticEngine.shared.light()
+                    onSelect()
                 }) {
                     Image(systemName: isSelected ? "checkmark.circle.fill" : "circle")
-                        .foregroundColor(isSelected ? .blue : .gray)
+                        .foregroundColor(isSelected ? LopanColors.info : LopanColors.secondary)
                         .font(.title2)
                         .frame(width: 24, height: 24)
                 }
@@ -134,14 +133,14 @@ struct EnhancedReturnGoodsRowView: View {
                             QuantityInfoItem(
                                 title: "已还数量",
                                 value: "\(item.returnQuantity)",
-                                color: .blue
+                                color: LopanColors.info
                             )
                         }
                         
                         QuantityInfoItem(
                             title: "剩余数量",
                             value: "\(item.remainingQuantity)",
-                            color: item.remainingQuantity > 0 ? .orange : .green
+                            color: item.remainingQuantity > 0 ? LopanColors.warning : LopanColors.success
                         )
                     }
                 }
@@ -299,7 +298,7 @@ struct EmptyReturnStateView: View {
         .frame(maxWidth: .infinity)
         .padding(.horizontal, 32)
         .padding(.vertical, 60)
-        .background(Color(.systemGroupedBackground))
+        .background(LopanColors.backgroundSecondary)
         .accessibilityElement(children: .combine)
         .accessibilityLabel(isEditing ? "暂无可批量处理的还货记录" : "暂无还货记录")
         .accessibilityValue("总记录数: \(totalItemsCount)")
@@ -322,5 +321,5 @@ struct EmptyReturnStateView: View {
             )
         }
     }
-    .background(Color(.systemGroupedBackground))
+    .background(LopanColors.backgroundSecondary)
 }

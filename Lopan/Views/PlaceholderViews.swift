@@ -15,7 +15,7 @@ struct SalesAnalyticsView: View {
             VStack(spacing: 20) {
                 Image(systemName: "chart.bar.fill")
                     .font(.system(size: 60))
-                    .foregroundColor(.green)
+                    .foregroundColor(LopanColors.success)
                 
                 Text("销售分析")
                     .font(.title)
@@ -70,12 +70,12 @@ struct ProductionStyleListView: View {
                     }
                     .padding(.horizontal)
                     .padding(.vertical, 8)
-                    .background(Color.white)
+                    .background(LopanColors.backgroundSecondary)
                     .cornerRadius(10)
-                    .shadow(color: .gray.opacity(0.2), radius: 2, x: 0, y: 1)
+                    .shadow(color: LopanColors.textPrimary.opacity(0.2), radius: 2, x: 0, y: 1)
                 }
                 .padding()
-                .background(Color(.systemGroupedBackground))
+                .background(LopanColors.backgroundSecondary)
                 
                 // Statistics bar - only product count with enhanced background
                 VStack(spacing: 0) {
@@ -84,7 +84,7 @@ struct ProductionStyleListView: View {
                         ProductionStatusStatCard(
                             title: "产品总数",
                             count: products.count,
-                            color: .blue
+                            color: LopanColors.info
                         )
                         Spacer()
                     }
@@ -92,7 +92,7 @@ struct ProductionStyleListView: View {
                     .padding(.horizontal, 20)
                     .background(
                         LinearGradient(
-                            gradient: Gradient(colors: [Color.blue.opacity(0.05), Color.blue.opacity(0.1)]),
+                            gradient: Gradient(colors: [LopanColors.primary.opacity(0.05), LopanColors.primary.opacity(0.1)]),
                             startPoint: .leading,
                             endPoint: .trailing
                         )
@@ -100,12 +100,12 @@ struct ProductionStyleListView: View {
                     .cornerRadius(12)
                     .overlay(
                         RoundedRectangle(cornerRadius: 12)
-                            .stroke(Color.blue.opacity(0.2), lineWidth: 1)
+                            .stroke(LopanColors.primary.opacity(0.2), lineWidth: 1)
                     )
                 }
                 .padding(.horizontal)
                 .padding(.bottom)
-                .background(Color(.systemGroupedBackground))
+                .background(LopanColors.backgroundSecondary)
                 
                 // Product list
                 if filteredProducts.isEmpty {
@@ -113,7 +113,7 @@ struct ProductionStyleListView: View {
                     VStack(spacing: 16) {
                         Image(systemName: "shirt")
                             .font(.system(size: 50))
-                            .foregroundColor(.gray)
+                            .foregroundColor(LopanColors.secondary)
                         Text(searchText.isEmpty ? "暂无产品数据" : "未找到匹配的产品")
                             .font(.headline)
                             .foregroundColor(.secondary)
@@ -133,7 +133,7 @@ struct ProductionStyleListView: View {
                         .padding(.horizontal)
                         .padding(.bottom)
                     }
-                    .background(Color(.systemGroupedBackground))
+                    .background(LopanColors.backgroundSecondary)
                 }
             }
             .navigationTitle("生产款式管理")
@@ -181,12 +181,12 @@ struct ReadOnlyProductRow: View {
                     .frame(width: 70, height: 70)
                     .clipped()
                     .cornerRadius(12)
-                    .shadow(color: .gray.opacity(0.3), radius: 2, x: 0, y: 1)
+                    .shadow(color: LopanColors.textPrimary.opacity(0.3), radius: 2, x: 0, y: 1)
             } else {
                 RoundedRectangle(cornerRadius: 12)
                     .fill(
                         LinearGradient(
-                            gradient: Gradient(colors: [Color.gray.opacity(0.1), Color.gray.opacity(0.2)]),
+                            gradient: Gradient(colors: [LopanColors.secondary.opacity(0.1), LopanColors.secondary.opacity(0.2)]),
                             startPoint: .topLeading,
                             endPoint: .bottomTrailing
                         )
@@ -195,9 +195,9 @@ struct ReadOnlyProductRow: View {
                     .overlay(
                         Image(systemName: "photo")
                             .font(.title2)
-                            .foregroundColor(.gray.opacity(0.6))
+                            .foregroundColor(LopanColors.secondary.opacity(0.6))
                     )
-                    .shadow(color: .gray.opacity(0.2), radius: 1, x: 0, y: 1)
+                    .shadow(color: LopanColors.textPrimary.opacity(0.2), radius: 1, x: 0, y: 1)
             }
             
             VStack(alignment: .leading, spacing: 8) {
@@ -220,7 +220,7 @@ struct ReadOnlyProductRow: View {
                 if let sizes = product.sizes, !sizes.isEmpty {
                     HStack(spacing: 4) {
                         Image(systemName: "ruler.fill")
-                            .foregroundColor(.green)
+                            .foregroundColor(LopanColors.success)
                             .font(.caption)
                         Text("尺寸: \(sizes.map { $0.size }.joined(separator: ", "))")
                             .font(.subheadline)
@@ -230,7 +230,7 @@ struct ReadOnlyProductRow: View {
                 
                 HStack(spacing: 4) {
                     Image(systemName: "calendar")
-                        .foregroundColor(.orange)
+                        .foregroundColor(LopanColors.warning)
                         .font(.caption)
                     Text("创建于: \(product.createdAt, style: .date)")
                         .font(.caption)
@@ -253,7 +253,7 @@ struct ReadOnlyProductRow: View {
         }
         .padding(.vertical, 12)
         .padding(.horizontal, 4)
-        .background(Color(.systemBackground))
+        .background(LopanColors.background)
         .cornerRadius(8)
     }
 }
@@ -263,7 +263,7 @@ struct WarehouseStatusView: View {
         VStack(spacing: 20) {
             Image(systemName: "building.2.fill")
                 .font(.system(size: 60))
-                .foregroundColor(.orange)
+                .foregroundColor(LopanColors.warning)
             
             Text("入库状态")
                 .font(.title)
@@ -317,7 +317,7 @@ struct MachineStatusView: View {
             VStack(spacing: 20) {
                 Image(systemName: "cpu.fill")
                     .font(.system(size: 60))
-                    .foregroundColor(.green)
+                    .foregroundColor(LopanColors.success)
                 
                 Text("设备状态")
                     .font(.title)
@@ -372,7 +372,7 @@ struct RawMaterialView: View {
             VStack(spacing: 20) {
                 Image(systemName: "cube.box.fill")
                     .font(.system(size: 60))
-                    .foregroundColor(.orange)
+                    .foregroundColor(LopanColors.warning)
                 
                 Text("原材料管理")
                     .font(.title)
@@ -400,7 +400,7 @@ struct WorkshopIssueListView: View {
             VStack(spacing: 20) {
                 Image(systemName: "exclamationmark.triangle.fill")
                     .font(.system(size: 60))
-                    .foregroundColor(.red)
+                    .foregroundColor(LopanColors.error)
                 
                 Text("问题报告")
                     .font(.title)
@@ -427,7 +427,7 @@ struct MachineMaintenanceView: View {
             VStack(spacing: 20) {
                 Image(systemName: "wrench.and.screwdriver.fill")
                     .font(.system(size: 60))
-                    .foregroundColor(.purple)
+                    .foregroundColor(LopanColors.premium)
                 
                 Text("设备维护")
                     .font(.title)
@@ -482,7 +482,7 @@ struct SystemOverviewView: View {
             VStack(spacing: 20) {
                 Image(systemName: "chart.pie.fill")
                     .font(.system(size: 60))
-                    .foregroundColor(.green)
+                    .foregroundColor(LopanColors.success)
                 
                 Text("系统概览")
                     .font(.title)
@@ -509,7 +509,7 @@ struct ProductionOverviewView: View {
             VStack(spacing: 20) {
                 Image(systemName: "gearshape.2.fill")
                     .font(.system(size: 60))
-                    .foregroundColor(.purple)
+                    .foregroundColor(LopanColors.premium)
                 
                 Text("生产概览")
                     .font(.title)

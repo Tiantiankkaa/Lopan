@@ -73,7 +73,7 @@ struct FiltersView: View {
                     Button("重置筛选条件") {
                         resetFilters()
                     }
-                    .foregroundColor(.red)
+                    .foregroundColor(LopanColors.error)
                 }
             }
             .navigationTitle("筛选条件")
@@ -187,7 +187,7 @@ struct OperationDetailView: View {
             }
         }
         .padding()
-        .background(Color(.systemGray6).opacity(0.5))
+        .background(LopanColors.backgroundSecondary.opacity(0.5))
         .cornerRadius(12)
     }
     
@@ -209,7 +209,7 @@ struct OperationDetailView: View {
             }
         }
         .padding()
-        .background(Color(.systemBackground))
+        .background(LopanColors.background)
         .cornerRadius(12)
     }
     
@@ -227,7 +227,7 @@ struct OperationDetailView: View {
             }
         }
         .padding()
-        .background(Color(.systemBackground))
+        .background(LopanColors.background)
         .cornerRadius(12)
     }
     
@@ -265,12 +265,12 @@ struct OperationDetailView: View {
                     Text("修改前")
                         .font(.subheadline)
                         .fontWeight(.semibold)
-                        .foregroundColor(.red.opacity(0.8))
+                        .foregroundColor(LopanColors.error.opacity(0.8))
                     
                     customerOutOfStockValuesView(beforeValues)
                 }
                 .padding()
-                .background(Color.red.opacity(0.05))
+                .background(LopanColors.error.opacity(0.05))
                 .cornerRadius(8)
             }
             
@@ -279,12 +279,12 @@ struct OperationDetailView: View {
                     Text(operation.beforeValues == nil ? "创建内容" : "修改后")
                         .font(.subheadline)
                         .fontWeight(.semibold)
-                        .foregroundColor(.green.opacity(0.8))
+                        .foregroundColor(LopanColors.success.opacity(0.8))
                     
                     customerOutOfStockValuesView(afterValues)
                 }
                 .padding()
-                .background(Color.green.opacity(0.05))
+                .background(LopanColors.success.opacity(0.05))
                 .cornerRadius(8)
             }
             
@@ -337,10 +337,10 @@ struct OperationDetailView: View {
             if let fromStatus = details["fromStatus"] as? String,
                let toStatus = details["toStatus"] as? String {
                 HStack {
-                    StatusBadge(status: fromStatus, color: .red)
+                    StatusBadge(status: fromStatus, color: LopanColors.error)
                     Image(systemName: "arrow.right")
                         .foregroundColor(.secondary)
-                    StatusBadge(status: toStatus, color: .green)
+                    StatusBadge(status: toStatus, color: LopanColors.success)
                 }
             }
             
@@ -427,7 +427,7 @@ struct OperationDetailView: View {
             }
         }
         .padding()
-        .background(Color(.systemBackground))
+        .background(LopanColors.background)
         .cornerRadius(12)
     }
     
@@ -452,7 +452,7 @@ struct OperationDetailView: View {
             }
         }
         .padding()
-        .background(Color(.systemBackground))
+        .background(LopanColors.background)
         .cornerRadius(12)
     }
     
@@ -460,14 +460,14 @@ struct OperationDetailView: View {
     
     private var operationColor: Color {
         switch auditLog.operationType.color {
-        case "green": return .green
-        case "blue": return .blue
-        case "red": return .red
-        case "orange": return .orange
-        case "purple": return .purple
-        case "indigo": return .indigo
-        case "teal": return .teal
-        default: return .gray
+        case "green": return LopanColors.success
+        case "blue": return LopanColors.primary
+        case "red": return LopanColors.error
+        case "orange": return LopanColors.warning
+        case "purple": return LopanColors.primary
+        case "indigo": return LopanColors.primary
+        case "teal": return LopanColors.primary
+        default: return LopanColors.textSecondary
         }
     }
     

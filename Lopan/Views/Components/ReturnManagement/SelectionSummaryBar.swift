@@ -47,7 +47,7 @@ struct SelectionSummaryBar: View {
             // Selection Status
             HStack(spacing: 8) {
                 Image(systemName: selectedCount > 0 ? "checkmark.circle.fill" : "circle")
-                    .foregroundColor(selectedCount > 0 ? .blue : .gray)
+                    .foregroundColor(selectedCount > 0 ? LopanColors.primary : LopanColors.secondary)
                     .font(.system(size: 16, weight: .medium))
                 
                 Text(selectionText)
@@ -65,9 +65,8 @@ struct SelectionSummaryBar: View {
             HStack(spacing: 8) {
                 if selectedCount > 0 {
                     Button(action: {
-                        withHapticFeedback(.light) {
-                            onSecondaryAction()
-                        }
+                        LopanHapticEngine.shared.light()
+                        onSecondaryAction()
                     }) {
                         HStack(spacing: 4) {
                             Image(systemName: secondaryActionText == "还货" ? "arrow.uturn.backward.circle" : "xmark.circle")
@@ -79,7 +78,7 @@ struct SelectionSummaryBar: View {
                         .padding(.horizontal, 10)
                         .padding(.vertical, 6)
                         .background(secondaryActionText == "还货" ? LopanColors.success.opacity(0.1) : LopanColors.error.opacity(0.1))
-                        .foregroundColor(secondaryActionText == "还货" ? .green : .red)
+                        .foregroundColor(secondaryActionText == "还货" ? LopanColors.success : LopanColors.error)
                         .cornerRadius(16)
                     }
                     .accessibilityLabel(secondaryActionText == "还货" ? "处理还货" : "删除选择")
@@ -88,9 +87,8 @@ struct SelectionSummaryBar: View {
                 
                 if totalCount > 0 {
                     Button(action: {
-                        withHapticFeedback(.medium) {
-                            onSelectAll()
-                        }
+                        LopanHapticEngine.shared.medium()
+                        onSelectAll()
                     }) {
                         HStack(spacing: 4) {
                             Image(systemName: isAllSelected ? "minus.circle" : "plus.circle")
@@ -102,7 +100,7 @@ struct SelectionSummaryBar: View {
                         .padding(.horizontal, 10)
                         .padding(.vertical, 6)
                         .background(LopanColors.primary.opacity(0.1))
-                        .foregroundColor(.blue)
+                        .foregroundColor(LopanColors.primary)
                         .cornerRadius(16)
                     }
                     .accessibilityLabel(isAllSelected ? "取消" : "全选")
@@ -167,9 +165,8 @@ struct BatchOperationHeader: View {
             // Top Action Bar
             HStack {
                 Button(action: {
-                    withHapticFeedback(.light) {
-                        onCancel()
-                    }
+                    LopanHapticEngine.shared.light()
+                    onCancel()
                 }) {
                     HStack(spacing: 4) {
                         Image(systemName: "xmark")
@@ -178,7 +175,7 @@ struct BatchOperationHeader: View {
                             .font(.subheadline)
                             .fontWeight(.medium)
                     }
-                    .foregroundColor(.red)
+                    .foregroundColor(LopanColors.error)
                 }
                 .accessibilityLabel("取消批量操作")
                 .accessibilityHint("退出批量选择模式")
@@ -194,9 +191,8 @@ struct BatchOperationHeader: View {
                 
                 if !processButtonText.isEmpty {
                     Button(action: {
-                        withHapticFeedback(.medium) {
-                            onProcess()
-                        }
+                        LopanHapticEngine.shared.medium()
+                        onProcess()
                     }) {
                         HStack(spacing: 4) {
                             Image(systemName: "checkmark.circle.fill")
@@ -205,7 +201,7 @@ struct BatchOperationHeader: View {
                                 .font(.subheadline)
                                 .fontWeight(.medium)
                         }
-                        .foregroundColor(canProcess ? .blue : .secondary)
+                        .foregroundColor(canProcess ? LopanColors.primary : .secondary)
                     }
                     .disabled(!canProcess)
                     .accessibilityLabel("处理选中项目")
@@ -273,5 +269,5 @@ struct BatchOperationHeader: View {
         )
     }
     .padding()
-    .background(Color(.systemGroupedBackground))
+    .background(LopanColors.backgroundSecondary)
 }

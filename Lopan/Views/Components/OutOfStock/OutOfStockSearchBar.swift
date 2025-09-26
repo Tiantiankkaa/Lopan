@@ -59,10 +59,10 @@ struct OutOfStockSearchBar: View {
             .padding(.vertical, 10)
             .background(
                 RoundedRectangle(cornerRadius: 10)
-                    .fill(Color(.systemGray6))
+                    .fill(LopanColors.backgroundTertiary)
                     .overlay(
                         RoundedRectangle(cornerRadius: 10)
-                            .stroke(isTextFieldFocused ? Color.accentColor : Color.clear, lineWidth: 2)
+                            .stroke(isTextFieldFocused ? LopanColors.primary : LopanColors.clear, lineWidth: 2)
                     )
             )
             
@@ -75,7 +75,7 @@ struct OutOfStockSearchBar: View {
                 Image(systemName: "line.3.horizontal")
                     .font(.system(size: 16, weight: .medium))
                     .foregroundColor(.primary)
-                    .background(Color(.systemGray6))
+                    .background(LopanColors.backgroundTertiary)
                     .cornerRadius(8)
             }
         }

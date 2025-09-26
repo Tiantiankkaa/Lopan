@@ -39,9 +39,9 @@ struct ErrorRecoveryView: View {
             actionButtons
         }
         .padding(24)
-        .background(Color(.systemBackground))
+        .background(LopanColors.background)
         .cornerRadius(16)
-        .shadow(color: .black.opacity(0.1), radius: 10, x: 0, y: 4)
+        .shadow(color: LopanColors.textPrimary.opacity(0.1), radius: 10, x: 0, y: 4)
         .accessibilityElement(children: .combine)
         .accessibilityLabel("错误提示")
         .accessibilityValue(error.errorDescription ?? "")
@@ -75,15 +75,15 @@ struct ErrorRecoveryView: View {
     private var errorColor: Color {
         switch error {
         case .networkUnavailable:
-            return .orange
+            return LopanColors.warning
         case .permissionDenied:
-            return .red
+            return LopanColors.error
         case .dataCorrupted:
-            return .purple
+            return LopanColors.accent
         case .serverError:
-            return .blue
+            return LopanColors.info
         case .unknownError:
-            return .gray
+            return LopanColors.secondary
         }
     }
     
@@ -157,7 +157,7 @@ struct ErrorRecoveryView: View {
                     if isRetrying {
                         ProgressView()
                             .scaleEffect(0.8)
-                            .progressViewStyle(CircularProgressViewStyle(tint: .white))
+                            .progressViewStyle(CircularProgressViewStyle(tint: LopanColors.textOnPrimary))
                     } else {
                         Image(systemName: retryIconName)
                             .font(.system(size: 16, weight: .medium))
@@ -166,7 +166,7 @@ struct ErrorRecoveryView: View {
                     Text(isRetrying ? "正在重试..." : error.actionTitle)
                         .font(.system(size: 16, weight: .semibold))
                 }
-                .foregroundColor(.white)
+                .foregroundColor(LopanColors.textPrimary)
                 .frame(maxWidth: .infinity)
                 .frame(height: 48)
                 .background(
@@ -234,7 +234,7 @@ struct InlineErrorBanner: View {
             // Error icon
             Image(systemName: "exclamationmark.triangle.fill")
                 .font(.system(size: 16))
-                .foregroundColor(.orange)
+                .foregroundColor(LopanColors.warning)
                 .accessibilityHidden(true)
             
             // Error content
@@ -261,7 +261,7 @@ struct InlineErrorBanner: View {
                     Text("重试")
                         .font(.caption)
                         .fontWeight(.semibold)
-                        .foregroundColor(.blue)
+                        .foregroundColor(LopanColors.info)
                 }
                 .accessibilityLabel("重试操作")
                 
@@ -275,10 +275,10 @@ struct InlineErrorBanner: View {
             }
         }
         .padding(12)
-        .background(Color(.systemYellow).opacity(0.1))
+        .background(LopanColors.warning.opacity(0.1))
         .overlay(
             RoundedRectangle(cornerRadius: 8)
-                .stroke(Color(.systemYellow).opacity(0.3), lineWidth: 1)
+                .stroke(LopanColors.warning.opacity(0.3), lineWidth: 1)
         )
         .cornerRadius(8)
         .accessibilityElement(children: .combine)
@@ -308,10 +308,10 @@ struct LoadingOverlayView: View {
         ZStack {
             // Background
             if style == .fullScreen {
-                Color(.systemBackground)
+                LopanColors.background
                     .ignoresSafeArea()
             } else if style == .overlay {
-                Color.black.opacity(0.3)
+                LopanColors.shadow.opacity(6)
                     .ignoresSafeArea()
             }
             
@@ -326,7 +326,7 @@ struct LoadingOverlayView: View {
     private var loadingContent: some View {
         VStack(spacing: 16) {
             ProgressView()
-                .progressViewStyle(CircularProgressViewStyle(tint: .blue))
+                .progressViewStyle(CircularProgressViewStyle(tint: LopanColors.info))
                 .scaleEffect(1.2)
             
             Text(message)
@@ -335,9 +335,9 @@ struct LoadingOverlayView: View {
                 .multilineTextAlignment(.center)
         }
         .padding(24)
-        .background(Color(.systemBackground))
+        .background(LopanColors.background)
         .cornerRadius(12)
-        .shadow(color: .black.opacity(0.1), radius: 8, x: 0, y: 4)
+        .shadow(color: LopanColors.textPrimary.opacity(0.1), radius: 8, x: 0, y: 4)
     }
 }
 

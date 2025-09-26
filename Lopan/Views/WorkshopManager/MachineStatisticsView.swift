@@ -90,10 +90,10 @@ struct MachineStatisticsView: View {
                 GridItem(.flexible()),
                 GridItem(.flexible())
             ], spacing: 16) {
-                StatCard(title: "总设备数", value: "\(machineService.machines.count)", color: .blue)
-                StatCard(title: "在线设备", value: "\(machineService.machines.filter { $0.isActive }.count)", color: .green)
-                StatCard(title: "运行设备", value: "\(machineService.machines.filter { $0.status == .running }.count)", color: .orange)
-                StatCard(title: "维护设备", value: "\(machineService.machines.filter { $0.status == .maintenance }.count)", color: .red)
+                StatCard(title: "总设备数", value: "\(machineService.machines.count)", color: LopanColors.primary)
+                StatCard(title: "在线设备", value: "\(machineService.machines.filter { $0.isActive }.count)", color: LopanColors.success)
+                StatCard(title: "运行设备", value: "\(machineService.machines.filter { $0.status == .running }.count)", color: LopanColors.warning)
+                StatCard(title: "维护设备", value: "\(machineService.machines.filter { $0.status == .maintenance }.count)", color: LopanColors.error)
             }
         }
     }
@@ -179,22 +179,22 @@ struct MachineStatCard: View {
                         label: "故障次数",
                         value: "\(machine.errorCount)",
                         icon: "exclamationmark.triangle.fill",
-                        valueColor: .red
+                        valueColor: LopanColors.error
                     )
                 }
             }
         }
         .padding()
-        .background(Color(UIColor.secondarySystemBackground))
+        .background(LopanColors.backgroundSecondary)
         .cornerRadius(12)
     }
     
     private func statusColor(_ status: MachineStatus) -> Color {
         switch status {
-        case .running: return .green
-        case .stopped: return .gray
-        case .maintenance: return .orange
-        case .error: return .red
+        case .running: return LopanColors.success
+        case .stopped: return LopanColors.secondary
+        case .maintenance: return LopanColors.warning
+        case .error: return LopanColors.error
         }
     }
 }

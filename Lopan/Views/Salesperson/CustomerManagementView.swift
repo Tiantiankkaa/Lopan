@@ -115,7 +115,7 @@ struct CustomerManagementView: View {
                         } label: {
                             Label("删除", systemImage: "trash")
                         }
-                        .tint(.red)
+                        .tint(LopanColors.error)
                     }
                 }
             }

@@ -42,25 +42,25 @@ struct ModernFilterChip: View {
                 if let icon = icon {
                     Image(systemName: icon)
                         .font(.system(size: 14, weight: .medium))
-                        .foregroundColor(isActive ? .white : LopanColors.primary)
+                        .foregroundColor(isActive ? LopanColors.textOnPrimary : LopanColors.primary)
                 }
                 
                 // Title
                 Text(title)
                     .font(.system(size: 14, weight: .medium))
-                    .foregroundColor(isActive ? .white : LopanColors.textPrimary)
+                    .foregroundColor(isActive ? LopanColors.textOnPrimary : LopanColors.textPrimary)
                     .lineLimit(1)
                 
                 // Count badge
                 if let count = count, count > 0 {
                     Text("\(count)")
                         .font(.system(size: 12, weight: .bold))
-                        .foregroundColor(isActive ? LopanColors.primary : .white)
+                        .foregroundColor(isActive ? LopanColors.primary : LopanColors.textOnPrimary)
                         .padding(.horizontal, 6)
                         .padding(.vertical, 2)
                         .background(
                             Capsule()
-                                .fill(isActive ? .white : LopanColors.primary)
+                                .fill(isActive ? LopanColors.textOnPrimary : LopanColors.primary)
                         )
                 }
                 
@@ -69,7 +69,7 @@ struct ModernFilterChip: View {
                     Button(action: onRemove) {
                         Image(systemName: "xmark")
                             .font(.system(size: 10, weight: .bold))
-                            .foregroundColor(.white.opacity(0.8))
+                            .foregroundColor(LopanColors.textOnPrimary.opacity(0.8))
                     }
                     .buttonStyle(PlainButtonStyle())
                 }
@@ -80,7 +80,7 @@ struct ModernFilterChip: View {
             .cornerRadius(20)
             .scaleEffect(isPressed ? 0.96 : 1.0)
             .shadow(
-                color: isActive ? LopanColors.primary.opacity(0.3) : .black.opacity(0.08),
+                color: isActive ? LopanColors.primary.opacity(0.3) : LopanColors.textPrimary.opacity(0.08),
                 radius: isPressed ? 4 : 8,
                 x: 0,
                 y: isPressed ? 2 : 4
@@ -148,8 +148,8 @@ struct ModernFilterChip: View {
                             .strokeBorder(
                                 LinearGradient(
                                     colors: [
-                                        Color.white.opacity(0.3),
-                                        Color.white.opacity(0.1)
+                                        LopanColors.textPrimary.opacity(0.3),
+                                        LopanColors.textPrimary.opacity(0.1)
                                     ],
                                     startPoint: .topLeading,
                                     endPoint: .bottomTrailing
@@ -226,7 +226,7 @@ struct ModernDateRangeSelector: View {
         .padding(20)
         .background(modernCardBackground)
         .cornerRadius(16)
-        .shadow(color: .black.opacity(0.06), radius: 12, x: 0, y: 4)
+        .shadow(color: LopanColors.textPrimary.opacity(0.06), radius: 12, x: 0, y: 4)
     }
     
     private func dateOptionButton(_ option: DateFilterOption) -> some View {
@@ -238,11 +238,11 @@ struct ModernDateRangeSelector: View {
             VStack(spacing: 8) {
                 Image(systemName: option.systemImage)
                     .font(.system(size: 20, weight: .medium))
-                    .foregroundColor(selectedOption == option ? .white : LopanColors.primary)
+                    .foregroundColor(selectedOption == option ? LopanColors.textOnPrimary : LopanColors.primary)
                 
                 Text(option.displayName)
                     .font(.system(size: 14, weight: .semibold))
-                    .foregroundColor(selectedOption == option ? .white : LopanColors.textPrimary)
+                    .foregroundColor(selectedOption == option ? LopanColors.textOnPrimary : LopanColors.textPrimary)
             }
             .frame(height: 60)
             .frame(maxWidth: .infinity)
@@ -253,7 +253,7 @@ struct ModernDateRangeSelector: View {
             .overlay(
                 RoundedRectangle(cornerRadius: 12)
                     .strokeBorder(
-                        selectedOption == option ? Color.clear : LopanColors.border,
+                        selectedOption == option ? LopanColors.clear : LopanColors.border,
                         lineWidth: 1
                     )
             )
@@ -272,11 +272,11 @@ struct ModernDateRangeSelector: View {
             VStack(spacing: 8) {
                 Image(systemName: "calendar.badge.plus")
                     .font(.system(size: 20, weight: .medium))
-                    .foregroundColor(showingCustomPicker ? .white : LopanColors.primary)
+                    .foregroundColor(showingCustomPicker ? LopanColors.textOnPrimary : LopanColors.primary)
                 
                 Text("自定义")
                     .font(.system(size: 12, weight: .medium))
-                    .foregroundColor(showingCustomPicker ? .white : LopanColors.textPrimary)
+                    .foregroundColor(showingCustomPicker ? LopanColors.textOnPrimary : LopanColors.textPrimary)
             }
             .frame(height: 60)
             .frame(maxWidth: .infinity)
@@ -287,7 +287,7 @@ struct ModernDateRangeSelector: View {
             .overlay(
                 RoundedRectangle(cornerRadius: 12)
                     .strokeBorder(
-                        showingCustomPicker ? Color.clear : LopanColors.border,
+                        showingCustomPicker ? LopanColors.clear : LopanColors.border,
                         lineWidth: 1
                     )
             )
@@ -360,7 +360,7 @@ struct ModernDateRangeSelector: View {
                     }
                 }
                 .font(.system(size: 14, weight: .medium))
-                .foregroundColor(.white)
+                .foregroundColor(LopanColors.textPrimary)
                 .padding(.horizontal, 20)
                 .padding(.vertical, 10)
                 .background(
@@ -463,7 +463,7 @@ struct ModernFilterSection: View {
             RoundedRectangle(cornerRadius: 16)
                 .strokeBorder(LopanColors.borderLight, lineWidth: 1)
         )
-        .shadow(color: .black.opacity(0.04), radius: 8, x: 0, y: 2)
+        .shadow(color: LopanColors.textPrimary.opacity(0.04), radius: 8, x: 0, y: 2)
     }
 }
 
@@ -515,7 +515,7 @@ struct ActiveFiltersSummary: View {
             .padding(20)
             .background(modernCardBackground)
             .cornerRadius(16)
-            .shadow(color: .black.opacity(0.06), radius: 12, x: 0, y: 4)
+            .shadow(color: LopanColors.textPrimary.opacity(0.06), radius: 12, x: 0, y: 4)
         }
     }
     
@@ -538,13 +538,13 @@ struct ActiveFiltersSummary: View {
                     ActiveFiltersSummary.FilterItem(
                         title: "客户",
                         value: "重要客户 039",
-                        color: .blue,
+                        color: LopanColors.info,
                         onRemove: {}
                     ),
                     ActiveFiltersSummary.FilterItem(
                         title: "产品",
                         value: "限量商务毛衣-M",
-                        color: .green,
+                        color: LopanColors.success,
                         onRemove: {}
                     )
                 ],
@@ -567,6 +567,6 @@ struct ActiveFiltersSummary: View {
         }
         .padding()
     }
-    .background(Color(.systemGroupedBackground))
+    .background(LopanColors.backgroundSecondary)
 }
 #endif

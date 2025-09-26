@@ -19,13 +19,13 @@ struct PullToRefreshIndicator: View {
             ZStack {
                 // Background circle
                 Circle()
-                    .stroke(Color(.systemGray5), lineWidth: 2)
+                    .stroke(LopanColors.backgroundTertiary, lineWidth: 2)
                     .frame(width: 24, height: 24)
                 
                 // Progress circle
                 Circle()
                     .trim(from: 0.0, to: CGFloat(min(progress, 1.0)))
-                    .stroke(Color.blue, style: StrokeStyle(lineWidth: 2, lineCap: .round))
+                    .stroke(LopanColors.primary, style: StrokeStyle(lineWidth: 2, lineCap: .round))
                     .frame(width: 24, height: 24)
                     .rotationEffect(.degrees(-90))
                     .animation(.easeInOut(duration: 0.2), value: progress)
@@ -33,7 +33,7 @@ struct PullToRefreshIndicator: View {
                 // Loading spinner (when refreshing)
                 if isRefreshing {
                     ProgressView()
-                        .progressViewStyle(CircularProgressViewStyle(tint: .blue))
+                        .progressViewStyle(CircularProgressViewStyle(tint: LopanColors.info))
                         .scaleEffect(0.6)
                 }
             }
@@ -73,7 +73,7 @@ struct InfiniteScrollLoader: View {
         HStack(spacing: 12) {
             if isLoading {
                 ProgressView()
-                    .progressViewStyle(CircularProgressViewStyle(tint: .blue))
+                    .progressViewStyle(CircularProgressViewStyle(tint: LopanColors.info))
                     .scaleEffect(0.8)
                 
                 Text("正在加载更多...")
@@ -82,12 +82,12 @@ struct InfiniteScrollLoader: View {
             } else if hasMoreData {
                 Text("点击加载更多")
                     .font(.callout)
-                    .foregroundColor(.blue)
+                    .foregroundColor(LopanColors.info)
                     .onTapGesture(perform: onLoadMore)
             } else {
                 HStack(spacing: 8) {
                     Rectangle()
-                        .fill(Color(.systemGray4))
+                        .fill(LopanColors.secondary)
                         .frame(height: 1)
                     
                     Text("没有更多数据了")
@@ -96,7 +96,7 @@ struct InfiniteScrollLoader: View {
                         .padding(.horizontal, 12)
                     
                     Rectangle()
-                        .fill(Color(.systemGray4))
+                        .fill(LopanColors.secondary)
                         .frame(height: 1)
                 }
             }
@@ -145,7 +145,7 @@ struct SmartLoadingButton: View {
             HStack(spacing: 8) {
                 if isLoading {
                     ProgressView()
-                        .progressViewStyle(CircularProgressViewStyle(tint: .white))
+                        .progressViewStyle(CircularProgressViewStyle(tint: LopanColors.textOnPrimary))
                         .scaleEffect(0.8)
                 } else {
                     Image(systemName: buttonIcon)
@@ -156,7 +156,7 @@ struct SmartLoadingButton: View {
                 Text(isLoading ? "处理中..." : title)
                     .font(.system(size: 16, weight: .semibold))
             }
-            .foregroundColor(.white)
+            .foregroundColor(LopanColors.textPrimary)
             .frame(maxWidth: .infinity)
             .frame(height: 48)
             .background(
@@ -178,9 +178,9 @@ struct SmartLoadingButton: View {
     
     private var backgroundColors: [Color] {
         if isEnabled {
-            return [.blue, .blue.opacity(0.8)]
+            return [LopanColors.info, LopanColors.info.opacity(0.8)]
         } else {
-            return [.gray, .gray.opacity(0.8)]
+            return [LopanColors.secondary, LopanColors.secondary.opacity(0.8)]
         }
     }
     
@@ -278,22 +278,22 @@ struct DataSyncIndicator: View {
     private var syncColor: Color {
         switch syncState {
         case .idle, .success:
-            return .green
+            return LopanColors.success
         case .syncing:
-            return .blue
+            return LopanColors.info
         case .failed:
-            return .red
+            return LopanColors.error
         }
     }
     
     private var syncBackgroundColor: Color {
         switch syncState {
         case .idle, .success:
-            return .green.opacity(0.1)
+            return LopanColors.success.opacity(0.1)
         case .syncing:
-            return .blue.opacity(0.1)
+            return LopanColors.info.opacity(0.1)
         case .failed:
-            return .red.opacity(0.1)
+            return LopanColors.error.opacity(0.1)
         }
     }
     
@@ -353,14 +353,14 @@ struct LinearProgressIndicator: View {
                 ZStack(alignment: .leading) {
                     // Background track
                     RoundedRectangle(cornerRadius: 4)
-                        .fill(Color(.systemGray5))
+                        .fill(LopanColors.backgroundTertiary)
                         .frame(height: 8)
                     
                     // Progress fill
                     RoundedRectangle(cornerRadius: 4)
                         .fill(
                             LinearGradient(
-                                colors: [.blue, .blue.opacity(0.8)],
+                                colors: [LopanColors.info, LopanColors.info.opacity(0.8)],
                                 startPoint: .leading,
                                 endPoint: .trailing
                             )
@@ -403,7 +403,7 @@ struct BatchOperationProgress: View {
                 
                 if isCompleted {
                     Image(systemName: "checkmark.circle.fill")
-                        .foregroundColor(.green)
+                        .foregroundColor(LopanColors.success)
                 } else {
                     Text("\(completed)/\(total)")
                         .font(.caption)
@@ -422,7 +422,7 @@ struct BatchOperationProgress: View {
             if let operation = currentOperation, !isCompleted {
                 HStack {
                     ProgressView()
-                        .progressViewStyle(CircularProgressViewStyle(tint: .blue))
+                        .progressViewStyle(CircularProgressViewStyle(tint: LopanColors.info))
                         .scaleEffect(0.7)
                     
                     Text("正在处理: \(operation)")
@@ -435,9 +435,9 @@ struct BatchOperationProgress: View {
             }
         }
         .padding(16)
-        .background(Color(.systemBackground))
+        .background(LopanColors.background)
         .cornerRadius(12)
-        .shadow(color: .black.opacity(0.05), radius: 2, x: 0, y: 1)
+        .shadow(color: LopanColors.textPrimary.opacity(0.05), radius: 2, x: 0, y: 1)
         .accessibilityElement(children: .combine)
         .accessibilityLabel("批量操作进度")
         .accessibilityValue("已完成 \(completed) 项，共 \(total) 项")

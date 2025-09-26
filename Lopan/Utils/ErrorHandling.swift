@@ -126,13 +126,13 @@ enum SimpleErrorSeverity {
     var color: Color {
         switch self {
         case .info:
-            return .blue
+            return LopanColors.info
         case .warning:
-            return .orange
+            return LopanColors.warning
         case .error:
-            return .red
+            return LopanColors.error
         case .critical:
-            return .purple
+            return LopanColors.accent
         }
     }
     

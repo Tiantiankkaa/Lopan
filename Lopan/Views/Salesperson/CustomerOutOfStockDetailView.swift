@@ -144,8 +144,8 @@ struct CustomerOutOfStockDetailView: View {
         .padding(20)
         .background(
             RoundedRectangle(cornerRadius: 16)
-                .fill(Color(.systemBackground))
-                .shadow(color: .black.opacity(0.05), radius: 4, x: 0, y: 2)
+                .fill(LopanColors.background)
+                .shadow(color: LopanColors.textPrimary.opacity(0.05), radius: 4, x: 0, y: 2)
         )
     }
     
@@ -153,7 +153,7 @@ struct CustomerOutOfStockDetailView: View {
         VStack(alignment: .leading, spacing: 16) {
             HStack {
                 Image(systemName: "cube.box.fill")
-                    .foregroundColor(.orange)
+                    .foregroundColor(LopanColors.warning)
                     .font(.title2)
                 
                 Text("产品信息")
@@ -188,8 +188,8 @@ struct CustomerOutOfStockDetailView: View {
         .padding(20)
         .background(
             RoundedRectangle(cornerRadius: 16)
-                .fill(Color(.systemBackground))
-                .shadow(color: .black.opacity(0.05), radius: 4, x: 0, y: 2)
+                .fill(LopanColors.background)
+                .shadow(color: LopanColors.textPrimary.opacity(0.05), radius: 4, x: 0, y: 2)
         )
     }
     
@@ -197,7 +197,7 @@ struct CustomerOutOfStockDetailView: View {
         VStack(alignment: .leading, spacing: 16) {
             HStack {
                 Image(systemName: "doc.text.fill")
-                    .foregroundColor(.green)
+                    .foregroundColor(LopanColors.success)
                     .font(.title2)
                 
                 Text("订单详情")
@@ -225,7 +225,7 @@ struct CustomerOutOfStockDetailView: View {
                 }
                 .padding(.horizontal, 16)
                 .padding(.vertical, 12)
-                .background(Color(.systemGray6))
+                .background(LopanColors.backgroundTertiary)
                 
                 Divider()
                 
@@ -245,18 +245,18 @@ struct CustomerOutOfStockDetailView: View {
                 }
                 .padding(.horizontal, 16)
                 .padding(.vertical, 12)
-                .background(Color(.systemBackground))
+                .background(LopanColors.background)
             }
             .overlay(
                 RoundedRectangle(cornerRadius: 8)
-                    .stroke(Color(.systemGray4), lineWidth: 1)
+                    .stroke(LopanColors.secondary, lineWidth: 1)
             )
         }
         .padding(20)
         .background(
             RoundedRectangle(cornerRadius: 16)
-                .fill(Color(.systemBackground))
-                .shadow(color: .black.opacity(0.05), radius: 4, x: 0, y: 2)
+                .fill(LopanColors.background)
+                .shadow(color: LopanColors.textPrimary.opacity(0.05), radius: 4, x: 0, y: 2)
         )
     }
     
@@ -264,7 +264,7 @@ struct CustomerOutOfStockDetailView: View {
         VStack(alignment: .leading, spacing: 16) {
             HStack {
                 Image(systemName: "clock.fill")
-                    .foregroundColor(.purple)
+                    .foregroundColor(LopanColors.premium)
                     .font(.title2)
                 
                 Text("状态和时间")
@@ -305,8 +305,8 @@ struct CustomerOutOfStockDetailView: View {
         .padding(20)
         .background(
             RoundedRectangle(cornerRadius: 16)
-                .fill(Color(.systemBackground))
-                .shadow(color: .black.opacity(0.05), radius: 4, x: 0, y: 2)
+                .fill(LopanColors.background)
+                .shadow(color: LopanColors.textPrimary.opacity(0.05), radius: 4, x: 0, y: 2)
         )
     }
     
@@ -314,7 +314,7 @@ struct CustomerOutOfStockDetailView: View {
         VStack(alignment: .leading, spacing: 16) {
             HStack {
                 Image(systemName: "note.text")
-                    .foregroundColor(.indigo)
+                    .foregroundColor(LopanColors.primary)
                     .font(.title2)
                 
                 Text("备注")
@@ -328,14 +328,14 @@ struct CustomerOutOfStockDetailView: View {
                 .font(.body)
                 .foregroundColor(.primary)
                 .padding(12)
-                .background(Color(.systemGray6))
+                .background(LopanColors.backgroundTertiary)
                 .cornerRadius(8)
         }
         .padding(20)
         .background(
             RoundedRectangle(cornerRadius: 16)
-                .fill(Color(.systemBackground))
-                .shadow(color: .black.opacity(0.05), radius: 4, x: 0, y: 2)
+                .fill(LopanColors.background)
+                .shadow(color: LopanColors.textPrimary.opacity(0.05), radius: 4, x: 0, y: 2)
         )
     }
     
@@ -343,7 +343,7 @@ struct CustomerOutOfStockDetailView: View {
         VStack(alignment: .leading, spacing: 16) {
             HStack {
                 Image(systemName: "return.left")
-                    .foregroundColor(.red)
+                    .foregroundColor(LopanColors.error)
                     .font(.title2)
                 
                 Text("退货信息")
@@ -380,8 +380,8 @@ struct CustomerOutOfStockDetailView: View {
         .padding(20)
         .background(
             RoundedRectangle(cornerRadius: 16)
-                .fill(Color(.systemBackground))
-                .shadow(color: .black.opacity(0.05), radius: 4, x: 0, y: 2)
+                .fill(LopanColors.background)
+                .shadow(color: LopanColors.textPrimary.opacity(0.05), radius: 4, x: 0, y: 2)
         )
     }
     
@@ -404,11 +404,11 @@ struct CustomerOutOfStockDetailView: View {
     private var statusColor: Color {
         switch item.status {
         case .pending:
-            return .orange
+            return LopanColors.warning
         case .completed:
-            return .green
+            return LopanColors.success
         case .returned:
-            return .red
+            return LopanColors.error
         }
     }
     

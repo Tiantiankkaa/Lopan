@@ -73,8 +73,8 @@ struct CommonNavigationHeader<ActionButtons: View>: View {
             .padding(.top, 10)
         }
         .background(
-            Color(.systemBackground)
-                .shadow(color: .black.opacity(0.05), radius: 1, x: 0, y: 1)
+            LopanColors.background
+                .shadow(color: LopanColors.textPrimary.opacity(0.05), radius: 1, x: 0, y: 1)
         )
         .offset(y: headerAnimationOffset)
     }
@@ -90,23 +90,23 @@ struct CommonNavigationHeader<ActionButtons: View>: View {
         HStack(spacing: 12) {
             Button(action: {}) {
                 Circle()
-                    .fill(Color.blue)
+                    .fill(LopanColors.primary)
                     .frame(width: 36, height: 36)
                     .overlay(
                         Image(systemName: "line.3.horizontal.decrease.circle")
                             .font(.system(size: 18, weight: .medium))
-                            .foregroundColor(.white)
+                            .foregroundColor(LopanColors.textPrimary)
                     )
             }
             
             Button(action: {}) {
                 Circle()
-                    .fill(Color.blue)
+                    .fill(LopanColors.primary)
                     .frame(width: 36, height: 36)
                     .overlay(
                         Image(systemName: "plus")
                             .font(.system(size: 18, weight: .bold))
-                            .foregroundColor(.white)
+                            .foregroundColor(LopanColors.textPrimary)
                     )
             }
         }

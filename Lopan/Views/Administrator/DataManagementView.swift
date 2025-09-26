@@ -117,13 +117,13 @@ struct DataExportView: View {
                         VStack {
                             Image(systemName: "tray")
                                 .font(.system(size: 48))
-                                .foregroundColor(.secondary)
+                                .foregroundColor(LopanColors.textSecondary)
                             Text("暂无导出记录")
                                 .font(.title3)
-                                .foregroundColor(.secondary)
+                                .foregroundColor(LopanColors.textSecondary)
                             Text("点击\"新建导出\"开始导出数据")
                                 .font(.caption)
-                                .foregroundColor(.secondary)
+                                .foregroundColor(LopanColors.textSecondary)
                         }
                         .padding(.top, 50)
                     }
@@ -338,17 +338,17 @@ struct ExportHistoryCard: View {
                 if result.success {
                     HStack {
                         Image(systemName: "checkmark.circle.fill")
-                            .foregroundColor(.green)
+                            .foregroundColor(LopanColors.success)
                         Text("成功")
-                            .foregroundColor(.green)
+                            .foregroundColor(LopanColors.success)
                             .font(.caption)
                     }
                 } else {
                     HStack {
                         Image(systemName: "xmark.circle.fill")
-                            .foregroundColor(.red)
+                            .foregroundColor(LopanColors.error)
                         Text("失败")
-                            .foregroundColor(.red)
+                            .foregroundColor(LopanColors.error)
                             .font(.caption)
                     }
                 }
@@ -365,7 +365,7 @@ struct ExportHistoryCard: View {
             }
         }
         .padding()
-        .background(Color(.systemBackground))
+        .background(LopanColors.background)
         .cornerRadius(8)
         .shadow(radius: 1)
     }
@@ -444,7 +444,7 @@ struct ActiveExportRow: View {
                     }
                     .buttonStyle(.bordered)
                     .controlSize(.small)
-                    .foregroundColor(.red)
+                    .foregroundColor(LopanColors.error)
                 }
             }
             
@@ -519,13 +519,13 @@ struct DataImportView: View {
                         VStack {
                             Image(systemName: "square.and.arrow.down")
                                 .font(.system(size: 48))
-                                .foregroundColor(.secondary)
+                                .foregroundColor(LopanColors.textSecondary)
                             Text("暂无导入记录")
                                 .font(.title3)
-                                .foregroundColor(.secondary)
+                                .foregroundColor(LopanColors.textSecondary)
                             Text("点击\"新建导入\"开始导入数据")
                                 .font(.caption)
-                                .foregroundColor(.secondary)
+                                .foregroundColor(LopanColors.textSecondary)
                         }
                         .padding(.top, 50)
                     }
@@ -568,7 +568,7 @@ struct ImportConfigurationSheet: View {
                             if let fileURL = selectedFile {
                                 Text(fileURL.path)
                                     .font(.caption)
-                                    .foregroundColor(.secondary)
+                                    .foregroundColor(LopanColors.textSecondary)
                             }
                         }
                         
@@ -712,11 +712,11 @@ struct ImportHistoryCard: View {
                     Text("\(result.totalRecords) 总计")
                     Text("•")
                     Text("\(result.successfulRecords) 成功")
-                        .foregroundColor(.green)
+                        .foregroundColor(LopanColors.success)
                     if result.failedRecords > 0 {
                         Text("•")
                         Text("\(result.failedRecords) 失败")
-                            .foregroundColor(.red)
+                            .foregroundColor(LopanColors.error)
                     }
                 }
                 .font(.caption)
@@ -732,17 +732,17 @@ struct ImportHistoryCard: View {
                 if result.success {
                     HStack {
                         Image(systemName: "checkmark.circle.fill")
-                            .foregroundColor(.green)
+                            .foregroundColor(LopanColors.success)
                         Text("成功")
-                            .foregroundColor(.green)
+                            .foregroundColor(LopanColors.success)
                             .font(.caption)
                     }
                 } else {
                     HStack {
                         Image(systemName: "xmark.circle.fill")
-                            .foregroundColor(.red)
+                            .foregroundColor(LopanColors.error)
                         Text("失败")
-                            .foregroundColor(.red)
+                            .foregroundColor(LopanColors.error)
                             .font(.caption)
                     }
                 }
@@ -753,7 +753,7 @@ struct ImportHistoryCard: View {
             }
         }
         .padding()
-        .background(Color(.systemBackground))
+        .background(LopanColors.background)
         .cornerRadius(8)
         .shadow(radius: 1)
     }
@@ -823,7 +823,7 @@ struct ActiveImportRow: View {
                     }
                     .buttonStyle(.bordered)
                     .controlSize(.small)
-                    .foregroundColor(.red)
+                    .foregroundColor(LopanColors.error)
                 }
             }
             
@@ -843,10 +843,10 @@ struct ActiveImportRow: View {
                 
                 HStack {
                     Text("\(progress.validRecords) 有效")
-                        .foregroundColor(.green)
+                        .foregroundColor(LopanColors.success)
                     Text("•")
                     Text("\(progress.invalidRecords) 无效")
-                        .foregroundColor(.red)
+                        .foregroundColor(LopanColors.error)
                 }
                 .font(.caption)
                 .foregroundColor(.secondary)
@@ -912,13 +912,13 @@ struct DataBackupView: View {
                         VStack {
                             Image(systemName: "externaldrive")
                                 .font(.system(size: 48))
-                                .foregroundColor(.secondary)
+                                .foregroundColor(LopanColors.textSecondary)
                             Text("暂无备份记录")
                                 .font(.title3)
-                                .foregroundColor(.secondary)
+                                .foregroundColor(LopanColors.textSecondary)
                             Text("点击\"立即备份\"创建第一个备份")
                                 .font(.caption)
-                                .foregroundColor(.secondary)
+                                .foregroundColor(LopanColors.textSecondary)
                         }
                         .padding(.top, 50)
                     }
@@ -1078,7 +1078,7 @@ struct BackupHistoryCard: View {
                             .font(.caption)
                             .padding(.horizontal, 6)
                             .padding(.vertical, 2)
-                            .background(Color.blue.opacity(0.1))
+                            .background(LopanColors.primary.opacity(0.1))
                             .cornerRadius(4)
                     }
                 }
@@ -1090,7 +1090,7 @@ struct BackupHistoryCard: View {
                     if backup.isEncrypted {
                         Text("•")
                         Image(systemName: "lock.fill")
-                            .foregroundColor(.orange)
+                            .foregroundColor(LopanColors.warning)
                     }
                 }
                 .font(.caption)
@@ -1111,12 +1111,12 @@ struct BackupHistoryCard: View {
                 }
                 .buttonStyle(.bordered)
                 .controlSize(.small)
-                .foregroundColor(.red)
+                .foregroundColor(LopanColors.error)
                 .disabled(isDeletingBackup)
             }
         }
         .padding()
-        .background(Color(.systemBackground))
+        .background(LopanColors.background)
         .cornerRadius(8)
         .shadow(radius: 1)
         .sheet(isPresented: $showingBackupDetails) {
@@ -1159,13 +1159,13 @@ struct BackupDetailsView: View {
                     ForEach(backup.dataTypes, id: \.self) { dataType in
                         HStack {
                             Image(systemName: dataType.icon)
-                                .foregroundColor(.blue)
+                                .foregroundColor(LopanColors.primary)
                             Text(dataType.displayName)
                             Spacer()
                             if let count = backup.recordCounts[dataType] {
                                 Text("\(count) 条记录")
                                     .font(.caption)
-                                    .foregroundColor(.secondary)
+                                    .foregroundColor(LopanColors.textSecondary)
                             }
                         }
                     }
@@ -1293,7 +1293,7 @@ struct ActiveBackupRow: View {
                     }
                     .buttonStyle(.bordered)
                     .controlSize(.small)
-                    .foregroundColor(.red)
+                    .foregroundColor(LopanColors.error)
                 }
             }
             
@@ -1401,13 +1401,13 @@ struct DataRecoveryView: View {
                         VStack {
                             Image(systemName: "arrow.clockwise")
                                 .font(.system(size: 48))
-                                .foregroundColor(.secondary)
+                                .foregroundColor(LopanColors.textSecondary)
                             Text("暂无可用备份")
                                 .font(.title3)
-                                .foregroundColor(.secondary)
+                                .foregroundColor(LopanColors.textSecondary)
                             Text("请先创建备份后再进行恢复操作")
                                 .font(.caption)
-                                .foregroundColor(.secondary)
+                                .foregroundColor(LopanColors.textSecondary)
                         }
                         .padding(.top, 50)
                     }
@@ -1443,7 +1443,7 @@ struct RecoveryBackupCard: View {
                             .font(.caption)
                             .padding(.horizontal, 6)
                             .padding(.vertical, 2)
-                            .background(Color.blue.opacity(0.1))
+                            .background(LopanColors.primary.opacity(0.1))
                             .cornerRadius(4)
                     }
                 }
@@ -1455,7 +1455,7 @@ struct RecoveryBackupCard: View {
                     if backup.isEncrypted {
                         Text("•")
                         Image(systemName: "lock.fill")
-                            .foregroundColor(.orange)
+                            .foregroundColor(LopanColors.warning)
                     }
                 }
                 .font(.caption)
@@ -1471,7 +1471,7 @@ struct RecoveryBackupCard: View {
             .controlSize(.small)
         }
         .padding()
-        .background(isSelected ? Color.blue.opacity(0.1) : Color(.systemBackground))
+        .background(isSelected ? LopanColors.primary.opacity(0.1) : LopanColors.backgroundPrimary)
         .cornerRadius(8)
         .shadow(radius: 1)
     }
@@ -1510,7 +1510,7 @@ struct RecoveryConfigurationSheet: View {
                                 .font(.headline)
                             Text(backup.createdAt.formatted())
                                 .font(.caption)
-                                .foregroundColor(.secondary)
+                                .foregroundColor(LopanColors.textSecondary)
                         }
                         
                         Spacer()
@@ -1525,7 +1525,7 @@ struct RecoveryConfigurationSheet: View {
                     ForEach(backup.dataTypes, id: \.self) { dataType in
                         HStack {
                             Image(systemName: dataType.icon)
-                                .foregroundColor(.blue)
+                                .foregroundColor(LopanColors.primary)
                             
                             Toggle(dataType.displayName, isOn: Binding(
                                 get: { selectedDataTypes.contains(dataType) },

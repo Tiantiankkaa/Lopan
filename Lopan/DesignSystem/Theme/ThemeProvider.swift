@@ -114,7 +114,7 @@ struct ThemeOptionRow: View {
     
     var body: some View {
         Button(action: {
-            HapticFeedback.light()
+            LopanHapticEngine.shared.light()
             onTap()
         }) {
             HStack {
@@ -139,7 +139,7 @@ struct ThemeOptionRow: View {
             .padding(.vertical, LopanSpacing.sm)
             .background(
                 RoundedRectangle(cornerRadius: LopanCornerRadius.sm)
-                    .fill(isSelected ? LopanColors.primaryLight : Color.clear)
+                    .fill(isSelected ? LopanColors.primaryLight : LopanColors.clear)
             )
         }
         .buttonStyle(PlainButtonStyle())

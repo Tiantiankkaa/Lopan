@@ -121,18 +121,18 @@ struct ReportGeneratorView: View {
                             .font(.caption)
                             .fontWeight(.medium)
                     }
-                    .foregroundColor(selectedTab == tab ? .blue : .secondary)
+                    .foregroundColor(selectedTab == tab ? LopanColors.primary : LopanColors.textSecondary)
                     .frame(maxWidth: .infinity)
                     .padding(.vertical, 12)
                     .background(
                         Rectangle()
-                            .fill(selectedTab == tab ? LopanColors.primary.opacity(0.1) : Color.clear)
+                            .fill(selectedTab == tab ? LopanColors.primary.opacity(0.1) : LopanColors.clear)
                     )
                 }
                 .buttonStyle(PlainButtonStyle())
             }
         }
-        .background(Color(.systemGray6))
+        .background(LopanColors.backgroundTertiary)
     }
     
     // MARK: - Configuration View (配置视图)
@@ -178,7 +178,7 @@ struct ReportGeneratorView: View {
         .padding()
         .background(
             RoundedRectangle(cornerRadius: 12)
-                .fill(Color(.secondarySystemBackground))
+                .fill(LopanColors.backgroundSecondary)
         )
     }
     
@@ -211,14 +211,14 @@ struct ReportGeneratorView: View {
                 .padding()
                 .background(
                     RoundedRectangle(cornerRadius: 8)
-                        .fill(Color(.tertiarySystemBackground))
+                        .fill(LopanColors.backgroundTertiary)
                 )
             }
         }
         .padding()
         .background(
             RoundedRectangle(cornerRadius: 12)
-                .fill(Color(.secondarySystemBackground))
+                .fill(LopanColors.backgroundSecondary)
         )
     }
     
@@ -298,7 +298,7 @@ struct ReportGeneratorView: View {
         .padding()
         .background(
             RoundedRectangle(cornerRadius: 12)
-                .fill(Color(.secondarySystemBackground))
+                .fill(LopanColors.backgroundSecondary)
         )
     }
     
@@ -334,7 +334,7 @@ struct ReportGeneratorView: View {
         .padding()
         .background(
             RoundedRectangle(cornerRadius: 12)
-                .fill(Color(.secondarySystemBackground))
+                .fill(LopanColors.backgroundSecondary)
         )
     }
     
@@ -361,7 +361,7 @@ struct ReportGeneratorView: View {
                 .padding()
                 .background(
                     RoundedRectangle(cornerRadius: 12)
-                        .fill(Color(.tertiarySystemBackground))
+                        .fill(LopanColors.backgroundTertiary)
                 )
             } else {
                 Button("生成报告") {
@@ -371,7 +371,7 @@ struct ReportGeneratorView: View {
                 }
                 .font(.headline)
                 .fontWeight(.medium)
-                .foregroundColor(.white)
+                .foregroundColor(LopanColors.textPrimary)
                 .frame(maxWidth: .infinity)
                 .padding()
                 .background(
@@ -407,7 +407,7 @@ struct ReportGeneratorView: View {
                         .frame(maxWidth: .infinity, minHeight: 200)
                         .background(
                             RoundedRectangle(cornerRadius: 12)
-                                .fill(Color(.tertiarySystemBackground))
+                                .fill(LopanColors.backgroundTertiary)
                         )
                         .padding(.horizontal)
                 }
@@ -428,7 +428,7 @@ struct ReportGeneratorView: View {
                         .frame(maxWidth: .infinity, minHeight: 200)
                         .background(
                             RoundedRectangle(cornerRadius: 12)
-                                .fill(Color(.tertiarySystemBackground))
+                                .fill(LopanColors.backgroundTertiary)
                         )
                 } else {
                     ForEach(reportGenerator.recentReports) { report in
@@ -516,12 +516,12 @@ struct ReportTypeCard: View {
             VStack(spacing: 8) {
                 Image(systemName: type.icon)
                     .font(.title2)
-                    .foregroundColor(isSelected ? .white : .blue)
+                    .foregroundColor(isSelected ? LopanColors.textPrimary : LopanColors.primary)
                 
                 Text(type.displayName)
                     .font(.caption)
                     .fontWeight(.medium)
-                    .foregroundColor(isSelected ? .white : .primary)
+                    .foregroundColor(isSelected ? LopanColors.textPrimary : .primary)
                     .multilineTextAlignment(.center)
                     .lineLimit(2)
             }
@@ -529,11 +529,11 @@ struct ReportTypeCard: View {
             .padding()
             .background(
                 RoundedRectangle(cornerRadius: 8)
-                    .fill(isSelected ? LopanColors.primary : Color(.tertiarySystemBackground))
+                    .fill(isSelected ? LopanColors.primary : LopanColors.backgroundTertiary)
             )
             .overlay(
                 RoundedRectangle(cornerRadius: 8)
-                    .stroke(isSelected ? LopanColors.primary : Color.clear, lineWidth: 2)
+                    .stroke(isSelected ? LopanColors.primary : LopanColors.clear, lineWidth: 2)
             )
         }
         .buttonStyle(PlainButtonStyle())
@@ -556,9 +556,9 @@ struct TimePeriodChip: View {
                 .padding(.vertical, 6)
                 .background(
                     RoundedRectangle(cornerRadius: 12)
-                        .fill(isSelected ? LopanColors.primary : Color(.tertiarySystemBackground))
+                        .fill(isSelected ? LopanColors.primary : LopanColors.backgroundTertiary)
                 )
-                .foregroundColor(isSelected ? .white : .primary)
+                .foregroundColor(isSelected ? LopanColors.textPrimary : .primary)
         }
         .buttonStyle(PlainButtonStyle())
     }
@@ -580,9 +580,9 @@ struct FormatChip: View {
                 .padding(.vertical, 6)
                 .background(
                     RoundedRectangle(cornerRadius: 12)
-                        .fill(isSelected ? LopanColors.primary : Color(.tertiarySystemBackground))
+                        .fill(isSelected ? LopanColors.primary : LopanColors.backgroundTertiary)
                 )
-                .foregroundColor(isSelected ? .white : .primary)
+                .foregroundColor(isSelected ? LopanColors.textPrimary : .primary)
         }
         .buttonStyle(PlainButtonStyle())
     }
@@ -636,10 +636,10 @@ struct ColorSchemeChip: View {
     
     private var schemeColor: Color {
         switch scheme {
-        case .modern: return .blue
-        case .classic: return .brown
-        case .minimal: return .gray
-        case .corporate: return .indigo
+        case .modern: return LopanColors.primary
+        case .classic: return LopanColors.secondary
+        case .minimal: return LopanColors.textSecondary
+        case .corporate: return LopanColors.premium
         }
     }
 }
@@ -673,7 +673,7 @@ struct ReportPreviewCard: View {
                     .padding(.vertical, 4)
                     .background(
                         RoundedRectangle(cornerRadius: 8)
-                            .fill(Color(.tertiarySystemBackground))
+                            .fill(LopanColors.backgroundTertiary)
                     )
             }
             
@@ -702,7 +702,7 @@ struct ReportPreviewCard: View {
         .padding()
         .background(
             RoundedRectangle(cornerRadius: 12)
-                .fill(Color(.secondarySystemBackground))
+                .fill(LopanColors.backgroundSecondary)
         )
     }
 }
@@ -739,7 +739,7 @@ struct ReportHistoryCard: View {
             // Report icon
             Image(systemName: report.configuration.type.icon)
                 .font(.title2)
-                .foregroundColor(.blue)
+                .foregroundColor(LopanColors.primary)
                 .frame(width: 40, height: 40)
                 .background(
                     RoundedRectangle(cornerRadius: 8)
@@ -784,7 +784,7 @@ struct ReportHistoryCard: View {
         .padding()
         .background(
             RoundedRectangle(cornerRadius: 12)
-                .fill(Color(.secondarySystemBackground))
+                .fill(LopanColors.backgroundSecondary)
         )
     }
     
@@ -836,7 +836,7 @@ struct GeneratedReportView: View {
             HStack {
                 Image(systemName: report.configuration.type.icon)
                     .font(.title)
-                    .foregroundColor(.blue)
+                    .foregroundColor(LopanColors.primary)
                 
                 VStack(alignment: .leading, spacing: 4) {
                     Text(report.configuration.type.displayName)
@@ -858,7 +858,7 @@ struct GeneratedReportView: View {
         .padding()
         .background(
             RoundedRectangle(cornerRadius: 12)
-                .fill(Color(.secondarySystemBackground))
+                .fill(LopanColors.backgroundSecondary)
         )
     }
     
@@ -881,7 +881,7 @@ struct GeneratedReportView: View {
         .padding()
         .background(
             RoundedRectangle(cornerRadius: 12)
-                .fill(Color(.secondarySystemBackground))
+                .fill(LopanColors.backgroundSecondary)
         )
     }
     
@@ -893,7 +893,7 @@ struct GeneratedReportView: View {
             }
             .font(.headline)
             .fontWeight(.medium)
-            .foregroundColor(.white)
+            .foregroundColor(LopanColors.textPrimary)
             .frame(maxWidth: .infinity)
             .padding()
             .background(
@@ -906,7 +906,7 @@ struct GeneratedReportView: View {
                     // Handle sharing
                 }
                 .font(.subheadline)
-                .foregroundColor(.blue)
+                .foregroundColor(LopanColors.primary)
                 .frame(maxWidth: .infinity)
                 .padding()
                 .background(
@@ -918,7 +918,7 @@ struct GeneratedReportView: View {
                     // Handle saving to files
                 }
                 .font(.subheadline)
-                .foregroundColor(.blue)
+                .foregroundColor(LopanColors.primary)
                 .frame(maxWidth: .infinity)
                 .padding()
                 .background(

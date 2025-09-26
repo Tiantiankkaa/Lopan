@@ -33,13 +33,12 @@ struct OutOfStockFilterSheet: View {
     @State private var sheetOffset: CGFloat = 0
     @State private var isDragging = false
     
-    private let hapticFeedback = UIImpactFeedbackGenerator(style: .light)
     
     var body: some View {
         NavigationStack {
             ZStack {
                 // Background
-                Color(.systemGroupedBackground)
+                LopanColors.backgroundSecondary
                     .ignoresSafeArea()
                 
                 ScrollView {
@@ -97,7 +96,7 @@ struct OutOfStockFilterSheet: View {
     
     private var handleBar: some View {
         RoundedRectangle(cornerRadius: 3)
-            .fill(Color(.systemGray3))
+            .fill(LopanColors.secondary)
             .frame(width: 40, height: 6)
             .padding(.top, 8)
     }
@@ -117,7 +116,7 @@ struct OutOfStockFilterSheet: View {
                 Button(action: clearAllFilters) {
                     Text("清空")
                         .font(.system(size: 16, weight: .medium))
-                        .foregroundColor(.red)
+                        .foregroundColor(LopanColors.error)
                 }
             }
             
@@ -125,7 +124,7 @@ struct OutOfStockFilterSheet: View {
                 HStack {
                     Image(systemName: "checkmark.circle.fill")
                         .font(.caption)
-                        .foregroundColor(.green)
+                        .foregroundColor(LopanColors.success)
                     
                     Text("已应用 \(activeFiltersCount) 个筛选条件")
                         .font(.caption)
@@ -292,7 +291,7 @@ struct OutOfStockFilterSheet: View {
                     Text("应用筛选")
                         .font(.system(size: 16, weight: .semibold))
                 }
-                .foregroundColor(.white)
+                .foregroundColor(LopanColors.textPrimary)
                 .frame(maxWidth: .infinity)
                 .frame(height: 50)
                 .background(
@@ -313,7 +312,7 @@ struct OutOfStockFilterSheet: View {
                     .frame(height: 44)
                     .background(
                         RoundedRectangle(cornerRadius: 12)
-                            .fill(Color(.systemGray6))
+                            .fill(LopanColors.backgroundTertiary)
                     )
             }
         }
@@ -333,7 +332,7 @@ struct OutOfStockFilterSheet: View {
     }
     
     private func applyFilters() {
-        hapticFeedback.impactOccurred()
+        LopanHapticEngine.shared.light()
         
         viewModel.selectedCustomer = tempCustomer
         viewModel.selectedProduct = tempProduct
@@ -356,7 +355,7 @@ struct OutOfStockFilterSheet: View {
     }
     
     private func clearAllFilters() {
-        hapticFeedback.impactOccurred()
+        LopanHapticEngine.shared.light()
         
         tempCustomer = nil
         tempProduct = nil
@@ -436,7 +435,7 @@ struct FilterSectionCard<Content: View>: View {
             HStack(spacing: 8) {
                 Image(systemName: icon)
                     .font(.system(size: 16, weight: .medium))
-                    .foregroundColor(.blue)
+                    .foregroundColor(LopanColors.primary)
                 
                 Text(title)
                     .font(.system(size: 16, weight: .semibold))
@@ -450,8 +449,8 @@ struct FilterSectionCard<Content: View>: View {
         .padding(16)
         .background(
             RoundedRectangle(cornerRadius: 12)
-                .fill(Color(.systemBackground))
-                .shadow(color: .black.opacity(0.05), radius: 2, x: 0, y: 1)
+                .fill(LopanColors.background)
+                .shadow(color: LopanColors.textPrimary.opacity(0.05), radius: 2, x: 0, y: 1)
         )
     }
 }
@@ -474,7 +473,7 @@ struct FilterOptionRow: View {
                     
                     Text(value)
                         .font(.system(size: 14, weight: .medium))
-                        .foregroundColor(isSelected ? .blue : .primary)
+                        .foregroundColor(isSelected ? LopanColors.primary : .primary)
                         .lineLimit(1)
                 }
                 
@@ -488,10 +487,10 @@ struct FilterOptionRow: View {
             .padding(.vertical, 10)
             .background(
                 RoundedRectangle(cornerRadius: 8)
-                    .fill(isSelected ? LopanColors.primary.opacity(0.1) : Color(.systemGray6))
+                    .fill(isSelected ? LopanColors.primary.opacity(0.1) : LopanColors.backgroundTertiary)
                     .overlay(
                         RoundedRectangle(cornerRadius: 8)
-                            .stroke(isSelected ? LopanColors.primary.opacity(0.3) : Color.clear, lineWidth: 1)
+                            .stroke(isSelected ? LopanColors.primary.opacity(0.3) : LopanColors.clear, lineWidth: 1)
                     )
             )
         }
@@ -511,12 +510,12 @@ struct SizeChip: View {
             Text(size.size)
                 .font(.caption)
                 .fontWeight(.medium)
-                .foregroundColor(isSelected ? .white : .primary)
+                .foregroundColor(isSelected ? LopanColors.textOnPrimary : .primary)
                 .padding(.horizontal, 12)
                 .padding(.vertical, 6)
                 .background(
                     RoundedRectangle(cornerRadius: 16)
-                        .fill(isSelected ? LopanColors.primary : Color(.systemGray6))
+                        .fill(isSelected ? LopanColors.primary : LopanColors.backgroundTertiary)
                 )
         }
         .buttonStyle(PlainButtonStyle())
@@ -535,26 +534,26 @@ struct StatusFilterRow: View {
             HStack(spacing: 12) {
                 Image(systemName: status.icon)
                     .font(.system(size: 16, weight: .medium))
-                    .foregroundColor(isSelected ? .blue : .secondary)
+                    .foregroundColor(isSelected ? LopanColors.primary : .secondary)
                     .frame(width: 20)
                 
                 Text(status.displayName)
                     .font(.system(size: 14, weight: .medium))
-                    .foregroundColor(isSelected ? .blue : .primary)
+                    .foregroundColor(isSelected ? LopanColors.primary : .primary)
                 
                 Spacer()
                 
                 if isSelected {
                     Image(systemName: "checkmark.circle.fill")
                         .font(.system(size: 16))
-                        .foregroundColor(.blue)
+                        .foregroundColor(LopanColors.info)
                 }
             }
             .padding(.horizontal, 12)
             .padding(.vertical, 10)
             .background(
                 RoundedRectangle(cornerRadius: 8)
-                    .fill(isSelected ? LopanColors.primary.opacity(0.1) : Color.clear)
+                    .fill(isSelected ? LopanColors.primary.opacity(0.1) : LopanColors.clear)
             )
         }
         .buttonStyle(PlainButtonStyle())
@@ -573,26 +572,26 @@ struct SortOrderRow: View {
             HStack(spacing: 12) {
                 Image(systemName: order.icon)
                     .font(.system(size: 16, weight: .medium))
-                    .foregroundColor(isSelected ? .blue : .secondary)
+                    .foregroundColor(isSelected ? LopanColors.primary : .secondary)
                     .frame(width: 20)
                 
                 Text(order.displayName)
                     .font(.system(size: 14, weight: .medium))
-                    .foregroundColor(isSelected ? .blue : .primary)
+                    .foregroundColor(isSelected ? LopanColors.primary : .primary)
                 
                 Spacer()
                 
                 if isSelected {
                     Image(systemName: "checkmark.circle.fill")
                         .font(.system(size: 16))
-                        .foregroundColor(.blue)
+                        .foregroundColor(LopanColors.info)
                 }
             }
             .padding(.horizontal, 12)
             .padding(.vertical, 10)
             .background(
                 RoundedRectangle(cornerRadius: 8)
-                    .fill(isSelected ? LopanColors.primary.opacity(0.1) : Color.clear)
+                    .fill(isSelected ? LopanColors.primary.opacity(0.1) : LopanColors.clear)
             )
         }
         .buttonStyle(PlainButtonStyle())
@@ -727,7 +726,7 @@ struct DateRangePickerSheet: View {
                         customDateRange = nil
                         dismiss()
                     }
-                    .foregroundColor(.red)
+                    .foregroundColor(LopanColors.error)
                 }
             }
             .navigationTitle("选择日期范围")

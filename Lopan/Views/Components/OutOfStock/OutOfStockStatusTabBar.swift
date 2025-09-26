@@ -44,7 +44,7 @@ struct OutOfStockStatusTabBar: View {
             .padding(.horizontal, 20)
             .padding(.bottom, 8)
         }
-        .background(Color(.systemBackground))
+        .background(LopanColors.background)
     }
     
     private var progressInfo: some View {
@@ -94,7 +94,7 @@ private struct TabItemView: View {
                 HStack(spacing: 4) {
                     Text(tab.title)
                         .font(.system(size: 15, weight: isSelected ? .semibold : .medium))
-                        .foregroundColor(isSelected ? .blue : .primary)
+                        .foregroundColor(isSelected ? LopanColors.info : LopanColors.textPrimary)
                     
                     if count > 0 {
                         Text("\(count)")
@@ -104,7 +104,7 @@ private struct TabItemView: View {
                             .padding(.vertical, 2)
                             .background(
                                 RoundedRectangle(cornerRadius: 10)
-                                    .fill(Color(.systemGray5))
+                                    .fill(LopanColors.backgroundTertiary)
                             )
                     } else if tab.status == .all {
                         Text("1...")
@@ -114,14 +114,14 @@ private struct TabItemView: View {
                             .padding(.vertical, 2)
                             .background(
                                 RoundedRectangle(cornerRadius: 10)
-                                    .fill(Color(.systemGray5))
+                                    .fill(LopanColors.backgroundTertiary)
                             )
                     }
                 }
                 
                 // Selection indicator
                 Rectangle()
-                    .fill(isSelected ? Color.blue : Color.clear)
+                    .fill(isSelected ? LopanColors.primary : LopanColors.clear)
                     .frame(height: 2)
                     .frame(maxWidth: .infinity)
             }

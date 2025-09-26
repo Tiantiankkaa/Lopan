@@ -238,9 +238,9 @@ private struct ShimmerModifier: ViewModifier {
                     .fill(
                         LinearGradient(
                             colors: [
-                                Color.clear,
-                                Color.white.opacity(0.3),
-                                Color.clear
+                                LopanColors.clear,
+                                LopanColors.textPrimary.opacity(0.3),
+                                LopanColors.clear
                             ],
                             startPoint: .leading,
                             endPoint: .trailing
@@ -303,5 +303,5 @@ private struct ShimmerModifier: ViewModifier {
         }
         .padding()
     }
-    .background(Color(.systemGroupedBackground))
+    .background(LopanColors.backgroundSecondary)
 }

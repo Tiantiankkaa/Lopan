@@ -120,7 +120,7 @@ struct IntelligentFilterPanel: View {
                 }
                 .padding(20)
             }
-            .background(Color(.systemGroupedBackground))
+            .background(LopanColors.backgroundSecondary)
             .navigationBarHidden(true)
             .onAppear {
                 initializeFilterState()
@@ -170,7 +170,7 @@ struct IntelligentFilterPanel: View {
             Button("取消") {
                 dismiss()
             }
-            .foregroundColor(.blue)
+            .foregroundColor(LopanColors.info)
         }
         .padding(.bottom, 8)
     }
@@ -183,7 +183,7 @@ struct IntelligentFilterPanel: View {
         VStack(alignment: .leading, spacing: 20) {
             HStack {
                 Image(systemName: "slider.horizontal.3")
-                    .foregroundColor(.blue)
+                    .foregroundColor(LopanColors.info)
                     .font(.title2)
                 
                 Text("精细筛选")
@@ -235,7 +235,7 @@ struct IntelligentFilterPanel: View {
                     .padding(12)
                     .background(
                         RoundedRectangle(cornerRadius: 8)
-                            .fill(Color(.systemGray6))
+                            .fill(LopanColors.backgroundTertiary)
                     )
                 }
                 
@@ -256,7 +256,7 @@ struct IntelligentFilterPanel: View {
                     .padding(12)
                     .background(
                         RoundedRectangle(cornerRadius: 8)
-                            .fill(Color(.systemGray6))
+                            .fill(LopanColors.backgroundTertiary)
                     )
                 }
             }
@@ -264,8 +264,8 @@ struct IntelligentFilterPanel: View {
         .padding(16)
         .background(
             RoundedRectangle(cornerRadius: 16)
-                .fill(Color(.systemBackground))
-                .shadow(color: .black.opacity(0.08), radius: 8, x: 0, y: 4)
+                .fill(LopanColors.background)
+                .shadow(color: LopanColors.textPrimary.opacity(0.08), radius: 8, x: 0, y: 4)
         )
     }
     
@@ -275,7 +275,7 @@ struct IntelligentFilterPanel: View {
         VStack(spacing: 16) {
             HStack {
                 Image(systemName: "eye.fill")
-                    .foregroundColor(.green)
+                    .foregroundColor(LopanColors.success)
                     .font(.title2)
                 
                 Text("筛选预览")
@@ -295,7 +295,7 @@ struct IntelligentFilterPanel: View {
                         .padding(.vertical, 6)
                         .background(
                             Capsule()
-                                .fill(Color.green.opacity(0.1))
+                                .fill(LopanColors.success.opacity(0.1))
                         )
                 }
             }
@@ -317,8 +317,8 @@ struct IntelligentFilterPanel: View {
         .padding(16)
         .background(
             RoundedRectangle(cornerRadius: 16)
-                .fill(Color(.systemBackground))
-                .shadow(color: .black.opacity(0.08), radius: 8, x: 0, y: 4)
+                .fill(LopanColors.background)
+                .shadow(color: LopanColors.textPrimary.opacity(0.08), radius: 8, x: 0, y: 4)
         )
     }
     
@@ -523,7 +523,7 @@ private struct FilterSection<Content: View>: View {
         VStack(alignment: .leading, spacing: 12) {
             HStack {
                 Image(systemName: icon)
-                    .foregroundColor(.blue)
+                    .foregroundColor(LopanColors.info)
                 
                 Text(title)
                     .font(.subheadline)
@@ -545,21 +545,21 @@ private struct StatusFilterButton: View {
             Text(status.displayName)
                 .font(.subheadline)
                 .fontWeight(.medium)
-                .foregroundColor(isSelected ? .white : .primary)
+                .foregroundColor(isSelected ? LopanColors.textOnPrimary : LopanColors.textPrimary)
                 .padding(.horizontal, 16)
                 .padding(.vertical, 8)
                 .background(
                     Capsule()
-                        .fill(isSelected ? statusColor(status) : Color(.systemGray6))
+                        .fill(isSelected ? statusColor(status) : LopanColors.backgroundTertiary)
                 )
         }
     }
     
     private func statusColor(_ status: OutOfStockStatus) -> Color {
         switch status {
-        case .pending: return .orange
-        case .completed: return .green
-        case .returned: return .red
+        case .pending: return LopanColors.warning
+        case .completed: return LopanColors.success
+        case .returned: return LopanColors.error
         }
     }
 }
@@ -574,12 +574,12 @@ private struct DateRangeButton: View {
             Text(option.title)
                 .font(.subheadline)
                 .fontWeight(.medium)
-                .foregroundColor(isSelected ? .white : .primary)
+                .foregroundColor(isSelected ? LopanColors.textOnPrimary : LopanColors.textPrimary)
                 .padding(.horizontal, 16)
                 .padding(.vertical, 8)
                 .background(
                     Capsule()
-                        .fill(isSelected ? Color.blue : Color(.systemGray6))
+                        .fill(isSelected ? LopanColors.primary : LopanColors.backgroundSecondary)
                 )
         }
     }
@@ -618,7 +618,7 @@ private struct CustomDateRangePicker: View {
             .padding(12)
             .background(
                 RoundedRectangle(cornerRadius: 8)
-                    .fill(Color(.systemGray6))
+                    .fill(LopanColors.backgroundTertiary)
             )
         }
     }

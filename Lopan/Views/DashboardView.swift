@@ -54,7 +54,7 @@ struct UnauthorizedView: View {
             VStack(spacing: 30) {
                 Image(systemName: "exclamationmark.triangle.fill")
                     .font(.system(size: 60))
-                    .foregroundColor(.orange)
+                    .foregroundColor(LopanColors.warning)
                 
                 Text("unauthorized_access".localized)
                     .font(.title)
@@ -141,7 +141,7 @@ struct SalespersonDashboardView: View {
                             title: "customer_out_of_stock_management".localized,
                             subtitle: "customer_out_of_stock_management_subtitle".localized,
                             icon: "exclamationmark.triangle",
-                            color: .orange
+                            color: LopanColors.roleWarehouseKeeper
                         )
                     }
                     
@@ -150,7 +150,7 @@ struct SalespersonDashboardView: View {
                             title: "return_goods_management".localized,
                             subtitle: "return_goods_management_subtitle".localized,
                             icon: "arrow.uturn.left",
-                            color: .red
+                            color: LopanColors.error
                         )
                     }
                     
@@ -159,7 +159,7 @@ struct SalespersonDashboardView: View {
                             title: "customer_management".localized,
                             subtitle: "customer_management_subtitle".localized,
                             icon: "person.2",
-                            color: .blue
+                            color: LopanColors.roleSalesperson
                         )
                     }
                     
@@ -168,7 +168,7 @@ struct SalespersonDashboardView: View {
                             title: "product_management".localized,
                             subtitle: "product_management_subtitle".localized,
                             icon: "cube.box",
-                            color: .purple
+                            color: LopanColors.roleAdministrator
                         )
                     }
                     
@@ -177,7 +177,7 @@ struct SalespersonDashboardView: View {
                             title: "out_of_stock_analytics".localized,
                             subtitle: "out_of_stock_analytics_subtitle".localized,
                             icon: "chart.bar",
-                            color: .green
+                            color: LopanColors.roleWorkshopManager
                         )
                     }
                     
@@ -186,7 +186,7 @@ struct SalespersonDashboardView: View {
                             title: "历史回溯",
                             subtitle: "查看用户操作记录和历史变更",
                             icon: "clock.arrow.circlepath",
-                            color: .indigo
+                            color: LopanColors.roleWorkshopTechnician
                         )
                     }
                 }
@@ -265,14 +265,14 @@ struct SalespersonDashboardView: View {
                         .foregroundColor(.secondary)
                 } else if let errorMessage = errorMessage {
                     Image(systemName: "exclamationmark.triangle.fill")
-                        .foregroundColor(.orange)
+                        .foregroundColor(LopanColors.warning)
                     Text(errorMessage)
                         .font(.caption)
-                        .foregroundColor(.red)
+                        .foregroundColor(LopanColors.error)
                         .multilineTextAlignment(.center)
                 } else if let lastRefreshTime = lastRefreshTime {
                     Image(systemName: "checkmark.circle.fill")
-                        .foregroundColor(.green)
+                        .foregroundColor(LopanColors.success)
                     Text("最后更新: \(lastRefreshTime, style: .time)")
                         .font(.caption)
                         .foregroundColor(.secondary)
@@ -299,7 +299,7 @@ struct SalespersonDashboardView: View {
                     StatCard(
                         title: "客户",
                         count: customers.count,
-                        color: .blue
+                        color: LopanColors.roleSalesperson
                     )
                     .accessibilityElement(children: .combine)
                     .accessibilityLabel("客户数量: \(customers.count)")
@@ -307,7 +307,7 @@ struct SalespersonDashboardView: View {
                     StatCard(
                         title: "产品",
                         count: products.count,
-                        color: .purple
+                        color: LopanColors.roleAdministrator
                     )
                     .accessibilityElement(children: .combine)
                     .accessibilityLabel("产品数量: \(products.count)")
@@ -315,12 +315,12 @@ struct SalespersonDashboardView: View {
             }
         }
         .padding()
-        .background(Color(.systemBackground))
+        .background(LopanColors.background)
         .cornerRadius(16)
-        .shadow(color: .black.opacity(0.05), radius: 8, x: 0, y: 2)
+        .shadow(color: LopanColors.textPrimary.opacity(0.05), radius: 8, x: 0, y: 2)
         .overlay(
             RoundedRectangle(cornerRadius: 16)
-                .stroke(Color(.systemGray5), lineWidth: 1)
+                .stroke(LopanColors.backgroundTertiary, lineWidth: 1)
         )
     }
     
@@ -422,7 +422,7 @@ struct EVAGranulationDashboardView: View {
                             title: "granulation_records".localized,
                             subtitle: "granulation_records_subtitle".localized,
                             icon: "drop.fill",
-                            color: .blue
+                            color: LopanColors.roleSalesperson
                         )
                     }
                     
@@ -431,7 +431,7 @@ struct EVAGranulationDashboardView: View {
                             title: "raw_material_management".localized,
                             subtitle: "raw_material_management_subtitle".localized,
                             icon: "cube.box",
-                            color: .orange
+                            color: LopanColors.roleWarehouseKeeper
                         )
                     }
                 }
@@ -479,7 +479,7 @@ struct WorkshopTechnicianDashboardView: View {
                             title: "issue_reports".localized,
                             subtitle: "issue_reports_subtitle".localized,
                             icon: "exclamationmark.triangle",
-                            color: .red
+                            color: LopanColors.error
                         )
                     }
                     
@@ -488,7 +488,7 @@ struct WorkshopTechnicianDashboardView: View {
                             title: "machine_maintenance".localized,
                             subtitle: "machine_maintenance_subtitle".localized,
                             icon: "wrench.and.screwdriver",
-                            color: .purple
+                            color: LopanColors.roleAdministrator
                         )
                     }
                 }
@@ -538,7 +538,7 @@ struct SimplifiedAdministratorDashboardView: View {
                             title: "用户管理",
                             subtitle: "管理系统用户、角色和权限设置",
                             icon: "person.2.circle",
-                            color: .blue
+                            color: LopanColors.roleSalesperson
                         ) {
                             navigationPath.append("UserManagement")
                         }
@@ -547,7 +547,7 @@ struct SimplifiedAdministratorDashboardView: View {
                             title: "批次管理",
                             subtitle: "审核生产配置批次和查看历史记录",
                             icon: "doc.text.magnifyingglass",
-                            color: .indigo
+                            color: LopanColors.roleWorkshopTechnician
                         ) {
                             navigationPath.append("BatchManagement")
                         }
@@ -556,7 +556,7 @@ struct SimplifiedAdministratorDashboardView: View {
                             title: "系统概览",
                             subtitle: "查看系统整体运行状态和统计信息",
                             icon: "chart.bar.doc.horizontal",
-                            color: .green
+                            color: LopanColors.roleWorkshopManager
                         ) {
                             navigationPath.append("SystemOverview")
                         }
@@ -565,7 +565,7 @@ struct SimplifiedAdministratorDashboardView: View {
                             title: "生产概览",
                             subtitle: "监控生产线状态和设备运行情况",
                             icon: "gearshape.2.fill",
-                            color: .purple
+                            color: LopanColors.roleAdministrator
                         ) {
                             navigationPath.append("ProductionOverview")
                         }
@@ -574,7 +574,7 @@ struct SimplifiedAdministratorDashboardView: View {
                 }
                 .padding(.vertical, 16)
             }
-            .background(Color(.systemGroupedBackground))
+            .background(LopanColors.backgroundSecondary)
             .navigationTitle("管理员控制台")
             .navigationBarTitleDisplayMode(.large)
             .toolbar {

@@ -58,7 +58,7 @@ struct EnhancedStatCard: View {
         .padding(12)
         .background(
             RoundedRectangle(cornerRadius: 12)
-                .fill(Color(.systemBackground))
+                .fill(LopanColors.background)
                 .shadow(color: color.opacity(0.15), radius: 4, x: 0, y: 2)
         )
         .overlay(
@@ -130,7 +130,7 @@ struct StatisticsOverviewCard: View {
                     }
                     
                     ProgressView(value: completionRate)
-                        .progressViewStyle(LinearProgressViewStyle(tint: .green))
+                        .progressViewStyle(LinearProgressViewStyle(tint: LopanColors.success))
                         .scaleEffect(y: 2)
                 }
             }
@@ -140,21 +140,21 @@ struct StatisticsOverviewCard: View {
                 EnhancedStatCard(
                     title: "待还货",
                     count: needsReturnCount,
-                    color: .orange,
+                    color: LopanColors.warning,
                     icon: "exclamationmark.triangle.fill"
                 )
                 
                 EnhancedStatCard(
                     title: "部分还货",
                     count: partialReturnCount,
-                    color: .blue,
+                    color: LopanColors.info,
                     icon: "clock.fill"
                 )
                 
                 EnhancedStatCard(
                     title: "已完成",
                     count: completedReturnCount,
-                    color: .green,
+                    color: LopanColors.success,
                     icon: "checkmark.circle.fill"
                 )
             }
@@ -162,8 +162,8 @@ struct StatisticsOverviewCard: View {
         .padding(16)
         .background(
             RoundedRectangle(cornerRadius: 16)
-                .fill(Color(.systemBackground))
-                .shadow(color: .black.opacity(0.05), radius: 8, x: 0, y: 2)
+                .fill(LopanColors.background)
+                .shadow(color: LopanColors.textPrimary.opacity(0.05), radius: 8, x: 0, y: 2)
         )
         .accessibilityElement(children: .contain)
         .accessibilityLabel("还货统计概览")
@@ -176,7 +176,7 @@ struct StatisticsOverviewCard: View {
         EnhancedStatCard(
             title: "待还货",
             count: 15,
-            color: .orange,
+            color: LopanColors.warning,
             icon: "exclamationmark.triangle.fill",
             subtitle: "优先处理"
         )
@@ -189,5 +189,5 @@ struct StatisticsOverviewCard: View {
         )
     }
     .padding()
-    .background(Color(.systemGroupedBackground))
+    .background(LopanColors.backgroundSecondary)
 }

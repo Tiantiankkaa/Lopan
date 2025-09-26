@@ -218,9 +218,9 @@ public struct StandardSheet<Content: View>: View {
 
     private var backgroundColor: Color {
         if #available(iOS 17.0, *) {
-            return Color(.systemBackground)
+            return LopanColors.background
         } else {
-            return colorScheme == .dark ? Color(.systemGray6) : .white
+            return colorScheme == .dark ? LopanColors.backgroundSecondary : LopanColors.background
         }
     }
 
@@ -232,7 +232,7 @@ public struct StandardSheet<Content: View>: View {
             if #available(iOS 17.0, *) {
                 Rectangle().fill(Material.regular)
             } else {
-                Color(.systemBackground)
+                LopanColors.background
             }
         }
     }
@@ -285,7 +285,7 @@ public extension View {
 
                 Text("This is a standardized sheet presentation following iOS 26 guidelines.")
                     .multilineTextAlignment(.center)
-                    .foregroundColor(.secondary)
+                    .foregroundColor(LopanColors.textSecondary)
                     .padding(.horizontal)
             }
             .padding()
@@ -345,16 +345,16 @@ private struct FilterRow: View {
     var body: some View {
         HStack {
             Text(title)
-                .foregroundColor(.secondary)
+                .foregroundColor(LopanColors.textSecondary)
             Spacer()
             Text(value)
-                .foregroundColor(.primary)
+                .foregroundColor(LopanColors.textPrimary)
             Image(systemName: "chevron.right")
                 .font(.caption)
-                .foregroundColor(.secondary)
+                .foregroundColor(LopanColors.textSecondary)
         }
         .padding()
-        .background(Color(.systemGray6))
+        .background(LopanColors.backgroundSecondary)
         .cornerRadius(10)
     }
 }
@@ -376,18 +376,18 @@ private struct FilterRow: View {
 
                 Text("此操作不可撤销，是否继续？")
                     .multilineTextAlignment(.center)
-                    .foregroundColor(.secondary)
+                    .foregroundColor(LopanColors.textSecondary)
 
                 HStack(spacing: 16) {
                     Button("取消") {}
-                        .foregroundColor(.secondary)
+                        .foregroundColor(LopanColors.textSecondary)
                         .padding(.horizontal, 30)
                         .padding(.vertical, 12)
-                        .background(Color(.systemGray5))
+                        .background(LopanColors.backgroundTertiary)
                         .cornerRadius(10)
 
                     Button("删除") {}
-                        .foregroundColor(.white)
+                        .foregroundColor(LopanColors.textOnPrimary)
                         .padding(.horizontal, 30)
                         .padding(.vertical, 12)
                         .background(LopanColors.error)
