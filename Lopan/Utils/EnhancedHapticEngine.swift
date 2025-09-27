@@ -535,7 +535,7 @@ struct HapticEngineTestView: View {
     @StateObject private var hapticEngine = EnhancedHapticEngine.shared
     
     var body: some View {
-        NavigationView {
+        NavigationStack {
             List {
                 Section("基础触觉反馈") {
                     Button("轻触反馈") { hapticEngine.light() }

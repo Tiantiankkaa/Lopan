@@ -573,7 +573,7 @@ struct CustomerOutOfStockDashboard: View {
             HStack {
                 HStack {
                     Image(systemName: "magnifyingglass")
-                        .foregroundColor(.secondary)
+                        .foregroundColor(LopanColors.textSecondary)
                     
                     TextField("搜索客户、产品、备注...", text: $dashboardState.searchText)
                         .textFieldStyle(.plain)
@@ -597,7 +597,7 @@ struct CustomerOutOfStockDashboard: View {
                     if !dashboardState.searchText.isEmpty {
                         Button(action: { dashboardState.searchText = "" }) {
                             Image(systemName: "xmark.circle.fill")
-                                .foregroundColor(.secondary)
+                                .foregroundColor(LopanColors.textSecondary)
                         }
                     }
                 }
@@ -736,6 +736,14 @@ struct CustomerOutOfStockDashboard: View {
             .scrollDismissesKeyboard(.immediately)
             .opacity(animationState.contentOpacity)
             .animation(.easeInOut(duration: 0.4), value: animationState.contentOpacity)
+            .onAppear {
+                // PHASE 1 OPTIMIZATION: Enable scroll optimization for large dataset performance
+                LopanScrollOptimizer.shared.startOptimization()
+            }
+            .onDisappear {
+                // PHASE 1 OPTIMIZATION: Stop scroll optimization when view disappears
+                LopanScrollOptimizer.shared.stopOptimization()
+            }
             .onChange(of: dashboardState.shouldScrollToTop) { shouldScroll in
                 if shouldScroll {
                     // Scroll to top when filter changes [rule:§3+.2 API Contract]
@@ -2104,7 +2112,7 @@ private struct OutOfStockItemCard: View {
                         
                         Text(item.customerAddress)
                             .font(.caption)
-                            .foregroundColor(.secondary)
+                            .foregroundColor(LopanColors.textSecondary)
                             .lineLimit(1)
                     }
                     
@@ -2143,7 +2151,7 @@ private struct OutOfStockItemCard: View {
                         
                         Text("数量: \(item.quantity)")
                             .font(.caption)
-                            .foregroundColor(.secondary)
+                            .foregroundColor(LopanColors.textSecondary)
                     }
                     
                     Spacer()
@@ -2152,11 +2160,11 @@ private struct OutOfStockItemCard: View {
                     VStack(alignment: .trailing, spacing: 2) {
                         Text(item.requestDate, style: .date)
                             .font(.caption)
-                            .foregroundColor(.secondary)
+                            .foregroundColor(LopanColors.textSecondary)
                         
                         Text(item.requestDate, style: .time)
                             .font(.caption2)
-                            .foregroundColor(.secondary)
+                            .foregroundColor(LopanColors.textSecondary)
                     }
                 }
                 
@@ -2164,7 +2172,7 @@ private struct OutOfStockItemCard: View {
                 if let notes = item.userVisibleNotes, !notes.isEmpty {
                     Text(notes)
                         .font(.caption)
-                        .foregroundColor(.secondary)
+                        .foregroundColor(LopanColors.textSecondary)
                         .lineLimit(2)
                         .padding(.top, 4)
                 }
@@ -2183,7 +2191,7 @@ private struct OutOfStockItemCard: View {
                         if let returnDate = item.returnDate {
                             Text(returnDate, style: .date)
                                 .font(.caption)
-                                .foregroundColor(.secondary)
+                                .foregroundColor(LopanColors.textSecondary)
                         }
                     }
                     .padding(.top, 4)
@@ -2274,7 +2282,7 @@ private struct CustomEmptyStateView: View {
                 
                 Text(message)
                     .font(.body)
-                    .foregroundColor(.secondary)
+                    .foregroundColor(LopanColors.textSecondary)
                     .multilineTextAlignment(.center)
                     .padding(.horizontal, 40)
             }

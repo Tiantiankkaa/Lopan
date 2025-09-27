@@ -268,7 +268,7 @@ struct GiveBackManagementView: View {
                 Spacer()
                 Image(systemName: "chevron.up.chevron.down")
                     .font(.caption2)
-                    .foregroundColor(.secondary)
+                    .foregroundColor(LopanColors.textSecondary)
             }
             .padding(12)
             .background(LopanColors.backgroundSecondary)
@@ -304,7 +304,7 @@ struct GiveBackManagementView: View {
                 Spacer()
                 Image(systemName: "chevron.up.chevron.down")
                     .font(.caption2)
-                    .foregroundColor(.secondary)
+                    .foregroundColor(LopanColors.textSecondary)
             }
             .padding(12)
             .background(LopanColors.backgroundSecondary)
@@ -340,7 +340,7 @@ struct GiveBackManagementView: View {
                 Spacer()
                 Image(systemName: "chevron.up.chevron.down")
                     .font(.caption2)
-                    .foregroundColor(.secondary)
+                    .foregroundColor(LopanColors.textSecondary)
             }
             .padding(12)
             .background(LopanColors.backgroundSecondary)
@@ -640,7 +640,7 @@ struct ReturnGoodsRowView: View {
                 
                 Text(item.productDisplayName)
                     .font(.subheadline)
-                    .foregroundColor(.secondary)
+                    .foregroundColor(LopanColors.textSecondary)
                 
                 HStack {
                     VStack(alignment: .leading, spacing: 2) {
@@ -660,10 +660,10 @@ struct ReturnGoodsRowView: View {
                         VStack(alignment: .trailing, spacing: 2) {
                             Text("还货日期:")
                                 .font(.caption)
-                                .foregroundColor(.secondary)
+                                .foregroundColor(LopanColors.textSecondary)
                             Text(returnDate, style: .date)
                                 .font(.caption)
-                                .foregroundColor(.secondary)
+                                .foregroundColor(LopanColors.textSecondary)
                         }
                     }
                 }

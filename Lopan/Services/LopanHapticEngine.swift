@@ -538,7 +538,7 @@ struct LopanHapticEngineTestView: View {
     @StateObject private var hapticEngine = LopanHapticEngine.shared
 
     var body: some View {
-        NavigationView {
+        NavigationStack {
             List {
                 Section("基础触觉反馈") {
                     Button("轻触") { hapticEngine.light() }

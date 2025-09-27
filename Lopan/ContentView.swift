@@ -15,7 +15,7 @@ struct ContentView: View {
     var body: some View {
         // ContentView is deprecated - functionality moved to LopanApp.swift
         Text("Please use the main app entry point")
-            .foregroundColor(.secondary)
+            .foregroundColor(LopanColors.textSecondary)
     }
 
     private func addItem() {

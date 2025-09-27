@@ -421,7 +421,7 @@ public struct LopanNavigationStack<Content: View>: View {
 // MARK: - Legacy Navigation Support
 
 /// Fallback navigation wrapper for iOS < 16
-@available(iOS, introduced: 14.0, deprecated: 16.0, message: "Use LopanNavigationStack for iOS 16+")
+@available(iOS, introduced: 14.0, deprecated: 17.0, message: "Legacy NavigationView removed - iOS 17+ uses NavigationStack exclusively")
 public struct LegacyNavigationView<Content: View>: View {
     let content: Content
 
@@ -430,10 +430,10 @@ public struct LegacyNavigationView<Content: View>: View {
     }
 
     public var body: some View {
-        NavigationView {
+        // iOS 17+ - Use NavigationStack instead of legacy NavigationView
+        NavigationStack {
             content
         }
-        .navigationViewStyle(StackNavigationViewStyle())
     }
 }
 
@@ -448,14 +448,9 @@ public struct LopanUniversalNavigation<Content: View>: View {
     }
 
     public var body: some View {
-        if #available(iOS 16.0, *) {
-            LopanNavigationStack {
-                content
-            }
-        } else {
-            LegacyNavigationView {
-                content
-            }
+        // iOS 17+ only - NavigationStack is now the standard
+        LopanNavigationStack {
+            content
         }
     }
 }

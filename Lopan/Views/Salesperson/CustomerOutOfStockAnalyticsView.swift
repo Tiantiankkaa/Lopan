@@ -100,6 +100,14 @@ struct CustomerOutOfStockAnalyticsView: View {
                 .padding(.vertical, LopanSpacing.lg)
             }
             .scrollIndicators(.hidden)
+            .onAppear {
+                // PHASE 1 OPTIMIZATION: Enable scroll optimization for analytics data
+                LopanScrollOptimizer.shared.startOptimization()
+            }
+            .onDisappear {
+                // PHASE 1 OPTIMIZATION: Stop scroll optimization when view disappears
+                LopanScrollOptimizer.shared.stopOptimization()
+            }
             .navigationTitle("out_of_stock_analytics".localized)
             .navigationBarTitleDisplayMode(.inline)
             .background(LopanColors.backgroundPrimary.ignoresSafeArea())

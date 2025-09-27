@@ -54,7 +54,7 @@ struct BatchReturnProcessingSheet: View {
             
             Text("已选择 \(items.count) 个需要还货的记录".localized(with: items.count))
                 .font(.subheadline)
-                .foregroundColor(.secondary)
+                .foregroundColor(LopanColors.textSecondary)
             
             Divider()
         }
@@ -211,7 +211,7 @@ struct ReturnItemInputRow: View {
             
             Text(item.productDisplayName)
                 .font(.subheadline)
-                .foregroundColor(.secondary)
+                .foregroundColor(LopanColors.textSecondary)
             
             HStack {
                 Text("剩余数量: \(item.remainingQuantity)")

@@ -38,13 +38,32 @@ public final class LopanPerformanceProfiler: ObservableObject {
     // MARK: - Configuration
 
     public struct Configuration {
-        var maxFrameHistory = 120 // 2 seconds at 60fps
-        var memoryCheckInterval: TimeInterval = 1.0
+        var maxFrameHistory = 60 // Reduced from 120 for better performance
+        var memoryCheckInterval: TimeInterval = 3.0 // Reduced frequency from 1.0s to 3.0s
+        var frameRateCheckInterval: TimeInterval = 0.1 // 10fps instead of 60fps
         var alertThresholds = AlertThresholds()
         var isDebugMode = false
+        var isLightweightMode = true // New: lightweight mode by default
+        var enabledFeatures = MonitoringFeatures() // New: granular feature control
+        var cpuBudgetPercentage = 2.0 // New: max 2% CPU usage for monitoring
+        var maxActiveTime: TimeInterval = 300.0 // New: auto-disable after 5 minutes
+    }
+
+    public struct MonitoringFeatures {
+        var frameRateMonitoring = true
+        var memoryMonitoring = true
+        var networkMonitoring = false // Disabled by default for better performance
+        var scrollMonitoring = true
+        var viewTransitionMonitoring = false // Disabled by default
     }
 
     public var configuration = Configuration()
+
+    // MARK: - Performance Budget Tracking
+
+    private var monitoringStartTime: CFTimeInterval = 0
+    private var cpuUsageHistory: [Double] = []
+    private var lastBudgetCheck: CFTimeInterval = 0
 
     // MARK: - Initialization
 
@@ -62,16 +81,45 @@ public final class LopanPerformanceProfiler: ObservableObject {
 
     // MARK: - Public Interface
 
-    /// Start comprehensive performance monitoring
-    public func startMonitoring() {
+    /// Start performance monitoring with optional lightweight mode
+    public func startMonitoring(lightweight: Bool = true) {
         guard !isMonitoring else { return }
 
-        isMonitoring = true
-        startFrameRateMonitoring()
-        startMemoryMonitoring()
-        startNetworkMonitoring()
+        #if DEBUG
+        // Only enable in debug builds by default
+        if ProcessInfo.processInfo.environment["ENABLE_PERF_MONITORING"] == "false" {
+            logger.info("🎯 Performance monitoring disabled by environment variable")
+            return
+        }
+        #else
+        // In production, only enable if explicitly requested and lightweight
+        guard lightweight && ProcessInfo.processInfo.environment["ENABLE_PERF_MONITORING"] == "true" else {
+            logger.info("🎯 Performance monitoring disabled in production build")
+            return
+        }
+        #endif
 
-        logger.info("🎯 Performance monitoring started")
+        isMonitoring = true
+        monitoringStartTime = CFAbsoluteTimeGetCurrent()
+        configuration.isLightweightMode = lightweight
+
+        // Start monitoring based on feature flags
+        if configuration.enabledFeatures.frameRateMonitoring {
+            startFrameRateMonitoring()
+        }
+
+        if configuration.enabledFeatures.memoryMonitoring {
+            startMemoryMonitoring()
+        }
+
+        if configuration.enabledFeatures.networkMonitoring {
+            startNetworkMonitoring()
+        }
+
+        // Start budget monitoring
+        startBudgetMonitoring()
+
+        logger.info("🎯 Performance monitoring started (lightweight: \(lightweight))")
     }
 
     /// Stop performance monitoring
@@ -156,6 +204,12 @@ public final class LopanPerformanceProfiler: ObservableObject {
         logger.debug("🌐 Network request \(url): \(String(format: "%.1f", duration * 1000))ms, \(dataSize) bytes")
     }
 
+    /// Record memory pressure event
+    public func recordMemoryPressure() {
+        addAlert(.highMemoryUsage(usage: self.currentMetrics.memoryUsage))
+        logger.warning("🧠 Memory pressure detected - current usage: \(String(format: "%.1f", self.currentMetrics.memoryUsage))MB")
+    }
+
     /// Get performance summary for debugging
     public func getPerformanceSummary() -> PerformanceSummary {
         return PerformanceSummary(
@@ -180,8 +234,17 @@ extension LopanPerformanceProfiler {
     }
 
     private func startFrameRateMonitoring() {
-        displayLink = CADisplayLink(target: self, selector: #selector(frameRateCallback))
-        displayLink?.add(to: .main, forMode: .common)
+        if configuration.isLightweightMode {
+            // Lightweight mode: Sample frame rate less frequently
+            displayLink = CADisplayLink(target: self, selector: #selector(frameRateCallback))
+            displayLink?.preferredFramesPerSecond = 10 // Limit to 10fps sampling
+            displayLink?.add(to: .main, forMode: .default) // Use default instead of common mode
+        } else {
+            // Full mode: Higher frequency sampling
+            displayLink = CADisplayLink(target: self, selector: #selector(frameRateCallback))
+            displayLink?.preferredFramesPerSecond = 30 // Still limit to 30fps instead of 60fps
+            displayLink?.add(to: .main, forMode: .common)
+        }
     }
 
     @objc private func frameRateCallback() {
@@ -266,6 +329,55 @@ extension LopanPerformanceProfiler {
 
             logger.warning("⚠️ Performance alert: \(alert.description)")
         }
+    }
+
+    // MARK: - Performance Budget Management
+
+    private func startBudgetMonitoring() {
+        // Check budget every 10 seconds
+        Timer.scheduledTimer(withTimeInterval: 10.0, repeats: true) { [weak self] _ in
+            Task { @MainActor in
+                self?.checkPerformanceBudget()
+            }
+        }
+    }
+
+    private func checkPerformanceBudget() {
+        guard isMonitoring else { return }
+
+        let currentTime = CFAbsoluteTimeGetCurrent()
+
+        // Auto-disable after max active time
+        if currentTime - monitoringStartTime > self.configuration.maxActiveTime {
+            logger.warning("⏰ Performance monitoring auto-disabled after \(self.configuration.maxActiveTime)s")
+            stopMonitoring()
+            return
+        }
+
+        // In lightweight mode, do additional budget checks
+        if self.configuration.isLightweightMode {
+            // Simulated CPU usage check - in real implementation, you'd use task_info
+            // For now, we'll use a heuristic based on frame processing
+            let avgProcessingTime = getCurrentProcessingTime()
+
+            if avgProcessingTime > 0.02 { // > 2% of frame time
+                logger.warning("⚠️ Performance monitoring consuming too much CPU, reducing frequency")
+                reduceMonitoringFrequency()
+            }
+        }
+    }
+
+    private func getCurrentProcessingTime() -> Double {
+        // Simple heuristic: if frame times array is large, we're doing too much work
+        return Double(frameTimes.count) / 1000.0 // Simplified calculation
+    }
+
+    private func reduceMonitoringFrequency() {
+        // Further reduce sampling frequency if consuming too much CPU
+        displayLink?.preferredFramesPerSecond = 5
+        self.configuration.memoryCheckInterval = 10.0 // Check memory less frequently
+
+        logger.info("📉 Reduced monitoring frequency to preserve performance")
     }
 }
 

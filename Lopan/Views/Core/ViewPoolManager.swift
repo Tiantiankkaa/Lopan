@@ -137,9 +137,19 @@ public final class ViewPoolManager: ObservableObject {
         setupMemoryMonitoring()
         startPeriodicCleanup()
 
-        // PHASE 1 INTEGRATION: Initialize LopanMemoryManager for coordinated memory management
-        // LopanMemoryManager.shared.startOptimization() // DISABLED: Was causing CPU/memory loop
-        logger.info("🏊‍♂️ ViewPoolManager initialized (memory optimization disabled for performance)")
+        // PHASE 1 INTEGRATION: Initialize LopanMemoryManager for coordinated memory management (FIXED)
+        #if DEBUG
+        // Enable memory optimization in debug builds (now safe with infinite loop fix)
+        if ProcessInfo.processInfo.environment["ENABLE_MEMORY_OPTIMIZATION"] != "false" {
+            LopanMemoryManager.shared.startOptimization()
+            logger.info("🏊‍♂️ ViewPoolManager initialized with memory optimization enabled (DEBUG)")
+        } else {
+            logger.info("🏊‍♂️ ViewPoolManager initialized (memory optimization disabled by env var)")
+        }
+        #else
+        // Disabled in production builds for safety
+        logger.info("🏊‍♂️ ViewPoolManager initialized (memory optimization disabled in production)")
+        #endif
     }
     
     private func setupMemoryMonitoring() {

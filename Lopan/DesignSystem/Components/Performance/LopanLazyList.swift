@@ -128,6 +128,14 @@ where Data.Element: Identifiable, Data.Element: Hashable {
             .refreshable {
                 await performRefresh()
             }
+            .onAppear {
+                // PHASE 1 OPTIMIZATION: Automatic scroll optimization for all LopanLazyList instances
+                LopanScrollOptimizer.shared.startOptimization()
+            }
+            .onDisappear {
+                // PHASE 1 OPTIMIZATION: Stop scroll optimization when list disappears
+                LopanScrollOptimizer.shared.stopOptimization()
+            }
             .lopanAccessibility(
                 role: .list,
                 label: configuration.accessibilityLabel,

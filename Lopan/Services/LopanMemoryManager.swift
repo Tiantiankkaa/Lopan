@@ -32,6 +32,7 @@ public final class LopanMemoryManager: ObservableObject {
     private var imageCaches: [String: NSCache<NSString, UIImage>] = [:]
     private var viewCaches: [String: Any] = [:]
     private var memoryWarningCancellable: AnyCancellable?
+    private let imageCacheDelegate = ImageCacheDelegate() // Strong reference to prevent deallocation
 
     // MARK: - Debouncing Properties
     private var lastCleanupTime: Date?
@@ -164,10 +165,26 @@ public final class LopanMemoryManager: ObservableObject {
         let finalUsage = getCurrentMemoryUsage()
         let memoryFreed = initialUsage - finalUsage
 
-        // Reset failure counter on success
-        consecutiveCleanupFailures = 0
+        // Check if cleanup was effective
+        if memoryFreed > 0 {
+            // Reset failure counter on success
+            consecutiveCleanupFailures = 0
+            logger.info("🧹 Memory cleanup completed. Freed: \(String(format: "%.1f", memoryFreed)) MB")
+        } else {
+            // Increment failure counter if cleanup wasn't effective
+            consecutiveCleanupFailures += 1
+            logger.warning("⚠️ Memory cleanup ineffective. Attempt \(self.consecutiveCleanupFailures)/\(self.maxConsecutiveFailures)")
 
-        logger.info("🧹 Memory cleanup completed. Freed: \(String(format: "%.1f", memoryFreed)) MB")
+            // If we've hit max failures, temporarily disable optimization
+            if consecutiveCleanupFailures >= maxConsecutiveFailures {
+                logger.error("🔴 Memory cleanup circuit breaker activated. Disabling optimization for 5 minutes.")
+
+                // Schedule re-enable after 5 minutes
+                DispatchQueue.main.asyncAfter(deadline: .now() + 300) { [weak self] in
+                    self?.resetCircuitBreaker()
+                }
+            }
+        }
     }
 
     /// Get memory usage statistics
@@ -199,7 +216,9 @@ extension LopanMemoryManager {
 
         // Monitor memory usage periodically
         memoryTimer = Timer.scheduledTimer(withTimeInterval: Configuration.memoryCheckInterval, repeats: true) { [weak self] _ in
-            self?.updateMemoryMetrics()
+            Task { @MainActor in
+                self?.updateMemoryMetrics()
+            }
         }
 
         logger.debug("🧠 Memory monitoring timer started with \(Configuration.memoryCheckInterval)s interval")
@@ -209,7 +228,7 @@ extension LopanMemoryManager {
         // Create default image cache
         let defaultCache = NSCache<NSString, UIImage>()
         defaultCache.countLimit = Configuration.imageCacheLimit
-        defaultCache.delegate = ImageCacheDelegate()
+        defaultCache.delegate = imageCacheDelegate
         imageCaches["default"] = defaultCache
     }
 
@@ -228,7 +247,7 @@ extension LopanMemoryManager {
 
         let newCache = NSCache<NSString, UIImage>()
         newCache.countLimit = Configuration.imageCacheLimit
-        newCache.delegate = ImageCacheDelegate()
+        newCache.delegate = imageCacheDelegate
         imageCaches[category] = newCache
 
         return newCache
@@ -244,9 +263,20 @@ extension LopanMemoryManager {
             currentMemoryUsage.peakMB = usage
         }
 
-        // Check for automatic cleanup
+        // Check for automatic cleanup with additional safeguards
         if usage > Configuration.highMemoryThreshold && isOptimizationActive {
-            performMemoryCleanup()
+            // Additional safety check: don't cleanup if we just did one recently
+            let now = Date()
+            if let lastCleanup = lastCleanupTime,
+               now.timeIntervalSince(lastCleanup) < cleanupDebounceInterval {
+                logger.debug("🛑 Skipping automatic cleanup - too recent")
+            } else if consecutiveCleanupFailures < maxConsecutiveFailures {
+                // Only perform cleanup if we haven't hit circuit breaker
+                logger.info("🧠 Automatic memory cleanup triggered at \(String(format: "%.1f", usage))MB")
+                performMemoryCleanup()
+            } else {
+                logger.warning("🔴 Automatic cleanup skipped - circuit breaker active")
+            }
         }
 
         // Update cache statistics
@@ -332,6 +362,12 @@ extension LopanMemoryManager {
         // Report performance impact
         LopanPerformanceProfiler.shared.recordMemoryPressure()
     }
+
+    /// Reset circuit breaker after cooldown period
+    private func resetCircuitBreaker() {
+        consecutiveCleanupFailures = 0
+        logger.info("✅ Memory cleanup circuit breaker reset - optimization re-enabled")
+    }
 }
 
 // MARK: - Data Structures
@@ -366,7 +402,7 @@ public struct MemoryStatistics {
 // MARK: - Cache Delegate
 
 private class ImageCacheDelegate: NSObject, NSCacheDelegate {
-    func cache(_ cache: NSCache<AnyObject, AnyObject>, willEvictObject obj: AnyObject) {
+    func cache(_ cache: NSCache<AnyObject, AnyObject>, willEvictObject obj: Any) {
         // Log cache eviction for debugging
         let logger = Logger(subsystem: "com.lopan.memory", category: "cache")
         logger.debug("💾 Cache evicting object")
@@ -387,14 +423,8 @@ extension View {
     }
 }
 
-// MARK: - Performance Profiler Extension
-
-extension LopanPerformanceProfiler {
-    func recordMemoryPressure() {
-        // This method should be added to LopanPerformanceProfiler
-        logger.warning("📊 Memory pressure event recorded")
-    }
-}
+// MARK: - Performance Profiler Integration
+// recordMemoryPressure() is now implemented in LopanPerformanceProfiler.swift
 
 // MARK: - Debug View
 

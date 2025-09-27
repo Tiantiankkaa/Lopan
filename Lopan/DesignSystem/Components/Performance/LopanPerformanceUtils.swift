@@ -473,7 +473,7 @@ public struct LopanPerformanceDashboard: View {
     public init() {}
 
     public var body: some View {
-        NavigationView {
+        NavigationStack {
             List {
                 Section("内存状态") {
                     HStack {
