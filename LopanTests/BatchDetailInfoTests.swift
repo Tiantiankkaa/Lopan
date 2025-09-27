@@ -50,7 +50,7 @@ final class BatchDetailInfoTests: XCTestCase {
         batch.isSystemAutoCompleted = isSystemAutoCompleted
         batch.executionTime = executionTime
         batch.completedAt = completedAt
-        batch.isShiftBatch = true
+        // isShiftBatch is computed from targetDate and shift being non-nil
         return batch
     }
     

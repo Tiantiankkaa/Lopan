@@ -62,8 +62,14 @@ struct BatchReturnProcessingSheet: View {
     }
     
     private var itemsList: some View {
-        List {
-            ForEach(items, id: \.id) { item in
+        LopanLazyList(
+            data: items,
+            configuration: LopanLazyList.Configuration(
+                isLoading: false,
+                spacing: LopanSpacing.sm,
+                accessibilityLabel: "还货处理列表"
+            ),
+            content: { item in
                 ReturnItemInputRow(
                     item: item,
                     returnQuantity: Binding(
@@ -75,9 +81,27 @@ struct BatchReturnProcessingSheet: View {
                         set: { returnNotes[item.id] = $0 }
                     )
                 )
+            },
+            skeletonContent: {
+                ReturnItemSkeletonRow()
             }
+        )
+        .onAppear {
+            LopanScrollOptimizer.shared.startOptimization()
         }
-        .listStyle(PlainListStyle())
+        .onDisappear {
+            LopanScrollOptimizer.shared.stopOptimization()
+        }
+        .animation(
+            {
+                if #available(iOS 26.0, *) {
+                    return LopanAdvancedAnimations.liquidSpring
+                } else {
+                    return .spring(response: 0.55, dampingFraction: 0.825)
+                }
+            }(),
+            value: items.count
+        )
     }
     
     private var actionButtons: some View {
@@ -204,27 +228,31 @@ struct ReturnItemInputRow: View {
     }
     
     private var quantityInputSection: some View {
-        HStack {
-            Text("return_quantity".localized + ":")
-                .font(.subheadline)
-            
-            Spacer()
-            
-            TextField("max_return_quantity".localized + ": \(item.remainingQuantity)", text: $returnQuantity)
-                .textFieldStyle(RoundedBorderTextFieldStyle())
-                .keyboardType(.numberPad)
-                .frame(width: 120)
-                .multilineTextAlignment(.center)
+        VStack(alignment: .leading, spacing: 8) {
+            LopanTextField(
+                title: "return_quantity".localized,
+                placeholder: "最多: \(item.remainingQuantity)",
+                text: $returnQuantity,
+                variant: .outline,
+                state: showingError ? .error : .normal,
+                keyboardType: .numberPad,
+                icon: "number",
+                helperText: "请输入要还货的数量",
+                errorText: showingError ? "请输入有效的还货数量（1-\(item.remainingQuantity)）" : nil
+            )
         }
     }
     
     private var notesInputSection: some View {
         VStack(alignment: .leading, spacing: 8) {
-            Text("return_notes".localized + ":")
-                .font(.subheadline)
-            
-            TextField("可选择填写还货原因或备注", text: $returnNotes)
-                .textFieldStyle(RoundedBorderTextFieldStyle())
+            LopanTextField(
+                title: "return_notes".localized,
+                placeholder: "可选择填写还货原因或备注",
+                text: $returnNotes,
+                variant: .outline,
+                icon: "note.text",
+                helperText: "还货备注为可选信息"
+            )
         }
     }
     
@@ -235,5 +263,54 @@ struct ReturnItemInputRow: View {
         }
         
         showingError = quantity <= 0 || quantity > item.remainingQuantity
+    }
+}
+
+// MARK: - Return Item Skeleton Row
+struct ReturnItemSkeletonRow: View {
+    var body: some View {
+        VStack(alignment: .leading, spacing: 12) {
+            // Customer and product info skeleton
+            VStack(alignment: .leading, spacing: 4) {
+                HStack {
+                    Rectangle()
+                        .fill(LopanColors.secondaryLight)
+                        .frame(height: 20)
+                        .frame(maxWidth: .infinity, alignment: .leading)
+                        .shimmering()
+
+                    Rectangle()
+                        .fill(LopanColors.secondaryLight)
+                        .frame(width: 60, height: 16)
+                        .shimmering()
+                }
+
+                Rectangle()
+                    .fill(LopanColors.secondaryLight)
+                    .frame(height: 16)
+                    .frame(maxWidth: .infinity, alignment: .leading)
+                    .shimmering()
+
+                Rectangle()
+                    .fill(LopanColors.secondaryLight)
+                    .frame(width: 120, height: 12)
+                    .shimmering()
+            }
+
+            // Input fields skeleton
+            VStack(alignment: .leading, spacing: 8) {
+                Rectangle()
+                    .fill(LopanColors.secondaryLight)
+                    .frame(height: 40)
+                    .shimmering()
+
+                Rectangle()
+                    .fill(LopanColors.secondaryLight)
+                    .frame(height: 40)
+                    .shimmering()
+            }
+        }
+        .padding(.vertical, 8)
+        .accessibilityHidden(true)
     }
 }

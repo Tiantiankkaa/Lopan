@@ -134,7 +134,7 @@ final class BatchCreationViewUITests: XCTestCase {
     
     func testProductColorSelection() throws {
         // First add a product
-        testAddProductConfiguration()
+        try testAddProductConfiguration()
         
         // Find product configuration item
         let productList = app.tables["product-configuration-list"]
@@ -168,7 +168,7 @@ final class BatchCreationViewUITests: XCTestCase {
     
     func testRemoveProductConfiguration() throws {
         // First add a product
-        testAddProductConfiguration()
+        try testAddProductConfiguration()
         
         let productList = app.tables["product-configuration-list"]
         if productList.exists && productList.cells.count > 0 {
@@ -213,7 +213,7 @@ final class BatchCreationViewUITests: XCTestCase {
     
     func testFormValidationWithCompleteData() throws {
         // Add a product first
-        testAddProductConfiguration()
+        try testAddProductConfiguration()
         
         // Now create button should be enabled
         let createBatchButton = app.buttons["创建批次"]
@@ -271,7 +271,7 @@ final class BatchCreationViewUITests: XCTestCase {
     
     func testSuccessfulBatchCreation() throws {
         // Add a product
-        testAddProductConfiguration()
+        try testAddProductConfiguration()
         
         // Fill in any additional required fields
         let modeSelector = app.segmentedControls["production-mode-selector"]

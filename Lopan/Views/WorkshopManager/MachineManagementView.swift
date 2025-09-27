@@ -114,7 +114,7 @@ struct MachineManagementView: View {
                 
                 Text("点击右上角添加按钮创建第一台设备")
                     .font(.body)
-                    .foregroundColor(.secondary)
+                    .foregroundColor(LopanColors.textSecondary)
                     .multilineTextAlignment(.center)
             }
             
@@ -211,7 +211,7 @@ struct MachineRow: View {
                     
                     Text(machine.statusSummary)
                         .font(.caption)
-                        .foregroundColor(.secondary)
+                        .foregroundColor(LopanColors.textSecondary)
                     
                     // Current batch information
                     HStack(spacing: 4) {
@@ -226,10 +226,10 @@ struct MachineRow: View {
                         } else {
                             Image(systemName: "gear")
                                 .font(.caption2)
-                                .foregroundColor(.secondary)
+                                .foregroundColor(LopanColors.textSecondary)
                             Text("无活跃批次")
                                 .font(.caption2)
-                                .foregroundColor(.secondary)
+                                .foregroundColor(LopanColors.textSecondary)
                         }
                     }
                 }
@@ -249,7 +249,7 @@ struct MachineRow: View {
                     
                     Text("\(String(format: "%.1f", machine.utilizationRate))%")
                         .font(.caption)
-                        .foregroundColor(.secondary)
+                        .foregroundColor(LopanColors.textSecondary)
                 }
             }
             
@@ -335,7 +335,7 @@ struct AddMachineSheet: View {
                         
                         Text("系统将自动配置设备编号和工位")
                             .font(.body)
-                            .foregroundColor(.secondary)
+                            .foregroundColor(LopanColors.textSecondary)
                             .multilineTextAlignment(.center)
                     }
                 }
@@ -395,7 +395,7 @@ struct MachineInfoRow: View {
     var body: some View {
         HStack {
             Text(label)
-                .foregroundColor(.secondary)
+                .foregroundColor(LopanColors.textSecondary)
             
             Spacer()
             

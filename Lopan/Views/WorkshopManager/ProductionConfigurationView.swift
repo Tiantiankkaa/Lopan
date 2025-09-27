@@ -68,14 +68,14 @@ struct ProductionConfigurationView: View {
                 await viewModel.loadData()
             }
             .alert("Error", isPresented: .constant(viewModel.hasError)) {
-                Button("确定") {
+                LopanButton("确定", style: .primary) {
                     viewModel.clearErrors()
                 }
             } message: {
                 Text(viewModel.errorMessage ?? "")
             }
             .alert("工位冲突提醒", isPresented: $showingConflictAlert) {
-                Button("修改配置", role: .cancel) {
+                LopanButton("修改配置", style: .secondary) {
                     showingConflictAlert = false
                 }
             } message: {
@@ -211,7 +211,7 @@ struct ProductionConfigurationView: View {
                 if let machine = viewModel.selectedMachine {
                     Text("生产设备 A-\(String(format: "%03d", machine.machineNumber))")
                         .font(.subheadline)
-                        .foregroundColor(.secondary)
+                        .foregroundColor(LopanColors.textSecondary)
                 }
             }
             
@@ -246,7 +246,7 @@ struct ProductionConfigurationView: View {
                     .fontWeight(.medium)
                 Text("选择设备后查看对应的批次审批状态")
                     .font(.caption)
-                    .foregroundColor(.secondary)
+                    .foregroundColor(LopanColors.textSecondary)
             }
             
             Spacer()
@@ -259,15 +259,15 @@ struct ProductionConfigurationView: View {
     // MARK: - Create Batch Section
     private var createBatchSection: some View {
         VStack(spacing: 16) {
-            Button {
+            LopanButton(
+                "创建生产配置",
+                style: .primary,
+                size: .large,
+                isEnabled: viewModel.canCreateBatch,
+                icon: "plus.circle.fill"
+            ) {
                 viewModel.createNewBatch()
-            } label: {
-                Image(systemName: "plus.circle.fill")
-                    .font(.system(size: 48))
-                    .foregroundColor(viewModel.canCreateBatch ? LopanColors.primary : LopanColors.textSecondary)
             }
-            .buttonStyle(.plain)
-            .disabled(!viewModel.canCreateBatch)
             
             VStack(spacing: 8) {
                 Text("创建生产配置")
@@ -305,25 +305,31 @@ struct ProductionConfigurationView: View {
             
             // Add product button
             if viewModel.canAddProducts && batch.products.count < batch.mode.maxProducts {
-                Button("添加产品") {
+                LopanButton(
+                    "添加产品",
+                    style: .secondary,
+                    icon: "plus"
+                ) {
                     viewModel.showAddProduct()
                 }
-                .buttonStyle(.bordered)
             }
-            
-            
+
+
             // Submit for approval button - always visible with state feedback
             VStack(spacing: 8) {
-                Button(viewModel.submitButtonText) {
+                LopanButton(
+                    viewModel.submitButtonText,
+                    style: .primary,
+                    isEnabled: viewModel.canSubmitBatch && !viewModel.isLoading,
+                    isLoading: viewModel.isLoading
+                ) {
                     handleSubmitBatch()
                 }
-                .buttonStyle(.borderedProminent)
-                .disabled(!viewModel.canSubmitBatch || viewModel.isLoading)
                 
                 if !viewModel.canSubmitBatch {
                     Text(viewModel.submitButtonDisabledReason)
                         .font(.caption)
-                        .foregroundColor(.secondary)
+                        .foregroundColor(LopanColors.textSecondary)
                         .multilineTextAlignment(.center)
                 }
             }
@@ -340,7 +346,7 @@ struct ProductionConfigurationView: View {
                 VStack(alignment: .leading, spacing: 4) {
                     Text("批次编号")
                         .font(.caption)
-                        .foregroundColor(.secondary)
+                        .foregroundColor(LopanColors.textSecondary)
                     Text(batch.batchNumber + " (" + batch.batchType.displayName + ")")
                         .font(.headline)
                         .fontWeight(.semibold)
@@ -351,7 +357,7 @@ struct ProductionConfigurationView: View {
                 VStack(alignment: .trailing, spacing: 4) {
                     Text("状态")
                         .font(.caption)
-                        .foregroundColor(.secondary)
+                        .foregroundColor(LopanColors.textSecondary)
                     
                     HStack(spacing: 4) {
                         Circle()
@@ -368,17 +374,17 @@ struct ProductionConfigurationView: View {
                 HStack {
                     Text("当前批次工位: \(batch.totalStationsUsed)/12")
                         .font(.caption)
-                        .foregroundColor(.secondary)
+                        .foregroundColor(LopanColors.textSecondary)
                     
                     Text("|\(batch.mode.displayName)")
                         .font(.caption)
-                        .foregroundColor(.secondary)
+                        .foregroundColor(LopanColors.textSecondary)
                     
                     Spacer()
                     
                     Text("产品数量: \(batch.products.count)/\(batch.mode.maxProducts)")
                         .font(.caption)
-                        .foregroundColor(.secondary)
+                        .foregroundColor(LopanColors.textSecondary)
                 }
             }
         }
@@ -402,7 +408,7 @@ struct ProductionConfigurationView: View {
                     
                     Text("暂无产品配置")
                         .font(.subheadline)
-                        .foregroundColor(.secondary)
+                        .foregroundColor(LopanColors.textSecondary)
                 }
                 .frame(maxWidth: .infinity)
                 .padding()
@@ -437,7 +443,7 @@ struct ProductionConfigurationView: View {
                     HStack(spacing: 4) {
                         Text("Gun A")
                             .font(.caption)
-                            .foregroundColor(.secondary)
+                            .foregroundColor(LopanColors.textSecondary)
                             .frame(width: 40, alignment: .leading)
                         
                         ForEach(1...6, id: \.self) { stationNumber in
@@ -453,7 +459,7 @@ struct ProductionConfigurationView: View {
                     HStack(spacing: 4) {
                         Text("Gun B")
                             .font(.caption)
-                            .foregroundColor(.secondary)
+                            .foregroundColor(LopanColors.textSecondary)
                             .frame(width: 40, alignment: .leading)
                         
                         ForEach(7...12, id: \.self) { stationNumber in
@@ -588,7 +594,7 @@ struct ProductConfigRow: View {
                 
                 Text("工位: \(product.occupiedStations.map(String.init).joined(separator: ", "))")
                     .font(.caption)
-                    .foregroundColor(.secondary)
+                    .foregroundColor(LopanColors.textSecondary)
             }
             
             Spacer()
@@ -606,13 +612,14 @@ struct ProductConfigRow: View {
             
             // Delete button
             if let onDelete = onDelete {
-                Button {
+                LopanButton(
+                    "删除",
+                    style: .destructive,
+                    size: .small,
+                    icon: "trash"
+                ) {
                     onDelete()
-                } label: {
-                    Image(systemName: "trash")
-                        .foregroundColor(LopanColors.error)
                 }
-                .buttonStyle(.plain)
             }
         }
         .padding()
@@ -663,7 +670,7 @@ struct StationIndicator: View {
             if let productName = productName {
                 Text(productName.prefix(3))
                     .font(.caption2)
-                    .foregroundColor(.secondary)
+                    .foregroundColor(LopanColors.textSecondary)
             }
         }
     }
@@ -824,17 +831,23 @@ struct AddProductSheet: View {
                     
                     // Action buttons
                     VStack(spacing: 12) {
-                        Button("添加产品") {
+                        LopanButton(
+                            "添加产品",
+                            style: .primary,
+                            isEnabled: !isAdding,
+                            isLoading: isAdding,
+                            icon: "plus"
+                        ) {
                             handleAddProductTap()
                         }
-                        .buttonStyle(.borderedProminent)
-                        .disabled(isAdding)
-                        
-                        Button("取消") {
+
+                        LopanButton(
+                            "取消",
+                            style: .secondary,
+                            isEnabled: !isAdding
+                        ) {
                             onDismiss()
                         }
-                        .buttonStyle(.bordered)
-                        .disabled(isAdding)
                     }
                 }
                 .padding()
@@ -877,7 +890,7 @@ struct AddProductSheet: View {
             }
         }
         .alert(validationAlertTitle, isPresented: $showingValidationAlert) {
-            Button("确定") {
+            LopanButton("确定", style: .primary) {
                 showingValidationAlert = false
             }
         } message: {
@@ -913,10 +926,10 @@ struct AddProductSheet: View {
                             .foregroundColor(LopanColors.warning)
                         Text("暂无可用产品")
                             .font(.caption)
-                            .foregroundColor(.secondary)
+                            .foregroundColor(LopanColors.textSecondary)
                         Text("请联系管理员添加产品")
                             .font(.caption2)
-                            .foregroundColor(.secondary)
+                            .foregroundColor(LopanColors.textSecondary)
                     }
                     .padding()
                     .background(LopanColors.warningLight)
@@ -946,7 +959,7 @@ struct AddProductSheet: View {
                             .foregroundColor(LopanColors.success)
                         Text("已从喷枪配置自动填充")
                             .font(.caption)
-                            .foregroundColor(.secondary)
+                            .foregroundColor(LopanColors.textSecondary)
                     }
                 }
             }
@@ -1013,26 +1026,24 @@ struct AddProductSheet: View {
             
             LazyVGrid(columns: Array(repeating: GridItem(.flexible()), count: 3), spacing: 8) {
                 ForEach(stationCountOptions, id: \.self) { count in
-                    Button("\(count) 工位") {
+                    LopanButton(
+                        "\(count) 工位",
+                        style: selectedStationCount == count ? .primary : .secondary,
+                        size: .small
+                    ) {
                         selectedStationCount = count
                         autoAssignStations()
                     }
-                    .frame(maxWidth: .infinity)
-                    .padding(.vertical, 8)
-                    .background(selectedStationCount == count ? LopanColors.primary : LopanColors.secondaryLight)
-                    .foregroundColor(selectedStationCount == count ? LopanColors.textOnPrimary : .primary)
-                    .cornerRadius(8)
                 }
-                
-                Button("其他") {
+
+                LopanButton(
+                    "其他",
+                    style: selectedStationCount == -1 ? .primary : .secondary,
+                    size: .small
+                ) {
                     selectedStationCount = -1 // Use -1 to indicate "Other" option
                     selectedStations = []
                 }
-                .frame(maxWidth: .infinity)
-                .padding(.vertical, 8)
-                .background(selectedStationCount == -1 ? LopanColors.primary : LopanColors.secondaryLight)
-                .foregroundColor(selectedStationCount == -1 ? LopanColors.textOnPrimary : .primary)
-                .cornerRadius(8)
             }
             
             // Show manual station selection when "Other" is selected
@@ -1040,7 +1051,7 @@ struct AddProductSheet: View {
                 VStack(alignment: .leading, spacing: 8) {
                     Text("选择所需工位 (至少 \(batch.mode.minStationsPerProduct) 个) - 仅限 \(selectedGun) 工位")
                         .font(.caption)
-                        .foregroundColor(.secondary)
+                        .foregroundColor(LopanColors.textSecondary)
                     
                     let stationsForSelectedGun = batch.mode == .singleColor ? 
                         (selectedGun == "Gun A" ? gunAAvailableStations : gunBAvailableStations) :
@@ -1048,17 +1059,17 @@ struct AddProductSheet: View {
                     
                     LazyVGrid(columns: Array(repeating: GridItem(.flexible()), count: 6), spacing: 8) {
                         ForEach(stationsForSelectedGun, id: \.self) { station in
-                            Button("\(station)") {
+                            LopanButton(
+                                "\(station)",
+                                style: selectedStations.contains(station) ? .primary : .secondary,
+                                size: .small
+                            ) {
                                 if selectedStations.contains(station) {
                                     selectedStations.remove(station)
                                 } else {
                                     selectedStations.insert(station)
                                 }
                             }
-                            .frame(height: 40)
-                            .background(selectedStations.contains(station) ? LopanColors.primary : LopanColors.secondaryLight)
-                            .foregroundColor(selectedStations.contains(station) ? LopanColors.textOnPrimary : .primary)
-                            .cornerRadius(8)
                         }
                     }
                     
@@ -1089,7 +1100,7 @@ struct AddProductSheet: View {
                 VStack(spacing: 8) {
                     Text("双色产品自动分配：主颜色→Gun A，副颜色→Gun B")
                         .font(.caption)
-                        .foregroundColor(.secondary)
+                        .foregroundColor(LopanColors.textSecondary)
                         .multilineTextAlignment(.center)
                     
                     HStack(spacing: 12) {
@@ -1099,7 +1110,7 @@ struct AddProductSheet: View {
                                 .fontWeight(.medium)
                             Text("主颜色")
                                 .font(.caption)
-                                .foregroundColor(.secondary)
+                                .foregroundColor(LopanColors.textSecondary)
                             if let primaryColor = selectedPrimaryColor {
                                 Circle()
                                     .fill(primaryColor.swiftUIColor)
@@ -1125,7 +1136,7 @@ struct AddProductSheet: View {
                                 .fontWeight(.medium)
                             Text("副颜色")
                                 .font(.caption)
-                                .foregroundColor(.secondary)
+                                .foregroundColor(LopanColors.textSecondary)
                             if let secondaryColor = selectedSecondaryColor {
                                 Circle()
                                     .fill(secondaryColor.swiftUIColor)
@@ -1149,20 +1160,18 @@ struct AddProductSheet: View {
             } else {
                 HStack(spacing: 12) {
                     VStack(spacing: 4) {
-                        Button("Gun A") {
+                        LopanButton(
+                            "Gun A",
+                            style: selectedGun == "Gun A" ? .primary : (canSelectGunA ? .secondary : .destructive),
+                            isEnabled: canSelectGunA
+                        ) {
                             selectedGun = "Gun A"
                             updateColorBasedOnGunSelection()
                             if selectedStationCount != nil && selectedStationCount! > 0 {
                                 autoAssignStations()
                             }
                         }
-                        .frame(maxWidth: .infinity)
-                        .padding(.vertical, 8)
-                        .background(selectedGun == "Gun A" ? LopanColors.primary : (canSelectGunA ? LopanColors.secondaryLight : LopanColors.errorLight))
-                        .foregroundColor(selectedGun == "Gun A" ? LopanColors.textPrimary : (canSelectGunA ? LopanColors.primary : LopanColors.error))
-                        .cornerRadius(8)
-                        .disabled(!canSelectGunA)
-                        
+
                         if !canSelectGunA {
                             Text(isGunAFull ? "已满" : "工位不足")
                                 .font(.caption2)
@@ -1170,25 +1179,23 @@ struct AddProductSheet: View {
                         } else {
                             Text("\(gunAAvailableStations.count) 个可用")
                                 .font(.caption2)
-                                .foregroundColor(.secondary)
+                                .foregroundColor(LopanColors.textSecondary)
                         }
                     }
-                    
+
                     VStack(spacing: 4) {
-                        Button("Gun B") {
+                        LopanButton(
+                            "Gun B",
+                            style: selectedGun == "Gun B" ? .primary : (canSelectGunB ? .secondary : .destructive),
+                            isEnabled: canSelectGunB
+                        ) {
                             selectedGun = "Gun B"
                             updateColorBasedOnGunSelection()
                             if selectedStationCount != nil && selectedStationCount! > 0 {
                                 autoAssignStations()
                             }
                         }
-                        .frame(maxWidth: .infinity)
-                        .padding(.vertical, 8)
-                        .background(selectedGun == "Gun B" ? LopanColors.primary : (canSelectGunB ? LopanColors.secondaryLight : LopanColors.errorLight))
-                        .foregroundColor(selectedGun == "Gun B" ? LopanColors.textPrimary : (canSelectGunB ? LopanColors.primary : LopanColors.error))
-                        .cornerRadius(8)
-                        .disabled(!canSelectGunB)
-                        
+
                         if !canSelectGunB {
                             Text(isGunBFull ? "已满" : "工位不足")
                                 .font(.caption2)
@@ -1196,7 +1203,7 @@ struct AddProductSheet: View {
                         } else {
                             Text("\(gunBAvailableStations.count) 个可用")
                                 .font(.caption2)
-                                .foregroundColor(.secondary)
+                                .foregroundColor(LopanColors.textSecondary)
                         }
                     }
                 }
@@ -1235,7 +1242,7 @@ struct AddProductSheet: View {
             
             Text("已选择 \(selectedStations.count) 个工位")
                 .font(.caption)
-                .foregroundColor(.secondary)
+                .foregroundColor(LopanColors.textSecondary)
             
             ScrollView(.horizontal, showsIndicators: false) {
                 VStack(spacing: 8) {
@@ -1243,7 +1250,7 @@ struct AddProductSheet: View {
                     HStack(spacing: 4) {
                         Text("Gun A")
                             .font(.caption)
-                            .foregroundColor(.secondary)
+                            .foregroundColor(LopanColors.textSecondary)
                             .frame(width: 40, alignment: .leading)
                         
                         ForEach(gunAStations, id: \.self) { station in
@@ -1260,7 +1267,7 @@ struct AddProductSheet: View {
                     HStack(spacing: 4) {
                         Text("Gun B")
                             .font(.caption)
-                            .foregroundColor(.secondary)
+                            .foregroundColor(LopanColors.textSecondary)
                             .frame(width: 40, alignment: .leading)
                         
                         ForEach(gunBStations, id: \.self) { station in
@@ -1289,21 +1296,21 @@ struct AddProductSheet: View {
             
             Text("至少选择 \(batch.mode.minStationsPerProduct) 个工位")
                 .font(.caption)
-                .foregroundColor(.secondary)
+                .foregroundColor(LopanColors.textSecondary)
             
             LazyVGrid(columns: Array(repeating: GridItem(.flexible()), count: 6), spacing: 8) {
                 ForEach(availableStations, id: \.self) { station in
-                    Button("\(station)") {
+                    LopanButton(
+                        "\(station)",
+                        style: selectedStations.contains(station) ? .primary : .secondary,
+                        size: .small
+                    ) {
                         if selectedStations.contains(station) {
                             selectedStations.remove(station)
                         } else {
                             selectedStations.insert(station)
                         }
                     }
-                    .frame(height: 40)
-                    .background(selectedStations.contains(station) ? LopanColors.primary : LopanColors.secondaryLight)
-                    .foregroundColor(selectedStations.contains(station) ? LopanColors.textOnPrimary : .primary)
-                    .cornerRadius(8)
                 }
             }
         }
@@ -1592,7 +1599,7 @@ struct ReadOnlyColorRow: View {
                     Text(color.hexCode)
                         .font(.caption)
                         .monospaced()
-                        .foregroundColor(.secondary)
+                        .foregroundColor(LopanColors.textSecondary)
                 }
                 
                 Spacer()
@@ -1643,24 +1650,14 @@ struct ColorPickerRow: View {
             ScrollView(.horizontal, showsIndicators: false) {
                 HStack(spacing: 8) {
                     ForEach(colors, id: \.id) { color in
-                        Button {
+                        LopanButton(
+                            color.name,
+                            style: selectedColor?.id == color.id ? .primary : .secondary,
+                            size: .small,
+                            icon: "circle.fill"
+                        ) {
                             onSelect(color)
-                        } label: {
-                            VStack(spacing: 4) {
-                                Circle()
-                                    .fill(color.swiftUIColor)
-                                    .frame(width: 32, height: 32)
-                                    .overlay(
-                                        Circle()
-                                            .stroke(selectedColor?.id == color.id ? LopanColors.primary : LopanColors.secondaryLight, lineWidth: selectedColor?.id == color.id ? 2 : 1)
-                                    )
-                                
-                                Text(color.name)
-                                    .font(.caption2)
-                                    .lineLimit(1)
-                            }
                         }
-                        .buttonStyle(.plain)
                     }
                 }
                 .padding(.horizontal, 4)
@@ -1810,7 +1807,7 @@ struct ApprovalBatchRow: View {
                         
                         Text(DateTimeUtilities.timeAgoString(from: batch.submittedAt))
                             .font(.caption)
-                            .foregroundColor(.secondary)
+                            .foregroundColor(LopanColors.textSecondary)
                     }
                     
                     HStack(spacing: 8) {
@@ -1835,29 +1832,29 @@ struct ApprovalBatchRow: View {
                         HStack(spacing: 4) {
                             Image(systemName: "gearshape.2")
                                 .font(.caption)
-                                .foregroundColor(.secondary)
+                                .foregroundColor(LopanColors.textSecondary)
                             Text((machine?.machineNumber).map { "\($0)" } ?? batch.machineId)
                                 .font(.caption)
-                                .foregroundColor(.secondary)
+                                .foregroundColor(LopanColors.textSecondary)
                         }
                         
                         if !batch.products.isEmpty {
                             HStack(spacing: 4) {
                                 Text("•")
                                     .font(.caption)
-                                    .foregroundColor(.secondary)
+                                    .foregroundColor(LopanColors.textSecondary)
                                 
                                 Text("\(batch.products.count) 产品")
                                     .font(.caption)
-                                    .foregroundColor(.secondary)
+                                    .foregroundColor(LopanColors.textSecondary)
                                 
                                 Text("•")
                                     .font(.caption)
-                                    .foregroundColor(.secondary)
+                                    .foregroundColor(LopanColors.textSecondary)
                                 
                                 Text("\(batch.totalStationsUsed) 工位")
                                     .font(.caption)
-                                    .foregroundColor(.secondary)
+                                    .foregroundColor(LopanColors.textSecondary)
                             }
                         }
                     }
@@ -1865,13 +1862,13 @@ struct ApprovalBatchRow: View {
                     HStack {
                         Text("提交者: \(batch.submittedByName)")
                             .font(.caption)
-                            .foregroundColor(.secondary)
+                            .foregroundColor(LopanColors.textSecondary)
                         
                         Spacer()
                         
                         Text("目标: \(DateTimeUtilities.formatApprovalDate(batch.approvalTargetDate))")
                             .font(.caption)
-                            .foregroundColor(.secondary)
+                            .foregroundColor(LopanColors.textSecondary)
                     }
                     
                     if let reviewNotes = batch.reviewNotes, batch.status == .rejected {
@@ -1885,31 +1882,21 @@ struct ApprovalBatchRow: View {
                 // Action buttons
                 VStack(spacing: 8) {
                     if batch.status == .approved && canManageProduction {
-                        Button("执行") { 
-                            onExecute(batch)
-                        }
-                        .font(.caption)
-                        .padding(.horizontal, 12)
-                        .padding(.vertical, 4)
-                        .background(LopanColors.primary)
-                        .foregroundColor(LopanColors.textPrimary)
-                        .cornerRadius(4)
-                        .onTapGesture {
+                        LopanButton(
+                            "执行",
+                            style: .primary,
+                            size: .small
+                        ) {
                             onExecute(batch)
                         }
                     }
-                    
+
                     if batch.status == .rejected && canManageProduction {
-                        Button("重新创建") {
-                            onRecreate(batch)
-                        }
-                        .font(.caption)
-                        .padding(.horizontal, 12)
-                        .padding(.vertical, 4)
-                        .background(LopanColors.warning)
-                        .foregroundColor(LopanColors.textPrimary)
-                        .cornerRadius(4)
-                        .onTapGesture {
+                        LopanButton(
+                            "重新创建",
+                            style: .destructive,
+                            size: .small
+                        ) {
                             onRecreate(batch)
                         }
                     }
@@ -1974,13 +1961,13 @@ struct BatchDetailsSheet: View {
             .navigationBarTitleDisplayMode(.inline)
             .toolbar {
                 ToolbarItem(placement: .navigationBarTrailing) {
-                    Button("关闭") {
+                    LopanButton("关闭", style: .secondary) {
                         dismiss()
                     }
                 }
             }
             .alert("错误", isPresented: $showingError) {
-                Button("确定", role: .cancel) { }
+                LopanButton("确定", style: .primary) { }
             } message: {
                 Text(errorMessage)
             }
@@ -1997,7 +1984,7 @@ struct BatchDetailsSheet: View {
                     Text(batch.batchNumber)
                         .font(.callout)
                         .fontWeight(.medium)
-                        .foregroundColor(.secondary)
+                        .foregroundColor(LopanColors.textSecondary)
                         .accessibilityLabel("批次号 \(batch.batchNumber.replacingOccurrences(of: "-", with: " "))")
                         .accessibilityHint("生产配置批次")
                 }
@@ -2007,7 +1994,7 @@ struct BatchDetailsSheet: View {
                 VStack(alignment: .trailing, spacing: 4) {
                     Text("状态")
                         .font(.caption)
-                        .foregroundColor(.secondary)
+                        .foregroundColor(LopanColors.textSecondary)
                     
                     HStack(spacing: 6) {
                         Circle()
@@ -2067,7 +2054,7 @@ struct BatchDetailsSheet: View {
                 if batch.products.isEmpty {
                     Text("暂无产品配置")
                         .font(.subheadline)
-                        .foregroundColor(.secondary)
+                        .foregroundColor(LopanColors.textSecondary)
                         .frame(maxWidth: .infinity, alignment: .center)
                         .padding(8)
                 } else {
@@ -2094,7 +2081,7 @@ struct BatchDetailsSheet: View {
                 HStack {
                     Text("生产设备")
                         .font(.caption)
-                        .foregroundColor(.secondary)
+                        .foregroundColor(LopanColors.textSecondary)
                     
                     Spacer()
                     
@@ -2107,14 +2094,14 @@ struct BatchDetailsSheet: View {
                             .fontWeight(.medium)
                         Text("(\(machine?.status.displayName ?? "未知状态"))")
                             .font(.caption)
-                            .foregroundColor(.secondary)
+                            .foregroundColor(LopanColors.textSecondary)
                     }
                 }
                 
                 HStack {
                     Text("生产模式")
                         .font(.caption)
-                        .foregroundColor(.secondary)
+                        .foregroundColor(LopanColors.textSecondary)
                     
                     Spacer()
                     
@@ -2138,7 +2125,7 @@ struct BatchDetailsSheet: View {
             if batch.products.isEmpty {
                 Text("暂无产品配置")
                     .font(.subheadline)
-                    .foregroundColor(.secondary)
+                    .foregroundColor(LopanColors.textSecondary)
                     .frame(maxWidth: .infinity, alignment: .center)
                     .padding()
             } else {
@@ -2206,7 +2193,7 @@ struct BatchDetailsSheet: View {
                 HStack {
                     Text("提交者:")
                         .font(.subheadline)
-                        .foregroundColor(.secondary)
+                        .foregroundColor(LopanColors.textSecondary)
                     Spacer()
                     Text(batch.submittedByName)
                         .font(.subheadline)
@@ -2216,7 +2203,7 @@ struct BatchDetailsSheet: View {
                 HStack {
                     Text("审批目标日期:")
                         .font(.subheadline)
-                        .foregroundColor(.secondary)
+                        .foregroundColor(LopanColors.textSecondary)
                     Spacer()
                     Text(DateTimeUtilities.formatMediumDate(batch.approvalTargetDate))
                         .font(.subheadline)
@@ -2227,7 +2214,7 @@ struct BatchDetailsSheet: View {
                     HStack {
                         Text("审批时间:")
                             .font(.subheadline)
-                            .foregroundColor(.secondary)
+                            .foregroundColor(LopanColors.textSecondary)
                         Spacer()
                         Text(DateTimeUtilities.formatDateTime(reviewedAt))
                             .font(.subheadline)
@@ -2239,7 +2226,7 @@ struct BatchDetailsSheet: View {
                     HStack {
                         Text("审批人:")
                             .font(.subheadline)
-                            .foregroundColor(.secondary)
+                            .foregroundColor(LopanColors.textSecondary)
                         Spacer()
                         Text(reviewedByName)
                             .font(.subheadline)
@@ -2251,7 +2238,7 @@ struct BatchDetailsSheet: View {
                     VStack(alignment: .leading, spacing: 4) {
                         Text("审批备注:")
                             .font(.subheadline)
-                            .foregroundColor(.secondary)
+                            .foregroundColor(LopanColors.textSecondary)
                         Text(reviewNotes)
                             .font(.subheadline)
                             .padding(.horizontal, 12)
@@ -2277,7 +2264,7 @@ struct BatchDetailsSheet: View {
                             HStack {
                                 Text("执行时间:")
                                     .font(.subheadline)
-                                    .foregroundColor(.secondary)
+                                    .foregroundColor(LopanColors.textSecondary)
                                 Spacer()
                                 Text(DateTimeUtilities.formatDateTime(executionTime))
                                     .font(.subheadline)
@@ -2290,7 +2277,7 @@ struct BatchDetailsSheet: View {
                             HStack {
                                 Text("完成时间:")
                                     .font(.subheadline)
-                                    .foregroundColor(.secondary)
+                                    .foregroundColor(LopanColors.textSecondary)
                                 Spacer()
                                 Text(DateTimeUtilities.formatDateTime(completedAt))
                                     .font(.subheadline)
@@ -2303,7 +2290,7 @@ struct BatchDetailsSheet: View {
                             HStack {
                                 Text("生产时长:")
                                     .font(.subheadline)
-                                    .foregroundColor(.secondary)
+                                    .foregroundColor(LopanColors.textSecondary)
                                 Spacer()
                                 Text(duration)
                                     .font(.subheadline)
@@ -2317,7 +2304,7 @@ struct BatchDetailsSheet: View {
                             HStack {
                                 Text("执行方式:")
                                     .font(.subheadline)
-                                    .foregroundColor(.secondary)
+                                    .foregroundColor(LopanColors.textSecondary)
                                 Spacer()
                                 Text(executionInfo.type)
                                     .font(.subheadline)
@@ -2330,10 +2317,10 @@ struct BatchDetailsSheet: View {
                                 VStack(alignment: .leading, spacing: 4) {
                                     Text("执行描述:")
                                         .font(.subheadline)
-                                        .foregroundColor(.secondary)
+                                        .foregroundColor(LopanColors.textSecondary)
                                     Text(executionInfo.details)
                                         .font(.caption)
-                                        .foregroundColor(.secondary)
+                                        .foregroundColor(LopanColors.textSecondary)
                                         .padding(.horizontal, 12)
                                         .padding(.vertical, 8)
                                         .background(LopanColors.secondary.opacity(0.1))
@@ -2362,7 +2349,7 @@ struct BatchDetailsSheet: View {
                                 
                                 Text("批次已通过审批，可以设置执行时间开始生产")
                                     .font(.caption)
-                                    .foregroundColor(.secondary)
+                                    .foregroundColor(LopanColors.textSecondary)
                             }
                             
                             Spacer()
@@ -2379,7 +2366,7 @@ struct BatchDetailsSheet: View {
                                 HStack {
                                     Label("日期", systemImage: "calendar")
                                         .font(.body)
-                                        .foregroundColor(.secondary)
+                                        .foregroundColor(LopanColors.textSecondary)
                                     
                                     Spacer()
                                     
@@ -2401,7 +2388,7 @@ struct BatchDetailsSheet: View {
                                     
                                     Text("执行日期已锁定为批次提交日期，仅可修改执行时间")
                                         .font(.caption)
-                                        .foregroundColor(.secondary)
+                                        .foregroundColor(LopanColors.textSecondary)
                                     
                                     Spacer()
                                 }
@@ -2412,7 +2399,7 @@ struct BatchDetailsSheet: View {
                                 HStack {
                                     Label("时间", systemImage: "clock")
                                         .font(.body)
-                                        .foregroundColor(.secondary)
+                                        .foregroundColor(LopanColors.textSecondary)
                                     
                                     Spacer()
                                     
@@ -2431,7 +2418,7 @@ struct BatchDetailsSheet: View {
                             Label("验证条件", systemImage: "checkmark.shield")
                                 .font(.caption)
                                 .fontWeight(.medium)
-                                .foregroundColor(.secondary)
+                                .foregroundColor(LopanColors.textSecondary)
                             
                             VStack(spacing: 6) {
                                 validationItem(
@@ -2455,35 +2442,23 @@ struct BatchDetailsSheet: View {
                         
                         // Action Buttons
                         HStack(spacing: 12) {
-                            Button("取消") {
+                            LopanButton(
+                                "取消",
+                                style: .destructive,
+                                size: .large
+                            ) {
                                 dismiss()
                             }
-                            .font(.body)
-                            .fontWeight(.medium)
-                            .foregroundColor(LopanColors.error)
-                            .frame(maxWidth: .infinity, minHeight: 44)
-                            .background(LopanColors.errorLight)
-                            .cornerRadius(12)
-                            .overlay(
-                                RoundedRectangle(cornerRadius: 12)
-                                    .stroke(LopanColors.error.opacity(0.5), lineWidth: 1)
-                            )
-                            
-                            Button(action: confirmExecution) {
-                                HStack(spacing: 8) {
-                                    Image(systemName: "checkmark.circle.fill")
-                                        .font(.system(size: 16, weight: .medium))
-                                    
-                                    Text("确认执行")
-                                        .font(.body)
-                                        .fontWeight(.medium)
-                                }
-                                .foregroundColor(LopanColors.textPrimary)
-                                .frame(maxWidth: .infinity, minHeight: 44)
-                                .background(canConfirm ? LopanColors.primary : LopanColors.secondary)
-                                .cornerRadius(12)
+
+                            LopanButton(
+                                "确认执行",
+                                style: .primary,
+                                size: .large,
+                                isEnabled: canConfirm,
+                                icon: "checkmark.circle.fill"
+                            ) {
+                                confirmExecution()
                             }
-                            .disabled(!canConfirm)
                         }
                     }
                 }
@@ -2605,7 +2580,7 @@ struct ProductDetailRow: View {
             HStack {
                 Text("工位: \(product.occupiedStations.map(String.init).joined(separator: ", "))")
                     .font(.caption)
-                    .foregroundColor(.secondary)
+                    .foregroundColor(LopanColors.textSecondary)
                 
                 Spacer()
                 
@@ -2624,10 +2599,10 @@ struct ProductDetailRow: View {
                 HStack {
                     Image(systemName: "clock")
                         .font(.caption)
-                        .foregroundColor(.secondary)
+                        .foregroundColor(LopanColors.textSecondary)
                     Text("开始时间: \(formatTime(startTime))")
                         .font(.caption)
-                        .foregroundColor(.secondary)
+                        .foregroundColor(LopanColors.textSecondary)
                 }
             }
         }
@@ -2698,7 +2673,7 @@ struct CompactProductRow: View {
             HStack(spacing: 8) {
                 Text("工位: \(product.occupiedStations.map(String.init).joined(separator: ", "))")
                     .font(.caption)
-                    .foregroundColor(.secondary)
+                    .foregroundColor(LopanColors.textSecondary)
                 
                 HStack(spacing: 4) {
                     if let primaryColor = primaryColor {
@@ -2708,7 +2683,7 @@ struct CompactProductRow: View {
                                 .frame(width: 8, height: 8)
                             Text("主")
                                 .font(.caption2)
-                                .foregroundColor(.secondary)
+                                .foregroundColor(LopanColors.textSecondary)
                         }
                     }
                     
@@ -2719,7 +2694,7 @@ struct CompactProductRow: View {
                                 .frame(width: 8, height: 8)
                             Text("副")
                                 .font(.caption2)
-                                .foregroundColor(.secondary)
+                                .foregroundColor(LopanColors.textSecondary)
                         }
                     }
                 }
@@ -2749,7 +2724,7 @@ struct StationDetailIndicator: View {
             if let productName = productName {
                 Text(String(productName.prefix(2)))
                     .font(.caption2)
-                    .foregroundColor(.secondary)
+                    .foregroundColor(LopanColors.textSecondary)
             }
         }
     }

@@ -28,6 +28,7 @@ struct CustomerManagementView: View {
     @State private var showingDeletionWarning = false
     @State private var deletionValidationResult: CustomerDeletionValidationService.DeletionValidationResult?
     @State private var validationService: CustomerDeletionValidationService?
+    @State private var isLoadingCustomers = false
     
     var displayedCustomers: [Customer] {
         let filtered = searchText.isEmpty ? customers : customers.filter { customer in
@@ -45,6 +46,9 @@ struct CustomerManagementView: View {
         .navigationTitle("客户管理")
         .navigationBarTitleDisplayMode(.large)
         .background(LopanColors.backgroundPrimary)
+        .accessibilityElement(children: .contain)
+        .accessibilityLabel("客户管理列表")
+        .accessibilityHint("浏览和管理客户信息")
         .toolbar {
             ToolbarItem(placement: .navigationBarTrailing) {
                 Button {
@@ -73,54 +77,85 @@ struct CustomerManagementView: View {
     
     private var searchBar: some View {
         HStack {
-            HStack {
-                Image(systemName: "magnifyingglass")
-                    .foregroundColor(LopanColors.textSecondary)
-                    .font(LopanTypography.bodyMedium)
-                
-                TextField("搜索客户姓名或地址", text: $searchText)
-                    .font(LopanTypography.bodyMedium)
-                
-                if !searchText.isEmpty {
-                    Button {
-                        searchText = ""
-                    } label: {
-                        Image(systemName: "xmark.circle.fill")
-                            .foregroundColor(LopanColors.textSecondary)
-                    }
+            LopanTextField(
+                title: "",
+                placeholder: "搜索客户姓名或地址",
+                text: $searchText,
+                variant: .outline,
+                icon: "magnifyingglass",
+                helperText: "输入客户姓名或地址进行搜索"
+            )
+
+            if !searchText.isEmpty {
+                LopanButton(
+                    "清除",
+                    style: .ghost,
+                    size: .small,
+                    icon: "xmark.circle.fill"
+                ) {
+                    searchText = ""
                 }
             }
-            .lopanPaddingHorizontal(LopanSpacing.md)
-            .lopanPaddingVertical(LopanSpacing.sm)
-            .background(LopanColors.backgroundSecondary)
-            .cornerRadius(LopanSpacing.sm)
         }
         .lopanPaddingHorizontal()
         .lopanPaddingVertical(LopanSpacing.sm)
     }
     
     private var customersList: some View {
-        List {
-            if displayedCustomers.isEmpty {
+        Group {
+            if displayedCustomers.isEmpty && !isLoadingCustomers {
                 emptyStateView
-                    .listRowSeparator(.hidden)
             } else {
-                ForEach(displayedCustomers) { customer in
-                    NavigationLink(destination: CustomerDetailView(customer: customer)) {
-                        SimpleCustomerRow(customer: customer)
-                    }
-                    .swipeActions(allowsFullSwipe: false) {
-                        Button {
-                            handleDeleteCustomer(customer)
-                        } label: {
-                            Label("删除", systemImage: "trash")
+                LopanLazyList(
+                    data: displayedCustomers,
+                    configuration: LopanLazyList.Configuration(
+                        isLoading: isLoadingCustomers,
+                        skeletonCount: 8,
+                        spacing: LopanSpacing.sm,
+                        onRefresh: {
+                            Task {
+                                await refreshCustomers()
+                            }
+                        },
+                        accessibilityLabel: "客户列表"
+                    ),
+                    content: { customer in
+                        NavigationLink(destination: CustomerDetailView(customer: customer)) {
+                            SimpleCustomerRow(customer: customer)
                         }
-                        .tint(LopanColors.error)
+                        .swipeActions(allowsFullSwipe: false) {
+                            LopanButton(
+                                "删除",
+                                style: .destructive,
+                                size: .small,
+                                icon: "trash"
+                            ) {
+                                handleDeleteCustomer(customer)
+                            }
+                        }
+                    },
+                    skeletonContent: {
+                        CustomerSkeletonRow()
                     }
+                )
+                .onAppear {
+                    LopanScrollOptimizer.shared.startOptimization()
                 }
+                .onDisappear {
+                    LopanScrollOptimizer.shared.stopOptimization()
+                }
+                .animation(
+                    {
+                        if #available(iOS 26.0, *) {
+                            return LopanAdvancedAnimations.liquidSpring
+                        } else {
+                            return .spring(response: 0.55, dampingFraction: 0.825)
+                        }
+                    }(),
+                    value: displayedCustomers.count
+                )
             }
         }
-        .listStyle(.plain)
         .alert("删除客户", isPresented: $showingDeleteAlert) {
             Button("删除", role: .destructive) {
                 if let customer = customerToDelete {
@@ -200,10 +235,21 @@ struct CustomerManagementView: View {
     private func loadCustomers() {
         Task {
             do {
+                isLoadingCustomers = true
                 customers = try await customerRepository.fetchCustomers()
+                isLoadingCustomers = false
             } catch {
                 print("Error loading customers: \(error)")
+                isLoadingCustomers = false
             }
+        }
+    }
+
+    private func refreshCustomers() async {
+        do {
+            customers = try await customerRepository.fetchCustomers()
+        } catch {
+            print("Error refreshing customers: \(error)")
         }
     }
     
@@ -339,18 +385,37 @@ struct AddCustomerView: View {
                     .foregroundColor(LopanColors.textPrimary)
                 
                 VStack(spacing: LopanSpacing.md) {
-                    TextField("客户姓名", text: $name)
-                        .textFieldStyle(RoundedBorderTextFieldStyle())
-                        .disabled(isSaving)
-                    
-                    TextField("客户地址", text: $address)
-                        .textFieldStyle(RoundedBorderTextFieldStyle())
-                        .disabled(isSaving)
-                    
-                    TextField("联系电话", text: $phone)
-                        .textFieldStyle(RoundedBorderTextFieldStyle())
-                        .keyboardType(.phonePad)
-                        .disabled(isSaving)
+                    LopanTextField(
+                        title: "客户姓名",
+                        placeholder: "请输入客户姓名",
+                        text: $name,
+                        variant: .outline,
+                        state: name.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty ? .error : .normal,
+                        isRequired: true,
+                        icon: "person",
+                        errorText: name.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty ? "客户姓名不能为空" : nil
+                    )
+
+                    LopanTextField(
+                        title: "客户地址",
+                        placeholder: "请输入客户地址",
+                        text: $address,
+                        variant: .outline,
+                        state: address.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty ? .error : .normal,
+                        isRequired: true,
+                        icon: "location",
+                        errorText: address.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty ? "客户地址不能为空" : nil
+                    )
+
+                    LopanTextField(
+                        title: "联系电话",
+                        placeholder: "请输入联系电话（可选）",
+                        text: $phone,
+                        variant: .outline,
+                        keyboardType: .phonePad,
+                        icon: "phone",
+                        helperText: "联系电话为可选信息"
+                    )
                 }
                 
                 Spacer()
@@ -381,6 +446,42 @@ struct AddCustomerView: View {
         let customer = Customer(name: name, address: address, phone: phone)
         onSave(customer)
         dismiss()
+    }
+}
+
+// MARK: - Customer Skeleton Row
+struct CustomerSkeletonRow: View {
+    var body: some View {
+        HStack(spacing: LopanSpacing.md) {
+            Circle()
+                .fill(LopanColors.secondaryLight)
+                .frame(width: 40, height: 40)
+                .shimmering()
+
+            VStack(alignment: .leading, spacing: LopanSpacing.xxs) {
+                Rectangle()
+                    .fill(LopanColors.secondaryLight)
+                    .frame(height: 16)
+                    .frame(maxWidth: .infinity, alignment: .leading)
+                    .shimmering()
+
+                Rectangle()
+                    .fill(LopanColors.secondaryLight)
+                    .frame(height: 12)
+                    .frame(maxWidth: .infinity, alignment: .leading)
+                    .shimmering()
+
+                Rectangle()
+                    .fill(LopanColors.secondaryLight)
+                    .frame(height: 12)
+                    .frame(width: 120, alignment: .leading)
+                    .shimmering()
+            }
+
+            Spacer()
+        }
+        .lopanPaddingVertical(LopanSpacing.sm)
+        .accessibilityHidden(true)
     }
 }
 

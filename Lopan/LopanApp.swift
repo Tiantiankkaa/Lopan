@@ -60,6 +60,23 @@ struct LopanApp: App {
             DashboardView(authService: appDependencies.authenticationService)
                 .withAppDependencies(appDependencies)
                 .onAppear {
+                    // PHASE 1: Initialize Performance Monitoring System (DISABLED for performance fix)
+                    // LopanPerformanceProfiler.shared.startMonitoring() // DISABLED: Causing CPU overhead
+                    print("🎯 Performance monitoring disabled for performance optimization")
+
+                    // PHASE 3: Activate Production Monitoring System (DISABLED for performance fix)
+                    let isProduction = determineAppEnvironment() == .production
+                    if #available(iOS 26.0, *) {
+                        // LopanProductionMonitoring.shared.startMonitoring(isProduction: isProduction) // DISABLED
+                        print("📊 Production monitoring disabled - Environment: \(isProduction ? "Production" : "Debug")")
+                    } else {
+                        print("⚠️ Production monitoring requires iOS 26.0+")
+                    }
+
+                    // PHASE 4: Initialize ViewPreloadManager for Predictive Loading (DISABLED)
+                    // _ = ViewPreloadManager.shared // DISABLED: Causing memory overhead
+                    print("🎬 ViewPreloadManager disabled for performance optimization")
+
                     Task {
                         #if DEBUG
                         // 检查是否需要生成大规模测试数据
@@ -78,7 +95,7 @@ struct LopanApp: App {
                         // 生产环境不加载任何样本数据
                         print("🏭 生产环境：跳过样本数据初始化")
                         #endif
-                        
+
                         // Initialize workshop data (colors, machines, batches)
                         await appDependencies.serviceFactory.machineDataInitializationService.initializeAllSampleData()
                         // Start ProductionBatchService for automatic batch execution

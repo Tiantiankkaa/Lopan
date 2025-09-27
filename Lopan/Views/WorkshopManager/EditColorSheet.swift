@@ -40,13 +40,21 @@ struct EditColorSheet: View {
                     Text("#\(selectedColor.toHex())")
                         .font(.caption)
                         .monospaced()
-                        .foregroundColor(.secondary)
+                        .foregroundColor(LopanColors.textSecondary)
                 }
                 
                 VStack(spacing: 16) {
-                    TextField("颜色名称", text: $colorName)
-                        .textFieldStyle(.roundedBorder)
-                    
+                    LopanTextField(
+                        title: "颜色名称",
+                        placeholder: "请输入颜色名称",
+                        text: $colorName,
+                        variant: .outline,
+                        state: colorName.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty ? .error : .normal,
+                        isRequired: true,
+                        icon: "paintpalette",
+                        errorText: colorName.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty ? "颜色名称不能为空" : nil
+                    )
+
                     ColorPicker("选择颜色", selection: $selectedColor, supportsOpacity: false)
                         .labelsHidden()
                 }
@@ -60,7 +68,7 @@ struct EditColorSheet: View {
                     VStack(spacing: 4) {
                         HStack {
                             Text("名称:")
-                                .foregroundColor(.secondary)
+                                .foregroundColor(LopanColors.textSecondary)
                             Spacer()
                             Text(color.name)
                                 .fontWeight(.medium)
@@ -68,7 +76,7 @@ struct EditColorSheet: View {
                         
                         HStack {
                             Text("颜色:")
-                                .foregroundColor(.secondary)
+                                .foregroundColor(LopanColors.textSecondary)
                             Spacer()
                             HStack(spacing: 8) {
                                 Circle()
@@ -86,13 +94,25 @@ struct EditColorSheet: View {
                     }
                 }
                 .padding()
-                .background(LopanColors.backgroundSecondary)
-                .cornerRadius(12)
+                .background {
+                    if #available(iOS 26.0, *) {
+                        LiquidGlassMaterial(type: .card, cornerRadius: 12)
+                    } else {
+                        RoundedRectangle(cornerRadius: 12)
+                            .fill(LopanColors.backgroundSecondary)
+                    }
+                }
                 
                 Spacer()
                 
                 VStack(spacing: 12) {
-                    Button("保存修改") {
+                    LopanButton(
+                        "保存修改",
+                        style: .primary,
+                        isEnabled: !isFormInvalid && !isUpdating,
+                        isLoading: isUpdating,
+                        icon: "checkmark"
+                    ) {
                         Task {
                             isUpdating = true
                             let success = await colorService.updateColor(
@@ -106,14 +126,14 @@ struct EditColorSheet: View {
                             }
                         }
                     }
-                    .buttonStyle(.borderedProminent)
-                    .disabled(isFormInvalid || isUpdating)
-                    
-                    Button("取消") {
+
+                    LopanButton(
+                        "取消",
+                        style: .secondary,
+                        isEnabled: !isUpdating
+                    ) {
                         dismiss()
                     }
-                    .buttonStyle(.bordered)
-                    .disabled(isUpdating)
                 }
             }
             .padding()
@@ -122,14 +142,17 @@ struct EditColorSheet: View {
             .navigationBarBackButtonHidden()
             .toolbar {
                 ToolbarItem(placement: .navigationBarLeading) {
-                    Button("取消") {
+                    LopanButton(
+                        "取消",
+                        style: .ghost,
+                        isEnabled: !isUpdating
+                    ) {
                         dismiss()
                     }
-                    .disabled(isUpdating)
                 }
             }
             .alert("Error", isPresented: .constant(colorService.errorMessage != nil)) {
-                Button("确定") {
+                LopanButton("确定", style: .primary) {
                     colorService.clearError()
                 }
             } message: {

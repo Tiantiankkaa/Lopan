@@ -33,12 +33,18 @@ public final class LopanMemoryManager: ObservableObject {
     private var viewCaches: [String: Any] = [:]
     private var memoryWarningCancellable: AnyCancellable?
 
+    // MARK: - Debouncing Properties
+    private var lastCleanupTime: Date?
+    private let cleanupDebounceInterval: TimeInterval = 30.0
+    private var consecutiveCleanupFailures = 0
+    private let maxConsecutiveFailures = 3
+
     // MARK: - Configuration
 
     private struct Configuration {
-        static let memoryCheckInterval: TimeInterval = 2.0
-        static let highMemoryThreshold: Double = 200.0 // MB
-        static let criticalMemoryThreshold: Double = 300.0 // MB
+        static let memoryCheckInterval: TimeInterval = 60.0 // Changed from 2.0s to 60s to prevent CPU loop
+        static let highMemoryThreshold: Double = 500.0 // Changed from 200MB to 500MB (realistic for SwiftUI)
+        static let criticalMemoryThreshold: Double = 800.0 // Changed from 300MB to 800MB
         static let imageCacheLimit = 50 // Number of images
         static let viewCacheLimit = 20 // Number of cached views
     }
@@ -46,7 +52,7 @@ public final class LopanMemoryManager: ObservableObject {
     // MARK: - Initialization
 
     private init() {
-        setupMemoryMonitoring()
+        // Note: setupMemoryMonitoring() is now called only when startOptimization() is invoked
         setupImageCaches()
         setupMemoryWarningObserver()
     }
@@ -60,9 +66,13 @@ public final class LopanMemoryManager: ObservableObject {
 
     /// Start memory optimization monitoring
     public func startOptimization() {
-        guard !isOptimizationActive else { return }
+        guard !isOptimizationActive else {
+            logger.debug("🧠 Memory optimization already active")
+            return
+        }
 
         isOptimizationActive = true
+        setupMemoryMonitoring() // Start the monitoring timer
 
         logger.info("🧠 Memory optimization started")
     }
@@ -118,9 +128,25 @@ public final class LopanMemoryManager: ObservableObject {
         logger.info("🗑️ Cache cleared for category: \(category)")
     }
 
-    /// Perform memory pressure cleanup
+    /// Perform memory pressure cleanup with debouncing
     public func performMemoryCleanup() {
+        let now = Date()
+
+        // Check if we should debounce (prevent rapid cleanup attempts)
+        if let lastCleanup = lastCleanupTime,
+           now.timeIntervalSince(lastCleanup) < cleanupDebounceInterval {
+            logger.debug("🛑 Memory cleanup debounced - too recent (last: \(lastCleanup))")
+            return
+        }
+
+        // Circuit breaker: stop if too many consecutive failures
+        if consecutiveCleanupFailures >= maxConsecutiveFailures {
+            logger.warning("🔴 Memory cleanup circuit breaker activated - too many failures")
+            return
+        }
+
         let initialUsage = getCurrentMemoryUsage()
+        lastCleanupTime = now
 
         // Progressive cleanup strategy
         performLightCleanup()
@@ -137,6 +163,9 @@ public final class LopanMemoryManager: ObservableObject {
 
         let finalUsage = getCurrentMemoryUsage()
         let memoryFreed = initialUsage - finalUsage
+
+        // Reset failure counter on success
+        consecutiveCleanupFailures = 0
 
         logger.info("🧹 Memory cleanup completed. Freed: \(String(format: "%.1f", memoryFreed)) MB")
     }
@@ -158,10 +187,22 @@ public final class LopanMemoryManager: ObservableObject {
 extension LopanMemoryManager {
 
     private func setupMemoryMonitoring() {
+        // Stop any existing timer to prevent multiple instances
+        memoryTimer?.invalidate()
+        memoryTimer = nil
+
+        // Only start timer if optimization is active
+        guard isOptimizationActive else {
+            logger.debug("🧠 Memory monitoring setup skipped - optimization not active")
+            return
+        }
+
         // Monitor memory usage periodically
         memoryTimer = Timer.scheduledTimer(withTimeInterval: Configuration.memoryCheckInterval, repeats: true) { [weak self] _ in
             self?.updateMemoryMetrics()
         }
+
+        logger.debug("🧠 Memory monitoring timer started with \(Configuration.memoryCheckInterval)s interval")
     }
 
     private func setupImageCaches() {

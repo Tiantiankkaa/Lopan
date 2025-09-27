@@ -172,20 +172,17 @@ extension CustomerOutOfStockNavigationStateTests {
             Customer(
                 name: "重要客户 001",
                 address: "济南中心区胜利路713号大厦",
-                phone: "138****1001",
-                customerLevel: .vip
+                phone: "138****1001"
             ),
             Customer(
-                name: "重要客户 002", 
+                name: "重要客户 002",
                 address: "佛山商务区友谊路496号广场",
-                phone: "138****1002",
-                customerLevel: .vip
+                phone: "138****1002"
             ),
             Customer(
                 name: "普通客户 003",
                 address: "青岛市北区新昌路88号",
-                phone: "138****1003",
-                customerLevel: .normal
+                phone: "138****1003"
             )
         ]
     }
@@ -197,9 +194,9 @@ extension CustomerOutOfStockNavigationStateTests {
                 category: "服装",
                 colors: ["绿色", "黑色", "酒红色", "米色"],
                 sizes: [
-                    ProductSize(size: "M", stockQuantity: 50),
-                    ProductSize(size: "L", stockQuantity: 30),
-                    ProductSize(size: "XL", stockQuantity: 20)
+                    ProductSize(size: "M"),
+                    ProductSize(size: "L"),
+                    ProductSize(size: "XL")
                 ]
             ),
             Product(
@@ -207,9 +204,9 @@ extension CustomerOutOfStockNavigationStateTests {
                 category: "服装",
                 colors: ["绿色", "橙色", "红色", "米色"],
                 sizes: [
-                    ProductSize(size: "XXL", stockQuantity: 40),
-                    ProductSize(size: "L", stockQuantity: 25),
-                    ProductSize(size: "M", stockQuantity: 35)
+                    ProductSize(size: "XXL"),
+                    ProductSize(size: "L"),
+                    ProductSize(size: "M")
                 ]
             )
         ]
@@ -260,8 +257,8 @@ extension Product {
         category: "测试分类",
         colors: ["红色", "蓝色"],
         sizes: [
-            ProductSize(size: "M", stockQuantity: 100),
-            ProductSize(size: "L", stockQuantity: 50)
+            ProductSize(size: "M"),
+            ProductSize(size: "L")
         ]
     )
 }
@@ -270,7 +267,7 @@ extension CustomerOutOfStock {
     static let testItem = CustomerOutOfStock(
         customer: Customer.testVIPCustomer,
         product: Product.testProduct,
-        productSize: ProductSize(size: "M", stockQuantity: 100),
+        productSize: ProductSize(size: "M"),
         quantity: 25,
         notes: "测试缺货记录",
         createdBy: "test-user"

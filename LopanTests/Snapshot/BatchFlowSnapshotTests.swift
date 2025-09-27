@@ -33,7 +33,7 @@ final class BatchFlowSnapshotTests: XCTestCase {
         let batchView = BatchProcessingView(
             repositoryFactory: repositoryFactory,
             authService: authService,
-            auditService: AuditingService(repositoryFactory: repositoryFactory)
+            auditService: AuditingService(auditRepository: repositoryFactory.auditRepository)
         )
 
         let hostingController = UIHostingController(rootView: batchView)
@@ -48,7 +48,7 @@ final class BatchFlowSnapshotTests: XCTestCase {
         let batchView = BatchProcessingView(
             repositoryFactory: repositoryFactory,
             authService: authService,
-            auditService: AuditingService(repositoryFactory: repositoryFactory)
+            auditService: AuditingService(auditRepository: repositoryFactory.auditRepository)
         )
 
         let hostingController = UIHostingController(rootView: batchView)
@@ -63,7 +63,7 @@ final class BatchFlowSnapshotTests: XCTestCase {
         let batchView = BatchCreationView(
             repositoryFactory: repositoryFactory,
             authService: authService,
-            auditService: AuditingService(repositoryFactory: repositoryFactory)
+            auditService: AuditingService(auditRepository: repositoryFactory.auditRepository)
         )
         .environment(\.dynamicTypeSize, .accessibilityExtraLarge)
 
@@ -81,7 +81,7 @@ final class BatchFlowSnapshotTests: XCTestCase {
         let batchView = BatchProcessingView(
             repositoryFactory: repositoryFactory,
             authService: authService,
-            auditService: AuditingService(repositoryFactory: repositoryFactory)
+            auditService: AuditingService(auditRepository: repositoryFactory.auditRepository)
         )
 
         let hostingController = UIHostingController(rootView: batchView)
@@ -99,7 +99,7 @@ final class BatchFlowSnapshotTests: XCTestCase {
         let batchView = BatchProcessingView(
             repositoryFactory: repositoryFactory,
             authService: authService,
-            auditService: AuditingService(repositoryFactory: repositoryFactory)
+            auditService: AuditingService(auditRepository: repositoryFactory.auditRepository)
         )
 
         let hostingController = UIHostingController(rootView: batchView)

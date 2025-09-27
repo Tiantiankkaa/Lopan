@@ -123,11 +123,21 @@ public struct QuickStatCard: View {
         }
         .padding(12)
         .frame(maxWidth: .infinity, alignment: .leading)
-        .background(
-            RoundedRectangle(cornerRadius: cardCornerRadius)
-                .fill(isSelected ? color : LopanColors.background)
+        .background {
+            if #available(iOS 26.0, *) {
+                LiquidGlassMaterial(
+                    type: .card,
+                    cornerRadius: cardCornerRadius,
+                    depth: isSelected ? 1.5 : 1.0,
+                    isPressed: false
+                )
                 .shadow(color: shadowColor, radius: shadowRadius, x: 0, y: shadowY)
-        )
+            } else {
+                RoundedRectangle(cornerRadius: cardCornerRadius)
+                    .fill(isSelected ? color : LopanColors.background)
+                    .shadow(color: shadowColor, radius: shadowRadius, x: 0, y: shadowY)
+            }
+        }
         .overlay(
             RoundedRectangle(cornerRadius: cardCornerRadius)
                 .stroke(isSelected ? color.opacity(0.9) : LopanColors.clear, lineWidth: isSelected ? 2 : 0)

@@ -63,7 +63,7 @@ struct UnauthorizedView: View {
                 Text("unauthorized_message".localized)
                     .font(.body)
                     .multilineTextAlignment(.center)
-                    .foregroundColor(.secondary)
+                    .foregroundColor(LopanColors.textSecondary)
                     .padding(.horizontal, 40)
                 
                 VStack(spacing: 16) {
@@ -262,7 +262,7 @@ struct SalespersonDashboardView: View {
                         .scaleEffect(0.8)
                     Text("正在加载数据...")
                         .font(.caption)
-                        .foregroundColor(.secondary)
+                        .foregroundColor(LopanColors.textSecondary)
                 } else if let errorMessage = errorMessage {
                     Image(systemName: "exclamationmark.triangle.fill")
                         .foregroundColor(LopanColors.warning)
@@ -275,7 +275,7 @@ struct SalespersonDashboardView: View {
                         .foregroundColor(LopanColors.success)
                     Text("最后更新: \(lastRefreshTime, style: .time)")
                         .font(.caption)
-                        .foregroundColor(.secondary)
+                        .foregroundColor(LopanColors.textSecondary)
                 }
                 
                 Spacer()
@@ -333,7 +333,7 @@ struct SalespersonDashboardView: View {
             
             Text(title)
                 .font(.caption)
-                .foregroundColor(.secondary)
+                .foregroundColor(LopanColors.textSecondary)
                 
         }
         .frame(maxWidth: .infinity)
@@ -608,12 +608,12 @@ struct SimplifiedAdministratorDashboardView: View {
             Text("欢迎使用管理员控制台")
                 .font(.title2)
                 .fontWeight(.medium)
-                .foregroundColor(.secondary)
+                .foregroundColor(LopanColors.textSecondary)
                 .multilineTextAlignment(.center)
             
             Text("全面管理系统用户、审核生产批次并监控整体运营状况")
                 .font(.subheadline)
-                .foregroundColor(.secondary)
+                .foregroundColor(LopanColors.textSecondary)
                 .multilineTextAlignment(.center)
         }
         .padding(.horizontal, 20)
@@ -654,7 +654,7 @@ struct DashboardCard: View {
             
             Text(subtitle)
                 .font(.caption)
-                .foregroundColor(.secondary)
+                .foregroundColor(LopanColors.textSecondary)
                 .multilineTextAlignment(.center)
                 
         }

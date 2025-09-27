@@ -136,7 +136,10 @@ public final class ViewPoolManager: ObservableObject {
     private init() {
         setupMemoryMonitoring()
         startPeriodicCleanup()
-        logger.info("🏊‍♂️ ViewPoolManager initialized")
+
+        // PHASE 1 INTEGRATION: Initialize LopanMemoryManager for coordinated memory management
+        // LopanMemoryManager.shared.startOptimization() // DISABLED: Was causing CPU/memory loop
+        logger.info("🏊‍♂️ ViewPoolManager initialized (memory optimization disabled for performance)")
     }
     
     private func setupMemoryMonitoring() {
@@ -370,18 +373,28 @@ public final class ViewPoolManager: ObservableObject {
     
     private func handleMemoryPressure(_ level: MemoryPressureLevel) async {
         logger.warning("⚠️ Pool memory pressure: \(String(describing: level))")
-        
+
+        // PHASE 1 INTEGRATION: Coordinate with LopanMemoryManager for comprehensive cleanup
+        let memoryManager = LopanMemoryManager.shared
+
         switch level {
         case .warning:
-            // Remove 30% of least used views
+            // Remove 30% of least used views from pool
             await reducePoolsByPercentage(0.3)
+            // Trigger light memory cleanup in memory manager
+            memoryManager.performMemoryCleanup()
         case .critical:
-            // Remove 60% of least used views
+            // Remove 60% of least used views from pool
             await reducePoolsByPercentage(0.6)
+            // Trigger more aggressive cleanup in memory manager
+            memoryManager.performMemoryCleanup()
         case .urgent:
-            // Clear all pools
+            // Clear all pools and all memory caches
             clearAllPools()
+            memoryManager.clearAllCaches()
         }
+
+        logger.info("🧠 Coordinated memory cleanup completed with LopanMemoryManager")
     }
     
     private func reducePoolsByPercentage(_ percentage: Double) async {
@@ -519,7 +532,7 @@ public struct PoolPerformanceView: View {
                 Section("Memory Usage") {
                     if let memory = memoryUsage {
                         MetricRow(title: "Total Memory", value: "\(String(format: "%.1f", memory.totalMemoryMB))MB")
-                            .foregroundColor(memory.isOverLimit ? LopanColors.error : .primary)
+                            .foregroundColor(memory.isOverLimit ? LopanColors.error : LopanColors.primary)
                         MetricRow(title: "Status", value: memory.status)
                             .foregroundColor(memory.status == "Over Limit" ? LopanColors.error : 
                                            memory.status == "High" ? LopanColors.warning : LopanColors.success)
@@ -538,7 +551,7 @@ public struct PoolPerformanceView: View {
                                 Text("In Use: \(info.inUseViews)")
                             }
                             .font(.caption)
-                            .foregroundColor(.secondary)
+                            .foregroundColor(LopanColors.textSecondary)
                             
                             HStack {
                                 Text("Reuse Rate: \(String(format: "%.1f", info.reuseRate * 100))%")
@@ -546,7 +559,7 @@ public struct PoolPerformanceView: View {
                                 Text("Efficiency: \(info.efficiency)")
                             }
                             .font(.caption)
-                            .foregroundColor(.secondary)
+                            .foregroundColor(LopanColors.textSecondary)
                         }
                         .padding(.vertical, 2)
                     }
