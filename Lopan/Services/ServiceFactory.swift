@@ -42,6 +42,31 @@ public class ServiceFactory: ObservableObject {
         )
         return service
     }()
+
+    lazy var customerOutOfStockCoordinator: CustomerOutOfStockCoordinator = {
+        let dataService = DefaultCustomerOutOfStockDataService(
+            repository: repositoryFactory.customerOutOfStockRepository,
+            customerRepository: repositoryFactory.customerRepository,
+            productRepository: repositoryFactory.productRepository
+        )
+        let businessService = DefaultCustomerOutOfStockBusinessService(
+            dataService: dataService,
+            authService: authenticationService
+        )
+        let cacheManager = OutOfStockCacheManager()
+        let cacheService = DefaultCustomerOutOfStockCacheService(
+            cacheManager: cacheManager
+        )
+
+        let coordinator = CustomerOutOfStockCoordinator(
+            dataService: dataService,
+            businessService: businessService,
+            cacheService: cacheService,
+            auditService: auditingService,
+            authService: authenticationService
+        )
+        return coordinator
+    }()
     lazy var dataInitializationService = NewDataInitializationService(repositoryFactory: repositoryFactory)
     lazy var machineService: MachineService = {
         let service = MachineService(

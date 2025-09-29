@@ -13,13 +13,13 @@ import os
 /// Orchestrates between data, business, and cache services
 /// Replaces the monolithic CustomerOutOfStockService
 @MainActor
-class CustomerOutOfStockCoordinator: ObservableObject {
+public class CustomerOutOfStockCoordinator: ObservableObject {
     
     // MARK: - Dependencies
     private let dataService: CustomerOutOfStockDataService
     private let businessService: CustomerOutOfStockBusinessService
     private let cacheService: CustomerOutOfStockCacheService
-    private let auditService: AuditingService
+    private let auditService: NewAuditingService
     private let authService: AuthenticationService
     
     // MARK: - Published State
@@ -38,6 +38,13 @@ class CustomerOutOfStockCoordinator: ObservableObject {
     private let pageSize = 50
     private let logger = Logger(subsystem: "com.lopan.app", category: "CustomerOutOfStockCoordinator")
     private var isPlaceholder = false
+
+    // MARK: - Request Optimization Properties
+    private var pendingRequestTask: Task<Void, Never>?
+    private var pendingCriteria: OutOfStockFilterCriteria?
+    private var debounceDelay: TimeInterval = 0.3
+    private var lastRequestTime: Date = Date.distantPast
+    private var requestCoalescingMap: [String: Task<Void, Never>] = [:]
     
     // MARK: - Initialization
     
@@ -45,7 +52,7 @@ class CustomerOutOfStockCoordinator: ObservableObject {
         dataService: CustomerOutOfStockDataService,
         businessService: CustomerOutOfStockBusinessService,
         cacheService: CustomerOutOfStockCacheService,
-        auditService: AuditingService,
+        auditService: NewAuditingService,
         authService: AuthenticationService
     ) {
         self.dataService = dataService
@@ -74,7 +81,7 @@ class CustomerOutOfStockCoordinator: ObservableObject {
             dataService: MockCustomerOutOfStockDataService(),
             businessService: MockCustomerOutOfStockBusinessService(),
             cacheService: MockCustomerOutOfStockCacheService(),
-            auditService: MockAuditingService(),
+            auditService: MockNewAuditingService(),
             authService: MockAuthenticationService()
         )
         coordinator.isPlaceholder = true
@@ -82,7 +89,7 @@ class CustomerOutOfStockCoordinator: ObservableObject {
     }
     
     // MARK: - Data Loading
-    
+
     func loadDataForDate(_ date: Date, resetPagination: Bool = true) async {
         let newCriteria = OutOfStockFilterCriteria(
             customer: currentCriteria.customer,
@@ -94,21 +101,95 @@ class CustomerOutOfStockCoordinator: ObservableObject {
             pageSize: currentCriteria.pageSize,
             sortOrder: currentCriteria.sortOrder
         )
-        
-        await loadFilteredItems(criteria: newCriteria, resetPagination: resetPagination)
+
+        await loadFilteredItemsWithDebouncing(criteria: newCriteria, resetPagination: resetPagination)
     }
-    
+
     func loadFilteredItems(criteria: OutOfStockFilterCriteria, resetPagination: Bool = true) async {
-        logger.safeInfo("Loading filtered items", [
+        await loadFilteredItemsWithDebouncing(criteria: criteria, resetPagination: resetPagination)
+    }
+
+    // MARK: - Optimized Loading with Debouncing & Coalescing
+
+    private func loadFilteredItemsWithDebouncing(criteria: OutOfStockFilterCriteria, resetPagination: Bool = true) async {
+        // Cancel any pending request
+        pendingRequestTask?.cancel()
+
+        // Generate request key for coalescing
+        let requestKey = generateRequestKey(criteria: criteria, resetPagination: resetPagination)
+
+        // Cancel any existing request with the same key
+        requestCoalescingMap[requestKey]?.cancel()
+
+        logger.safeInfo("Debouncing filtered items request", [
+            "resetPagination": String(resetPagination),
+            "page": String(criteria.page),
+            "requestKey": requestKey
+        ])
+
+        // Store pending criteria
+        pendingCriteria = criteria
+
+        // Create debounced task
+        let task = Task { @MainActor in
+            // Wait for debounce delay
+            try? await Task.sleep(nanoseconds: UInt64(debounceDelay * 1_000_000_000))
+
+            // Check if task was cancelled
+            guard !Task.isCancelled else { return }
+
+            // Check if criteria is still current
+            guard let currentPendingCriteria = pendingCriteria,
+                  currentPendingCriteria.isEquivalent(to: criteria) else {
+                logger.safeInfo("Criteria changed during debounce, skipping request")
+                return
+            }
+
+            // Execute the actual request
+            await executeFilteredItemsRequest(criteria: criteria, resetPagination: resetPagination)
+
+            // Clean up
+            requestCoalescingMap.removeValue(forKey: requestKey)
+        }
+
+        // Store the task for potential cancellation
+        pendingRequestTask = task
+        requestCoalescingMap[requestKey] = task
+
+        await task.value
+    }
+
+    private func executeFilteredItemsRequest(criteria: OutOfStockFilterCriteria, resetPagination: Bool) async {
+        logger.safeInfo("Executing filtered items request", [
             "resetPagination": String(resetPagination),
             "page": String(criteria.page)
         ])
-        
+
         let validatedCriteria = validateAndNormalizeCriteria(criteria)
         currentCriteria = validatedCriteria
-        
+
         let append = !resetPagination && validatedCriteria.page > 0
         await loadPage(criteria: validatedCriteria, append: append)
+
+        lastRequestTime = Date()
+    }
+
+    private func generateRequestKey(criteria: OutOfStockFilterCriteria, resetPagination: Bool) -> String {
+        let customerId = criteria.customer?.id ?? "nil"
+        let productId = criteria.product?.id ?? "nil"
+        let status = criteria.status?.rawValue ?? "nil"
+        let searchText = criteria.searchText.isEmpty ? "nil" : criteria.searchText
+
+        let dateRange: String
+        if let range = criteria.dateRange {
+            let formatter = DateFormatter()
+            formatter.dateFormat = "yyyyMMdd"
+            dateRange = "\(formatter.string(from: range.start))_\(formatter.string(from: range.end))"
+        } else {
+            dateRange = "nil"
+        }
+
+        return "\(customerId)_\(productId)_\(status)_\(searchText)_\(dateRange)_\(resetPagination)_\(criteria.page)"
     }
     
     func loadNextPage() async {
@@ -215,13 +296,8 @@ class CustomerOutOfStockCoordinator: ObservableObject {
         try await dataService.updateRecord(item)
         
         // Audit logging
-        await auditService.logCustomerOutOfStockUpdate(
-            item: item,
-            beforeValues: beforeValues,
-            changedFields: ["updated"], // TODO: Track actual changed fields
-            operatorUserId: getCurrentUserId(),
-            operatorUserName: getCurrentUserName()
-        )
+        // TODO: Add proper audit logging once NewAuditingService supports it
+        logger.info("Updated CustomerOutOfStock item: \(item.id ?? "unknown")")
         
         // Invalidate cache
         cacheService.invalidateCache()
@@ -307,8 +383,298 @@ class CustomerOutOfStockCoordinator: ObservableObject {
         return cacheService.getMemoryUsage()
     }
     
+    // MARK: - Analytics and Aggregation Methods
+
+    /// Get aggregated data by region for analytics
+    func getAggregatedDataByRegion(timeRange: TimeRange, customDateRange: ClosedRange<Date>? = nil) async throws -> [RegionAggregation] {
+        let dateRange = getDateRangeForTimeRange(timeRange, customRange: customDateRange)
+
+        logger.safeInfo("Loading aggregated data by region with pagination", [
+            "timeRange": timeRange.rawValue,
+            "dateStart": dateRange.start.formatted(),
+            "dateEnd": dateRange.end.formatted()
+        ])
+
+        // Fetch all records using pagination
+        var allRecords: [CustomerOutOfStock] = []
+        var page = 0
+        let pageSize = 1000  // Maximum allowed by repository
+        var hasMore = true
+
+        while hasMore {
+            let criteria = OutOfStockFilterCriteria(
+                customer: nil,
+                product: nil,
+                status: nil,
+                dateRange: dateRange,
+                searchText: "",
+                page: page,
+                pageSize: pageSize,
+                sortOrder: .newestFirst
+            )
+
+            let paginationResult = try await dataService.fetchRecordsWithPagination(criteria)
+            allRecords.append(contentsOf: paginationResult.items)
+
+            hasMore = paginationResult.hasMoreData
+            page += 1
+
+            logger.safeInfo("Fetched page \(page) for region analytics", [
+                "pageRecords": String(paginationResult.items.count),
+                "totalRecords": String(allRecords.count),
+                "hasMore": String(hasMore)
+            ])
+        }
+
+        // Group by region (customer address)
+        let grouped = Dictionary(grouping: allRecords) { item in
+            item.customer?.address ?? "未知地区"
+        }
+
+        let aggregations = grouped.map { regionName, items in
+            let uniqueCustomers = Set(items.compactMap { $0.customer?.id })
+            return RegionAggregation(
+                regionName: regionName,
+                items: items,
+                uniqueCustomers: uniqueCustomers
+            )
+        }.sorted { $0.outOfStockCount > $1.outOfStockCount }
+
+        logger.safeInfo("Region aggregation completed", [
+            "totalRegions": String(aggregations.count),
+            "totalItems": String(allRecords.count),
+            "pagesProcessed": String(page)
+        ])
+
+        return aggregations
+    }
+
+    /// Get aggregated data by product for analytics
+    func getAggregatedDataByProduct(timeRange: TimeRange, customDateRange: ClosedRange<Date>? = nil) async throws -> [ProductAggregation] {
+        let dateRange = getDateRangeForTimeRange(timeRange, customRange: customDateRange)
+
+        logger.safeInfo("Loading aggregated data by product with pagination", [
+            "timeRange": timeRange.rawValue,
+            "dateStart": dateRange.start.formatted(),
+            "dateEnd": dateRange.end.formatted()
+        ])
+
+        // Fetch all records using pagination
+        var allRecords: [CustomerOutOfStock] = []
+        var page = 0
+        let pageSize = 1000  // Maximum allowed by repository
+        var hasMore = true
+
+        while hasMore {
+            let criteria = OutOfStockFilterCriteria(
+                customer: nil,
+                product: nil,
+                status: nil,
+                dateRange: dateRange,
+                searchText: "",
+                page: page,
+                pageSize: pageSize,
+                sortOrder: .newestFirst
+            )
+
+            let paginationResult = try await dataService.fetchRecordsWithPagination(criteria)
+            allRecords.append(contentsOf: paginationResult.items)
+
+            hasMore = paginationResult.hasMoreData
+            page += 1
+
+            logger.safeInfo("Fetched page \(page) for product analytics", [
+                "pageRecords": String(paginationResult.items.count),
+                "totalRecords": String(allRecords.count),
+                "hasMore": String(hasMore)
+            ])
+        }
+
+        // Group by product
+        let grouped = Dictionary(grouping: allRecords) { item in
+            item.product?.name ?? "未知产品"
+        }
+
+        let aggregations = grouped.map { productName, items in
+            let uniqueCustomers = Set(items.compactMap { $0.customer?.id })
+            return ProductAggregation(
+                productName: productName,
+                productId: items.first?.product?.id,
+                items: items,
+                uniqueCustomers: uniqueCustomers
+            )
+        }.sorted { $0.outOfStockCount > $1.outOfStockCount }
+
+        logger.safeInfo("Product aggregation completed", [
+            "totalProducts": String(aggregations.count),
+            "totalItems": String(allRecords.count),
+            "pagesProcessed": String(page)
+        ])
+
+        return aggregations
+    }
+
+    /// Get aggregated data by customer for analytics
+    func getAggregatedDataByCustomer(timeRange: TimeRange, customDateRange: ClosedRange<Date>? = nil) async throws -> [CustomerAggregation] {
+        let dateRange = getDateRangeForTimeRange(timeRange, customRange: customDateRange)
+
+        logger.safeInfo("Loading aggregated data by customer with pagination", [
+            "timeRange": timeRange.rawValue,
+            "dateStart": dateRange.start.formatted(),
+            "dateEnd": dateRange.end.formatted()
+        ])
+
+        // Fetch all records using pagination
+        var allRecords: [CustomerOutOfStock] = []
+        var page = 0
+        let pageSize = 1000  // Maximum allowed by repository
+        var hasMore = true
+
+        while hasMore {
+            let criteria = OutOfStockFilterCriteria(
+                customer: nil,
+                product: nil,
+                status: nil,
+                dateRange: dateRange,
+                searchText: "",
+                page: page,
+                pageSize: pageSize,
+                sortOrder: .newestFirst
+            )
+
+            let paginationResult = try await dataService.fetchRecordsWithPagination(criteria)
+            allRecords.append(contentsOf: paginationResult.items)
+
+            hasMore = paginationResult.hasMoreData
+            page += 1
+
+            logger.safeInfo("Fetched page \(page) for customer analytics", [
+                "pageRecords": String(paginationResult.items.count),
+                "totalRecords": String(allRecords.count),
+                "hasMore": String(hasMore)
+            ])
+        }
+
+        // Group by customer
+        let grouped = Dictionary(grouping: allRecords) { item in
+            item.customer?.id ?? UUID().uuidString
+        }
+
+        let aggregations = grouped.map { customerId, items in
+            let customer = items.first?.customer
+            let uniqueProducts = Set(items.compactMap { $0.product?.name })
+            return CustomerAggregation(
+                customerId: customerId,
+                customerName: customer?.name ?? "未知客户",
+                customerAddress: customer?.address,
+                items: items,
+                uniqueProducts: uniqueProducts
+            )
+        }.sorted { $0.outOfStockCount > $1.outOfStockCount }
+
+        logger.safeInfo("Customer aggregation completed", [
+            "totalCustomers": String(aggregations.count),
+            "totalItems": String(allRecords.count),
+            "pagesProcessed": String(page)
+        ])
+
+        return aggregations
+    }
+
+    /// Get product trend data over time for line chart
+    func getProductTrendData(timeRange: TimeRange, customDateRange: ClosedRange<Date>? = nil) async throws -> [ChartDataPoint] {
+        let dateRange = getDateRangeForTimeRange(timeRange, customRange: customDateRange)
+
+        logger.safeInfo("Loading product trend data with pagination", [
+            "timeRange": timeRange.rawValue,
+            "dateStart": dateRange.start.formatted(),
+            "dateEnd": dateRange.end.formatted()
+        ])
+
+        // Fetch all records using pagination
+        var allRecords: [CustomerOutOfStock] = []
+        var page = 0
+        let pageSize = 1000  // Maximum allowed by repository
+        var hasMore = true
+
+        while hasMore {
+            let criteria = OutOfStockFilterCriteria(
+                customer: nil,
+                product: nil,
+                status: nil,
+                dateRange: dateRange,
+                searchText: "",
+                page: page,
+                pageSize: pageSize,
+                sortOrder: .newestFirst
+            )
+
+            let paginationResult = try await dataService.fetchRecordsWithPagination(criteria)
+            allRecords.append(contentsOf: paginationResult.items)
+
+            hasMore = paginationResult.hasMoreData
+            page += 1
+
+            logger.safeInfo("Fetched page \(page) for trend analytics", [
+                "pageRecords": String(paginationResult.items.count),
+                "totalRecords": String(allRecords.count),
+                "hasMore": String(hasMore)
+            ])
+        }
+
+        // Group by date
+        let calendar = Calendar.current
+        let dateFormatter = DateFormatter()
+        dateFormatter.dateFormat = "yyyy-MM-dd"
+
+        let grouped = Dictionary(grouping: allRecords) { item in
+            dateFormatter.string(from: item.requestDate)
+        }
+
+        // Create chart data points
+        let dataPoints = grouped.compactMap { dateString, items -> ChartDataPoint? in
+            guard let date = dateFormatter.date(from: dateString) else { return nil }
+            return ChartDataPoint.fromDateValue(
+                date: date,
+                value: Double(items.count),
+                category: "out_of_stock_trend"
+            )
+        }.sorted { $0.date ?? Date.distantPast < $1.date ?? Date.distantPast }
+
+        logger.safeInfo("Product trend data generated", [
+            "dataPoints": String(dataPoints.count),
+            "totalItems": String(allRecords.count),
+            "pagesProcessed": String(page)
+        ])
+
+        return dataPoints
+    }
+
+    /// Get cached analytics data if available and not expired
+    func getCachedAnalytics<T>(for key: AnalyticsCacheKey, type: T.Type) -> T? {
+        return cacheService.getCachedAnalytics(for: key, type: type)
+    }
+
+    /// Cache analytics data with TTL
+    func cacheAnalytics<T>(data: T, for key: AnalyticsCacheKey, ttl: TimeInterval = 300) {
+        cacheService.cacheAnalytics(data: data, for: key, ttl: ttl)
+    }
+
+    /// Helper method to convert TimeRange to date range
+    private func getDateRangeForTimeRange(_ timeRange: TimeRange, customRange: ClosedRange<Date>?) -> (start: Date, end: Date) {
+        if timeRange == .custom, let customRange = customRange {
+            let calendar = Calendar.current
+            let startOfDay = calendar.startOfDay(for: customRange.lowerBound)
+            let endOfDay = calendar.date(byAdding: .day, value: 1, to: calendar.startOfDay(for: customRange.upperBound)) ?? customRange.upperBound
+            return (start: startOfDay, end: endOfDay)
+        } else {
+            let range = timeRange.dateRange()
+            return range
+        }
+    }
+
     // MARK: - Helper Methods
-    
+
     private func validateAndNormalizeCriteria(_ criteria: OutOfStockFilterCriteria) -> OutOfStockFilterCriteria {
         // Validate and normalize values
         let normalizedPage = max(0, criteria.page)
@@ -371,8 +737,17 @@ class CustomerOutOfStockCoordinator: ObservableObject {
 
 private class MockCustomerOutOfStockDataService: CustomerOutOfStockDataService {
     func fetchRecords(_ criteria: OutOfStockFilterCriteria) async throws -> [CustomerOutOfStock] { [] }
+    func fetchRecordsWithPagination(_ criteria: OutOfStockFilterCriteria) async throws -> OutOfStockPaginationResult {
+        return OutOfStockPaginationResult(
+            items: [],
+            totalCount: 0,
+            hasMoreData: false,
+            page: criteria.page,
+            pageSize: criteria.pageSize
+        )
+    }
     func countRecords(_ criteria: OutOfStockFilterCriteria) async throws -> Int { 0 }
-    func createRecord(_ request: OutOfStockCreationRequest) async throws -> CustomerOutOfStock { 
+    func createRecord(_ request: OutOfStockCreationRequest) async throws -> CustomerOutOfStock {
         // Safe placeholder implementation - returns mock data instead of crashing
         return CustomerOutOfStock.createMockRecord(from: request)
     }
@@ -406,9 +781,9 @@ private class MockCustomerOutOfStockCacheService: CustomerOutOfStockCacheService
     func handleMemoryPressure() {}
 }
 
-private class MockAuditingService: AuditingService {
+private class MockNewAuditingService: NewAuditingService {
     init() {
-        super.init(auditRepository: MockAuditRepository())
+        super.init(repositoryFactory: PlaceholderRepositoryFactory())
     }
 }
 
@@ -584,6 +959,11 @@ private class MockAuditCustomerOutOfStockRepository: CustomerOutOfStockRepositor
     func countOutOfStockRecordsByStatus(criteria: OutOfStockFilterCriteria) async throws -> [OutOfStockStatus: Int] { 
         print("🔧 MockAuditCustomerOutOfStockRepository: countOutOfStockRecordsByStatus called")
         return [:]
+    }
+    
+    func countPartialReturnRecords(criteria: OutOfStockFilterCriteria) async throws -> Int {
+        print("🔧 MockAuditCustomerOutOfStockRepository: countPartialReturnRecords called")
+        return 0
     }
     
     // CRUD operations
@@ -832,4 +1212,3 @@ private class MockAuditProductionBatchRepository: ProductionBatchRepository {
     func fetchActiveBatchesWithStatus(_ statuses: [BatchStatus]) async throws -> [ProductionBatch] { [] }
     func fetchBatchesForMachine(_ machineId: String, statuses: [BatchStatus], from startDate: Date?, to endDate: Date?) async throws -> [ProductionBatch] { [] }
 }
-

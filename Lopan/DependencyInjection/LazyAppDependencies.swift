@@ -74,6 +74,13 @@ public final class LazyAppDependencies: HasAppDependencies, ObservableObject {
             return serviceFactory.customerOutOfStockService
         }
     }
+
+    public var customerOutOfStockCoordinator: CustomerOutOfStockCoordinator {
+        return getCachedService("customerOutOfStockCoordinator", priority: .feature) {
+            print("📦 Initializing Feature Coordinator: Customer Out-of-Stock")
+            return serviceFactory.customerOutOfStockCoordinator
+        }
+    }
     
     public var customerService: CustomerService {
         return getCachedService("customer", priority: .feature) {

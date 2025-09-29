@@ -37,6 +37,7 @@ public final class AppDependencies: HasAppDependencies, ObservableObject {
     public var userService: UserService { serviceFactory.userService }
     public var auditingService: NewAuditingService { serviceFactory.auditingService }
     public var customerOutOfStockService: CustomerOutOfStockService { serviceFactory.customerOutOfStockService }
+    public var customerOutOfStockCoordinator: CustomerOutOfStockCoordinator { serviceFactory.customerOutOfStockCoordinator }
     public var dataInitializationService: NewDataInitializationService { serviceFactory.dataInitializationService }
     public var machineService: MachineService { serviceFactory.machineService }
     public var colorService: ColorService { serviceFactory.colorService }
@@ -62,14 +63,15 @@ public final class AppDependencies: HasAppDependencies, ObservableObject {
 @MainActor
 public final class CustomerOutOfStockDependencies: HasCustomerOutOfStockDependencies, ObservableObject {
     private let appDependencies: HasAppDependencies
-    
+
     public var customerOutOfStockRepository: CustomerOutOfStockRepository { appDependencies.customerOutOfStockRepository }
     public var customerRepository: CustomerRepository { appDependencies.customerRepository }
     public var productRepository: ProductRepository { appDependencies.productRepository }
     public var auditingService: NewAuditingService { appDependencies.auditingService }
     public var authenticationService: AuthenticationService { appDependencies.authenticationService }
     public var customerOutOfStockService: CustomerOutOfStockService { appDependencies.customerOutOfStockService }
-    
+    public var customerOutOfStockCoordinator: CustomerOutOfStockCoordinator { appDependencies.customerOutOfStockCoordinator }
+
     public init(appDependencies: HasAppDependencies) {
         self.appDependencies = appDependencies
     }

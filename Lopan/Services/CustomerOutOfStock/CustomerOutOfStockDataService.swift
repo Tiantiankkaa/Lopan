@@ -13,6 +13,7 @@ import os
 @MainActor
 protocol CustomerOutOfStockDataService {
     func fetchRecords(_ criteria: OutOfStockFilterCriteria) async throws -> [CustomerOutOfStock]
+    func fetchRecordsWithPagination(_ criteria: OutOfStockFilterCriteria) async throws -> OutOfStockPaginationResult
     func countRecords(_ criteria: OutOfStockFilterCriteria) async throws -> Int
     func createRecord(_ request: OutOfStockCreationRequest) async throws -> CustomerOutOfStock
     func updateRecord(_ item: CustomerOutOfStock) async throws
@@ -43,23 +44,53 @@ class DefaultCustomerOutOfStockDataService: CustomerOutOfStockDataService {
         do {
             logger.safeInfo("Fetching records", [
                 "customer": criteria.customer?.name ?? "all",
-                "product": criteria.product?.name ?? "all", 
+                "product": criteria.product?.name ?? "all",
                 "status": criteria.status?.displayName ?? "all",
                 "page": String(criteria.page),
                 "pageSize": String(criteria.pageSize)
             ])
-            
+
             let result = try await repository.fetchOutOfStockRecords(
                 criteria: criteria,
                 page: criteria.page,
                 pageSize: criteria.pageSize
             )
             let records = result.items
-            
+
             logger.safeInfo("Successfully fetched records", ["count": String(records.count)])
             return records
         } catch {
             logger.safeError("Failed to fetch records", error: error, [
+                "criteria": String(describing: criteria)
+            ])
+            throw error
+        }
+    }
+
+    func fetchRecordsWithPagination(_ criteria: OutOfStockFilterCriteria) async throws -> OutOfStockPaginationResult {
+        do {
+            logger.safeInfo("Fetching records with pagination info", [
+                "customer": criteria.customer?.name ?? "all",
+                "product": criteria.product?.name ?? "all",
+                "status": criteria.status?.displayName ?? "all",
+                "page": String(criteria.page),
+                "pageSize": String(criteria.pageSize)
+            ])
+
+            let result = try await repository.fetchOutOfStockRecords(
+                criteria: criteria,
+                page: criteria.page,
+                pageSize: criteria.pageSize
+            )
+
+            logger.safeInfo("Successfully fetched paginated records", [
+                "count": String(result.items.count),
+                "page": String(result.page),
+                "hasMore": String(result.hasMoreData)
+            ])
+            return result
+        } catch {
+            logger.safeError("Failed to fetch paginated records", error: error, [
                 "criteria": String(describing: criteria)
             ])
             throw error

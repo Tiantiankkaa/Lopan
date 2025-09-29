@@ -76,6 +76,10 @@ public protocol HasCustomerOutOfStockService {
     var customerOutOfStockService: CustomerOutOfStockService { get }
 }
 
+public protocol HasCustomerOutOfStockCoordinator {
+    var customerOutOfStockCoordinator: CustomerOutOfStockCoordinator { get }
+}
+
 public protocol HasDataInitializationService {
     var dataInitializationService: NewDataInitializationService { get }
 }
@@ -104,12 +108,13 @@ public protocol HasServiceFactory {
 
 // MARK: - Combined Dependencies for Specific Domains
 
-public protocol HasCustomerOutOfStockDependencies: HasCustomerOutOfStockRepository, 
-                                           HasCustomerRepository, 
+public protocol HasCustomerOutOfStockDependencies: HasCustomerOutOfStockRepository,
+                                           HasCustomerRepository,
                                            HasProductRepository,
                                            HasAuditingService,
                                            HasAuthenticationService,
-                                           HasCustomerOutOfStockService {
+                                           HasCustomerOutOfStockService,
+                                           HasCustomerOutOfStockCoordinator {
 }
 
 public protocol HasProductionDependencies: HasMachineRepository,
