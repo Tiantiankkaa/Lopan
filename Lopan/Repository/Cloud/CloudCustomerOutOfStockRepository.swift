@@ -12,9 +12,14 @@ import Foundation
 final class CloudCustomerOutOfStockRepository: CustomerOutOfStockRepository, Sendable {
     private let cloudProvider: CloudProvider
     private let baseEndpoint = "/api/customer-out-of-stock"
-    
-    init(cloudProvider: CloudProvider) {
+
+    // PHASE 2: Local repository fallback for graceful degradation
+    private let localFallback: CustomerOutOfStockRepository?
+
+    init(cloudProvider: CloudProvider, localFallback: CustomerOutOfStockRepository? = nil) {
         self.cloudProvider = cloudProvider
+        self.localFallback = localFallback
+        print("🎯 CloudRepository: Initialized with \(localFallback != nil ? "local fallback" : "no fallback")")
     }
     
     // MARK: - Legacy Methods (maintained for backward compatibility)
@@ -58,50 +63,72 @@ final class CloudCustomerOutOfStockRepository: CustomerOutOfStockRepository, Sen
         page: Int,
         pageSize: Int
     ) async throws -> OutOfStockPaginationResult {
-        var endpoint = "\(baseEndpoint)/filtered?page=\(page)&pageSize=\(pageSize)"
-        
-        // Add filter parameters with proper encoding
-        if let customerId = criteria.customer?.id {
-            endpoint += "&customerId=\(customerId)"
+        do {
+            var endpoint = "\(baseEndpoint)/filtered?page=\(page)&pageSize=\(pageSize)"
+
+            // Add filter parameters with proper encoding
+            if let customerId = criteria.customer?.id {
+                endpoint += "&customerId=\(customerId)"
+            }
+            if let productId = criteria.product?.id {
+                endpoint += "&productId=\(productId)"
+            }
+            if let status = criteria.status {
+                endpoint += "&status=\(status.rawValue)"
+            }
+            if !criteria.searchText.isEmpty {
+                let encodedSearch = criteria.searchText.addingPercentEncoding(withAllowedCharacters: .urlQueryAllowed) ?? ""
+                endpoint += "&search=\(encodedSearch)"
+            }
+            if let dateRange = criteria.dateRange {
+                let formatter = ISO8601DateFormatter()
+                endpoint += "&startDate=\(formatter.string(from: dateRange.start))"
+                endpoint += "&endDate=\(formatter.string(from: dateRange.end))"
+            }
+
+            let response = try await cloudProvider.getPaginated(
+                endpoint: endpoint,
+                type: CustomerOutOfStockDTO.self,
+                page: page,
+                pageSize: pageSize
+            )
+
+            guard response.success else {
+                throw RepositoryError.connectionFailed(response.error ?? "Network request failed")
+            }
+
+            let entities = try response.items.compactMap { dto in
+                try? dto.toDomain()
+            }
+
+            return OutOfStockPaginationResult(
+                items: entities,
+                totalCount: response.totalCount,
+                hasMoreData: response.hasNextPage,
+                page: page,
+                pageSize: pageSize
+            )
+        } catch {
+            // PHASE 2: Graceful fallback to local cache on network failure
+            print("⚠️ Cloud fetch failed: \(error.localizedDescription), falling back to local cache...")
+            return try await fallbackToLocal(criteria: criteria, page: page, pageSize: pageSize)
         }
-        if let productId = criteria.product?.id {
-            endpoint += "&productId=\(productId)"
+    }
+
+    // MARK: - Private Fallback Helper
+
+    private func fallbackToLocal(
+        criteria: OutOfStockFilterCriteria,
+        page: Int,
+        pageSize: Int
+    ) async throws -> OutOfStockPaginationResult {
+        guard let fallback = localFallback else {
+            print("❌ No local fallback available, throwing original error")
+            throw RepositoryError.connectionFailed("Cloud unavailable and no local fallback configured")
         }
-        if let status = criteria.status {
-            endpoint += "&status=\(status.rawValue)"
-        }
-        if !criteria.searchText.isEmpty {
-            let encodedSearch = criteria.searchText.addingPercentEncoding(withAllowedCharacters: .urlQueryAllowed) ?? ""
-            endpoint += "&search=\(encodedSearch)"
-        }
-        if let dateRange = criteria.dateRange {
-            let formatter = ISO8601DateFormatter()
-            endpoint += "&startDate=\(formatter.string(from: dateRange.start))"
-            endpoint += "&endDate=\(formatter.string(from: dateRange.end))"
-        }
-        
-        let response = try await cloudProvider.getPaginated(
-            endpoint: endpoint,
-            type: CustomerOutOfStockDTO.self,
-            page: page,
-            pageSize: pageSize
-        )
-        
-        guard response.success else {
-            throw RepositoryError.connectionFailed(response.error ?? "Network request failed")
-        }
-        
-        let entities = try response.items.compactMap { dto in
-            try? dto.toDomain()
-        }
-        
-        return OutOfStockPaginationResult(
-            items: entities,
-            totalCount: response.totalCount,
-            hasMoreData: response.hasNextPage,
-            page: page,
-            pageSize: pageSize
-        )
+
+        print("🔄 Using local fallback repository...")
+        return try await fallback.fetchOutOfStockRecords(criteria: criteria, page: page, pageSize: pageSize)
     }
     
     func countOutOfStockRecords(criteria: OutOfStockFilterCriteria) async throws -> Int {
@@ -198,6 +225,61 @@ final class CloudCustomerOutOfStockRepository: CustomerOutOfStockRepository, Sen
         }
         
         return result
+    }
+
+    func countPartialReturnRecords(criteria: OutOfStockFilterCriteria) async throws -> Int {
+        let endpoint = "\(baseEndpoint)/analytics/partial-return-count"
+
+        var queryItems: [URLQueryItem] = []
+
+        if let customerId = criteria.customer?.id {
+            queryItems.append(URLQueryItem(name: "customerId", value: customerId))
+        }
+        if let productId = criteria.product?.id {
+            queryItems.append(URLQueryItem(name: "productId", value: productId))
+        }
+        if !criteria.searchText.isEmpty {
+            queryItems.append(URLQueryItem(name: "search", value: criteria.searchText))
+        }
+        if let dateRange = criteria.dateRange {
+            let formatter = ISO8601DateFormatter()
+            queryItems.append(URLQueryItem(name: "startDate", value: formatter.string(from: dateRange.start)))
+            queryItems.append(URLQueryItem(name: "endDate", value: formatter.string(from: dateRange.end)))
+        }
+
+        if let status = criteria.status {
+            queryItems.append(URLQueryItem(name: "status", value: status.rawValue))
+        }
+
+        let fullEndpoint: String
+        if !queryItems.isEmpty {
+            var urlComponents = URLComponents(string: endpoint)
+            urlComponents?.queryItems = queryItems
+            fullEndpoint = urlComponents?.string ?? endpoint
+        } else {
+            fullEndpoint = endpoint
+        }
+
+        struct PartialCountResponse: Codable {
+            let count: Int
+        }
+
+        let response = try await cloudProvider.get(endpoint: fullEndpoint, type: PartialCountResponse.self)
+
+        if response.success, let data = response.data {
+            return data.count
+        }
+
+        // Fallback: fetch first page and estimate partial count
+        let fallback = try await fetchOutOfStockRecords(
+            criteria: criteria,
+            page: 0,
+            pageSize: max(criteria.pageSize, 200)
+        )
+        let partialCount = fallback.items.filter { item in
+            item.returnQuantity > 0 && item.returnQuantity < item.quantity
+        }.count
+        return partialCount
     }
     
     // MARK: - CRUD Operations

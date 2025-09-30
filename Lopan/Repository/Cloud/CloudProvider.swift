@@ -21,26 +21,37 @@ protocol CloudProvider: Sendable {
 
 final class HTTPCloudProvider: CloudProvider, Sendable {
     private let baseURL: String
-    private let session: URLSession
-    private let decoder: JSONDecoder
-    private let encoder: JSONEncoder
     private let authenticationService: AuthenticationService?
-    
-    init(baseURL: String, authenticationService: AuthenticationService? = nil) {
-        self.baseURL = baseURL
-        self.authenticationService = authenticationService
-        
+
+    // PHASE 2: Lazy connection pooling - only create session when first network call is made
+    private lazy var session: URLSession = {
+        print("🔄 CloudProvider: Initializing URLSession lazily...")
         let config = URLSessionConfiguration.default
         config.timeoutIntervalForRequest = 30
         config.timeoutIntervalForResource = 60
         config.waitsForConnectivity = true
-        self.session = URLSession(configuration: config)
-        
-        self.decoder = JSONDecoder()
-        self.decoder.dateDecodingStrategy = .iso8601
-        
-        self.encoder = JSONEncoder()
-        self.encoder.dateEncodingStrategy = .iso8601
+        config.httpMaximumConnectionsPerHost = 5 // Connection pool: max 5 concurrent
+        config.requestCachePolicy = .returnCacheDataElseLoad // Use cache when available
+        return URLSession(configuration: config)
+    }()
+
+    // Decoders/encoders are lightweight, but still lazy for consistency
+    private lazy var decoder: JSONDecoder = {
+        let decoder = JSONDecoder()
+        decoder.dateDecodingStrategy = .iso8601
+        return decoder
+    }()
+
+    private lazy var encoder: JSONEncoder = {
+        let encoder = JSONEncoder()
+        encoder.dateEncodingStrategy = .iso8601
+        return encoder
+    }()
+
+    init(baseURL: String, authenticationService: AuthenticationService? = nil) {
+        self.baseURL = baseURL
+        self.authenticationService = authenticationService
+        print("🎯 CloudProvider: Initialized with lazy connection pooling")
     }
     
     // MARK: - Private Helper Methods
