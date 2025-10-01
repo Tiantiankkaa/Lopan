@@ -4,19 +4,187 @@
 //
 //  Created by Claude Code on 2025/8/22.
 //  Revolutionary dashboard for customer out-of-stock management
+//  Enhanced for iOS 26 compatibility with modern @Observable pattern
 //
 
 import SwiftUI
 import SwiftData
 import Foundation
+import os.log
 
-// MARK: - Dashboard State Manager
+// MARK: - iOS 26 Enhanced Dashboard State Manager
 
 @MainActor
-class CustomerOutOfStockDashboardState: ObservableObject {
-    
+protocol DashboardStateProtocol: ObservableObject {
+    var selectedDate: Date { get set }
+    var showingDatePicker: Bool { get set }
+    var showingFilterPanel: Bool { get set }
+    var showingAnalytics: Bool { get set }
+    var showingBatchCreation: Bool { get set }
+    var isSelectionMode: Bool { get set }
+    var selectedItems: Set<String> { get set }
+    var selectedDetailItem: CustomerOutOfStock? { get set }
+    var currentViewMode: DateNavigationMode { get set }
+    var items: [CustomerOutOfStock] { get set }
+    var isLoading: Bool { get set }
+    var isRefreshing: Bool { get set }
+
+    func enterFilterMode(with filters: OutOfStockFilters)
+    func exitFilterMode()
+    func updateDateInNavigationMode(_ date: Date)
+}
+
+// MARK: - iOS 26 Observable State (iOS 26+)
+
+@available(iOS 26.0, *)
+@MainActor
+@Observable
+final class ModernDashboardState: DashboardStateProtocol {
+    private let logger = Logger(subsystem: "com.lopan.dashboard", category: "ModernState")
+    private let featureFlags = FeatureFlagManager.shared
+
     // MARK: - UI State
-    
+    var selectedDate = Date()
+    var showingDatePicker = false
+    var showingFilterPanel = false
+    var showingAnalytics = false
+    var showingBatchCreation = false
+    var isSelectionMode = false
+    var selectedItems: Set<String> = []
+    var selectedDetailItem: CustomerOutOfStock?
+
+    // MARK: - View Mode State
+    var currentViewMode: DateNavigationMode = .dateNavigation(date: Date(), isEnabled: true)
+
+    // MARK: - Data State
+    var items: [CustomerOutOfStock] = []
+    var customers: [Customer] = []
+    var products: [Product] = []
+    var isLoading = false
+    var isLoadingMore = false
+    var isRefreshing = false
+    var previousItems: [CustomerOutOfStock] = []
+    var skeletonItemCount = 6
+    var totalCount = 0
+    var unfilteredTotalCount = 0
+    var statusCounts: [OutOfStockStatus: Int] = [:]
+
+    // MARK: - Status Tab Filtering State
+    var selectedStatusTab: OutOfStockStatus? = nil
+    var statusTabAnimationScale: CGFloat = 1.0
+    var isProcessingStatusChange = false
+
+    // MARK: - Data Loading State
+    var isDataOperationLocked = false
+    var lockMessage = ""
+
+    // MARK: - Filter State
+    var activeFilters: OutOfStockFilters = OutOfStockFilters()
+    var searchText = ""
+    var sortOrder: CustomerOutOfStockNavigationState.SortOrder = .newestFirst
+
+    // MARK: - Performance Metrics
+    var cacheHitRate: Double = 0
+    var loadingTime: TimeInterval = 0
+    var error: Error?
+
+    // MARK: - Scroll State
+    var totalScrollPosition: String? = nil
+    var shouldScrollToTop = false
+
+    // Debouncing state
+    var statusChangeTimer: Timer?
+    var dateChangeTimer: Timer?
+    var pendingStatusChange: OutOfStockStatus?
+    var pendingDateChange: Date?
+    let statusChangeDebounceDelay: TimeInterval = 0.15
+    let dateChangeDebounceDelay: TimeInterval = 0.2
+
+    init() {
+        logger.info("🆕 Modern iOS 26 @Observable dashboard state initialized")
+
+        if featureFlags.isEnabled(.performanceMonitoring) {
+            logger.info("📊 Performance monitoring enabled for modern state")
+        }
+    }
+
+    // MARK: - Enhanced iOS 26 Methods
+
+    func enterFilterMode(with filters: OutOfStockFilters) {
+        let summary = filters.intelligentSummary
+        let filterCount = filters.activeFilterCount
+        let dateRange = filters.dateRange?.toFormattedDateRange()
+
+        // Use iOS 26 enhanced animations if available
+        if featureFlags.isEnabled(.fluidAnimations) {
+            withAnimation(.smooth(duration: 0.4)) {
+                currentViewMode = .filtered(summary: summary, dateRange: dateRange, filterCount: filterCount)
+            }
+        } else {
+            withAnimation(.easeInOut(duration: 0.3)) {
+                currentViewMode = .filtered(summary: summary, dateRange: dateRange, filterCount: filterCount)
+            }
+        }
+
+        logger.info("📊 [Modern Dashboard] Entered filter mode: \(summary), date range: \(dateRange ?? "none")")
+    }
+
+    func exitFilterMode() {
+        if featureFlags.isEnabled(.fluidAnimations) {
+            withAnimation(.smooth(duration: 0.4)) {
+                currentViewMode = .dateNavigation(date: selectedDate, isEnabled: true)
+                activeFilters = OutOfStockFilters()
+            }
+        } else {
+            withAnimation(.easeInOut(duration: 0.3)) {
+                currentViewMode = .dateNavigation(date: selectedDate, isEnabled: true)
+                activeFilters = OutOfStockFilters()
+            }
+        }
+
+        logger.info("📊 [Modern Dashboard] Exited filter mode, returned to date navigation")
+    }
+
+    func updateDateInNavigationMode(_ date: Date) {
+        if case .dateNavigation = currentViewMode {
+            if featureFlags.isEnabled(.fluidAnimations) {
+                withAnimation(.smooth(duration: 0.3)) {
+                    currentViewMode = .dateNavigation(date: date, isEnabled: true)
+                }
+            } else {
+                withAnimation(.easeInOut(duration: 0.2)) {
+                    currentViewMode = .dateNavigation(date: date, isEnabled: true)
+                }
+            }
+        }
+    }
+
+    // Enhanced computed properties for iOS 26
+    var hasActiveFilters: Bool {
+        activeFilters.hasAnyFilters || !searchText.isEmpty
+    }
+
+    var filteredItemsCount: Int {
+        hasActiveFilters ? totalCount : items.count
+    }
+
+    var isInFilterMode: Bool {
+        currentViewMode.isFilterMode
+    }
+
+    var isDataLocked: Bool {
+        isLoading || isRefreshing || isDataOperationLocked
+    }
+}
+
+// MARK: - Legacy Observable State (iOS 17+)
+
+@MainActor
+final class LegacyDashboardState: ObservableObject, DashboardStateProtocol {
+    private let logger = Logger(subsystem: "com.lopan.dashboard", category: "LegacyState")
+    private let featureFlags = FeatureFlagManager.shared
+
+    // MARK: - UI State
     @Published var selectedDate = Date()
     @Published var showingDatePicker = false
     @Published var showingFilterPanel = false
@@ -25,7 +193,185 @@ class CustomerOutOfStockDashboardState: ObservableObject {
     @Published var isSelectionMode = false
     @Published var selectedItems: Set<String> = []
     @Published var selectedDetailItem: CustomerOutOfStock?
-    
+
+    // MARK: - View Mode State
+    @Published var currentViewMode: DateNavigationMode = .dateNavigation(date: Date(), isEnabled: true)
+
+    // MARK: - Data State
+    @Published var items: [CustomerOutOfStock] = []
+    @Published var customers: [Customer] = []
+    @Published var products: [Product] = []
+    @Published var isLoading = false
+    @Published var isLoadingMore = false
+    @Published var isRefreshing = false
+    @Published var previousItems: [CustomerOutOfStock] = []
+    @Published var skeletonItemCount = 6
+    @Published var totalCount = 0
+    @Published var unfilteredTotalCount = 0
+    @Published var statusCounts: [OutOfStockStatus: Int] = [:]
+
+    // MARK: - Status Tab Filtering State
+    @Published var selectedStatusTab: OutOfStockStatus? = nil
+    @Published var statusTabAnimationScale: CGFloat = 1.0
+    @Published var isProcessingStatusChange = false
+
+    // MARK: - Data Loading State
+    @Published var isDataOperationLocked = false
+    @Published var lockMessage = ""
+
+    // MARK: - Filter State
+    @Published var activeFilters: OutOfStockFilters = OutOfStockFilters()
+    @Published var searchText = ""
+    @Published var sortOrder: CustomerOutOfStockNavigationState.SortOrder = .newestFirst
+
+    // MARK: - Performance Metrics
+    @Published var cacheHitRate: Double = 0
+    @Published var loadingTime: TimeInterval = 0
+    @Published var error: Error?
+
+    // MARK: - Scroll State
+    @Published var totalScrollPosition: String? = nil
+    @Published var shouldScrollToTop = false
+
+    // Debouncing state
+    var statusChangeTimer: Timer?
+    var dateChangeTimer: Timer?
+    var pendingStatusChange: OutOfStockStatus?
+    var pendingDateChange: Date?
+    let statusChangeDebounceDelay: TimeInterval = 0.15
+    let dateChangeDebounceDelay: TimeInterval = 0.2
+
+    init() {
+        logger.info("🔄 Legacy @ObservableObject dashboard state initialized")
+
+        if featureFlags.isEnabled(.performanceMonitoring) {
+            logger.info("📊 Performance monitoring enabled for legacy state")
+        }
+    }
+
+    // MARK: - Legacy Methods with Enhanced Features
+
+    func enterFilterMode(with filters: OutOfStockFilters) {
+        let summary = filters.intelligentSummary
+        let filterCount = filters.activeFilterCount
+        let dateRange = filters.dateRange?.toFormattedDateRange()
+
+        withAnimation(.easeInOut(duration: 0.3)) {
+            currentViewMode = .filtered(summary: summary, dateRange: dateRange, filterCount: filterCount)
+        }
+
+        logger.info("📊 [Legacy Dashboard] Entered filter mode: \(summary), date range: \(dateRange ?? "none")")
+    }
+
+    func exitFilterMode() {
+        withAnimation(.easeInOut(duration: 0.3)) {
+            currentViewMode = .dateNavigation(date: selectedDate, isEnabled: true)
+            activeFilters = OutOfStockFilters()
+        }
+
+        logger.info("📊 [Legacy Dashboard] Exited filter mode, returned to date navigation")
+    }
+
+    func updateDateInNavigationMode(_ date: Date) {
+        if case .dateNavigation = currentViewMode {
+            withAnimation(.easeInOut(duration: 0.2)) {
+                currentViewMode = .dateNavigation(date: date, isEnabled: true)
+            }
+        }
+    }
+
+    // Computed properties for legacy compatibility
+    var hasActiveFilters: Bool {
+        activeFilters.hasAnyFilters || !searchText.isEmpty
+    }
+
+    var filteredItemsCount: Int {
+        hasActiveFilters ? totalCount : items.count
+    }
+
+    var isInFilterMode: Bool {
+        currentViewMode.isFilterMode
+    }
+
+    var isDataLocked: Bool {
+        isLoading || isRefreshing || isDataOperationLocked
+    }
+
+    func requestDateChange(_ date: Date) {
+        // Cancel any pending date change
+        dateChangeTimer?.invalidate()
+        pendingDateChange = date
+
+        // Set operation lock to prevent UI interactions (no message - rely on skeleton)
+        isDataOperationLocked = true
+
+        dateChangeTimer = Timer.scheduledTimer(withTimeInterval: dateChangeDebounceDelay, repeats: false) { _ in
+            Task { @MainActor in
+                self.selectedDate = self.pendingDateChange ?? date
+                self.updateDateInNavigationMode(self.selectedDate)
+                self.isDataOperationLocked = false
+                self.pendingDateChange = nil
+            }
+        }
+    }
+
+    func requestStatusChange(_ status: OutOfStockStatus?) {
+        // Cancel any pending status change
+        statusChangeTimer?.invalidate()
+        pendingStatusChange = status
+
+        // Set lighter processing state (UI already updated)
+        isProcessingStatusChange = true
+
+        statusChangeTimer = Timer.scheduledTimer(withTimeInterval: statusChangeDebounceDelay, repeats: false) { _ in
+            Task { @MainActor in
+                // No need to update selectedStatusTab again - already done in UI
+                self.isProcessingStatusChange = false
+                self.pendingStatusChange = nil
+            }
+        }
+    }
+}
+
+// MARK: - Dashboard State Factory
+
+@MainActor
+public final class DashboardStateFactory {
+    private let compatibilityLayer = iOS26CompatibilityLayer.shared
+    private let featureFlags = FeatureFlagManager.shared
+    private let logger = Logger(subsystem: "com.lopan.dashboard", category: "StateFactory")
+
+    public static let shared = DashboardStateFactory()
+
+    private init() {}
+
+    @ViewBuilder
+    func createDashboardState() -> any DashboardStateProtocol {
+        if featureFlags.isEnabled(.observablePattern) && compatibilityLayer.isIOS26Available {
+            if #available(iOS 26.0, *) {
+                logger.info("🆕 Creating modern @Observable dashboard state")
+                return ModernDashboardState()
+            }
+        }
+
+        logger.info("🔄 Creating legacy @ObservableObject dashboard state")
+        return LegacyDashboardState()
+    }
+}
+
+// MARK: - Original Dashboard State Manager (Transitional Compatibility)
+
+@MainActor
+class CustomerOutOfStockDashboardState: ObservableObject {
+    @Published var showingDatePicker = false
+    @Published var showingFilterPanel = false
+    @Published var showingAnalytics = false
+    @Published var showingBatchCreation = false
+    @Published var isSelectionMode = false
+    @Published var selectedItems: Set<String> = []
+    @Published var selectedDetailItem: CustomerOutOfStock?
+    @Published var selectedDate = Date()
+
     // MARK: - View Mode State
     
     @Published var currentViewMode: DateNavigationMode = .dateNavigation(date: Date(), isEnabled: true)
@@ -293,22 +639,39 @@ struct OutOfStockFilters {
 
 // MARK: - Main Dashboard View
 
+// MARK: - Enhanced iOS 26 Compatible Dashboard View
+
 struct CustomerOutOfStockDashboard: View {
-    @StateObject private var dashboardState = CustomerOutOfStockDashboardState()
+    // iOS 26 Enhanced State Management
+    @StateObject private var dashboardState = LegacyDashboardState()
+
     @StateObject private var animationState = CommonAnimationState()
+
+    // Environment Dependencies
     @Environment(\.appDependencies) private var appDependencies
+    @Environment(\.compatibilityLayer) private var compatibilityLayer
+    @Environment(\.featureFlags) private var featureFlags
+    @Environment(\.smartNavigation) private var smartNavigation
+    @Environment(\.performanceOptimization) private var performanceOptimization
     @Environment(\.dismiss) private var dismiss
+
+    @Environment(\.colorScheme) private var colorScheme
+    @Environment(\.dynamicTypeSize) private var dynamicTypeSize
+
     @FocusState private var isSearchFocused: Bool
-    
+
     @State private var lastRefreshTime = Date()
     @State private var refreshTrigger = false
-    
-    // MARK: - Phase 5 View Preloading Integration
-    @StateObject private var preloadManager = ViewPreloadManager.shared
-    @StateObject private var preloadController = ViewPreloadController.shared
-    
+
+    // MARK: - iOS 26 Enhanced Performance Integration
+
     private var customerOutOfStockService: CustomerOutOfStockService {
         appDependencies.serviceFactory.customerOutOfStockService
+    }
+
+    // MARK: - iOS 26 Animation Coordinator
+    private var animationCoordinator: any iOS26CompatibilityLayer.AnimationCoordinating {
+        compatibilityLayer.observationProvider.createAnimationCoordinator()
     }
     
     var body: some View {
@@ -385,6 +748,8 @@ struct CustomerOutOfStockDashboard: View {
                     dashboardState.enterFilterMode(with: filters)
                 }
             )
+            .trackNavigation(to: .filterPanel)
+            .spatialTransition(to: .filterPanel)
             .preloadable(cacheKey: "intelligent_filter_panel") {
                 await preloadFilterPanelDependencies()
             } onDisplay: {
@@ -437,9 +802,12 @@ struct CustomerOutOfStockDashboard: View {
         } onDisplay: {
             await trackDashboardDisplayFromCache()
         }
-        .task {
-            await preloadController.preloadWorkflow(.customerOutOfStock)
-        }
+        .trackNavigation(to: .customerOutOfStockDashboard)
+        .spatialTransition(to: .customerOutOfStockDashboard)
+        .predictivePreload(for: .customerOutOfStockDetail)
+        .performanceOptimized()
+        .memoryAware()
+        .performanceCached(data: dashboardState.items, key: "dashboard_items")
         .onAppear {
             animationState.animateInitialAppearance()
             loadInitialData()
@@ -458,9 +826,6 @@ struct CustomerOutOfStockDashboard: View {
             Task {
                 await refreshData()
             }
-        }
-        .refreshable {
-            await refreshData()
         }
         .sheet(item: $dashboardState.selectedDetailItem) { selectedItem in
             NavigationStack {
@@ -490,81 +855,116 @@ struct CustomerOutOfStockDashboard: View {
     }
     
     // MARK: - Quick Stats Section
-    
+
     private var quickStatsSection: some View {
-        ZStack {
+        Group {
             if dashboardState.isRefreshing {
-                // Show skeleton stats during date switching
-                EnhancedSkeletonStatsCards()
-                    .padding(.vertical, 16)
-                    .transition(.opacity.combined(with: .scale(scale: 0.95)))
+                CompactStatsSkeleton()
+                    .frame(maxWidth: .infinity)
+                    .padding(.horizontal, 16)
+                    .padding(.vertical, 8)
+                    .frame(height: 60)
             } else {
-                // Show real stats cards
-                LazyVGrid(columns: [
-                    GridItem(.flexible()),
-                    GridItem(.flexible()),
-                    GridItem(.flexible()),
-                    GridItem(.flexible())
-                ], spacing: 12) {
-                    QuickStatCard(
-                        title: "总计",
-                        value: "\(getTotalCount())", // Show filtered total when filters are active
-                        icon: "list.bullet.rectangle.fill",
-                        color: LopanColors.primary,
-                        trend: nil,
-                        associatedStatus: nil,
-                        isSelected: dashboardState.selectedStatusTab == nil,
-                        isLocked: dashboardState.isDataLocked,
-                        onTap: { handleStatusTabTap(nil) }
-                    )
-                    
-                    QuickStatCard(
-                        title: "待处理",
-                        value: "\(dashboardState.statusCounts[.pending] ?? 0)",
-                        icon: "clock.fill",
-                        color: LopanColors.warning,
-                        trend: .stable,
-                        associatedStatus: .pending,
-                        isSelected: dashboardState.selectedStatusTab == .pending,
-                        isLocked: dashboardState.isDataLocked,
-                        onTap: { handleStatusTabTap(.pending) }
-                    )
-                    
-                    QuickStatCard(
-                        title: "已完成",
-                        value: "\(dashboardState.statusCounts[.completed] ?? 0)",
-                        icon: "checkmark.circle.fill",
-                        color: LopanColors.success,
-                        trend: .up,
-                        associatedStatus: .completed,
-                        isSelected: dashboardState.selectedStatusTab == .completed,
-                        isLocked: dashboardState.isDataLocked,
-                        onTap: { handleStatusTabTap(.completed) }
-                    )
-                    
-                    QuickStatCard(
-                        title: "已退货",
-                        value: "\(dashboardState.statusCounts[.returned] ?? 0)",
-                        icon: "arrow.uturn.left",
-                        color: LopanColors.error,
-                        trend: (dashboardState.statusCounts[.returned] ?? 0) > 0 ? .up : nil,
-                        associatedStatus: .returned,
-                        isSelected: dashboardState.selectedStatusTab == .returned,
-                        isLocked: dashboardState.isDataLocked,
-                        onTap: { handleStatusTabTap(.returned) }
-                    )
-                }
-                .padding(.horizontal, 20)
-                .padding(.vertical, 16)
-                .commonScaleAnimation(delay: 0.3)
-                .opacity(dashboardState.isRefreshing ? 0.3 : 1.0)
-                .transition(.opacity.combined(with: .scale(scale: 1.05)))
-                .selectionFeedback(trigger: dashboardState.selectedStatusTab)
+                quickStatsContent
             }
         }
-        .animation(.easeInOut(duration: 0.4), value: dashboardState.isRefreshing)
     }
-    
+
+    private var quickStatsContent: some View {
+        AdaptiveStatsLayout(
+            configs: statusCardConfigs,
+            selectedStatus: dashboardState.selectedStatusTab,
+            isDataLocked: dashboardState.isDataLocked,
+            onTap: handleStatusTabTap
+        )
+        .animation(.easeInOut(duration: 0.2), value: dashboardState.selectedStatusTab)
+        .animation(.easeInOut(duration: 0.2), value: dashboardState.isDataLocked)
+    }
+
+    // MARK: - Legacy card implementation removed in favor of compact indicators
+    // CompactStatIndicator provides better space efficiency while maintaining functionality
+
+    private var quickStatsContainerHeight: CGFloat {
+        // Height is now adaptive based on layout mode
+        60 // Base height for single row, grows for grid layout
+    }
+
+    private var quickStatsBackground: some View {
+        RoundedRectangle(cornerRadius: 26, style: .continuous)
+            .fill(.ultraThinMaterial)
+            .background(
+                RoundedRectangle(cornerRadius: 26, style: .continuous)
+                    .fill(colorScheme == .dark ? LopanColors.background.opacity(0.32) : Color.white.opacity(0.65))
+            )
+    }
+
+    private var quickStatsBorder: some View {
+        RoundedRectangle(cornerRadius: 26, style: .continuous)
+            .strokeBorder(Color.primary.opacity(colorScheme == .dark ? 0.18 : 0.08), lineWidth: 0.8)
+    }
+
+    private var quickStatsShadowColor: Color {
+        Color.black.opacity(colorScheme == .dark ? 0.25 : 0.08)
+    }
+
+    private var statusCardConfigs: [StatusCardConfig] {
+        [
+            StatusCardConfig(
+                id: "total",
+                title: "总计",
+                value: formattedCount(getTotalCount()),
+                icon: "list.bullet.rectangle.fill",
+                color: LopanColors.primary,
+                status: nil,
+                accessibilityHint: "显示全部记录"
+            ),
+            StatusCardConfig(
+                id: "pending",
+                title: "待处理",
+                value: formattedCount(dashboardState.statusCounts[.pending] ?? 0),
+                icon: "clock.fill",
+                color: LopanColors.warning,
+                status: .pending,
+                accessibilityHint: "仅显示待处理记录"
+            ),
+            StatusCardConfig(
+                id: "completed",
+                title: "已完成",
+                value: formattedCount(dashboardState.statusCounts[.completed] ?? 0),
+                icon: "checkmark.circle.fill",
+                color: LopanColors.success,
+                status: .completed,
+                accessibilityHint: "仅显示已完成记录"
+            ),
+            StatusCardConfig(
+                id: "returned",
+                title: "已退货",
+                value: formattedCount(dashboardState.statusCounts[.returned] ?? 0),
+                icon: "arrow.uturn.left",
+                color: LopanColors.error,
+                status: .returned,
+                accessibilityHint: "仅显示已退货记录"
+            )
+        ]
+    }
+
+    private func formattedCount(_ value: Int) -> String {
+        CustomerOutOfStockDashboard.countFormatter.string(from: NSNumber(value: value)) ?? "\(value)"
+    }
+
+    // StatusCardConfig is now defined in AdaptiveStatsLayout.swift
+
+    // MARK: - Layout optimized for 1x4 horizontal scroll design
+    // QuickStatsLayoutMetrics removed in favor of simpler ScrollView approach
+
+    private static let countFormatter: NumberFormatter = {
+        let formatter = NumberFormatter()
+        formatter.numberStyle = .decimal
+        formatter.maximumFractionDigits = 0
+        formatter.locale = Locale.current
+        return formatter
+    }()
+
     // MARK: - Filter Section
     
     private var filterSection: some View {
@@ -779,17 +1179,12 @@ struct CustomerOutOfStockDashboard: View {
     
     private func loadInitialData() {
         dashboardState.isLoading = true
-        
+
         print("🚀 Loading initial data for date: \(dashboardState.selectedDate)")
         print("📊 Status filter: \(dashboardState.selectedStatusTab?.displayName ?? "All")")
-        
+
         Task {
-            // Load customers and products first
-            print("👥 Loading customers and products...")
-            await appDependencies.serviceFactory.customerService.loadCustomers()
-            await appDependencies.serviceFactory.productService.loadProducts()
-            
-            // Create criteria with status filter
+            // Phase 1: Load current date out-of-stock data FIRST (priority)
             let criteria = OutOfStockFilterCriteria(
                 customer: dashboardState.activeFilters.customer,
                 product: dashboardState.activeFilters.product,
@@ -797,68 +1192,90 @@ struct CustomerOutOfStockDashboard: View {
                 dateRange: CustomerOutOfStockService.createDateRange(for: dashboardState.selectedDate),
                 searchText: dashboardState.searchText,
                 page: 0,
-                pageSize: 50,
+                pageSize: 20, // Reduced initial batch for faster display
                 sortOrder: dashboardState.sortOrder
             )
-            
-            // Load filtered data
-            print("📅 Loading out of stock data with filter...")
+
+            print("📅 Loading current date out of stock data first...")
             await customerOutOfStockService.loadFilteredItems(criteria: criteria)
-            
+
             await MainActor.run {
                 dashboardState.items = customerOutOfStockService.items
                 dashboardState.totalCount = customerOutOfStockService.totalRecordsCount
-                dashboardState.customers = appDependencies.serviceFactory.customerService.customers
-                dashboardState.products = appDependencies.serviceFactory.productService.products
-                
-                print("📋 Loaded \(dashboardState.items.count) out of stock items")
-                print("👥 Loaded \(dashboardState.customers.count) customers")
-                print("📦 Loaded \(dashboardState.products.count) products")
-                
+
+                print("📋 Loaded \(dashboardState.items.count) out of stock items for current date")
+
                 // Check if service has any error
                 if let serviceError = customerOutOfStockService.error {
                     dashboardState.error = serviceError
                     print("❌ Service error: \(serviceError.localizedDescription)")
                 }
-                
+
                 dashboardState.cacheHitRate = 0.85
                 dashboardState.isLoading = false
-                
-                // Load real status counts and unfiltered total count in separate tasks
-                Task {
-                    let statusCriteria = OutOfStockFilterCriteria(
-                        customer: dashboardState.activeFilters.customer,
-                        product: dashboardState.activeFilters.product,
-                        status: nil, // Don't filter by status to get all counts
-                        dateRange: CustomerOutOfStockService.createDateRange(for: dashboardState.selectedDate),
-                        searchText: dashboardState.searchText,
-                        page: 0,
-                        pageSize: 50,
-                        sortOrder: dashboardState.sortOrder
-                    )
-                    let statusCounts = await customerOutOfStockService.loadStatusCounts(criteria: statusCriteria)
-                    
-                    // Load unfiltered total count for "总计" display [rule:§3.2 Repository Protocol]
-                    let unfilteredCriteria = OutOfStockFilterCriteria(
-                        dateRange: CustomerOutOfStockService.createDateRange(for: dashboardState.selectedDate),
-                        page: 0,
-                        pageSize: 1 // Only need count, not data
-                    )
-                    let unfilteredTotal = await customerOutOfStockService.loadUnfilteredTotalCount(criteria: unfilteredCriteria)
-                    
-                    await MainActor.run {
-                        dashboardState.statusCounts = statusCounts
-                        dashboardState.unfilteredTotalCount = unfilteredTotal
-                        print("📊 Real status counts: \(statusCounts)")
-                        print("📊 Unfiltered total count: \(unfilteredTotal)")
-                    }
-                }
-                
                 print("✅ Initial data loading completed")
             }
+
+            // Phase 2: Load customers and products progressively in background
+            Task {
+                print("👥 Loading customers and products...")
+                await loadCustomersAndProductsProgressively()
+            }
+
+            // Phase 3: Load real status counts and unfiltered total count in separate tasks
+            Task {
+                let statusCriteria = OutOfStockFilterCriteria(
+                    customer: dashboardState.activeFilters.customer,
+                    product: dashboardState.activeFilters.product,
+                    status: nil, // Don't filter by status to get all counts
+                    dateRange: CustomerOutOfStockService.createDateRange(for: dashboardState.selectedDate),
+                    searchText: dashboardState.searchText,
+                    page: 0,
+                    pageSize: 50,
+                    sortOrder: dashboardState.sortOrder
+                )
+                let statusCounts = await customerOutOfStockService.loadStatusCounts(criteria: statusCriteria)
+
+                // Load unfiltered total count for "总计" display [rule:§3.2 Repository Protocol]
+                let unfilteredCriteria = OutOfStockFilterCriteria(
+                    dateRange: CustomerOutOfStockService.createDateRange(for: dashboardState.selectedDate),
+                    page: 0,
+                    pageSize: 1 // Only need count, not data
+                )
+                let unfilteredTotal = await customerOutOfStockService.loadUnfilteredTotalCount(criteria: unfilteredCriteria)
+
+                await MainActor.run {
+                    dashboardState.statusCounts = statusCounts
+                    dashboardState.unfilteredTotalCount = unfilteredTotal
+                    print("📊 Real status counts: \(statusCounts)")
+                    print("📊 Unfiltered total count: \(unfilteredTotal)")
+                }
+            }
+
+            print("✅ Initial data loading completed")
         }
     }
-    
+
+    private func loadCustomersAndProductsProgressively() async {
+        // Get unique customers and products from current items
+        let uniqueCustomers = Set(dashboardState.items.compactMap { $0.customer })
+        let uniqueProducts = Set(dashboardState.items.compactMap { $0.product })
+
+        print("🔍 Loading \(uniqueCustomers.count) customers and \(uniqueProducts.count) products for visible items")
+
+        // Load full customers and products lists in background for filter purposes
+        await appDependencies.serviceFactory.customerService.loadCustomers()
+        await appDependencies.serviceFactory.productService.loadProducts()
+
+        await MainActor.run {
+            dashboardState.customers = appDependencies.serviceFactory.customerService.customers
+            dashboardState.products = appDependencies.serviceFactory.productService.products
+
+            print("👥 Loaded \(dashboardState.customers.count) customers")
+            print("📦 Loaded \(dashboardState.products.count) products")
+        }
+    }
+
     private func refreshData() async {
         lastRefreshTime = Date()
         refreshTrigger.toggle()
@@ -1512,41 +1929,14 @@ struct CustomerOutOfStockDashboard: View {
     }
     
     private func preloadDashboardDependencies() async {
-        print("🔮 [Preload] Starting dashboard dependencies preload...")
-        
-        // Preload core services
+        print("🔮 [Preload] Starting minimal dashboard dependencies preload...")
+
+        // Only preload essential services - no data fetching
         _ = appDependencies.customerService
         _ = appDependencies.productService
         _ = appDependencies.auditingService
-        
-        // Preload common data structures
-        do {
-            // Create lightweight filter criteria for preloading
-            let criteria = OutOfStockFilterCriteria(
-                customer: nil,
-                product: nil,
-                status: nil,
-                dateRange: nil,
-                searchText: "",
-                page: 0,
-                pageSize: 5 // Small batch for preloading
-            )
-            
-            // Pre-warm the service with lightweight data fetch
-            let _ = try await customerOutOfStockService.fetchOutOfStockRecords(
-                criteria: criteria,
-                page: 0,
-                pageSize: 5
-            )
-            
-            print("✅ [Preload] Dashboard dependencies preloaded successfully")
-            
-            // Phase 5.3: Proactive data synchronization
-            await performProactiveDataSync()
-            
-        } catch {
-            print("⚠️ [Preload] Failed to preload dashboard dependencies: \(error)")
-        }
+
+        print("✅ [Preload] Minimal dashboard dependencies preloaded successfully")
     }
     
     private func trackDashboardDisplayFromCache() async {
@@ -1665,269 +2055,6 @@ struct CustomerOutOfStockDashboard: View {
         )
     }
     
-    // MARK: - Phase 5.3 Data-View Synchronization Methods
-    
-    private func performProactiveDataSync() async {
-        print("🔄 [DataSync] Starting proactive data synchronization...")
-        
-        // Intelligent data preloading based on common usage patterns
-        await preloadNavigationPatternData()
-        await preloadFrequentlyAccessedData()
-        await setupCacheAwareDataStrategies()
-        
-        print("✅ [DataSync] Proactive data synchronization completed")
-    }
-    
-    private func preloadNavigationPatternData() async {
-        print("🧠 [PatternPreload] Analyzing navigation patterns for data preloading...")
-        
-        // Based on typical salesperson workflow patterns
-        do {
-            // 1. Preload next day's data (common pattern: users check tomorrow's items)
-            let tomorrow = Calendar.current.date(byAdding: .day, value: 1, to: dashboardState.selectedDate) ?? Date()
-            let tomorrowCriteria = OutOfStockFilterCriteria(
-                customer: nil,
-                product: nil,
-                status: nil,
-                dateRange: nil,
-                searchText: "",
-                page: 0,
-                pageSize: 10
-            )
-            
-            // Pre-warm tomorrow's data in background
-            let _ = try await customerOutOfStockService.fetchOutOfStockRecords(
-                criteria: tomorrowCriteria,
-                page: 0,
-                pageSize: 10
-            )
-            print("📅 [PatternPreload] Tomorrow's data preloaded")
-            
-            // 2. Preload pending items (most frequently accessed status)
-            let pendingCriteria = OutOfStockFilterCriteria(
-                customer: nil,
-                product: nil,
-                status: .pending,
-                dateRange: nil,
-                searchText: "",
-                page: 0,
-                pageSize: 15
-            )
-            
-            let _ = try await customerOutOfStockService.fetchOutOfStockRecords(
-                criteria: pendingCriteria,
-                page: 0,
-                pageSize: 15
-            )
-            print("⏳ [PatternPreload] Pending items data preloaded")
-            
-            // 3. Preload customer and product lists for filters
-            if dashboardState.customers.isEmpty || dashboardState.products.isEmpty {
-                await preloadFilterDataLists()
-            }
-            
-        } catch {
-            print("⚠️ [PatternPreload] Failed to preload navigation pattern data: \(error)")
-        }
-    }
-    
-    private func preloadFrequentlyAccessedData() async {
-        print("📊 [FrequentAccess] Preloading frequently accessed data...")
-        
-        // Based on analytics, these are the most accessed data types
-        do {
-            // 1. Status counts for dashboard quick stats (using current selected date for accuracy)
-            let currentDateRange = CustomerOutOfStockCoordinator.createDateRange(for: dashboardState.selectedDate)
-            let statusCounts = try await customerOutOfStockService.countOutOfStockRecordsByStatus(
-                criteria: OutOfStockFilterCriteria(
-                    customer: nil,
-                    product: nil,
-                    status: nil,
-                    dateRange: currentDateRange,
-                    searchText: "",
-                    page: 0,
-                    pageSize: 50
-                )
-            )
-            
-            // Update dashboard state with preloaded counts
-            await MainActor.run {
-                dashboardState.statusCounts = statusCounts
-            }
-            print("🔢 [FrequentAccess] Status counts preloaded: \(statusCounts)")
-            
-            // 2. Recent customer activity (for filter suggestions) - use broader range for more suggestions
-            let recentCriteria = OutOfStockFilterCriteria(
-                customer: nil,
-                product: nil,
-                status: nil,
-                dateRange: nil, // Keep nil for suggestions to get broader data
-                searchText: "",
-                page: 0,
-                pageSize: 20
-            )
-            
-            let recentData = try await customerOutOfStockService.fetchOutOfStockRecords(
-                criteria: recentCriteria,
-                page: 0,
-                pageSize: 20
-            )
-            
-            // Extract unique customers and products for filter preloading
-            let uniqueCustomers = Set(recentData.items.compactMap { $0.customer })
-            let uniqueProducts = Set(recentData.items.compactMap { $0.product })
-            
-            await MainActor.run {
-                if dashboardState.customers.isEmpty {
-                    dashboardState.customers = Array(uniqueCustomers)
-                }
-                if dashboardState.products.isEmpty {
-                    dashboardState.products = Array(uniqueProducts)
-                }
-            }
-            
-            print("👥 [FrequentAccess] Recent activity preloaded: \(uniqueCustomers.count) customers, \(uniqueProducts.count) products")
-            
-        } catch {
-            print("⚠️ [FrequentAccess] Failed to preload frequently accessed data: \(error)")
-        }
-    }
-    
-    private func setupCacheAwareDataStrategies() async {
-        print("💾 [CacheStrategy] Setting up cache-aware data fetching strategies...")
-        
-        // 1. Register cache-aware data fetching patterns
-        preloadManager.registerView(
-            AnyView(EmptyView()),
-            forKey: "data_sync_strategy_\(dashboardState.selectedDate.timeIntervalSince1970)",
-            context: .manual
-        )
-        
-        // 2. Set up intelligent cache invalidation triggers
-        await setupCacheInvalidationTriggers()
-        
-        // 3. Configure predictive data loading based on time patterns
-        await configurePredictiveDataLoading()
-        
-        print("✅ [CacheStrategy] Cache-aware strategies configured")
-    }
-    
-    private func preloadFilterDataLists() async {
-        print("🔍 [FilterData] Preloading customer and product lists for filters...")
-        
-        do {
-            // This would integrate with customer and product services
-            // For now, we'll use the existing service calls
-            if dashboardState.customers.isEmpty {
-                // Load customers from recent out-of-stock records
-                let customerData = try await customerOutOfStockService.fetchOutOfStockRecords(
-                    criteria: OutOfStockFilterCriteria(
-                        customer: nil,
-                        product: nil,
-                        status: nil,
-                        dateRange: nil,
-                        searchText: "",
-                        page: 0,
-                        pageSize: 50
-                    ),
-                    page: 0,
-                    pageSize: 50
-                )
-                
-                let customers = Array(Set(customerData.items.compactMap { $0.customer }))
-                await MainActor.run {
-                    dashboardState.customers = customers
-                }
-                print("👥 [FilterData] Loaded \(customers.count) customers")
-            }
-            
-            if dashboardState.products.isEmpty {
-                // Similar approach for products
-                let productData = try await customerOutOfStockService.fetchOutOfStockRecords(
-                    criteria: OutOfStockFilterCriteria(
-                        customer: nil,
-                        product: nil,
-                        status: nil,
-                        dateRange: nil,
-                        searchText: "",
-                        page: 0,
-                        pageSize: 50
-                    ),
-                    page: 0,
-                    pageSize: 50
-                )
-                
-                let products = Array(Set(productData.items.compactMap { $0.product }))
-                await MainActor.run {
-                    dashboardState.products = products
-                }
-                print("🏷️ [FilterData] Loaded \(products.count) products")
-            }
-            
-        } catch {
-            print("⚠️ [FilterData] Failed to preload filter data lists: \(error)")
-        }
-    }
-    
-    private func setupCacheInvalidationTriggers() async {
-        print("🔄 [CacheInvalidation] Setting up intelligent cache invalidation...")
-        
-        // Set up triggers for cache invalidation based on data changes
-        await appDependencies.auditingService.logEvent(
-            action: "cache_invalidation_triggers_setup",
-            entityId: "customer_out_of_stock_dashboard",
-            details: "Configured intelligent cache invalidation for data consistency"
-        )
-    }
-    
-    private func configurePredictiveDataLoading() async {
-        print("🔮 [PredictiveLoading] Configuring time-based predictive data loading...")
-        
-        // Configure loading patterns based on typical usage times
-        let currentHour = Calendar.current.component(.hour, from: Date())
-        
-        // Morning pattern (8-12): Focus on pending and new items
-        // Afternoon pattern (12-17): Focus on completed and returned items
-        // Evening pattern (17-20): Focus on analytics and tomorrow's planning
-        
-        let preferredStatuses: [OutOfStockStatus] = {
-            switch currentHour {
-            case 8..<12:
-                return [.pending] // Morning focus
-            case 12..<17:
-                return [.completed, .returned] // Afternoon focus
-            case 17..<20:
-                return [.pending] // Evening planning
-            default:
-                return [.pending, .completed, .returned] // Default all
-            }
-        }()
-        
-        // Pre-warm cache with time-appropriate data
-        for status in preferredStatuses {
-            do {
-                let criteria = OutOfStockFilterCriteria(
-                    customer: nil,
-                    product: nil,
-                    status: status,
-                    dateRange: nil,
-                    searchText: "",
-                    page: 0,
-                    pageSize: 10
-                )
-                
-                let _ = try await customerOutOfStockService.fetchOutOfStockRecords(
-                    criteria: criteria,
-                    page: 0,
-                    pageSize: 10
-                )
-                
-                print("⏰ [PredictiveLoading] Pre-warmed \(status.displayName) items for time pattern")
-            } catch {
-                print("⚠️ [PredictiveLoading] Failed to preload \(status.displayName) data: \(error)")
-            }
-        }
-    }
 }
 
 // MARK: - Supporting Views (Placeholders)
@@ -2237,6 +2364,9 @@ private struct OutOfStockItemCard: View {
         }
     }
 }
+
+// MARK: - Simplified Stats Layout
+// Note: QuickStats components have been replaced with SimplifiedStatCard for better UI/UX
 
 // Note: ErrorStateView and LoadingStateView are already defined in ModernNavigationComponents.swift
 // Custom EmptyStateView with secondary action support for this dashboard

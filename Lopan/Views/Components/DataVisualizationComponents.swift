@@ -39,12 +39,12 @@ struct PieChartSegment: Identifiable {
     let label: String
     let color: Color
     let percentage: Double
-    
-    init(value: Double, label: String, color: Color) {
+
+    init(value: Double, label: String, color: Color, percentage: Double? = nil) {
         self.value = value
         self.label = label
         self.color = color
-        self.percentage = 0 // Will be calculated by the chart
+        self.percentage = percentage ?? 0 // Can be set explicitly or calculated by the chart
     }
 }
 

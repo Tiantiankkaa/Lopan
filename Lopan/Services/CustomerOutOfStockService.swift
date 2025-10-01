@@ -1343,12 +1343,20 @@ extension NewAuditingService {
         operatorUserId: String,
         operatorUserName: String
     ) async {
-        // Implementation would depend on your audit service structure
-        let logger = Logger(subsystem: "com.lopan.app", category: "AuditService")
-        logger.safeInfo("Audit: Customer out of stock item created", [
-            "product": item.productDisplayName,
-            "customer_name": item.customer?.name ?? "Unknown"
-        ])
+        await logOperation(
+            operationType: .create,
+            entityType: .customerOutOfStock,
+            entityId: item.id,
+            entityDescription: "Customer out of stock item created: \(item.productDisplayName) for \(item.customer?.name ?? "Unknown")",
+            operatorUserId: operatorUserId,
+            operatorUserName: operatorUserName,
+            operationDetails: [
+                "product": item.productDisplayName,
+                "customer_name": item.customer?.name ?? "Unknown",
+                "quantity": item.quantity,
+                "status": item.status.rawValue
+            ]
+        )
     }
     
     func logCustomerOutOfStockUpdate(
@@ -1359,10 +1367,24 @@ extension NewAuditingService {
         operatorUserName: String,
         additionalInfo: String
     ) async {
-        let logger = Logger(subsystem: "com.lopan.app", category: "AuditService")
-        logger.safeInfo("Audit: Customer out of stock item updated", [
-            "additional_info": additionalInfo
-        ])
+        await logUpdate(
+            entityType: .customerOutOfStock,
+            entityId: item.id,
+            entityDescription: "Customer out of stock item updated: \(item.productDisplayName)",
+            operatorUserId: operatorUserId,
+            operatorUserName: operatorUserName,
+            beforeData: [
+                "quantity": beforeValues.quantity,
+                "status": beforeValues.status,
+                "notes": beforeValues.notes ?? ""
+            ],
+            afterData: [
+                "quantity": item.quantity,
+                "status": item.status.rawValue,
+                "notes": item.notes ?? ""
+            ],
+            changedFields: changedFields
+        )
     }
     
     func logCustomerOutOfStockDeletion(
@@ -1370,11 +1392,19 @@ extension NewAuditingService {
         operatorUserId: String,
         operatorUserName: String
     ) async {
-        let logger = Logger(subsystem: "com.lopan.app", category: "AuditService")
-        logger.safeInfo("Audit: Customer out of stock item deleted", [
-            "product": item.productDisplayName,
-            "customer_name": item.customer?.name ?? "Unknown"
-        ])
+        await logDelete(
+            entityType: .customerOutOfStock,
+            entityId: item.id,
+            entityDescription: "Customer out of stock item deleted: \(item.productDisplayName) for \(item.customer?.name ?? "Unknown")",
+            operatorUserId: operatorUserId,
+            operatorUserName: operatorUserName,
+            deletedData: [
+                "product": item.productDisplayName,
+                "customer_name": item.customer?.name ?? "Unknown",
+                "quantity": item.quantity,
+                "status": item.status.rawValue
+            ]
+        )
     }
     
     func logReturnProcessing(
@@ -1384,10 +1414,20 @@ extension NewAuditingService {
         operatorUserId: String,
         operatorUserName: String
     ) async {
-        let logger = Logger(subsystem: "com.lopan.app", category: "AuditService")
-        logger.safeInfo("Audit: Return processed", [
-            "return_quantity": String(returnQuantity),
-            "product": item.productDisplayName
-        ])
+        await logOperation(
+            operationType: .returnProcess,
+            entityType: .customerOutOfStock,
+            entityId: item.id,
+            entityDescription: "Return processed for \(item.productDisplayName) - Quantity: \(returnQuantity)",
+            operatorUserId: operatorUserId,
+            operatorUserName: operatorUserName,
+            operationDetails: [
+                "return_quantity": returnQuantity,
+                "return_notes": returnNotes ?? "",
+                "product": item.productDisplayName,
+                "customer_name": item.customer?.name ?? "Unknown",
+                "total_returned": item.returnQuantity + returnQuantity
+            ]
+        )
     }
 }

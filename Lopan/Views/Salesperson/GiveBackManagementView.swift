@@ -10,8 +10,10 @@ import SwiftData
 
 struct GiveBackManagementView: View {
     @Environment(\.modelContext) private var modelContext
-    @Query(sort: \CustomerOutOfStock.requestDate, order: .reverse) private var outOfStockItems: [CustomerOutOfStock]
     @Environment(\.appDependencies) private var appDependencies
+    @Environment(\.customerOutOfStockDependencies) private var customerOutOfStockDependencies
+    
+    @StateObject private var viewModel = GiveBackManagementViewModel()
     
     @State private var searchText = ""
     @State private var debouncedSearchText = ""
@@ -20,7 +22,7 @@ struct GiveBackManagementView: View {
     @State private var selectedCustomer: Customer? = nil
     @State private var selectedAddress: String? = nil
     @State private var selectedDate: Date = Date()
-    @State private var isFilteringByDate = true
+    @State private var isFilteringByDate = false
     @State private var showingAdvancedFilters = false
     
     // Batch operation states
@@ -43,7 +45,7 @@ struct GiveBackManagementView: View {
                 if isEditing {
                     BatchOperationHeader(
                         selectedCount: selectedItems.count,
-                        totalCount: filteredItemsNeedingReturn.count,
+                        totalCount: displayItems.count,
                         onCancel: { cancelBatchEdit() },
                         onProcess: { },
                         onSelectAll: { toggleSelectAll() },
@@ -85,46 +87,58 @@ struct GiveBackManagementView: View {
                     Button(action: { showingExportSheet = true }) {
                         Label("导出", systemImage: "square.and.arrow.up")
                     }
-                    .disabled(filteredItemsNeedingReturn.isEmpty)
+                    .disabled(displayItems.isEmpty)
                     
                     Button(action: { startBatchEdit() }) {
                         Label("批量操作", systemImage: "checkmark.circle")
                     }
-                    .disabled(filteredItemsNeedingReturn.isEmpty)
+                    .disabled(displayItems.isEmpty)
                 } label: {
                     Image(systemName: "ellipsis.circle")
                         .accessibilityLabel("更多选项")
                 }
             }
         }
+        .task {
+            viewModel.configure(repository: customerOutOfStockDependencies.customerOutOfStockRepository)
+            await viewModel.refresh(with: currentFilterState, force: true)
+        }
+        .onChange(of: selectedReturnStatus) { _ in
+            refreshData()
+        }
+        .onChange(of: selectedCustomer) { _ in
+            refreshData()
+        }
+        .onChange(of: selectedAddress) { _ in
+            refreshData()
+        }
+        .onChange(of: isFilteringByDate) { _ in
+            refreshData()
+        }
+        .onChange(of: selectedDate) { _ in
+            if isFilteringByDate {
+                refreshData()
+            }
+        }
+        .onChange(of: debouncedSearchText) { _ in
+            refreshData()
+        }
+        .onChange(of: viewModel.items) { _ in
+            pruneSelection()
+        }
         .onChange(of: searchText) { _, newValue in
             updateSearch()
         }
-        .onAppear {
-            // Debug: Check if we have data
-            print("🔍 GiveBackManagementView - Total outOfStockItems: \(outOfStockItems.count)")
-            
-            // Initialize sample data if empty
-            if outOfStockItems.isEmpty {
-                print("📝 No out-of-stock items found, initializing sample data...")
-                // Sample data initialization moved to app level
-            }
-            
-            // Debug: Print items status
-            for item in outOfStockItems {
-                print("   - Customer: \(item.customerDisplayName), Product: \(item.product?.name ?? "Unknown"), Status: \(item.status.displayName), NeedsReturn: \(item.needsReturn)")
-            }
-        }
         .sheet(isPresented: $showingBatchReturnSheet) {
             BatchReturnProcessingSheet(
-                items: filteredItemsNeedingReturn.filter { selectedItems.contains($0.id) },
+                items: displayItems.filter { selectedItems.contains($0.id) },
                 onComplete: { processedItems in
                     processReturnBatch(processedItems)
                 }
             )
         }
         .sheet(isPresented: $showingExportSheet) {
-            ReturnOrderExportView(items: filteredItemsNeedingReturn)
+            ReturnOrderExportView(items: displayItems)
         }
         .alert("return_confirmation".localized, isPresented: $showingReturnConfirmation) {
             Button("cancel".localized, role: .cancel) { }
@@ -177,19 +191,15 @@ struct GiveBackManagementView: View {
     
     private var statisticsCard: some View {
         StatisticsOverviewCard(
-            needsReturnCount: outOfStockItems.filter { $0.needsReturn }.count,
-            partialReturnCount: outOfStockItems.filter { $0.hasPartialReturn }.count,
-            completedReturnCount: outOfStockItems.filter { $0.isFullyReturned }.count,
-            lastUpdated: Date()
+            needsReturnCount: needsReturnCount,
+            partialReturnCount: partialReturnCount,
+            completedReturnCount: completedReturnCount,
+            lastUpdated: viewModel.lastUpdated ?? Date()
         )
         .onTapGesture {
             // Debug: Print detailed statistics
             print("📊 Statistics Debug:")
-            print("   - Total items: \(outOfStockItems.count)")
-            print("   - Needs return: \(outOfStockItems.filter { $0.needsReturn }.count)")
-            print("   - Partial returns: \(outOfStockItems.filter { $0.hasPartialReturn }.count)")
-            print("   - Fully returned: \(outOfStockItems.filter { $0.isFullyReturned }.count)")
-            print("   - Filtered items: \(filteredItemsNeedingReturn.count)")
+            print("   - Visible items: \(displayItems.count)")
             print("   - Is editing mode: \(isEditing)")
         }
     }
@@ -382,28 +392,58 @@ struct GiveBackManagementView: View {
     
     private var returnItemsSection: some View {
         VStack(spacing: 0) {
-            if filteredItemsNeedingReturn.isEmpty {
+            if viewModel.isLoading && displayItems.isEmpty {
+                VStack(spacing: 12) {
+                    ProgressView()
+                    Text("正在加载还货记录...")
+                        .font(.footnote)
+                        .foregroundColor(.secondary)
+                }
+                .frame(maxWidth: .infinity)
+                .padding(.vertical, 48)
+            } else if let error = viewModel.error {
+                VStack(spacing: 12) {
+                    Image(systemName: "exclamationmark.triangle")
+                        .font(.largeTitle)
+                        .foregroundColor(LopanColors.error)
+                    Text(error.localizedDescription)
+                        .font(.footnote)
+                        .foregroundColor(.secondary)
+                        .multilineTextAlignment(.center)
+                    Button("重试") {
+                        refreshData(force: true)
+                    }
+                    .font(.caption)
+                }
+                .frame(maxWidth: .infinity)
+                .padding(.vertical, 48)
+            } else if displayItems.isEmpty {
                 EmptyReturnStateView(
                     isEditing: isEditing,
-                    totalItemsCount: outOfStockItems.count,
-                    onInitializeSampleData: outOfStockItems.isEmpty ? {
-                        // Sample data initialization moved to app level
-                    } : nil
+                    totalItemsCount: viewModel.totalMatchingCount,
+                    onInitializeSampleData: nil
                 )
             } else {
                 ReturnItemsList(
-                    items: filteredItemsNeedingReturn,
+                    items: displayItems,
                     isEditing: isEditing,
                     selectedItems: selectedItems,
                     onItemSelection: { item in
                         LopanHapticEngine.shared.light()
                         toggleItemSelection(item)
                     },
-                    onItemTap: { item in
-                        // Navigate to detail view
-                        // This would need to be implemented with NavigationPath or similar
+                    onItemTap: { _ in
+                        // TODO: Hook up to detail navigation when available
+                    },
+                    onItemAppear: { item in
+                        Task { await viewModel.loadMoreIfNeeded(for: item) }
                     }
                 )
+                if viewModel.isLoadingMore {
+                    ProgressView()
+                        .frame(maxWidth: .infinity)
+                        .padding(.vertical, 12)
+                }
             }
         }
         .background(
@@ -416,61 +456,25 @@ struct GiveBackManagementView: View {
     
     // MARK: - Computed Properties
     
-    var filteredItemsNeedingReturn: [CustomerOutOfStock] {
-        var filtered = outOfStockItems
-        
-        // 首先过滤掉已退货的记录（客户已退货，不需要还货）
-        filtered = filtered.filter { $0.status != .returned }
-        
-        // 过滤掉已完成的记录（已经全部还货完成）
-        filtered = filtered.filter { $0.status != .completed }
-        
-        // Filter by return status
-        switch selectedReturnStatus {
-        case .needsReturn:
-            filtered = filtered.filter { $0.needsReturn }
-        case .partialReturn:
-            filtered = filtered.filter { $0.hasPartialReturn }
-        case .completed:
-            filtered = filtered.filter { $0.isFullyReturned }
-        case .none:
-            // Show all items normally, but exclude fully returned items only in batch edit mode
-            if isEditing {
-                filtered = filtered.filter { $0.remainingQuantity > 0 || $0.hasPartialReturn }
-            }
-            // In normal mode, show all items including fully returned
+    private var displayItems: [CustomerOutOfStock] {
+        let items = viewModel.items.sorted { $0.requestDate > $1.requestDate }
+        if isEditing {
+            return items.filter { $0.returnQuantity < $0.quantity || $0.hasPartialReturn }
         }
-        
-        // Apply other filters
-        if let customer = selectedCustomer {
-            filtered = filtered.filter { $0.customer?.id == customer.id }
-        }
-        
-        if let address = selectedAddress {
-            filtered = filtered.filter { $0.customer?.address == address }
-        }
-        
-        if isFilteringByDate {
-            let calendar = Calendar.current
-            filtered = filtered.filter { item in
-                calendar.isDate(item.requestDate, inSameDayAs: selectedDate)
-            }
-        }
-        
-        return filtered.sorted { $0.requestDate > $1.requestDate }
+        return items
     }
     
     var uniqueCustomers: [Customer] {
-        let customers = outOfStockItems.compactMap { $0.customer }
-        return Array(Set(customers.map { $0.id })).compactMap { id in
-            customers.first { $0.id == id }
-        }.sorted { $0.name < $1.name }
+        viewModel.availableCustomers
     }
     
     var uniqueAddresses: [String] {
-        let addresses = outOfStockItems.compactMap { $0.customer?.address }
-        return Array(Set(addresses)).sorted()
+        viewModel.availableAddresses
     }
+    
+    private var needsReturnCount: Int { viewModel.overviewStatistics.needsReturn }
+    private var partialReturnCount: Int { viewModel.overviewStatistics.partialReturn }
+    private var completedReturnCount: Int { viewModel.overviewStatistics.completedReturn }
     
     // MARK: - Helper Functions
     
@@ -494,6 +498,9 @@ struct GiveBackManagementView: View {
         selectedCustomer = nil
         selectedAddress = nil
         isFilteringByDate = false
+        searchText = ""
+        debouncedSearchText = ""
+        refreshData(force: true)
     }
     
     private func updateSearch() {
@@ -517,11 +524,33 @@ struct GiveBackManagementView: View {
     }
     
     private func toggleSelectAll() {
-        if selectedItems.count == filteredItemsNeedingReturn.count {
+        if selectedItems.count == displayItems.count {
             selectedItems.removeAll()
         } else {
-            selectedItems = Set(filteredItemsNeedingReturn.map { $0.id })
+            selectedItems = Set(displayItems.map { $0.id })
         }
+    }
+    
+    private var currentFilterState: GiveBackManagementViewModel.FilterState {
+        GiveBackManagementViewModel.FilterState(
+            searchText: debouncedSearchText,
+            returnStatus: selectedReturnStatus,
+            customer: selectedCustomer,
+            address: selectedAddress,
+            isFilteringByDate: isFilteringByDate,
+            selectedDate: selectedDate
+        )
+    }
+    
+    private func refreshData(force: Bool = false) {
+        Task {
+            await viewModel.refresh(with: currentFilterState, force: force)
+        }
+    }
+    
+    private func pruneSelection() {
+        let visibleIds = Set(displayItems.map { $0.id })
+        selectedItems = selectedItems.filter { visibleIds.contains($0) }
     }
     
     private func startBatchEdit() {
@@ -557,6 +586,7 @@ struct GiveBackManagementView: View {
             try modelContext.save()
             selectedItems.removeAll()
             isEditing = false
+            refreshData(force: true)
         } catch {
             print("Error processing return batch: \(error)")
         }
@@ -566,42 +596,14 @@ struct GiveBackManagementView: View {
         // Process the return items
         do {
             try modelContext.save()
+            refreshData(force: true)
         } catch {
             print("Error confirming return processing: \(error)")
         }
     }
 }
 
-// MARK: - Supporting Enums and Views
-
-enum ReturnStatus: CaseIterable {
-    case needsReturn
-    case partialReturn
-    case completed
-    
-    var displayName: String {
-        switch self {
-        case .needsReturn:
-            return "pending_return".localized
-        case .partialReturn:
-            return "partial_return".localized
-        case .completed:
-            return "completed_return".localized
-        }
-    }
-    
-    var systemImage: String {
-        switch self {
-        case .needsReturn:
-            return "exclamationmark.triangle.fill"
-        case .partialReturn:
-            return "clock.fill"
-        case .completed:
-            return "checkmark.circle.fill"
-        }
-    }
-}
-
+// MARK: - Supporting Views
 
 struct ReturnGoodsRowView: View {
     let item: CustomerOutOfStock

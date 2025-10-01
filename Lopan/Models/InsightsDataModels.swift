@@ -123,13 +123,18 @@ enum AnalysisMode: String, CaseIterable, Identifiable {
 // MARK: - Region Analytics Models
 
 /// Region-specific analytics data
-struct RegionAnalyticsData {
+struct RegionAnalyticsData: Equatable {
     let regionDistribution: [PieChartSegment]
     let regionDetails: [RegionDetail]
     let totalRegions: Int
     let topRegion: RegionDetail?
     let totalItems: Int
     let averageItemsPerRegion: Double
+
+    /// Unique identifier for change detection and animation triggers
+    var dataChangeID: String {
+        "\(totalItems)_\(totalRegions)_\(regionDistribution.count)"
+    }
 
     init(
         regionDistribution: [PieChartSegment] = [],
@@ -144,6 +149,13 @@ struct RegionAnalyticsData {
         self.topRegion = topRegion
         self.totalItems = totalItems
         self.averageItemsPerRegion = totalRegions > 0 ? Double(totalItems) / Double(totalRegions) : 0
+    }
+
+    static func == (lhs: RegionAnalyticsData, rhs: RegionAnalyticsData) -> Bool {
+        lhs.totalItems == rhs.totalItems &&
+        lhs.totalRegions == rhs.totalRegions &&
+        lhs.regionDistribution.count == rhs.regionDistribution.count &&
+        lhs.regionDetails.count == rhs.regionDetails.count
     }
 }
 
@@ -169,7 +181,7 @@ struct RegionDetail: Identifiable, Hashable {
 // MARK: - Product Analytics Models
 
 /// Product-specific analytics data
-struct ProductAnalyticsData {
+struct ProductAnalyticsData: Equatable {
     let productDistribution: [BarChartItem]
     let productTrends: [ChartDataPoint]
     let productDetails: [ProductDetail]
@@ -177,6 +189,11 @@ struct ProductAnalyticsData {
     let totalProducts: Int
     let totalItems: Int
     let averageItemsPerProduct: Double
+
+    /// Unique identifier for change detection and animation triggers
+    var dataChangeID: String {
+        "\(totalItems)_\(totalProducts)_\(productDistribution.count)"
+    }
 
     init(
         productDistribution: [BarChartItem] = [],
@@ -193,6 +210,13 @@ struct ProductAnalyticsData {
         self.totalProducts = totalProducts
         self.totalItems = totalItems
         self.averageItemsPerProduct = totalProducts > 0 ? Double(totalItems) / Double(totalProducts) : 0
+    }
+
+    static func == (lhs: ProductAnalyticsData, rhs: ProductAnalyticsData) -> Bool {
+        lhs.totalItems == rhs.totalItems &&
+        lhs.totalProducts == rhs.totalProducts &&
+        lhs.productDistribution.count == rhs.productDistribution.count &&
+        lhs.productDetails.count == rhs.productDetails.count
     }
 }
 
@@ -219,13 +243,18 @@ struct ProductDetail: Identifiable, Hashable {
 // MARK: - Customer Analytics Models
 
 /// Customer-specific analytics data
-struct CustomerAnalyticsData {
+struct CustomerAnalyticsData: Equatable {
     let customerDistribution: [PieChartSegment]
     let customerDetails: [CustomerDetail]
     let totalCustomers: Int
     let totalItems: Int
     let averageItemsPerCustomer: Double
     let topCustomer: CustomerDetail?
+
+    /// Unique identifier for change detection and animation triggers
+    var dataChangeID: String {
+        "\(totalItems)_\(totalCustomers)_\(customerDistribution.count)"
+    }
 
     init(
         customerDistribution: [PieChartSegment] = [],
@@ -240,6 +269,13 @@ struct CustomerAnalyticsData {
         self.totalItems = totalItems
         self.averageItemsPerCustomer = totalCustomers > 0 ? Double(totalItems) / Double(totalCustomers) : 0
         self.topCustomer = topCustomer
+    }
+
+    static func == (lhs: CustomerAnalyticsData, rhs: CustomerAnalyticsData) -> Bool {
+        lhs.totalItems == rhs.totalItems &&
+        lhs.totalCustomers == rhs.totalCustomers &&
+        lhs.customerDistribution.count == rhs.customerDistribution.count &&
+        lhs.customerDetails.count == rhs.customerDetails.count
     }
 }
 
@@ -464,7 +500,7 @@ struct InsightsExportConfiguration {
 /// Loading state for insights data
 enum InsightsLoadingState: Equatable {
     case idle
-    case loading
+    case loading(progress: Double = 0.0, message: String = "Loading...")
     case refreshing
     case loadingMore
     case loaded
@@ -476,6 +512,24 @@ enum InsightsLoadingState: Equatable {
             return true
         default:
             return false
+        }
+    }
+
+    var progress: Double? {
+        switch self {
+        case .loading(let progress, _):
+            return progress
+        default:
+            return nil
+        }
+    }
+
+    var progressMessage: String? {
+        switch self {
+        case .loading(_, let message):
+            return message
+        default:
+            return nil
         }
     }
 

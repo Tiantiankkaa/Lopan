@@ -47,7 +47,8 @@ public class ServiceFactory: ObservableObject {
         let dataService = DefaultCustomerOutOfStockDataService(
             repository: repositoryFactory.customerOutOfStockRepository,
             customerRepository: repositoryFactory.customerRepository,
-            productRepository: repositoryFactory.productRepository
+            productRepository: repositoryFactory.productRepository,
+            authService: authenticationService
         )
         let businessService = DefaultCustomerOutOfStockBusinessService(
             dataService: dataService,

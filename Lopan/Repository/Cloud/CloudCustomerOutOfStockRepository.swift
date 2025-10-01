@@ -291,10 +291,15 @@ final class CloudCustomerOutOfStockRepository: CustomerOutOfStockRepository, Sen
             body: dto,
             responseType: CustomerOutOfStockDTO.self
         )
-        
+
         guard response.success else {
             throw RepositoryError.saveFailed(response.error ?? "Create operation failed")
         }
+    }
+
+    func addOutOfStockRecords(_ records: [CustomerOutOfStock]) async throws {
+        // Use existing batch create method for optimal performance
+        _ = try await batchCreateRecords(records)
     }
     
     func updateOutOfStockRecord(_ record: CustomerOutOfStock) async throws {

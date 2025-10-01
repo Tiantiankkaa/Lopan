@@ -16,6 +16,13 @@ protocol CustomerOutOfStockCacheService {
     func cacheRecords(_ records: [CustomerOutOfStock], for criteria: OutOfStockFilterCriteria)
     func getCachedCount(_ criteria: OutOfStockFilterCriteria) -> Int?
     func cacheCount(_ count: Int, for criteria: OutOfStockFilterCriteria)
+
+    // Analytics caching methods
+    func getCachedAnalytics<T>(for key: AnalyticsCacheKey, type: T.Type) -> T?
+    func cacheAnalytics<T>(data: T, for key: AnalyticsCacheKey, ttl: TimeInterval)
+    func invalidateAnalyticsCache()
+    func invalidateAnalyticsCache(for key: AnalyticsCacheKey)
+
     func invalidateCache()
     func invalidateCache(for criteria: OutOfStockFilterCriteria)
     func getMemoryUsage() -> CacheMemoryUsage
@@ -29,6 +36,16 @@ struct CacheMemoryUsage {
     let lastEvictionTime: Date?
 }
 
+struct AnalyticsCacheEntry {
+    let data: Any
+    let createdAt: Date
+    let ttl: TimeInterval
+
+    var isExpired: Bool {
+        Date().timeIntervalSince(createdAt) > ttl
+    }
+}
+
 @MainActor
 class DefaultCustomerOutOfStockCacheService: CustomerOutOfStockCacheService {
     private let cacheManager: OutOfStockCacheManager
@@ -39,10 +56,16 @@ class DefaultCustomerOutOfStockCacheService: CustomerOutOfStockCacheService {
     private var countsCache: [String: Int] = [:]
     private var accessOrder: [String] = [] // LRU tracking for records
     private var countAccessOrder: [String] = [] // LRU tracking for counts
+
+    // Analytics cache with TTL support
+    private var analyticsCache: [String: AnalyticsCacheEntry] = [:]
+    private var analyticsCacheAccess: [String] = [] // LRU tracking for analytics
     
-    // Memory management configuration
-    private let maxCacheSize = 100 // Maximum number of cached entries
-    private let maxMemoryBytes = 10 * 1024 * 1024 // 10MB limit
+    // Adaptive memory management configuration
+    private var maxCacheSize: Int
+    private var maxMemoryBytes: Int
+    private let baseMaxCacheSize = 100
+    private let baseMaxMemoryBytes = 10 * 1024 * 1024 // 10MB baseline
     
     // Memory cache statistics
     private var cacheHits: Int = 0
@@ -52,6 +75,16 @@ class DefaultCustomerOutOfStockCacheService: CustomerOutOfStockCacheService {
     
     init(cacheManager: OutOfStockCacheManager) {
         self.cacheManager = cacheManager
+
+        // Initialize with adaptive sizing based on device capabilities
+        let deviceInfo = AdaptiveCacheSizing.getDeviceCapabilities()
+        self.maxCacheSize = deviceInfo.maxCacheSize
+        self.maxMemoryBytes = deviceInfo.maxMemoryBytes
+
+        logger.safeInfo("Adaptive cache initialized", [
+            "maxCacheSize": String(maxCacheSize),
+            "maxMemoryMB": String(maxMemoryBytes / (1024 * 1024))
+        ])
     }
     
     // MARK: - Cache Operations
@@ -321,5 +354,173 @@ class DefaultCustomerOutOfStockCacheService: CustomerOutOfStockCacheService {
             "remainingEntries": String(recordsCache.count),
             "totalEvictions": String(totalEvictions)
         ])
+    }
+
+    // MARK: - Analytics Caching Methods
+
+    func getCachedAnalytics<T>(for key: AnalyticsCacheKey, type: T.Type) -> T? {
+        let cacheKey = createAnalyticsCacheKey(key)
+
+        // Remove expired entries first
+        cleanupExpiredAnalyticsCache()
+
+        guard let entry = analyticsCache[cacheKey],
+              !entry.isExpired,
+              let data = entry.data as? T else {
+            logger.safeInfo("Analytics cache miss", ["key": cacheKey])
+            return nil
+        }
+
+        // Update access order for LRU
+        updateAnalyticsCacheAccess(cacheKey)
+
+        logger.safeInfo("Analytics cache hit", ["key": cacheKey])
+        return data
+    }
+
+    func cacheAnalytics<T>(data: T, for key: AnalyticsCacheKey, ttl: TimeInterval) {
+        let cacheKey = createAnalyticsCacheKey(key)
+
+        let entry = AnalyticsCacheEntry(
+            data: data,
+            createdAt: Date(),
+            ttl: ttl
+        )
+
+        analyticsCache[cacheKey] = entry
+        updateAnalyticsCacheAccess(cacheKey)
+
+        // Ensure we don't exceed cache limits
+        enforceAnalyticsCacheLimits()
+
+        logger.safeInfo("Analytics data cached", [
+            "key": cacheKey,
+            "ttl": String(ttl)
+        ])
+    }
+
+    func invalidateAnalyticsCache() {
+        analyticsCache.removeAll()
+        analyticsCacheAccess.removeAll()
+        logger.safeInfo("All analytics cache invalidated")
+    }
+
+    func invalidateAnalyticsCache(for key: AnalyticsCacheKey) {
+        let cacheKey = createAnalyticsCacheKey(key)
+        analyticsCache.removeValue(forKey: cacheKey)
+        analyticsCacheAccess.removeAll { $0 == cacheKey }
+        logger.safeInfo("Analytics cache invalidated for key", ["key": cacheKey])
+    }
+
+    // MARK: - Analytics Cache Helpers
+
+    private func createAnalyticsCacheKey(_ key: AnalyticsCacheKey) -> String {
+        var components = [
+            "analytics",
+            key.mode.rawValue,
+            key.timeRange.rawValue
+        ]
+
+        if let start = key.customStartDate {
+            components.append("start:\(start.timeIntervalSince1970)")
+        }
+        if let end = key.customEndDate {
+            components.append("end:\(end.timeIntervalSince1970)")
+        }
+
+        return components.joined(separator: "_")
+    }
+
+    private func updateAnalyticsCacheAccess(_ key: String) {
+        analyticsCacheAccess.removeAll { $0 == key }
+        analyticsCacheAccess.append(key)
+    }
+
+    private func cleanupExpiredAnalyticsCache() {
+        let expiredKeys = analyticsCache.compactMap { key, entry in
+            entry.isExpired ? key : nil
+        }
+
+        for key in expiredKeys {
+            analyticsCache.removeValue(forKey: key)
+            analyticsCacheAccess.removeAll { $0 == key }
+        }
+
+        if !expiredKeys.isEmpty {
+            logger.safeInfo("Cleaned up expired analytics cache entries", [
+                "expiredCount": String(expiredKeys.count)
+            ])
+        }
+    }
+
+    private func enforceAnalyticsCacheLimits() {
+        let maxAnalyticsEntries = maxCacheSize / 4 // Reserve 1/4 of cache for analytics
+
+        while analyticsCache.count > maxAnalyticsEntries && !analyticsCacheAccess.isEmpty {
+            // Remove least recently used entry
+            let oldestKey = analyticsCacheAccess.removeFirst()
+            analyticsCache.removeValue(forKey: oldestKey)
+        }
+    }
+}
+
+// MARK: - Adaptive Cache Sizing
+
+struct AdaptiveCacheSizing {
+    struct DeviceCapabilities {
+        let maxCacheSize: Int
+        let maxMemoryBytes: Int
+        let deviceTier: DeviceTier
+    }
+
+    enum DeviceTier {
+        case highEnd    // Pro models, latest devices
+        case midRange   // Standard devices
+        case lowEnd     // Older or entry-level devices
+    }
+
+    static func getDeviceCapabilities() -> DeviceCapabilities {
+        let processInfo = ProcessInfo.processInfo
+        let physicalMemory = processInfo.physicalMemory
+        let memoryGB = Double(physicalMemory) / (1024 * 1024 * 1024)
+
+        let tier = classifyDevice(memoryGB: memoryGB)
+
+        switch tier {
+        case .highEnd:
+            return DeviceCapabilities(
+                maxCacheSize: 200,
+                maxMemoryBytes: 25 * 1024 * 1024, // 25MB
+                deviceTier: tier
+            )
+        case .midRange:
+            return DeviceCapabilities(
+                maxCacheSize: 100,
+                maxMemoryBytes: 15 * 1024 * 1024, // 15MB
+                deviceTier: tier
+            )
+        case .lowEnd:
+            return DeviceCapabilities(
+                maxCacheSize: 50,
+                maxMemoryBytes: 8 * 1024 * 1024, // 8MB
+                deviceTier: tier
+            )
+        }
+    }
+
+    private static func classifyDevice(memoryGB: Double) -> DeviceTier {
+        // Classify based on available memory
+        // iOS devices typically have:
+        // High-end: 8GB+ (Pro models, latest)
+        // Mid-range: 4-6GB (Standard recent models)
+        // Low-end: <4GB (Older devices)
+
+        if memoryGB >= 8.0 {
+            return .highEnd
+        } else if memoryGB >= 4.0 {
+            return .midRange
+        } else {
+            return .lowEnd
+        }
     }
 }

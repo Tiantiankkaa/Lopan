@@ -8,6 +8,11 @@
 import SwiftUI
 import SwiftData
 
+enum DashboardVisualStyle {
+    case premium
+    case standard
+}
+
 struct DashboardView: View {
     @ObservedObject var authService: AuthenticationService
     @StateObject private var navigationService = WorkbenchNavigationService()
@@ -19,7 +24,7 @@ struct DashboardView: View {
                 case .unauthorized:
                     UnauthorizedView(authService: authService)
                 case .salesperson:
-                    SalespersonDashboardView(authService: authService, navigationService: navigationService)
+                    SalespersonWorkbenchTabView(authService: authService, navigationService: navigationService)
                         .onAppear { navigationService.setCurrentWorkbenchContext(.salesperson) }
                 case .warehouseKeeper:
                     WarehouseKeeperDashboardView(authService: authService, navigationService: navigationService)
@@ -87,8 +92,8 @@ struct UnauthorizedView: View {
                         }
                         .font(.subheadline)
                         .padding()
-                        .background(LopanColors.secondary.opacity(0.1))
-                        .cornerRadius(10)
+                        .background(Color(UIColor.secondarySystemBackground))
+                        .clipShape(RoundedRectangle(cornerRadius: LopanCornerRadius.card))
                     }
                 }
                 
@@ -101,7 +106,7 @@ struct UnauthorizedView: View {
                 .padding()
                 .background(LopanColors.error)
                 .foregroundColor(LopanColors.textPrimary)
-                .cornerRadius(10)
+                .clipShape(RoundedRectangle(cornerRadius: LopanCornerRadius.card))
                 .padding(.horizontal, 40)
             }
             .padding()
@@ -109,240 +114,6 @@ struct UnauthorizedView: View {
             .navigationBarTitleDisplayMode(.inline)
         }
     }
-}
-
-struct SalespersonDashboardView: View {
-    @ObservedObject var authService: AuthenticationService
-    @ObservedObject var navigationService: WorkbenchNavigationService
-    @Environment(\.appDependencies) private var appDependencies
-    @State private var customers: [Customer] = []
-    @State private var products: [Product] = []
-    @State private var isLoading: Bool = false
-    @State private var lastRefreshTime: Date? = nil
-    @State private var errorMessage: String? = nil
-    
-    var body: some View {
-        NavigationStack {
-            VStack(spacing: 20) {
-                Text("salesperson_dashboard".localized)
-                    .font(.title)
-                    .fontWeight(.bold)
-                    
-                
-                // Enhanced Data Statistics
-                dataStatisticsView
-                
-                LazyVGrid(columns: [
-                    GridItem(.flexible()),
-                    GridItem(.flexible())
-                ], spacing: 20) {
-                    NavigationLink(destination: CustomerOutOfStockDashboard()) {
-                        DashboardCard(
-                            title: "customer_out_of_stock_management".localized,
-                            subtitle: "customer_out_of_stock_management_subtitle".localized,
-                            icon: "exclamationmark.triangle",
-                            color: LopanColors.roleWarehouseKeeper
-                        )
-                    }
-                    
-                    NavigationLink(destination: GiveBackManagementView()) {
-                        DashboardCard(
-                            title: "return_goods_management".localized,
-                            subtitle: "return_goods_management_subtitle".localized,
-                            icon: "arrow.uturn.left",
-                            color: LopanColors.error
-                        )
-                    }
-                    
-                    NavigationLink(destination: CustomerManagementView()) {
-                        DashboardCard(
-                            title: "customer_management".localized,
-                            subtitle: "customer_management_subtitle".localized,
-                            icon: "person.2",
-                            color: LopanColors.roleSalesperson
-                        )
-                    }
-                    
-                    NavigationLink(destination: ProductManagementView()) {
-                        DashboardCard(
-                            title: "product_management".localized,
-                            subtitle: "product_management_subtitle".localized,
-                            icon: "cube.box",
-                            color: LopanColors.roleAdministrator
-                        )
-                    }
-                    
-                    NavigationLink(destination: CustomerOutOfStockAnalyticsView()) {
-                        DashboardCard(
-                            title: "out_of_stock_analytics".localized,
-                            subtitle: "out_of_stock_analytics_subtitle".localized,
-                            icon: "chart.bar",
-                            color: LopanColors.roleWorkshopManager
-                        )
-                    }
-                    
-                    NavigationLink(destination: HistoricalBacktrackingView()) {
-                        DashboardCard(
-                            title: "历史回溯",
-                            subtitle: "查看用户操作记录和历史变更",
-                            icon: "clock.arrow.circlepath",
-                            color: LopanColors.roleWorkshopTechnician
-                        )
-                    }
-                }
-                .padding(.horizontal)
-                
-                Spacer()
-            }
-            .padding()
-            .navigationTitle("salesperson_dashboard".localized)
-            .navigationBarTitleDisplayMode(.inline)
-            .adaptiveBackground()
-            .accessibilityElement(children: .contain)
-            .accessibilityLabel("销售员工作台")
-            .accessibilityHint("包含数据统计和各类功能入口")
-            .onAppear {
-                loadDashboardData()
-            }
-            .toolbar {
-                ToolbarItem(placement: .navigationBarTrailing) {
-                    Button(action: {
-                        navigationService.showWorkbenchSelector()
-                    }) {
-                        HStack(spacing: 4) {
-                            Image(systemName: "gearshape.arrow.triangle.2.circlepath")
-                            Text("工作台操作")
-                        }
-                        .font(.caption)
-                    }
-                    .accessibilityLabel("工作台操作")
-                    .accessibilityHint("打开工作台选择器，切换到其他角色的工作台")
-                }
-            }
-        }
-    }
-    
-    private func loadDashboardData() {
-        Task {
-            // Update UI on MainActor
-            await MainActor.run {
-                isLoading = true
-                errorMessage = nil
-            }
-            
-            do {
-                // Perform async operations outside MainActor context
-                let loadedCustomers = try await appDependencies.repositoryFactory.customerRepository.fetchCustomers()
-                let loadedProducts = try await appDependencies.repositoryFactory.productRepository.fetchProducts()
-                
-                // Update UI on MainActor
-                await MainActor.run {
-                    self.customers = loadedCustomers
-                    self.products = loadedProducts
-                    self.lastRefreshTime = Date()
-                    self.isLoading = false
-                }
-            } catch {
-                await MainActor.run {
-                    self.errorMessage = "加载数据失败: \(error.localizedDescription)"
-                    self.isLoading = false
-                }
-                print("Error loading dashboard data: \(error)")
-            }
-        }
-    }
-    
-    // MARK: - Enhanced Data Statistics View
-    private var dataStatisticsView: some View {
-        VStack(spacing: 16) {
-            // Status indicator
-            HStack {
-                if isLoading {
-                    ProgressView()
-                        .scaleEffect(0.8)
-                    Text("正在加载数据...")
-                        .font(.caption)
-                        .foregroundColor(LopanColors.textSecondary)
-                } else if let errorMessage = errorMessage {
-                    Image(systemName: "exclamationmark.triangle.fill")
-                        .foregroundColor(LopanColors.warning)
-                    Text(errorMessage)
-                        .font(.caption)
-                        .foregroundColor(LopanColors.error)
-                        .multilineTextAlignment(.center)
-                } else if let lastRefreshTime = lastRefreshTime {
-                    Image(systemName: "checkmark.circle.fill")
-                        .foregroundColor(LopanColors.success)
-                    Text("最后更新: \(lastRefreshTime, style: .time)")
-                        .font(.caption)
-                        .foregroundColor(LopanColors.textSecondary)
-                }
-                
-                Spacer()
-                
-                Button(action: loadDashboardData) {
-                    Image(systemName: "arrow.clockwise")
-                        .font(.caption)
-                }
-                .disabled(isLoading)
-                .accessibilityLabel("刷新数据")
-            }
-            
-            // Data cards
-            if isLoading {
-                HStack(spacing: 20) {
-                    loadingCard("客户")
-                    loadingCard("产品")
-                }
-            } else {
-                HStack(spacing: 20) {
-                    StatCard(
-                        title: "客户",
-                        count: customers.count,
-                        color: LopanColors.roleSalesperson
-                    )
-                    .accessibilityElement(children: .combine)
-                    .accessibilityLabel("客户数量: \(customers.count)")
-                    
-                    StatCard(
-                        title: "产品",
-                        count: products.count,
-                        color: LopanColors.roleAdministrator
-                    )
-                    .accessibilityElement(children: .combine)
-                    .accessibilityLabel("产品数量: \(products.count)")
-                }
-            }
-        }
-        .padding()
-        .background(LopanColors.background)
-        .cornerRadius(16)
-        .shadow(color: LopanColors.textPrimary.opacity(0.05), radius: 8, x: 0, y: 2)
-        .overlay(
-            RoundedRectangle(cornerRadius: 16)
-                .stroke(LopanColors.backgroundTertiary, lineWidth: 1)
-        )
-    }
-    
-    // MARK: - Loading Card Helper
-    private func loadingCard(_ title: String) -> some View {
-        VStack(spacing: 8) {
-            ProgressView()
-                .scaleEffect(0.8)
-                .frame(height: 32)
-            
-            Text(title)
-                .font(.caption)
-                .foregroundColor(LopanColors.textSecondary)
-                
-        }
-        .frame(maxWidth: .infinity)
-        .padding(.vertical, 12)
-        .background(LopanColors.secondary.opacity(0.05))
-        .cornerRadius(12)
-    }
-    
-    // Test functions removed for production build optimization
 }
 
 struct WarehouseKeeperDashboardView: View {
@@ -574,7 +345,7 @@ struct SimplifiedAdministratorDashboardView: View {
                 }
                 .padding(.vertical, 16)
             }
-            .background(LopanColors.backgroundSecondary)
+            .background(Color(UIColor.systemBackground))
             .navigationTitle("管理员控制台")
             .navigationBarTitleDisplayMode(.large)
             .toolbar {
@@ -640,37 +411,124 @@ struct DashboardCard: View {
     let subtitle: String
     let icon: String
     let color: Color
-    
+
     var body: some View {
-        VStack(spacing: 12) {
-            Image(systemName: icon)
-                .font(.system(size: 30))
-                .foregroundColor(color)
-            
-            Text(title)
-                .font(.headline)
-                .multilineTextAlignment(.center)
-                
-            
-            Text(subtitle)
-                .font(.caption)
-                .foregroundColor(LopanColors.textSecondary)
-                .multilineTextAlignment(.center)
-                
+        VStack(spacing: LopanSpacing.md) {
+            // Icon section
+            ZStack {
+                Circle()
+                    .fill(color.opacity(0.15))
+                    .frame(width: 60, height: 60)
+
+                Image(systemName: icon)
+                    .font(.system(size: 28, weight: .medium))
+                    .foregroundColor(color)
+            }
+
+            VStack(spacing: LopanSpacing.xs) {
+                Text(title)
+                    .lopanLabelMedium()
+                    .foregroundColor(LopanColors.textPrimary)
+                    .multilineTextAlignment(.center)
+                    .lineLimit(2)
+
+                Text(subtitle)
+                    .lopanCaption()
+                    .foregroundColor(LopanColors.textSecondary)
+                    .multilineTextAlignment(.center)
+                    .lineLimit(3)
+            }
         }
         .frame(maxWidth: .infinity)
-        .padding()
-        .background(LopanColors.secondary.opacity(0.1))
-        .cornerRadius(12)
-        .buttonStyle(PlainButtonStyle())
+        .frame(minHeight: 140)
+        .padding(LopanSpacing.md)
+        .background(
+            Color(UIColor.secondarySystemBackground),
+            in: RoundedRectangle(cornerRadius: LopanCornerRadius.card, style: .continuous)
+        )
         .accessibilityElement(children: .combine)
         .accessibilityLabel(title)
         .accessibilityHint(subtitle)
+        .accessibilityAddTraits(.isButton)
     }
 }
+
+// MARK: - View Extensions for Modern UI
+
+extension View {
+    /// Conditional view modifier for iOS 26 features
+    @ViewBuilder
+    func `if`<Transform: View>(
+        _ condition: Bool,
+        transform: (Self) -> Transform,
+        else elseTransform: ((Self) -> Transform)? = nil
+    ) -> some View {
+        if condition {
+            transform(self)
+        } else if let elseTransform = elseTransform {
+            elseTransform(self)
+        } else {
+            self
+        }
+    }
+
+    /// Press events modifier for interactive feedback
+    func pressEvents(onChanged: @escaping (Bool) -> Void) -> some View {
+        self.modifier(PressEventsModifier(onChanged: onChanged))
+    }
+}
+
+private struct PressEventsModifier: ViewModifier {
+    let onChanged: (Bool) -> Void
+
+    @State private var isPressed = false
+
+    func body(content: Content) -> some View {
+        content
+            .scaleEffect(1.0)
+            .simultaneousGesture(
+                DragGesture(minimumDistance: 0)
+                    .onChanged { _ in
+                        if !isPressed {
+                            isPressed = true
+                            onChanged(true)
+                        }
+                    }
+                    .onEnded { _ in
+                        if isPressed {
+                            isPressed = false
+                            onChanged(false)
+                        }
+                    }
+            )
+    }
+}
+
+// MARK: - Dashboard Card Button Style
+
+private struct DashboardCardPressedKey: EnvironmentKey {
+    static let defaultValue: Bool = false
+}
+
+private extension EnvironmentValues {
+    var dashboardCardIsPressed: Bool {
+        get { self[DashboardCardPressedKey.self] }
+        set { self[DashboardCardPressedKey.self] = newValue }
+    }
+}
+
+struct DashboardCardButtonStyle: ButtonStyle {
+    func makeBody(configuration: Configuration) -> some View {
+        configuration.label
+            .environment(\.dashboardCardIsPressed, configuration.isPressed)
+            .animation(.easeInOut(duration: 0.15), value: configuration.isPressed)
+    }
+}
+
+// MARK: - Modern Dashboard Card (using existing design system component)
 
 #Preview {
     let container = try! ModelContainer(for: User.self, configurations: ModelConfiguration(isStoredInMemoryOnly: true))
     let repositoryFactory = LocalRepositoryFactory(modelContext: container.mainContext)
     DashboardView(authService: AuthenticationService(repositoryFactory: repositoryFactory))
-} 
+}

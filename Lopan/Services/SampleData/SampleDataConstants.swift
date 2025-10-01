@@ -11,14 +11,14 @@ import Foundation
 struct SampleDataConstants {
     
     // MARK: - 数据规模
-    static let customerCount = 500
-    static let productCount = 300
-    static let outOfStockRecordCount = 20000
-    static let batchSize = 500
+    static let customerCount = 2000        // 2000 customers for 100K records
+    static let productCount = 1000         // 1000 products for variety
+    static let outOfStockRecordCount = 100000  // 100,000 records
+    static let batchSize = 1000            // Increased batch size for performance
     
-    // MARK: - 时间范围
-    static let startDate = Calendar.current.date(from: DateComponents(year: 2025, month: 1, day: 1))!
-    static let endDate = Calendar.current.date(from: DateComponents(year: 2025, month: 8, day: 26))!
+    // MARK: - 时间范围 (2024-01-01 to Present)
+    static let startDate = Calendar.current.date(from: DateComponents(year: 2024, month: 1, day: 1))!
+    static let endDate = Date()  // Current date (dynamic)
     
     // MARK: - 数据分布比例
     struct Distribution {
@@ -33,47 +33,92 @@ struct SampleDataConstants {
         static let largeBatchRatio: Double = 0.2   // 20% 大批量 (201-500件)
         static let extraLargeRatio: Double = 0.1   // 10% 超大批量 (501-2000件)
         
-        // 客户类型分布
-        static let importantCustomers = 100        // 重要客户
-        static let standardCustomers = 200         // 标准客户
-        static let regularCustomers = 200          // 普通客户
+        // 客户类型分布 (Scaled for 2000 customers)
+        static let importantCustomers = 400        // 重要客户 (20%)
+        static let standardCustomers = 800         // 标准客户 (40%)
+        static let regularCustomers = 800          // 普通客户 (40%)
     }
     
-    // MARK: - 月份记录分布
+    // MARK: - 月份记录分布 (Per Month, distributed across years)
+    // Total: ~100,000 records (60K in 2024 + 40K in 2025)
     static let monthlyDistribution: [Int: Int] = [
-        1: 1500,    // 1月：春节前备货
-        2: 800,     // 2月：春节期间较少
-        3: 2200,    // 3月：春季新品
-        4: 2500,    // 4月：换季高峰
-        5: 2800,    // 5月：夏季开始
-        6: 3200,    // 6月：618促销
-        7: 3500,    // 7月：暑期高峰
-        8: 3500     // 8月：持续高峰（截至20日）
+        1: 4000,    // January
+        2: 4200,    // February
+        3: 4500,    // March
+        4: 4800,    // April
+        5: 5000,    // May
+        6: 5200,    // June
+        7: 5500,    // July
+        8: 5800,    // August
+        9: 6000,    // September
+        10: 5500,   // October
+        11: 5200,   // November
+        12: 5800    // December
+    ]
+
+    // MARK: - 年份分布 (Years to Generate)
+    // 2024: All 12 months = ~62,000 records
+    // 2025: First 9 months = ~44,000 records
+    // Total: ~106,000 records
+    static let yearlyDistribution: [(year: Int, months: [Int])] = [
+        (2024, [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12]),  // 2024: All 12 months
+        (2025, [1, 2, 3, 4, 5, 6, 7, 8, 9])               // 2025: Jan-Sep (9 months)
     ]
     
-    // MARK: - 城市列表
+    // MARK: - 城市列表 (Global Regions with Weighted Distribution)
     static let cities = [
-        "北京", "上海", "广州", "深圳", "杭州",
-        "成都", "武汉", "西安", "南京", "重庆",
-        "天津", "苏州", "青岛", "长沙", "郑州",
-        "无锡", "宁波", "佛山", "济南", "厦门"
+        "Lagos",    // 50% of data
+        "China",    // 15% of data
+        "USA",      // 12% of data
+        "Ibadan",   // 8% of data
+        "Onitsha",  // 6% of data
+        "Aba",      // 5% of data
+        "Kano",     // 3% of data
+        "Other"     // 1% of data (combined smaller cities)
     ]
+
+    // City weights for distribution (must sum to 1.0)
+    static let cityWeights: [String: Double] = [
+        "Lagos": 0.50,
+        "China": 0.15,
+        "USA": 0.12,
+        "Ibadan": 0.08,
+        "Onitsha": 0.06,
+        "Aba": 0.05,
+        "Kano": 0.03,
+        "Other": 0.01
+    ]
+
+    /// Get a weighted random city
+    static func getWeightedCity() -> String {
+        let random = Double.random(in: 0...1)
+        var cumulative = 0.0
+
+        for city in cities {
+            cumulative += cityWeights[city] ?? 0
+            if random <= cumulative {
+                return city
+            }
+        }
+
+        return cities.last ?? "Lagos"
+    }
     
-    // MARK: - 产品类别
+    // MARK: - 产品类别 (Scaled for 1000 products)
     enum ProductCategory: String, CaseIterable {
-        case tops = "上衣类"           // 100个产品
-        case pants = "裤装类"          // 80个产品
-        case dresses = "裙装类"        // 60个产品
-        case shoes = "鞋类"           // 40个产品
-        case accessories = "配饰类"    // 20个产品
-        
+        case tops = "上衣类"           // 330个产品
+        case pants = "裤装类"          // 270个产品
+        case dresses = "裙装类"        // 200个产品
+        case shoes = "鞋类"           // 130个产品
+        case accessories = "配饰类"    // 70个产品
+
         var count: Int {
             switch self {
-            case .tops: return 100
-            case .pants: return 80
-            case .dresses: return 60
-            case .shoes: return 40
-            case .accessories: return 20
+            case .tops: return 330
+            case .pants: return 270
+            case .dresses: return 200
+            case .shoes: return 130
+            case .accessories: return 70
             }
         }
         

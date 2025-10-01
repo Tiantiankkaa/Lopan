@@ -89,7 +89,7 @@ struct ActiveFiltersIndicator: View {
                         if let status = selectedReturnStatus {
                             ReturnFilterChip(
                                 title: status.displayName,
-                                color: LopanColors.primary,
+                                color: status.chipColor,
                                 onRemove: onRemoveReturnStatus
                             )
                         }

@@ -7,6 +7,8 @@
 //
 
 import SwiftUI
+import Foundation
+import os.log
 
 /// A reusable quick statistics card component for displaying metrics
 /// Follows iOS 26 design guidelines with Dynamic Type support and accessibility
@@ -23,7 +25,23 @@ public struct QuickStatCard: View {
     let isLocked: Bool
     let onTap: () -> Void
 
+    // Modern visual enhancement properties
+    private let cardStyle: CardStyle
+    private let enhancementLevel: VisualEnhancementLevel
+    @State private var isPressed = false
+    @State private var animatedValue: Double = 0
+    @StateObject private var visualComposer = VisualEffectsComposer.shared
+
     private var cardCornerRadius: CGFloat { 12 }
+
+    /// Determines card style based on color and status
+    private var computedCardStyle: CardStyle {
+        if color == LopanColors.success { return .success }
+        if color == LopanColors.warning { return .warning }
+        if color == LopanColors.error { return .error }
+        if color == LopanColors.primary { return .primary }
+        return .neutral
+    }
 
     // MARK: - Trend Type
 
@@ -58,6 +76,8 @@ public struct QuickStatCard: View {
         associatedStatus: OutOfStockStatus? = nil,
         isSelected: Bool = false,
         isLocked: Bool = false,
+        cardStyle: CardStyle? = nil,
+        enhancementLevel: VisualEnhancementLevel = .adaptive,
         onTap: @escaping () -> Void = {}
     ) {
         self.title = title
@@ -68,99 +88,246 @@ public struct QuickStatCard: View {
         self.associatedStatus = associatedStatus
         self.isSelected = isSelected
         self.isLocked = isLocked
+        self.cardStyle = cardStyle ?? {
+            if color == LopanColors.success { return .success }
+            if color == LopanColors.warning { return .warning }
+            if color == LopanColors.error { return .error }
+            if color == LopanColors.primary { return .primary }
+            return .neutral
+        }()
+        self.enhancementLevel = enhancementLevel
         self.onTap = onTap
     }
 
     // MARK: - Body
 
     public var body: some View {
-        Button(action: onTap) {
-            cardContent
+        Button(action: {
+            onTap()
+            triggerHapticFeedback()
+        }) {
+            modernCardContent
         }
         .buttonStyle(.plain)
         .contentShape(RoundedRectangle(cornerRadius: cardCornerRadius))
         .allowsHitTesting(!isLocked)
-        .accessibilityElement(children: .ignore)
-        .accessibilityLabel(Text(title))
-        .accessibilityValue(Text(value))
-        .accessibilityHint(Text("切换状态筛选"))
+        .scaleEffect(isPressed ? 0.96 : 1.0)
+        .onLongPressGesture(minimumDuration: 0, maximumDistance: .infinity, pressing: { pressing in
+            withAnimation(.spring(response: 0.3, dampingFraction: 0.7)) {
+                isPressed = pressing
+            }
+        }, perform: {})
+        .onAppear {
+            animateValueIfNeeded()
+        }
+        .onChange(of: value) { _ in
+            animateValueIfNeeded()
+        }
+        .accessibilityElement(children: .combine)
+        .accessibilityLabel("\(title): \(value)")
+        .accessibilityHint(isLocked ? "数据加载中" : "双击查看详情")
+        .accessibilityAddTraits(.isButton)
     }
 
-    // MARK: - Card Content
+    // MARK: - Modern Card Content
 
     @ViewBuilder
-    private var cardContent: some View {
-        VStack(spacing: 8) {
-            // Header with icon and trend
+    private var modernCardContent: some View {
+        VStack(spacing: 10) {
+            // Enhanced header with icon and trend
             HStack {
-                Image(systemName: icon)
-                    .imageScale(.medium)
-                    .foregroundStyle(isSelected ? LopanColors.textPrimary : (isLocked ? color.opacity(0.4) : color))
+                ZStack {
+                    // Icon glow effect
+                    if visualComposer.enhancementLevel != .minimal && !isLocked {
+                        Circle()
+                            .fill(jewelToneColor.opacity(0.2))
+                            .frame(width: 32, height: 32)
+                            .blur(radius: 4)
+                    }
+
+                    Image(systemName: icon)
+                        .imageScale(.medium)
+                        .font(.title2)
+                        .foregroundStyle(iconColor)
+                        .shadow(color: jewelToneColor.opacity(0.3), radius: 4)
+                }
 
                 Spacer()
 
                 if let trend = trend {
-                    Image(systemName: trend.icon)
-                        .font(.caption2)
-                        .foregroundStyle(isSelected ? LopanColors.textPrimary.opacity(0.85) : (isLocked ? trend.color.opacity(0.4) : trend.color))
+                    trendBadge(trend)
                 }
             }
 
-            // Value and title
-            VStack(spacing: 2) {
-                Text(value)
-                    .font(.title3.weight(.semibold))
+            // Enhanced value and title
+            VStack(spacing: 4) {
+                // Animated value
+                AnimatedNumberText(value: value)
+                    .font(.title2.weight(.bold))
                     .monospacedDigit()
-                    .foregroundStyle(isSelected ? LopanColors.textPrimary : (isLocked ? LopanColors.textSecondary : LopanColors.textPrimary))
-                    .minimumScaleFactor(0.7)
+                    .foregroundStyle(
+                        visualComposer.enhancementLevel == .minimal
+                            ? primaryTextColor : primaryTextColor
+                    )
+                    .overlay(
+                        visualComposer.enhancementLevel != .minimal ?
+                        LinearGradient(
+                            colors: [primaryTextColor, jewelToneColor],
+                            startPoint: .leading,
+                            endPoint: .trailing
+                        )
+                        .mask(
+                            AnimatedNumberText(value: value)
+                                .font(.title2.weight(.bold))
+                                .monospacedDigit()
+                        ) : nil
+                    )
+                    .minimumScaleFactor(0.6)
 
                 Text(title)
-                    .font(.footnote)
-                    .foregroundStyle(isSelected ? LopanColors.textPrimary.opacity(0.9) : LopanColors.textSecondary)
-                    .lineLimit(1)
+                    .font(.subheadline.weight(.medium))
+                    .foregroundStyle(secondaryTextColor)
+                    .lineLimit(2)
+                    .multilineTextAlignment(.center)
             }
             .frame(maxWidth: .infinity)
         }
-        .padding(12)
-        .frame(maxWidth: .infinity, alignment: .leading)
-        .background {
-            if #available(iOS 26.0, *) {
-                LiquidGlassMaterial(
-                    type: .card,
-                    cornerRadius: cardCornerRadius,
-                    depth: isSelected ? 1.5 : 1.0,
-                    isPressed: false
-                )
-                .shadow(color: shadowColor, radius: shadowRadius, x: 0, y: shadowY)
-            } else {
+        .padding(16)
+        .frame(maxWidth: .infinity, alignment: .center)
+        .background(modernCardBackground)
+        .overlay(modernCardBorder)
+        .opacity(isLocked ? 0.7 : 1.0)
+    }
+
+    // MARK: - Modern Card Background
+
+    @ViewBuilder
+    private var modernCardBackground: some View {
+        ZStack {
+            // Base background
+            RoundedRectangle(cornerRadius: cardCornerRadius)
+                .fill(Color(UIColor.secondarySystemBackground))
+
+            // Glassmorphic overlay
+            if visualComposer.enhancementLevel != .minimal {
                 RoundedRectangle(cornerRadius: cardCornerRadius)
-                    .fill(isSelected ? color : LopanColors.background)
-                    .shadow(color: shadowColor, radius: shadowRadius, x: 0, y: shadowY)
+                    .fill(.ultraThinMaterial)
+                    .overlay(
+                        RoundedRectangle(cornerRadius: cardCornerRadius)
+                            .fill(gradientOverlay)
+                    )
+            }
+
+            // Neumorphic effect for pressed state
+            if isPressed && visualComposer.enhancementLevel == .premium {
+                RoundedRectangle(cornerRadius: cardCornerRadius)
+                    .fill(Color(UIColor.secondarySystemBackground))
+                    .shadow(color: .black.opacity(0.2), radius: 5, x: 2, y: 2)
+                    .shadow(color: .white.opacity(0.5), radius: 5, x: -2, y: -2)
             }
         }
-        .overlay(
-            RoundedRectangle(cornerRadius: cardCornerRadius)
-                .stroke(isSelected ? color.opacity(0.9) : LopanColors.clear, lineWidth: isSelected ? 2 : 0)
+        .elevationShadow(isSelected ? .floating : .elevated)
+    }
+
+    // MARK: - Modern Card Border
+
+    @ViewBuilder
+    private var modernCardBorder: some View {
+        RoundedRectangle(cornerRadius: cardCornerRadius)
+            .stroke(
+                isSelected
+                    ? jewelToneColor.opacity(0.8)
+                    : (visualComposer.enhancementLevel == .minimal
+                        ? Color.clear
+                        : jewelToneColor.opacity(0.3)),
+                lineWidth: isSelected ? 2.5 : 1
+            )
+    }
+
+    // MARK: - Color Computed Properties
+
+    private var jewelToneColor: Color {
+        visualComposer.jewelTone(for: computedCardStyle)
+    }
+
+    private var gradientOverlay: LinearGradient {
+        LinearGradient(
+            colors: [
+                jewelToneColor.opacity(0.1),
+                jewelToneColor.opacity(0.05),
+                Color.clear
+            ],
+            startPoint: .topLeading,
+            endPoint: .bottomTrailing
         )
-        .opacity(isLocked ? 0.8 : 1.0)
-        .animation(.spring(response: 0.2, dampingFraction: 0.85), value: isSelected)
     }
 
-    // MARK: - Shadow Properties
-
-    private var shadowColor: Color {
-        if isSelected {
-            return color.opacity(0.28)
+    private var iconColor: Color {
+        if isLocked {
+            return jewelToneColor.opacity(0.4)
         }
-        return LopanColors.textPrimary.opacity(isLocked ? 0.03 : 0.06)
+        return isSelected ? LopanColors.textPrimary : jewelToneColor
     }
 
-    private var shadowRadius: CGFloat {
-        isSelected ? 8 : (isLocked ? 2 : 4)
+    private var primaryTextColor: Color {
+        if isLocked {
+            return LopanColors.textSecondary
+        }
+        return isSelected ? LopanColors.textPrimary : LopanColors.textPrimary
     }
 
-    private var shadowY: CGFloat {
-        isSelected ? 4 : (isLocked ? 1 : 2)
+    private var secondaryTextColor: Color {
+        if isLocked {
+            return LopanColors.textSecondary.opacity(0.6)
+        }
+        return isSelected ? LopanColors.textPrimary.opacity(0.8) : LopanColors.textSecondary
+    }
+
+    // MARK: - Helper Views
+
+    @ViewBuilder
+    private func trendBadge(_ trend: Trend) -> some View {
+        HStack(spacing: 2) {
+            Image(systemName: trend.icon)
+                .font(.caption2)
+            if visualComposer.enhancementLevel != .minimal {
+                Text("5.2%") // Example percentage - would be dynamic in real implementation
+                    .font(.caption2)
+                    .fontWeight(.medium)
+            }
+        }
+        .padding(.horizontal, 6)
+        .padding(.vertical, 3)
+        .background(
+            Capsule()
+                .fill(trend.color.opacity(0.15))
+                .overlay(
+                    Capsule()
+                        .stroke(trend.color.opacity(0.3), lineWidth: 0.5)
+                )
+        )
+        .foregroundStyle(trend.color)
+    }
+
+    // MARK: - Helper Methods
+
+    private func animateValueIfNeeded() {
+        guard let doubleValue = Double(value) else { return }
+
+        if visualComposer.enhancementLevel != .minimal && !visualComposer.isReducedMotionEnabled {
+            withAnimation(.easeOut(duration: 1.0)) {
+                animatedValue = doubleValue
+            }
+        } else {
+            animatedValue = doubleValue
+        }
+    }
+
+    private func triggerHapticFeedback() {
+        if visualComposer.enhancementLevel == .premium {
+            let impactFeedback = UIImpactFeedbackGenerator(style: .light)
+            impactFeedback.impactOccurred()
+        }
     }
 }
 

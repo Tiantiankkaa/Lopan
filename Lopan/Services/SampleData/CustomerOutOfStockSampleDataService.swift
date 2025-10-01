@@ -8,7 +8,8 @@
 import Foundation
 
 /// 大规模客户缺货管理样本数据服务
-/// 用于生成500个客户、300个产品、20000条欠货记录
+/// 用于生成2000个客户、1000个产品、100000条欠货记录（2024-2025）
+/// 数据覆盖：Lagos (50%), China (15%), USA (12%), Ibadan (8%), Onitsha (6%), Aba (5%), Kano (3%), Other (1%)
 @MainActor
 class CustomerOutOfStockSampleDataService {
     
@@ -42,15 +43,20 @@ class CustomerOutOfStockSampleDataService {
             let existingRecords = try await repositoryFactory.customerOutOfStockRepository.fetchOutOfStockRecords()
             
             // 如果数据量已经很大，则跳过初始化
-            if existingCustomers.count >= 400 || existingProducts.count >= 250 || existingRecords.count >= 15000 {
+            if existingCustomers.count >= 1500 || existingProducts.count >= 800 || existingRecords.count >= 80000 {
                 print("📊 检测到已有大量数据，跳过大规模样本数据初始化")
+                print("   - 现有客户: \(existingCustomers.count)")
+                print("   - 现有产品: \(existingProducts.count)")
+                print("   - 现有记录: \(existingRecords.count)")
                 progressMonitor.completeGeneration()
                 return
             }
-            
+
             progressMonitor.completeStep(phase: .preparing, stepIndex: 0, stepName: "数据检查完成")
-            print("🚀 开始生成大规模样本数据...")
-            print("📊 目标：500个客户，300个产品，20000条欠货记录")
+            print("🚀 开始生成大规模样本数据 (Global Regions Edition)...")
+            print("📊 目标：2000个客户，1000个产品，100000条欠货记录")
+            print("🌍 地区分布：Lagos (50%), China (15%), USA (12%), Ibadan (8%), Onitsha (6%), Aba (5%), Kano (3%), Other (1%)")
+            print("📅 时间范围：2024-01-01 至今 (21个月)")
             
             // 阶段1：生成客户数据
             progressMonitor.updatePhase(.customers)
@@ -109,10 +115,11 @@ class CustomerOutOfStockSampleDataService {
             
             for i in 0..<count {
                 let name = LargeSampleDataGenerator.generateCustomerName(type: customerType, index: i)
-                let city = SampleDataConstants.cities[customerIndex % SampleDataConstants.cities.count]
-                let address = LargeSampleDataGenerator.generateAddress(city: city)
+                // Use weighted city selection for Nigerian distribution
+                let city = SampleDataConstants.getWeightedCity()
+                let address = city  // Use simple city name only (Lagos, Ibadan, etc.)
                 let phone = LargeSampleDataGenerator.generatePhoneNumber()
-                
+
                 let customer = Customer(name: name, address: address, phone: phone)
                 customers.append(customer)
                 customerIndex += 1
@@ -241,33 +248,50 @@ class CustomerOutOfStockSampleDataService {
             print("⚠️ 客户或产品数据为空，无法生成欠货记录")
             return
         }
-        
-        print("  按月份分布生成欠货记录...")
-        
+
+        print("  按年份和月份分布生成欠货记录...")
+
         var stepIndex = 0
-        for (month, recordCount) in SampleDataConstants.monthlyDistribution.sorted(by: { $0.key < $1.key }) {
-            progressMonitor.updateStep(
-                phase: .outOfStock, 
-                stepIndex: stepIndex, 
-                stepName: "生成\(month)月记录：\(recordCount) 条"
-            )
-            print("    生成\(month)月记录：\(recordCount) 条")
-            
-            await generateMonthlyRecords(
-                year: 2025,
-                month: month,
-                count: recordCount,
-                customers: customers,
-                products: products
-            )
-            
-            progressMonitor.completeStep(
-                phase: .outOfStock, 
-                stepIndex: stepIndex, 
-                stepName: "\(month)月记录生成完成"
-            )
-            stepIndex += 1
+        var totalRecordsGenerated = 0
+
+        // Iterate over years (2024, 2025)
+        for yearData in SampleDataConstants.yearlyDistribution {
+            let year = yearData.year
+            let months = yearData.months
+
+            print("  生成\(year)年数据（\(months.count)个月）...")
+
+            // Iterate over months for this year
+            for month in months {
+                let recordCount = SampleDataConstants.monthlyDistribution[month] ?? 0
+
+                progressMonitor.updateStep(
+                    phase: .outOfStock,
+                    stepIndex: stepIndex,
+                    stepName: "生成\(year)年\(month)月记录：\(recordCount) 条"
+                )
+                print("    生成\(year)年\(month)月记录：\(recordCount) 条")
+
+                await generateMonthlyRecords(
+                    year: year,
+                    month: month,
+                    count: recordCount,
+                    customers: customers,
+                    products: products
+                )
+
+                totalRecordsGenerated += recordCount
+
+                progressMonitor.completeStep(
+                    phase: .outOfStock,
+                    stepIndex: stepIndex,
+                    stepName: "\(year)年\(month)月记录生成完成"
+                )
+                stepIndex += 1
+            }
         }
+
+        print("  ✅ 欠货记录生成完成，共 \(totalRecordsGenerated) 条")
     }
     
     /// 生成特定月份的欠货记录
@@ -284,7 +308,7 @@ class CustomerOutOfStockSampleDataService {
         customers: [Customer],
         products: [Product]
     ) async {
-        let batchSize = 100  // 每批处理100条记录
+        let batchSize = 1000  // Increased from 100 to 1000 for better performance
         let totalBatches = (count + batchSize - 1) / batchSize
         
         for batchIndex in 0..<totalBatches {
@@ -376,12 +400,11 @@ class CustomerOutOfStockSampleDataService {
     /// 批量保存欠货记录
     /// - Parameter records: 欠货记录数组
     private func batchSaveOutOfStockRecords(_ records: [CustomerOutOfStock]) async {
-        for record in records {
-            do {
-                try await repositoryFactory.customerOutOfStockRepository.addOutOfStockRecord(record)
-            } catch {
-                print("⚠️ 保存欠货记录失败：\(error)")
-            }
+        do {
+            // Use bulk insert for much better performance (single save for all records)
+            try await repositoryFactory.customerOutOfStockRepository.addOutOfStockRecords(records)
+        } catch {
+            print("⚠️ 批量保存欠货记录失败：\(error)")
         }
     }
     

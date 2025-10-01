@@ -145,6 +145,132 @@ public struct LopanColors {
     static let premiumLight = premium.opacity(0.3)
     static let premiumDark = premium.opacity(0.8)
 
+    // MARK: - Modern UI Enhancement Colors
+
+    /// Aurora gradient colors for dynamic backgrounds and hero sections
+    struct Aurora {
+        static let gradient1 = LinearGradient(
+            colors: [
+                Color(red: 0.98, green: 0.4, blue: 0.6),  // Coral Pink
+                Color(red: 0.6, green: 0.4, blue: 0.98),   // Purple
+                Color(red: 0.4, green: 0.6, blue: 0.98)    // Sky Blue
+            ],
+            startPoint: .topLeading,
+            endPoint: .bottomTrailing
+        )
+
+        static let gradient2 = LinearGradient(
+            colors: [
+                Color(red: 0.2, green: 0.9, blue: 0.8),    // Cyan
+                Color(red: 0.3, green: 0.7, blue: 0.95),   // Ocean Blue
+                Color(red: 0.5, green: 0.3, blue: 0.9)     // Violet
+            ],
+            startPoint: .top,
+            endPoint: .bottom
+        )
+
+        static let subtle = LinearGradient(
+            colors: [
+                Color(red: 0.94, green: 0.96, blue: 1.0),   // Very light blue
+                Color(red: 0.96, green: 0.94, blue: 1.0),   // Very light purple
+                Color(red: 1.0, green: 0.96, blue: 0.94)    // Very light peach
+            ],
+            startPoint: .topLeading,
+            endPoint: .bottomTrailing
+        )
+    }
+
+    /// Jewel tone accents for premium components
+    struct Jewel {
+        static let emerald = Color.adaptive(
+            light: Color(red: 0.0, green: 0.8, blue: 0.6),
+            dark: Color(red: 0.2, green: 0.9, blue: 0.7)
+        )
+        static let sapphire = Color.adaptive(
+            light: Color(red: 0.2, green: 0.4, blue: 0.9),
+            dark: Color(red: 0.3, green: 0.5, blue: 1.0)
+        )
+        static let ruby = Color.adaptive(
+            light: Color(red: 0.9, green: 0.2, blue: 0.4),
+            dark: Color(red: 1.0, green: 0.3, blue: 0.5)
+        )
+        static let amethyst = Color.adaptive(
+            light: Color(red: 0.6, green: 0.3, blue: 0.9),
+            dark: Color(red: 0.7, green: 0.4, blue: 1.0)
+        )
+        static let citrine = Color.adaptive(
+            light: Color(red: 1.0, green: 0.8, blue: 0.2),
+            dark: Color(red: 1.0, green: 0.9, blue: 0.4)
+        )
+    }
+
+    /// Neon accents for dark mode and highlight states
+    struct Neon {
+        static let pink = Color.adaptive(
+            light: Color(red: 1.0, green: 0.08, blue: 0.58),
+            dark: Color(red: 1.0, green: 0.2, blue: 0.7)
+        )
+        static let blue = Color.adaptive(
+            light: Color(red: 0.0, green: 0.88, blue: 1.0),
+            dark: Color(red: 0.2, green: 0.9, blue: 1.0)
+        )
+        static let green = Color.adaptive(
+            light: Color(red: 0.2, green: 1.0, blue: 0.4),
+            dark: Color(red: 0.4, green: 1.0, blue: 0.6)
+        )
+        static let purple = Color.adaptive(
+            light: Color(red: 0.75, green: 0.08, blue: 1.0),
+            dark: Color(red: 0.8, green: 0.3, blue: 1.0)
+        )
+    }
+
+    /// Semantic gradients for different component types
+    struct Gradients {
+        static let primaryCard = LinearGradient(
+            colors: [primary, Jewel.sapphire],
+            startPoint: .topLeading,
+            endPoint: .bottomTrailing
+        )
+
+        static let successCard = LinearGradient(
+            colors: [success, Jewel.emerald],
+            startPoint: .topLeading,
+            endPoint: .bottomTrailing
+        )
+
+        static let warningCard = LinearGradient(
+            colors: [warning, Jewel.citrine],
+            startPoint: .topLeading,
+            endPoint: .bottomTrailing
+        )
+
+        static let errorCard = LinearGradient(
+            colors: [error, Jewel.ruby],
+            startPoint: .topLeading,
+            endPoint: .bottomTrailing
+        )
+
+        static let heroBackground = LinearGradient(
+            colors: [
+                Color(UIColor.systemBackground),
+                Color(UIColor.systemBackground).opacity(0.95),
+                Color(UIColor.secondarySystemBackground).opacity(0.8)
+            ],
+            startPoint: .top,
+            endPoint: .bottom
+        )
+
+        static let glassOverlay = LinearGradient(
+            colors: [
+                Color.white.opacity(0.15),
+                Color.white.opacity(0.05),
+                Color.clear
+            ],
+            startPoint: .topLeading,
+            endPoint: .bottomTrailing
+        )
+    }
+
     // MARK: - WCAG AA High Contrast Colors (4.5:1 ratio guaranteed)
     struct HighContrast {
         // Text colors with guaranteed contrast
@@ -161,6 +287,58 @@ public struct LopanColors {
         static let warning = Color.adaptive(light: Color(red: 0.8, green: 0.5, blue: 0.0), dark: Color(red: 1.0, green: 0.7, blue: 0.0))
         static let error = Color.adaptive(light: Color(red: 0.8, green: 0.0, blue: 0.0), dark: Color(red: 1.0, green: 0.3, blue: 0.3))
         static let info = Color.adaptive(light: Color(red: 0.0, green: 0.3, blue: 0.8), dark: Color(red: 0.3, green: 0.6, blue: 1.0))
+    }
+
+    // MARK: - Chart Colors (Insights-specific)
+    /// Color palette optimized for data visualization and chart rendering
+    public struct Charts {
+        /// Primary chart colors for data series (8 distinct colors)
+        public static let dataColors: [Color] = [
+            Jewel.sapphire,
+            Jewel.emerald,
+            Jewel.amethyst,
+            Jewel.ruby,
+            Jewel.citrine,
+            primary,
+            success,
+            info
+        ]
+
+        /// Get a color for a specific index (cycles through palette)
+        public static func color(at index: Int) -> Color {
+            dataColors[index % dataColors.count]
+        }
+
+        /// Gradient backgrounds for chart containers
+        public static let containerGradient = LinearGradient(
+            colors: [
+                backgroundSecondary,
+                backgroundTertiary.opacity(0.5)
+            ],
+            startPoint: .top,
+            endPoint: .bottom
+        )
+
+        /// Axis and grid line colors
+        public static let axisLine = Color.adaptive(
+            light: Color.black.opacity(0.1),
+            dark: Color.white.opacity(0.1)
+        )
+
+        public static let gridLine = Color.adaptive(
+            light: Color.black.opacity(0.05),
+            dark: Color.white.opacity(0.05)
+        )
+
+        /// Selection and interaction colors
+        public static let selection = primary.opacity(0.2)
+        public static let hover = primary.opacity(0.1)
+        public static let active = primary.opacity(0.3)
+
+        /// Trend indicator colors
+        public static let trendUp = Jewel.emerald
+        public static let trendDown = Jewel.ruby
+        public static let trendNeutral = textSecondary
     }
 }
 

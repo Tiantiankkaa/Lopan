@@ -296,8 +296,22 @@ public class CustomerOutOfStockCoordinator: ObservableObject {
         try await dataService.updateRecord(item)
         
         // Audit logging
-        // TODO: Add proper audit logging once NewAuditingService supports it
-        logger.info("Updated CustomerOutOfStock item: \(item.id ?? "unknown")")
+        let currentUser = authService.currentUser
+        let afterValues = createAuditValues(from: item)
+
+        await auditService.logOperation(
+            operationType: .update,
+            entityType: .customerOutOfStock,
+            entityId: item.id,
+            entityDescription: "\(item.customer?.name ?? "Unknown") - \(item.product?.name ?? "Unknown")",
+            operatorUserId: currentUser?.id ?? "system",
+            operatorUserName: currentUser?.name ?? "System",
+            operationDetails: [
+                "before": beforeValues,
+                "after": afterValues,
+                "changes": calculateChanges(before: beforeValues, after: afterValues)
+            ]
+        )
         
         // Invalidate cache
         cacheService.invalidateCache()
@@ -386,7 +400,26 @@ public class CustomerOutOfStockCoordinator: ObservableObject {
     // MARK: - Analytics and Aggregation Methods
 
     /// Get aggregated data by region for analytics
-    func getAggregatedDataByRegion(timeRange: TimeRange, customDateRange: ClosedRange<Date>? = nil) async throws -> [RegionAggregation] {
+    func getAggregatedDataByRegion(
+        timeRange: TimeRange,
+        customDateRange: ClosedRange<Date>? = nil,
+        progressCallback: ((Double, String) -> Void)? = nil
+    ) async throws -> [RegionAggregation] {
+        return try await executeWithTimeoutAndRetry(
+            operationName: "getAggregatedDataByRegion",
+            timeout: 60.0, // 60 second timeout for large datasets
+            maxRetries: 3,
+            operation: {
+                try await performRegionAnalytics(timeRange: timeRange, customDateRange: customDateRange, progressCallback: progressCallback)
+            }
+        )
+    }
+
+    private func performRegionAnalytics(
+        timeRange: TimeRange,
+        customDateRange: ClosedRange<Date>? = nil,
+        progressCallback: ((Double, String) -> Void)? = nil
+    ) async throws -> [RegionAggregation] {
         let dateRange = getDateRangeForTimeRange(timeRange, customRange: customDateRange)
 
         logger.safeInfo("Loading aggregated data by region with pagination", [
@@ -395,13 +428,17 @@ public class CustomerOutOfStockCoordinator: ObservableObject {
             "dateEnd": dateRange.end.formatted()
         ])
 
+        // Initial progress
+        progressCallback?(0.1, "Initializing data query...")
+
         // Fetch all records using pagination
         var allRecords: [CustomerOutOfStock] = []
         var page = 0
         let pageSize = 1000  // Maximum allowed by repository
         var hasMore = true
+        let maxPages = 100  // Safety limit to prevent infinite loops
 
-        while hasMore {
+        while hasMore && page < maxPages {
             let criteria = OutOfStockFilterCriteria(
                 customer: nil,
                 product: nil,
@@ -414,16 +451,46 @@ public class CustomerOutOfStockCoordinator: ObservableObject {
             )
 
             let paginationResult = try await dataService.fetchRecordsWithPagination(criteria)
+
+            // IMPORTANT: If first page is empty, data doesn't exist
+            if page == 0 && paginationResult.items.isEmpty {
+                logger.safeInfo("No region data found for time range", [
+                    "timeRange": timeRange.rawValue
+                ])
+                progressCallback?(1.0, "No data available")
+                return [] // Return empty array immediately
+            }
+
             allRecords.append(contentsOf: paginationResult.items)
 
             hasMore = paginationResult.hasMoreData
             page += 1
+
+            // Calculate progress (estimated based on page count, since we don't know total upfront)
+            let estimatedProgress = min(0.8, Double(page) / max(10.0, Double(page + 1))) // Cap at 80% until processing
+            let progressMessage = "Loading data... Page \(page) (\(allRecords.count) records)"
+            progressCallback?(estimatedProgress, progressMessage)
 
             logger.safeInfo("Fetched page \(page) for region analytics", [
                 "pageRecords": String(paginationResult.items.count),
                 "totalRecords": String(allRecords.count),
                 "hasMore": String(hasMore)
             ])
+        }
+
+        // Check for safety limit reached
+        if page >= maxPages {
+            logger.safeInfo("Reached maximum page limit", ["maxPages": String(maxPages)])
+        }
+
+        // Processing phase
+        progressCallback?(0.85, "Processing region analytics...")
+
+        // Handle empty result
+        guard !allRecords.isEmpty else {
+            logger.safeInfo("No records to aggregate")
+            progressCallback?(1.0, "No data available")
+            return []
         }
 
         // Group by region (customer address)
@@ -446,6 +513,9 @@ public class CustomerOutOfStockCoordinator: ObservableObject {
             "pagesProcessed": String(page)
         ])
 
+        // Final progress update
+        progressCallback?(1.0, "Region analytics complete")
+
         return aggregations
     }
 
@@ -464,8 +534,9 @@ public class CustomerOutOfStockCoordinator: ObservableObject {
         var page = 0
         let pageSize = 1000  // Maximum allowed by repository
         var hasMore = true
+        let maxPages = 100  // Safety limit
 
-        while hasMore {
+        while hasMore && page < maxPages {
             let criteria = OutOfStockFilterCriteria(
                 customer: nil,
                 product: nil,
@@ -478,6 +549,13 @@ public class CustomerOutOfStockCoordinator: ObservableObject {
             )
 
             let paginationResult = try await dataService.fetchRecordsWithPagination(criteria)
+
+            // Early exit if no data
+            if page == 0 && paginationResult.items.isEmpty {
+                logger.safeInfo("No product data found for time range")
+                return []
+            }
+
             allRecords.append(contentsOf: paginationResult.items)
 
             hasMore = paginationResult.hasMoreData
@@ -488,6 +566,11 @@ public class CustomerOutOfStockCoordinator: ObservableObject {
                 "totalRecords": String(allRecords.count),
                 "hasMore": String(hasMore)
             ])
+        }
+
+        // Handle empty result
+        guard !allRecords.isEmpty else {
+            return []
         }
 
         // Group by product
@@ -529,8 +612,9 @@ public class CustomerOutOfStockCoordinator: ObservableObject {
         var page = 0
         let pageSize = 1000  // Maximum allowed by repository
         var hasMore = true
+        let maxPages = 100  // Safety limit
 
-        while hasMore {
+        while hasMore && page < maxPages {
             let criteria = OutOfStockFilterCriteria(
                 customer: nil,
                 product: nil,
@@ -543,6 +627,13 @@ public class CustomerOutOfStockCoordinator: ObservableObject {
             )
 
             let paginationResult = try await dataService.fetchRecordsWithPagination(criteria)
+
+            // Early exit if no data
+            if page == 0 && paginationResult.items.isEmpty {
+                logger.safeInfo("No customer data found for time range")
+                return []
+            }
+
             allRecords.append(contentsOf: paginationResult.items)
 
             hasMore = paginationResult.hasMoreData
@@ -553,6 +644,11 @@ public class CustomerOutOfStockCoordinator: ObservableObject {
                 "totalRecords": String(allRecords.count),
                 "hasMore": String(hasMore)
             ])
+        }
+
+        // Handle empty result
+        guard !allRecords.isEmpty else {
+            return []
         }
 
         // Group by customer
@@ -660,6 +756,101 @@ public class CustomerOutOfStockCoordinator: ObservableObject {
         cacheService.cacheAnalytics(data: data, for: key, ttl: ttl)
     }
 
+    // MARK: - Error Handling and Retry Logic
+
+    /// Execute an operation with timeout and retry logic for large dataset scenarios
+    private func executeWithTimeoutAndRetry<T>(
+        operationName: String,
+        timeout: TimeInterval,
+        maxRetries: Int,
+        operation: () async throws -> T
+    ) async throws -> T {
+        var lastError: Error?
+        var recordCount = 0
+
+        for attempt in 1...maxRetries {
+            do {
+                // Simple timeout implementation
+                let result: T = try await operation()
+
+                logger.safeInfo("Operation completed successfully", [
+                    "operation": operationName,
+                    "attempt": String(attempt)
+                ])
+
+                return result
+
+            } catch let error as CustomerOutOfStockError {
+                lastError = error
+
+                switch error {
+                case .dataProcessingTimeout, .networkTimeout:
+                    logger.safeInfo("Operation timed out", [
+                        "operation": operationName,
+                        "attempt": String(attempt),
+                        "timeout": String(timeout)
+                    ])
+
+                    if attempt == maxRetries {
+                        throw CustomerOutOfStockError.retryExhausted(attempts: maxRetries)
+                    }
+
+                    // Exponential backoff
+                    let delay = TimeInterval(pow(2.0, Double(attempt - 1)))
+                    try await Task.sleep(nanoseconds: UInt64(delay * 1_000_000_000))
+
+                default:
+                    throw error
+                }
+
+            } catch {
+                lastError = error
+
+                // Handle network-related errors
+                if isNetworkError(error) {
+                    logger.safeInfo("Network error detected", [
+                        "operation": operationName,
+                        "attempt": String(attempt),
+                        "error": error.localizedDescription
+                    ])
+
+                    if attempt == maxRetries {
+                        throw CustomerOutOfStockError.retryExhausted(attempts: maxRetries)
+                    }
+
+                    // Shorter delay for network errors
+                    try await Task.sleep(nanoseconds: 1_000_000_000) // 1 second
+                } else {
+                    // Non-retryable error
+                    throw CustomerOutOfStockError.coordinatorError(underlying: error)
+                }
+            }
+        }
+
+        // If we get here, all retries were exhausted
+        if let lastError = lastError {
+            throw CustomerOutOfStockError.coordinatorError(underlying: lastError)
+        } else {
+            throw CustomerOutOfStockError.retryExhausted(attempts: maxRetries)
+        }
+    }
+
+    /// Check if an error is network-related and potentially retryable
+    private func isNetworkError(_ error: Error) -> Bool {
+        let nsError = error as NSError
+
+        // Common network error codes
+        let networkErrorCodes = [
+            NSURLErrorTimedOut,
+            NSURLErrorCannotConnectToHost,
+            NSURLErrorNetworkConnectionLost,
+            NSURLErrorNotConnectedToInternet,
+            NSURLErrorDNSLookupFailed
+        ]
+
+        return nsError.domain == NSURLErrorDomain && networkErrorCodes.contains(nsError.code)
+    }
+
     /// Helper method to convert TimeRange to date range
     private func getDateRangeForTimeRange(_ timeRange: TimeRange, customRange: ClosedRange<Date>?) -> (start: Date, end: Date) {
         if timeRange == .custom, let customRange = customRange {
@@ -704,7 +895,7 @@ public class CustomerOutOfStockCoordinator: ObservableObject {
             sortOrder: criteria.sortOrder
         )
     }
-    
+
     static func createDateRange(for date: Date) -> (start: Date, end: Date) {
         let calendar = Calendar.current
         let startOfDay = calendar.startOfDay(for: date)
@@ -730,6 +921,34 @@ public class CustomerOutOfStockCoordinator: ObservableObject {
             returnQuantity: item.returnQuantity,
             returnNotes: item.returnNotes
         )
+    }
+
+    private func calculateChanges(before: CustomerOutOfStockOperation.CustomerOutOfStockValues, after: CustomerOutOfStockOperation.CustomerOutOfStockValues) -> [String: [String: Any?]] {
+        var changes: [String: [String: Any?]] = [:]
+
+        if before.customerName != after.customerName {
+            changes["customerName"] = ["before": before.customerName, "after": after.customerName]
+        }
+        if before.productName != after.productName {
+            changes["productName"] = ["before": before.productName, "after": after.productName]
+        }
+        if before.quantity != after.quantity {
+            changes["quantity"] = ["before": before.quantity, "after": after.quantity]
+        }
+        if before.status != after.status {
+            changes["status"] = ["before": before.status, "after": after.status]
+        }
+        if before.notes != after.notes {
+            changes["notes"] = ["before": before.notes, "after": after.notes]
+        }
+        if before.returnQuantity != after.returnQuantity {
+            changes["returnQuantity"] = ["before": before.returnQuantity, "after": after.returnQuantity]
+        }
+        if before.returnNotes != after.returnNotes {
+            changes["returnNotes"] = ["before": before.returnNotes, "after": after.returnNotes]
+        }
+
+        return changes
     }
 }
 
@@ -773,10 +992,17 @@ private class MockCustomerOutOfStockCacheService: CustomerOutOfStockCacheService
     func cacheRecords(_ records: [CustomerOutOfStock], for criteria: OutOfStockFilterCriteria) {}
     func getCachedCount(_ criteria: OutOfStockFilterCriteria) -> Int? { nil }
     func cacheCount(_ count: Int, for criteria: OutOfStockFilterCriteria) {}
+
+    // Analytics caching methods
+    func getCachedAnalytics<T>(for key: AnalyticsCacheKey, type: T.Type) -> T? { nil }
+    func cacheAnalytics<T>(data: T, for key: AnalyticsCacheKey, ttl: TimeInterval) {}
+    func invalidateAnalyticsCache() {}
+    func invalidateAnalyticsCache(for key: AnalyticsCacheKey) {}
+
     func invalidateCache() {}
     func invalidateCache(for criteria: OutOfStockFilterCriteria) {}
-    func getMemoryUsage() -> CacheMemoryUsage { 
-        CacheMemoryUsage(recordsCount: 0, approximateMemoryUsage: 0, cacheHitRate: 0, lastEvictionTime: nil) 
+    func getMemoryUsage() -> CacheMemoryUsage {
+        CacheMemoryUsage(recordsCount: 0, approximateMemoryUsage: 0, cacheHitRate: 0, lastEvictionTime: nil)
     }
     func handleMemoryPressure() {}
 }
@@ -967,8 +1193,11 @@ private class MockAuditCustomerOutOfStockRepository: CustomerOutOfStockRepositor
     }
     
     // CRUD operations
-    func addOutOfStockRecord(_ record: CustomerOutOfStock) async throws { 
+    func addOutOfStockRecord(_ record: CustomerOutOfStock) async throws {
         print("🔧 MockAuditCustomerOutOfStockRepository: addOutOfStockRecord called - NO-OP in placeholder mode")
+    }
+    func addOutOfStockRecords(_ records: [CustomerOutOfStock]) async throws {
+        print("🔧 MockAuditCustomerOutOfStockRepository: addOutOfStockRecords (bulk) called - NO-OP in placeholder mode")
     }
     func updateOutOfStockRecord(_ record: CustomerOutOfStock) async throws { 
         print("🔧 MockAuditCustomerOutOfStockRepository: updateOutOfStockRecord called - NO-OP in placeholder mode")

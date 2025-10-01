@@ -13,18 +13,28 @@ import SwiftData
 private struct AppDependenciesKey: EnvironmentKey {
     @MainActor
     static let defaultValue: HasAppDependencies = {
-        let modelContainer = try! ModelContainer(for: 
-            User.self,
-            Customer.self,
-            Product.self,
-            CustomerOutOfStock.self,
-            PackagingRecord.self,
-            AuditLog.self,
-            WorkshopMachine.self,
-            ColorCard.self,
-            ProductionBatch.self
+        // ⚠️ WARNING: This default value should NOT be used in production
+        // It creates a separate, empty ModelContainer that won't share data with the main app
+        // The proper way is to inject dependencies through .withAppDependencies() modifier
+        // This placeholder exists only to satisfy the EnvironmentKey protocol requirement
+
+        print("⚠️ WARNING: Using default AppDependencies with empty container")
+        print("   → This means the view was not properly initialized with app dependencies")
+        print("   → Data will be empty. Ensure .withAppDependencies() is called in view hierarchy")
+
+        let modelContainer = try! ModelContainer(
+            for: User.self,
+                 Customer.self,
+                 Product.self,
+                 CustomerOutOfStock.self,
+                 PackagingRecord.self,
+                 AuditLog.self,
+                 WorkshopMachine.self,
+                 ColorCard.self,
+                 ProductionBatch.self,
+            configurations: ModelConfiguration(isStoredInMemoryOnly: true)
         )
-        
+
         // Use LazyAppDependencies for better performance
         return LazyAppDependencies.create(
             for: .development,

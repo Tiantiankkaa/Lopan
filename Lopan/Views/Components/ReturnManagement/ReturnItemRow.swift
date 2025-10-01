@@ -217,6 +217,23 @@ struct ReturnItemsList: View {
     let selectedItems: Set<String>
     let onItemSelection: (CustomerOutOfStock) -> Void
     let onItemTap: (CustomerOutOfStock) -> Void
+    let onItemAppear: (CustomerOutOfStock) -> Void
+
+    init(
+        items: [CustomerOutOfStock],
+        isEditing: Bool,
+        selectedItems: Set<String>,
+        onItemSelection: @escaping (CustomerOutOfStock) -> Void,
+        onItemTap: @escaping (CustomerOutOfStock) -> Void,
+        onItemAppear: @escaping (CustomerOutOfStock) -> Void = { _ in }
+    ) {
+        self.items = items
+        self.isEditing = isEditing
+        self.selectedItems = selectedItems
+        self.onItemSelection = onItemSelection
+        self.onItemTap = onItemTap
+        self.onItemAppear = onItemAppear
+    }
     
     var body: some View {
         LazyVStack(spacing: 8) {
@@ -228,6 +245,7 @@ struct ReturnItemsList: View {
                         isEditing: isEditing,
                         onSelect: { onItemSelection(item) }
                     )
+                    .onAppear { onItemAppear(item) }
                 } else {
                     Button(action: { onItemTap(item) }) {
                         EnhancedReturnGoodsRowView(
@@ -239,6 +257,7 @@ struct ReturnItemsList: View {
                     }
                     .buttonStyle(PlainButtonStyle())
                     .accessibilityLabel("查看\(item.customerDisplayName)的还货详情")
+                    .onAppear { onItemAppear(item) }
                 }
             }
         }

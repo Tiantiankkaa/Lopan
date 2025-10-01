@@ -60,8 +60,20 @@ struct LopanApp: App {
                 for: determineAppEnvironment(),
                 modelContext: Self.sharedModelContainer.mainContext
             )
-            
-            DashboardView(authService: appDependencies.authenticationService)
+
+            let _ = {
+                // DEBUG: Log main app container info
+                print(String(repeating: "=", count: 60))
+                print("🚀 MAIN APP: Dependencies Created")
+                print(String(repeating: "=", count: 60))
+                print("  ModelContainer ID: \(ObjectIdentifier(Self.sharedModelContainer))")
+                print("  ModelContext ID: \(ObjectIdentifier(Self.sharedModelContainer.mainContext))")
+                print("  AppDependencies ID: \(ObjectIdentifier(appDependencies as AnyObject))")
+                print("  Repository Factory ID: \(ObjectIdentifier(appDependencies.repositoryFactory))")
+                print(String(repeating: "=", count: 60))
+            }()
+
+            return DashboardView(authService: appDependencies.authenticationService)
                 .withAppDependencies(appDependencies)
                 .onAppear {
                     // PHASE 1: Initialize Performance Monitoring System (DISABLED - Causing CPU warnings)

@@ -196,7 +196,7 @@ extension View {
     public func lopanAdaptivePadding(
         _ length: CGFloat
     ) -> some View {
-        modifier(AdaptivePaddingModifier(padding: length))
+        modifier(LegacyAdaptivePaddingModifier(edges: .all, padding: length))
     }
 
     /// Apply adaptive padding with different values for different edges
@@ -204,7 +204,7 @@ extension View {
         _ edges: Edge.Set = .all,
         _ length: CGFloat
     ) -> some View {
-        modifier(AdaptivePaddingModifier(edges: edges, padding: length))
+        modifier(LegacyAdaptivePaddingModifier(edges: edges, padding: length))
     }
 
     /// Apply adaptive margins for card layouts
@@ -222,7 +222,7 @@ extension View {
 
 // MARK: - Adaptive Modifiers
 
-private struct AdaptivePaddingModifier: ViewModifier {
+private struct LegacyAdaptivePaddingModifier: ViewModifier {
     let edges: Edge.Set
     let padding: CGFloat
 

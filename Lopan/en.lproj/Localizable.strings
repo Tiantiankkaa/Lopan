@@ -54,6 +54,71 @@
 "production_overview" = "Production Overview";
 "production_overview_subtitle" = "View production status";
 
+/* Salesperson Dashboard 2025 Redesign */
+"workbench_manage" = "Workbench Actions";
+"workbench_manage_hint" = "Open the workbench selector to switch roles.";
+
+"salesperson_dashboard_greeting_default_name" = "team";
+"salesperson_dashboard_greeting_morning" = "Good morning, %@";
+"salesperson_dashboard_greeting_midday" = "Good day, %@";
+"salesperson_dashboard_greeting_afternoon" = "Good afternoon, %@";
+"salesperson_dashboard_greeting_evening" = "Good evening, %@";
+"salesperson_dashboard_greeting_night" = "Late shift hero, %@";
+
+"salesperson_dashboard_badge_role" = "Sales workbench";
+"salesperson_dashboard_badge_pending" = "%d urgent records";
+"salesperson_dashboard_badge_customers" = "%d active customers";
+
+"salesperson_dashboard_metric_customers" = "Customers";
+"salesperson_dashboard_metric_customers_caption" = "Managed accounts";
+"salesperson_dashboard_metric_products" = "Products";
+"salesperson_dashboard_metric_products_caption" = "Catalog items";
+"salesperson_dashboard_metric_open_stockouts" = "Open stock-outs";
+"salesperson_dashboard_metric_open_stockouts_caption" = "Awaiting resolution";
+"salesperson_dashboard_metric_completed" = "Resolved this week";
+"salesperson_dashboard_metric_completed_caption" = "Closed stock-outs";
+"salesperson_dashboard_metric_returns" = "Pending give backs";
+"salesperson_dashboard_metric_returns_caption" = "Customers waiting for their goods";
+"salesperson_dashboard_summary_loading" = "Syncing key metrics…";
+"salesperson_dashboard_summary_format" = "%@ customers | %@ stock-outs | %@ returns";
+
+"salesperson_dashboard_section_metrics" = "Insight metrics";
+"salesperson_dashboard_section_priority" = "Priority queue";
+"salesperson_dashboard_section_shortcuts" = "Quick actions";
+"salesperson_dashboard_section_activity" = "Recent activity";
+
+"salesperson_dashboard_section_critical" = "Critical stock-outs";
+"salesperson_dashboard_section_returns" = "Give backs to process";
+"salesperson_dashboard_section_followup" = "Suggested follow-ups";
+
+"salesperson_dashboard_task_pending_detail" = "Remaining %@ units, %@";
+"salesperson_dashboard_task_return_detail" = "Give back %@ units, %@";
+"salesperson_dashboard_task_followup_detail" = "Check in on %@";
+
+"salesperson_dashboard_action_stockouts" = "Stock-out board";
+"salesperson_dashboard_action_returns" = "Process give backs";
+"salesperson_dashboard_action_customers" = "Manage customers";
+"salesperson_dashboard_action_products" = "Manage products";
+"salesperson_dashboard_action_analytics" = "View analytics";
+"salesperson_dashboard_refresh_success" = "Dashboard refreshed";
+"salesperson_tab_overview" = "Overview";
+"salesperson_tab_stockouts" = "Stock-outs";
+"salesperson_tab_returns" = "Returns";
+"salesperson_tab_customers" = "Customers";
+"salesperson_tab_analytics" = "Insights";
+
+"salesperson_dashboard_empty_priority_title" = "No urgent work";
+"salesperson_dashboard_empty_priority_message" = "Great job! Nothing needs immediate attention.";
+"salesperson_dashboard_empty_activity_title" = "No recent updates";
+"salesperson_dashboard_empty_activity_message" = "Resolve a task to see activity here.";
+
+"salesperson_dashboard_activity_completed" = "%@ stock-out resolved";
+"salesperson_dashboard_trend_flat" = "No change";
+"salesperson_dashboard_error_title" = "Something went wrong";
+"salesperson_dashboard_error_retry" = "Try again";
+"salesperson_dashboard_task_action_open" = "Open";
+"salesperson_dashboard_task_action_complete" = "Mark done";
+
 /* Unauthorized View */
 "unauthorized_access" = "Unauthorized Access";
 "unauthorized_message" = "Your account has not been authorized. Please contact an administrator to assign a role.";
@@ -526,3 +591,81 @@
 "warehouse_quick_action_system_refresh_subtitle" = "Reload the latest information";
 "warehouse_quick_action_system_settings_title" = "System Settings";
 "warehouse_quick_action_system_settings_subtitle" = "Manage configuration and permissions";
+
+/* Insights Components */
+"insights_time_range_label" = "Time Range";
+"insights_time_range_selector" = "Select time range for data analysis";
+"insights_time_range_hint" = "Tap to change the time range";
+"insights_analysis_mode_label" = "Analysis Dimension";
+"insights_mode_carousel" = "Select analysis mode";
+"insights_mode_hint" = "Tap to switch between region, product, or customer analysis";
+
+/* Insights Filters */
+"insights_filter_title" = "Filter Settings";
+"insights_cancel" = "Cancel";
+"insights_apply" = "Apply";
+"insights_clear_all" = "Clear All";
+"insights_filter_range_label" = "Value Range";
+"insights_filter_min" = "Minimum";
+"insights_filter_max" = "Maximum";
+"insights_filter_value_range" = "Value Range";
+"insights_filter_sorting" = "Sorting";
+"insights_filter_threshold" = "Threshold";
+"insights_filter_threshold_value" = "Threshold Value";
+"insights_filter_operation" = "Operation";
+"insights_filter_categories" = "Categories";
+"insights_filter_presets" = "Quick Presets";
+
+/* Sort Orders */
+"insights_sort_value_asc" = "Value: Low to High";
+"insights_sort_value_desc" = "Value: High to Low";
+"insights_sort_name_asc" = "Name: A to Z";
+"insights_sort_name_desc" = "Name: Z to A";
+"insights_sort_date_newest" = "Date: Newest First";
+"insights_sort_date_oldest" = "Date: Oldest First";
+
+/* Filter Operations */
+"insights_filter_greater_than" = "Greater Than";
+"insights_filter_less_than" = "Less Than";
+"insights_filter_equal_to" = "Equal To";
+"insights_filter_gte" = "Greater Than or Equal";
+"insights_filter_lte" = "Less Than or Equal";
+
+/* Filter Presets */
+"insights_preset_top_performers" = "Top Performers";
+"insights_preset_low_stock" = "Low Stock Items";
+"insights_preset_recent" = "Recent Activity";
+"insights_preset_high_value" = "High Value Items";
+"insights_preset_alphabetical" = "Alphabetical Order";
+
+/* Export */
+"insights_export_title" = "Export Data";
+"insights_export_format" = "Export Format";
+"insights_export_options" = "Export Options";
+"insights_export_preview" = "Preview";
+"insights_export_action" = "Export Now";
+"insights_export_include_chart" = "Include Chart";
+"insights_export_include_data" = "Include Data Table";
+"insights_export_include_summary" = "Include Summary";
+"insights_export_data_items" = "Data Items";
+"insights_export_includes_chart" = "Includes Visual Chart";
+"insights_export_csv_description" = "Raw data in spreadsheet format";
+"insights_export_pdf_description" = "Professional report with charts and tables";
+"insights_export_png_description" = "High-resolution chart image";
+"insights_export_csv" = "CSV Spreadsheet";
+"insights_export_pdf" = "PDF Report";
+"insights_export_png" = "PNG Image";
+"insights_export_success" = "Export Successful";
+"insights_export_error" = "Export Failed";
+"insights_export_error_conversion" = "Failed to convert data";
+"insights_export_error_file_creation" = "Failed to create file";
+"insights_export_error_permission" = "Permission denied";
+"insights_export_error_invalid_data" = "Invalid data";
+"insights_export_error_rendering" = "Failed to render content";
+
+/* Refresh */
+"insights_refresh_success" = "Data refreshed successfully";
+"insights_never_refreshed" = "Never refreshed";
+"insights_just_now" = "Just now";
+"insights_minutes_ago" = "%d minutes ago";
+"insights_hours_ago" = "%d hours ago";

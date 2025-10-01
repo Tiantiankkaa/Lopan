@@ -1,0 +1,275 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+<dict>
+    <!-- Privacy Tracking Configuration -->
+    <key>NSPrivacyTracking</key>
+    <false/>
+
+    <!-- No tracking domains for Lopan Production Manager -->
+    <key>NSPrivacyTrackingDomains</key>
+    <array/>
+
+    <!-- Data Collection Types for Production Management -->
+    <key>NSPrivacyCollectedDataTypes</key>
+    <array>
+        <!-- Production Analytics Data -->
+        <dict>
+            <key>NSPrivacyCollectedDataType</key>
+            <string>NSPrivacyCollectedDataTypeProductInteraction</string>
+            <key>NSPrivacyCollectedDataTypeLinked</key>
+            <true/>
+            <key>NSPrivacyCollectedDataTypeTracking</key>
+            <false/>
+            <key>NSPrivacyCollectedDataTypePurposes</key>
+            <array>
+                <string>NSPrivacyCollectedDataTypePurposeAnalytics</string>
+                <string>NSPrivacyCollectedDataTypePurposeAppFunctionality</string>
+                <string>NSPrivacyCollectedDataTypePurposeProductPersonalization</string>
+            </array>
+        </dict>
+
+        <!-- Performance Monitoring Data (Phase 4 Systems) -->
+        <dict>
+            <key>NSPrivacyCollectedDataType</key>
+            <string>NSPrivacyCollectedDataTypePerformanceData</string>
+            <key>NSPrivacyCollectedDataTypeLinked</key>
+            <false/>
+            <key>NSPrivacyCollectedDataTypeTracking</key>
+            <false/>
+            <key>NSPrivacyCollectedDataTypePurposes</key>
+            <array>
+                <string>NSPrivacyCollectedDataTypePurposeAnalytics</string>
+                <string>NSPrivacyCollectedDataTypePurposeAppFunctionality</string>
+            </array>
+        </dict>
+
+        <!-- Crash and Error Reporting -->
+        <dict>
+            <key>NSPrivacyCollectedDataType</key>
+            <string>NSPrivacyCollectedDataTypeCrashData</string>
+            <key>NSPrivacyCollectedDataTypeLinked</key>
+            <false/>
+            <key>NSPrivacyCollectedDataTypeTracking</key>
+            <false/>
+            <key>NSPrivacyCollectedDataTypePurposes</key>
+            <array>
+                <string>NSPrivacyCollectedDataTypePurposeAppFunctionality</string>
+                <string>NSPrivacyCollectedDataTypePurposeProductPersonalization</string>
+            </array>
+        </dict>
+
+        <!-- User Preferences and Settings -->
+        <dict>
+            <key>NSPrivacyCollectedDataType</key>
+            <string>NSPrivacyCollectedDataTypeOtherData</string>
+            <key>NSPrivacyCollectedDataTypeLinked</key>
+            <true/>
+            <key>NSPrivacyCollectedDataTypeTracking</key>
+            <false/>
+            <key>NSPrivacyCollectedDataTypePurposes</key>
+            <array>
+                <string>NSPrivacyCollectedDataTypePurposeAppFunctionality</string>
+            </array>
+        </dict>
+
+        <!-- Business Contact Information -->
+        <dict>
+            <key>NSPrivacyCollectedDataType</key>
+            <string>NSPrivacyCollectedDataTypeContactInfo</string>
+            <key>NSPrivacyCollectedDataTypeLinked</key>
+            <true/>
+            <key>NSPrivacyCollectedDataTypeTracking</key>
+            <false/>
+            <key>NSPrivacyCollectedDataTypePurposes</key>
+            <array>
+                <string>NSPrivacyCollectedDataTypePurposeAppFunctionality</string>
+                <string>NSPrivacyCollectedDataTypePurposeCustomerSupport</string>
+            </array>
+        </dict>
+    </array>
+
+    <!-- Required API Usage Declaration -->
+    <key>NSPrivacyAccessedAPITypes</key>
+    <array>
+        <!-- User Defaults for App Preferences -->
+        <dict>
+            <key>NSPrivacyAccessedAPIType</key>
+            <string>NSPrivacyAccessedAPICategoryUserDefaults</string>
+            <key>NSPrivacyAccessedAPITypeReasons</key>
+            <array>
+                <string>CA92.1</string>
+            </array>
+        </dict>
+
+        <!-- File Timestamp Access for Data Management -->
+        <dict>
+            <key>NSPrivacyAccessedAPIType</key>
+            <string>NSPrivacyAccessedAPICategoryFileTimestamp</string>
+            <key>NSPrivacyAccessedAPITypeReasons</key>
+            <array>
+                <string>C617.1</string>
+            </array>
+        </dict>
+
+        <!-- System Boot Time (for session management) -->
+        <dict>
+            <key>NSPrivacyAccessedAPIType</key>
+            <string>NSPrivacyAccessedAPICategorySystemBootTime</string>
+            <key>NSPrivacyAccessedAPITypeReasons</key>
+            <array>
+                <string>35F9.1</string>
+            </array>
+        </dict>
+
+        <!-- Disk Space API (for storage management) -->
+        <dict>
+            <key>NSPrivacyAccessedAPIType</key>
+            <string>NSPrivacyAccessedAPICategoryDiskSpace</string>
+            <key>NSPrivacyAccessedAPITypeReasons</key>
+            <array>
+                <string>E174.1</string>
+            </array>
+        </dict>
+
+        <!-- Active Keyboards (for input optimization) -->
+        <dict>
+            <key>NSPrivacyAccessedAPIType</key>
+            <string>NSPrivacyAccessedAPICategoryActiveKeyboards</string>
+            <key>NSPrivacyAccessedAPITypeReasons</key>
+            <array>
+                <string>54BD.1</string>
+            </array>
+        </dict>
+    </array>
+
+    <!-- Third-party SDK Privacy Info -->
+    <key>NSPrivacyAccessedThirdPartySDKs</key>
+    <array>
+        <!-- Add any third-party SDKs that require privacy declarations -->
+        <!-- Example for analytics SDK:
+        <dict>
+            <key>NSPrivacyAccessedAPIType</key>
+            <string>ExampleAnalyticsSDK</string>
+            <key>NSPrivacyAccessedAPITypeReasons</key>
+            <array>
+                <string>Analytics and Performance Monitoring</string>
+            </array>
+        </dict>
+        -->
+    </array>
+
+    <!-- Lopan-specific Privacy Metadata -->
+    <key>NSPrivacyLopanInfo</key>
+    <dict>
+        <key>appName</key>
+        <string>Lopan Production Manager</string>
+        <key>version</key>
+        <string>1.0.0</string>
+        <key>privacyVersion</key>
+        <string>1.0</string>
+        <key>lastUpdated</key>
+        <string>2025-09-26</string>
+        <key>dataRetentionPolicy</key>
+        <string>Production data retained according to business requirements. Personal preferences retained until app deletion.</string>
+        <key>dataProcessingLawfulBasis</key>
+        <array>
+            <string>Legitimate Interest - Business Operations</string>
+            <string>Consent - Optional Analytics</string>
+            <string>Legal Obligation - Audit Requirements</string>
+        </array>
+        <key>userRights</key>
+        <array>
+            <string>Right to Access - Export functionality available</string>
+            <string>Right to Rectification - Edit profile and preferences</string>
+            <string>Right to Erasure - Account deletion available</string>
+            <string>Data Portability - Export in standard formats</string>
+        </array>
+        <key>contactInfo</key>
+        <dict>
+            <key>privacyOfficer</key>
+            <string>privacy@lopan.com</string>
+            <key>supportEmail</key>
+            <string>support@lopan.com</string>
+            <key>dataProtectionOfficer</key>
+            <string>dpo@lopan.com</string>
+        </dict>
+        <key>phase4Integration</key>
+        <dict>
+            <key>performanceMonitoring</key>
+            <string>LopanPerformanceProfiler collects anonymous performance metrics</string>
+            <key>memoryManagement</key>
+            <string>LopanMemoryManager optimizes app performance without personal data collection</string>
+            <key>productionMonitoring</key>
+            <string>LopanProductionMonitoring tracks business metrics with user consent</string>
+            <key>testingFramework</key>
+            <string>LopanTestingFramework runs in development/testing only</string>
+        </dict>
+    </dict>
+
+    <!-- Export Compliance Information -->
+    <key>NSPrivacyExportCompliance</key>
+    <dict>
+        <key>usesEncryption</key>
+        <true/>
+        <key>encryptionInfo</key>
+        <dict>
+            <key>standardEncryption</key>
+            <true/>
+            <key>customEncryption</key>
+            <false/>
+            <key>encryptionTypes</key>
+            <array>
+                <string>HTTPS/TLS for network communication</string>
+                <string>iOS Keychain for credential storage</string>
+                <string>SwiftData encryption for local data</string>
+                <string>iOS standard cryptographic libraries</string>
+            </array>
+            <key>exemptAlgorithms</key>
+            <array>
+                <string>TLS 1.3</string>
+                <string>AES (Apple's implementation)</string>
+                <string>RSA (for certificates)</string>
+                <string>ECDSA (for signing)</string>
+            </array>
+        </dict>
+        <key>exportClassification</key>
+        <string>5D002 - Standard business application</string>
+        <key>customCryptography</key>
+        <false/>
+        <key>complianceContact</key>
+        <string>compliance@lopan.com</string>
+    </dict>
+
+    <!-- Business Application Specific Info -->
+    <key>NSPrivacyBusinessApplication</key>
+    <dict>
+        <key>targetAudience</key>
+        <string>Manufacturing and Production Management Professionals</string>
+        <key>primaryUseCase</key>
+        <string>Production workflow management, inventory tracking, quality control</string>
+        <key>dataTypes</key>
+        <array>
+            <string>Production schedules and batch information</string>
+            <string>Inventory levels and movements</string>
+            <string>Quality control metrics</string>
+            <string>Customer order information</string>
+            <string>Equipment and machine status</string>
+        </array>
+        <key>roles</key>
+        <array>
+            <string>Administrator - Full system access and configuration</string>
+            <string>Salesperson - Customer and order management</string>
+            <string>WarehouseKeeper - Inventory and stock management</string>
+            <string>WorkshopManager - Production and machine management</string>
+        </array>
+        <key>complianceStandards</key>
+        <array>
+            <string>ISO 27001 - Information Security Management</string>
+            <string>GDPR - European Data Protection Regulation</string>
+            <string>CCPA - California Consumer Privacy Act</string>
+            <string>SOC 2 Type II - Security and Availability</string>
+        </array>
+    </dict>
+</dict>
+</plist>

@@ -38,15 +38,16 @@ public final class LopanPerformanceProfiler: ObservableObject {
     // MARK: - Configuration
 
     public struct Configuration {
-        var maxFrameHistory = 60 // Reduced from 120 for better performance
-        var memoryCheckInterval: TimeInterval = 3.0 // Reduced frequency from 1.0s to 3.0s
-        var frameRateCheckInterval: TimeInterval = 0.1 // 10fps instead of 60fps
+        var maxFrameHistory = 30 // Further reduced from 60 for better performance
+        var memoryCheckInterval: TimeInterval = 10.0 // Increased from 3.0s to 10.0s for less frequent checks
+        var frameRateCheckInterval: TimeInterval = 0.5 // Reduced frequency from 0.1 to 0.5 (2fps instead of 10fps)
         var alertThresholds = AlertThresholds()
         var isDebugMode = false
         var isLightweightMode = true // New: lightweight mode by default
         var enabledFeatures = MonitoringFeatures() // New: granular feature control
-        var cpuBudgetPercentage = 2.0 // New: max 2% CPU usage for monitoring
+        var cpuBudgetPercentage = 1.0 // Reduced from 2.0% to 1.0% CPU usage for monitoring
         var maxActiveTime: TimeInterval = 300.0 // New: auto-disable after 5 minutes
+        var warningThrottleInterval: TimeInterval = 30.0 // New: throttle warnings to max 1 per 30 seconds
     }
 
     public struct MonitoringFeatures {
@@ -64,6 +65,7 @@ public final class LopanPerformanceProfiler: ObservableObject {
     private var monitoringStartTime: CFTimeInterval = 0
     private var cpuUsageHistory: [Double] = []
     private var lastBudgetCheck: CFTimeInterval = 0
+    private var lastWarningTime: CFTimeInterval = 0
 
     // MARK: - Initialization
 
@@ -359,9 +361,15 @@ extension LopanPerformanceProfiler {
             // Simulated CPU usage check - in real implementation, you'd use task_info
             // For now, we'll use a heuristic based on frame processing
             let avgProcessingTime = getCurrentProcessingTime()
+            let cpuThreshold = configuration.cpuBudgetPercentage / 100.0 // Convert percentage to decimal
 
-            if avgProcessingTime > 0.02 { // > 2% of frame time
-                logger.warning("⚠️ Performance monitoring consuming too much CPU, reducing frequency")
+            if avgProcessingTime > cpuThreshold {
+                // Throttle warnings to prevent console spam
+                let timeSinceLastWarning = currentTime - lastWarningTime
+                if timeSinceLastWarning >= configuration.warningThrottleInterval {
+                    logger.warning("⚠️ Performance monitoring consuming too much CPU, reducing frequency")
+                    lastWarningTime = currentTime
+                }
                 reduceMonitoringFrequency()
             }
         }
@@ -374,8 +382,9 @@ extension LopanPerformanceProfiler {
 
     private func reduceMonitoringFrequency() {
         // Further reduce sampling frequency if consuming too much CPU
-        displayLink?.preferredFramesPerSecond = 5
-        self.configuration.memoryCheckInterval = 10.0 // Check memory less frequently
+        displayLink?.preferredFramesPerSecond = 2 // Reduced from 5 to 2fps
+        self.configuration.memoryCheckInterval = 30.0 // Increased from 10.0 to 30.0 seconds
+        self.configuration.frameRateCheckInterval = 1.0 // Increased from 0.5 to 1.0 second
 
         logger.info("📉 Reduced monitoring frequency to preserve performance")
     }

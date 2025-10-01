@@ -8,6 +8,7 @@
 
 import SwiftUI
 import Foundation
+import os.log
 
 /// Main insights view with time range selector and analysis modes
 struct CustomerOutOfStockInsightsView: View {
@@ -22,6 +23,11 @@ struct CustomerOutOfStockInsightsView: View {
 
     @StateObject private var viewModel: CustomerOutOfStockInsightsViewModel
     @State private var showingTimeRangePicker = false
+    @State private var segmentImages: [AnalysisMode: UIImage] = [:]
+
+    // MARK: - Logger
+
+    private let logger = Logger(subsystem: "com.lopan.app", category: "InsightsView")
 
     // MARK: - Initialization
 
@@ -193,17 +199,21 @@ struct CustomerOutOfStockInsightsView: View {
 
             Picker("分析维度", selection: $viewModel.selectedAnalysisMode) {
                 ForEach(AnalysisMode.allCases) { mode in
-                    HStack {
-                        Image(systemName: mode.systemImage)
-                            .font(.caption)
-                        Text(mode.displayName)
-                            .font(.subheadline)
+                    if let image = segmentImages[mode] {
+                        Image(uiImage: image)
+                            .tag(mode)
                     }
-                    .tag(mode)
                 }
             }
             .pickerStyle(.segmented)
-            .onChange(of: viewModel.selectedAnalysisMode) { _, newMode in
+            .onAppear {
+                if segmentImages.isEmpty {
+                    renderSegmentImages()
+                }
+            }
+            .onChange(of: viewModel.selectedAnalysisMode) { oldMode, newMode in
+                logger.info("📝 [AnalysisDimension] Picker selection CHANGED: \(oldMode.rawValue, privacy: .public) → \(newMode.rawValue, privacy: .public)")
+                logger.info("🔄 [AnalysisDimension] Calling changeAnalysisMode with: \(newMode.rawValue, privacy: .public)")
                 viewModel.changeAnalysisMode(newMode)
             }
         }
@@ -237,6 +247,9 @@ struct CustomerOutOfStockInsightsView: View {
                     insertion: .opacity.combined(with: .move(edge: .trailing)),
                     removal: .opacity.combined(with: .move(edge: .leading))
                 ))
+                .onAppear {
+                    logger.info("✅ [AnalysisDimension] RegionInsightsView APPEARED - mode: region, totalItems: \(viewModel.regionAnalytics.totalItems)")
+                }
 
         case .product:
             ProductInsightsView(data: viewModel.productAnalytics)
@@ -244,6 +257,9 @@ struct CustomerOutOfStockInsightsView: View {
                     insertion: .opacity.combined(with: .move(edge: .trailing)),
                     removal: .opacity.combined(with: .move(edge: .leading))
                 ))
+                .onAppear {
+                    logger.info("✅ [AnalysisDimension] ProductInsightsView APPEARED - mode: product, totalItems: \(viewModel.productAnalytics.totalItems)")
+                }
 
         case .customer:
             CustomerInsightsView(data: viewModel.customerAnalytics)
@@ -251,6 +267,9 @@ struct CustomerOutOfStockInsightsView: View {
                     insertion: .opacity.combined(with: .move(edge: .trailing)),
                     removal: .opacity.combined(with: .move(edge: .leading))
                 ))
+                .onAppear {
+                    logger.info("✅ [AnalysisDimension] CustomerInsightsView APPEARED - mode: customer, totalItems: \(viewModel.customerAnalytics.totalItems)")
+                }
         }
     }
 
@@ -373,6 +392,23 @@ struct CustomerOutOfStockInsightsView: View {
 
         // Replace the ViewModel's coordinator with the real one
         viewModel.updateCoordinator(realCoordinator)
+    }
+
+    private func renderSegmentImages() {
+        for mode in AnalysisMode.allCases {
+            let renderer = ImageRenderer(content:
+                HStack(spacing: 4) {
+                    Image(systemName: mode.systemImage)
+                        .font(.caption)
+                    Text(mode.displayName)
+                        .font(.caption)
+                }
+            )
+            renderer.scale = UIScreen.main.scale
+            if let image = renderer.uiImage {
+                segmentImages[mode] = image
+            }
+        }
     }
 }
 

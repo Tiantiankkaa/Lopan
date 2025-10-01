@@ -973,32 +973,43 @@ public class ProductionBatchService: ObservableObject, ServiceCleanupProtocol {
             }
             
             var cleanupCount = 0
-            
+
             for batch in batchesToRemove {
                 do {
-                    try await productionBatchRepository.deleteBatch(id: batch.id)
-                    
-                    // Audit log for cleanup
+                    // Capture all needed properties BEFORE deletion
+                    // (accessing properties after deletion causes runtime crash)
+                    let batchId = batch.id
+                    let batchNumber = batch.batchNumber
+                    let batchStatus = batch.status
+                    let batchStatusRawValue = batch.status.rawValue
+                    let timestampField = batch.status == .rejected ? "rejectedAt" : "completedAt"
+                    let timestamp = (batch.status == .rejected ? batch.rejectedAt : batch.completedAt)?.description ?? ""
+                    let hoursAfterStatusChange = Int(now.timeIntervalSince((batch.status == .rejected ? batch.rejectedAt : batch.completedAt) ?? now) / 3600)
+
+                    // Now delete the batch
+                    try await productionBatchRepository.deleteBatch(id: batchId)
+
+                    // Audit log for cleanup (using captured values, not deleted object)
                     try await auditService.logOperation(
                         operationType: .batchDelete,
                         entityType: .productionBatch,
-                        entityId: batch.id,
-                        entityDescription: "Batch \(batch.batchNumber) (auto-cleanup)",
+                        entityId: batchId,
+                        entityDescription: "Batch \(batchNumber) (auto-cleanup)",
                         operatorUserId: currentUser.id,
                         operatorUserName: currentUser.name,
                         operationDetails: [
-                            "batchNumber": batch.batchNumber,
+                            "batchNumber": batchNumber,
                             "action": "auto_cleanup_old_batch",
-                            "status": batch.status.rawValue,
-                            "timestampField": batch.status == .rejected ? "rejectedAt" : "completedAt",
-                            "timestamp": (batch.status == .rejected ? batch.rejectedAt : batch.completedAt)?.description ?? "",
-                            "hoursAfterStatusChange": Int(now.timeIntervalSince((batch.status == .rejected ? batch.rejectedAt : batch.completedAt) ?? now) / 3600)
+                            "status": batchStatusRawValue,
+                            "timestampField": timestampField,
+                            "timestamp": timestamp,
+                            "hoursAfterStatusChange": hoursAfterStatusChange
                         ]
                     )
-                    
+
                     cleanupCount += 1
                 } catch {
-                    print("Failed to cleanup rejected batch \(batch.batchNumber): \(error)")
+                    print("Failed to cleanup batch during auto-cleanup: \(error)")
                 }
             }
             
@@ -1113,32 +1124,43 @@ public class ProductionBatchService: ObservableObject, ServiceCleanupProtocol {
         }
         
         var cleanupCount = 0
-        
+
         for batch in batchesToRemove {
             do {
-                try await productionBatchRepository.deleteBatch(id: batch.id)
-                
-                // Audit log for cleanup
+                // Capture all needed properties BEFORE deletion
+                // (accessing properties after deletion causes runtime crash)
+                let batchId = batch.id
+                let batchNumber = batch.batchNumber
+                let batchStatus = batch.status
+                let batchStatusRawValue = batch.status.rawValue
+                let timestampField = batch.status == .rejected ? "rejectedAt" : "completedAt"
+                let timestamp = (batch.status == .rejected ? batch.rejectedAt : batch.completedAt)?.description ?? ""
+                let hoursAfterStatusChange = Int(now.timeIntervalSince((batch.status == .rejected ? batch.rejectedAt : batch.completedAt) ?? now) / 3600)
+
+                // Now delete the batch
+                try await productionBatchRepository.deleteBatch(id: batchId)
+
+                // Audit log for cleanup (using captured values, not deleted object)
                 try await auditService.logOperation(
                     operationType: .batchDelete,
                     entityType: .productionBatch,
-                    entityId: batch.id,
-                    entityDescription: "Batch \(batch.batchNumber) (auto-cleanup)",
+                    entityId: batchId,
+                    entityDescription: "Batch \(batchNumber) (auto-cleanup)",
                     operatorUserId: currentUser.id,
                     operatorUserName: currentUser.name,
                     operationDetails: [
-                        "batchNumber": batch.batchNumber,
+                        "batchNumber": batchNumber,
                         "action": "auto_cleanup_old_batch",
-                        "status": batch.status.rawValue,
-                        "timestampField": batch.status == .rejected ? "rejectedAt" : "completedAt",
-                        "timestamp": (batch.status == .rejected ? batch.rejectedAt : batch.completedAt)?.description ?? "",
-                        "hoursAfterStatusChange": Int(now.timeIntervalSince((batch.status == .rejected ? batch.rejectedAt : batch.completedAt) ?? now) / 3600)
+                        "status": batchStatusRawValue,
+                        "timestampField": timestampField,
+                        "timestamp": timestamp,
+                        "hoursAfterStatusChange": hoursAfterStatusChange
                     ]
                 )
-                
+
                 cleanupCount += 1
             } catch {
-                print("Failed to cleanup rejected batch \(batch.batchNumber): \(error)")
+                print("Failed to cleanup batch during auto-cleanup: \(error)")
             }
         }
         

@@ -1,0 +1,138 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+<dict>
+    <!-- Export method for App Store distribution -->
+    <key>method</key>
+    <string>app-store</string>
+
+    <!-- Team ID for code signing -->
+    <key>teamID</key>
+    <string>YOUR_TEAM_ID</string>
+
+    <!-- Destination for the exported IPA -->
+    <key>destination</key>
+    <string>export</string>
+
+    <!-- App Store distribution options -->
+    <key>uploadBitcode</key>
+    <false/>
+
+    <key>uploadSymbols</key>
+    <true/>
+
+    <key>compileBitcode</key>
+    <false/>
+
+    <!-- Signing configuration -->
+    <key>signingStyle</key>
+    <string>manual</string>
+
+    <key>signingCertificate</key>
+    <string>iPhone Distribution</string>
+
+    <!-- Provisioning profiles for each bundle identifier -->
+    <key>provisioningProfiles</key>
+    <dict>
+        <key>com.lopanng.Lopan</key>
+        <string>Lopan Distribution</string>
+        <!-- Add additional bundle IDs if you have app extensions -->
+        <!--
+        <key>com.lopanng.Lopan.widget</key>
+        <string>Lopan Widget Distribution</string>
+        <key>com.lopanng.Lopan.watchapp</key>
+        <string>Lopan Watch App Distribution</string>
+        -->
+    </dict>
+
+    <!-- App thinning options -->
+    <key>thinning</key>
+    <string>&lt;none&gt;</string>
+
+    <!-- Strip Swift symbols for App Store -->
+    <key>stripSwiftSymbols</key>
+    <true/>
+
+    <!-- Manifest options -->
+    <key>manifest</key>
+    <dict>
+        <key>appURL</key>
+        <string>https://lopan.app/download</string>
+        <key>displayImageURL</key>
+        <string>https://lopan.app/images/icon-512.png</string>
+        <key>fullSizeImageURL</key>
+        <string>https://lopan.app/images/icon-1024.png</string>
+    </dict>
+
+    <!-- iCloud container environment -->
+    <key>iCloudContainerEnvironment</key>
+    <string>Production</string>
+
+    <!-- Distribute app using App Store Connect -->
+    <key>distributeAppInAppStoreConnect</key>
+    <true/>
+
+    <!-- Generate app size report -->
+    <key>generateAppStoreInformation</key>
+    <true/>
+
+    <!-- Phase 6 specific configurations -->
+    <!-- Optimized for production deployment -->
+
+    <!-- Ensure compatibility with iOS 26 -->
+    <key>minimumOSVersion</key>
+    <string>17.0</string>
+
+    <!-- Enable on-demand resources if used -->
+    <key>embedOnDemandResourcesAssetPacksInBundle</key>
+    <false/>
+
+    <!-- App Store review configuration -->
+    <key>generateAppStoreInformation</key>
+    <true/>
+
+    <!-- Export compliance for encryption -->
+    <key>exportComplianceInfo</key>
+    <dict>
+        <key>usesEncryption</key>
+        <true/>
+        <key>encryptionType</key>
+        <string>standard</string>
+        <key>exemptAlgorithms</key>
+        <array>
+            <string>HTTPS</string>
+            <string>TLS</string>
+        </array>
+        <key>customEncryption</key>
+        <false/>
+    </dict>
+
+    <!-- Lopan-specific metadata -->
+    <key>appMetadata</key>
+    <dict>
+        <key>appName</key>
+        <string>Lopan Production Manager</string>
+        <key>bundleIdentifier</key>
+        <string>com.lopanng.Lopan</string>
+        <key>version</key>
+        <string>1.0.0</string>
+        <key>buildNumber</key>
+        <string>100</string>
+        <key>category</key>
+        <string>Business</string>
+        <key>description</key>
+        <string>Smart Factory Production Management for Modern Manufacturing</string>
+        <key>phase4Optimized</key>
+        <true/>
+        <key>performanceTargets</key>
+        <dict>
+            <key>launchTime</key>
+            <string>&lt;1.5s</string>
+            <key>scrollPerformance</key>
+            <string>60fps</string>
+            <key>memoryUsage</key>
+            <string>&lt;150MB</string>
+        </dict>
+    </dict>
+</dict>
+</plist>

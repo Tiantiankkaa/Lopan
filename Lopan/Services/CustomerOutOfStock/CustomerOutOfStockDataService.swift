@@ -26,16 +26,19 @@ class DefaultCustomerOutOfStockDataService: CustomerOutOfStockDataService {
     private let repository: CustomerOutOfStockRepository
     private let customerRepository: CustomerRepository
     private let productRepository: ProductRepository
+    private let authService: AuthenticationService
     private let logger = Logger(subsystem: "com.lopan.app", category: "CustomerOutOfStockDataService")
-    
+
     init(
         repository: CustomerOutOfStockRepository,
         customerRepository: CustomerRepository,
-        productRepository: ProductRepository
+        productRepository: ProductRepository,
+        authService: AuthenticationService
     ) {
         self.repository = repository
         self.customerRepository = customerRepository
         self.productRepository = productRepository
+        self.authService = authService
     }
     
     // MARK: - Data Operations
@@ -209,8 +212,8 @@ class DefaultCustomerOutOfStockDataService: CustomerOutOfStockDataService {
     // MARK: - Helper Methods
     
     private func getCurrentUserId() -> String {
-        // TODO: Get from authentication service
-        return "system_user"
+        // Get current user ID from authentication service
+        return authService.currentUser?.id ?? "system_user"
     }
 }
 
