@@ -1204,4 +1204,126 @@ class LocalCustomerOutOfStockRepository: CustomerOutOfStockRepository {
         return overdueCount
     }
 
+    // MARK: - OPTIMIZED Dashboard Metrics
+
+    /// Ultra-optimized single-pass calculation of all dashboard metrics
+    /// Fetches records once in batches and calculates all counts + collects display items
+    func fetchDashboardMetrics() async throws -> DashboardMetrics {
+        let startTime = CFAbsoluteTimeGetCurrent()
+        print("🚀 [Repository] ULTRA-OPTIMIZED v2: Single-pass metrics + display items")
+
+        let calendar = Calendar.current
+        let now = Date()
+
+        // Calculate date thresholds
+        guard let sevenDaysAgo = calendar.date(byAdding: .day, value: -7, to: now),
+              let fourteenDaysAgo = calendar.date(byAdding: .day, value: -14, to: now) else {
+            throw NSError(domain: "LocalCustomerOutOfStockRepository", code: 4001,
+                         userInfo: [NSLocalizedDescriptionKey: "Failed to calculate date thresholds"])
+        }
+
+        // Initialize counters
+        var statusCounts: [OutOfStockStatus: Int] = [:]
+        var needsReturnCount = 0
+        var dueSoonCount = 0
+        var overdueCount = 0
+
+        // Display items collection
+        var pendingItems: [CustomerOutOfStock] = []
+        var returnItems: [CustomerOutOfStock] = []
+        var completedItems: [CustomerOutOfStock] = []
+
+        // Batch processing to avoid memory issues
+        let batchSize = 10000
+        var offset = 0
+        var totalProcessed = 0
+
+        while true {
+            var descriptor = FetchDescriptor<CustomerOutOfStock>(
+                sortBy: [SortDescriptor(\.requestDate, order: .forward)]
+            )
+            descriptor.fetchLimit = batchSize
+            descriptor.fetchOffset = offset
+
+            let batch = try modelContext.fetch(descriptor)
+
+            if batch.isEmpty {
+                break
+            }
+
+            // Single pass through batch - calculate all metrics AND collect display items
+            for record in batch {
+                // Count by status
+                statusCounts[record.status, default: 0] += 1
+
+                // Count needs return (returnQuantity > 0)
+                if record.returnQuantity > 0 {
+                    needsReturnCount += 1
+
+                    // Collect top 10 return items
+                    if returnItems.count < 10 {
+                        returnItems.append(record)
+                    }
+                }
+
+                // Handle pending records
+                if record.status == .pending {
+                    // Collect top 50 pending items (oldest first, already sorted)
+                    if pendingItems.count < 50 {
+                        pendingItems.append(record)
+                    }
+
+                    // Count by date range
+                    if record.requestDate >= sevenDaysAgo {
+                        // Recent (< 7 days) - not counted separately
+                    } else if record.requestDate >= fourteenDaysAgo {
+                        // Due soon (7-14 days)
+                        dueSoonCount += 1
+                    } else {
+                        // Overdue (> 14 days)
+                        overdueCount += 1
+                    }
+                }
+
+                // Collect recently completed items (need reverse sort later)
+                if record.status == .completed {
+                    completedItems.append(record)
+                }
+            }
+
+            totalProcessed += batch.count
+            offset += batch.count
+
+            if totalProcessed % 50000 == 0 {
+                print("📊 [Repository] Processed \(totalProcessed) records...")
+            }
+
+            if batch.count < batchSize {
+                break
+            }
+        }
+
+        // Sort completed items by date descending and take top 10
+        let sortedCompleted = completedItems
+            .sorted { ($0.actualCompletionDate ?? $0.updatedAt) > ($1.actualCompletionDate ?? $1.updatedAt) }
+            .prefix(10)
+
+        let elapsed = CFAbsoluteTimeGetCurrent() - startTime
+        print("🚀 [Repository] ✅ All metrics + display items in \(String(format: "%.3f", elapsed))s")
+        print("   Total records: \(totalProcessed)")
+        print("   Pending: \(statusCounts[.pending] ?? 0), Completed: \(statusCounts[.completed] ?? 0), Returned: \(statusCounts[.returned] ?? 0)")
+        print("   Needs Return: \(needsReturnCount), Due Soon: \(dueSoonCount), Overdue: \(overdueCount)")
+        print("   Display items: Pending=\(pendingItems.count), Return=\(returnItems.count), Completed=\(sortedCompleted.count)")
+
+        return DashboardMetrics(
+            statusCounts: statusCounts,
+            needsReturnCount: needsReturnCount,
+            dueSoonCount: dueSoonCount,
+            overdueCount: overdueCount,
+            topPendingItems: pendingItems,
+            topReturnItems: returnItems,
+            recentCompleted: Array(sortedCompleted)
+        )
+    }
+
 }

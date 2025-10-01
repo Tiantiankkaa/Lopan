@@ -124,6 +124,7 @@ final class SalespersonDashboardViewModel: ObservableObject {
     private weak var authService: AuthenticationService?
     private var dependencies: HasAppDependencies?
     private let calendar = Calendar.current
+    private var isRefreshing = false  // Debounce flag
 
     // MARK: - Initialization
 
@@ -151,6 +152,10 @@ final class SalespersonDashboardViewModel: ObservableObject {
 
     func refreshAsync() async {
         guard dependencies != nil else { return }
+        guard !isRefreshing else {
+            print("🔄 [ViewModel] Refresh already in progress, skipping...")
+            return
+        }
         await loadDashboardContent()
     }
 
@@ -162,6 +167,12 @@ final class SalespersonDashboardViewModel: ObservableObject {
 
     private func loadDashboardContent() async {
         guard let dependencies = dependencies else { return }
+
+        // Debounce: prevent multiple simultaneous refreshes
+        guard !isRefreshing else { return }
+        isRefreshing = true
+        defer { isRefreshing = false }
+
         isLoading = true
         errorMessage = nil
 
@@ -171,31 +182,23 @@ final class SalespersonDashboardViewModel: ObservableObject {
         let stockoutRepository = repositoryFactory.customerOutOfStockRepository
 
         do {
-            // Load customers and products for metrics (needed for counts)
+            // PHASE 2 OPTIMIZATION: Single mega-query for all data
+            // Load customers and products for metrics + single metrics fetch with display items
             async let customersTask = customerRepository.fetchCustomers()
             async let productsTask = productRepository.fetchProducts()
-
-            // Load targeted stockout queries with pagination (OPTIMIZED)
-            // Instead of loading ALL 106k records, we fetch only what we need
-            async let pendingStockoutsTask = fetchPendingStockouts(repository: stockoutRepository)
-            async let returnStockoutsTask = fetchReturnStockouts(repository: stockoutRepository)
-            async let recentCompletedTask = fetchRecentCompleted(repository: stockoutRepository)
-            async let stockoutCountsTask = fetchStockoutCounts(repository: stockoutRepository)
+            async let dashboardMetricsTask = stockoutRepository.fetchDashboardMetrics()
 
             let customers = try await customersTask
             let products = try await productsTask
-            let pendingStockouts = try await pendingStockoutsTask
-            let returnStockouts = try await returnStockoutsTask
-            let recentCompleted = try await recentCompletedTask
-            let stockoutCounts = try await stockoutCountsTask
+            let dashboardMetrics = try await dashboardMetricsTask
 
-            // Build UI components from targeted data
-            let hero = buildHero(customers: customers, stockoutCounts: stockoutCounts)
-            let metricItems = buildMetrics(customers: customers, products: products, stockoutCounts: stockoutCounts)
-            let tasks = buildPriorityTasks(pending: pendingStockouts, returns: returnStockouts, completed: recentCompleted)
+            // Build UI components from single-pass data
+            let hero = buildHero(customers: customers, metrics: dashboardMetrics)
+            let metricItems = buildMetrics(customers: customers, products: products, metrics: dashboardMetrics)
+            let tasks = buildPriorityTasks(metrics: dashboardMetrics)
             let quick = buildQuickActions()
-            let activities = buildRecentActivities(pending: pendingStockouts, returns: returnStockouts, completed: recentCompleted)
-            let reminderItems = buildReminders(stockoutCounts: stockoutCounts, pendingItems: pendingStockouts)
+            let activities = buildRecentActivities(metrics: dashboardMetrics)
+            let reminderItems = buildReminders(metrics: dashboardMetrics)
 
             // Load daily sales asynchronously
             let sales = await loadDailySales()
@@ -219,158 +222,6 @@ final class SalespersonDashboardViewModel: ObservableObject {
         }
     }
 
-    // MARK: - Optimized Data Fetching
-
-    private func fetchPendingStockouts(repository: CustomerOutOfStockRepository) async throws -> [CustomerOutOfStock] {
-        let criteria = OutOfStockFilterCriteria(
-            status: .pending,
-            pageSize: 50,  // Fetch top 50 pending items (for better due soon/overdue count accuracy)
-            sortOrder: .oldestFirst
-        )
-        let result = try await repository.fetchOutOfStockRecords(criteria: criteria, page: 0, pageSize: 50)
-        return result.items
-    }
-
-    private func fetchReturnStockouts(repository: CustomerOutOfStockRepository) async throws -> [CustomerOutOfStock] {
-        let criteria = OutOfStockFilterCriteria(
-            status: .returned,
-            pageSize: 10,  // Fetch top 10 return items
-            sortOrder: .newestFirst
-        )
-        let result = try await repository.fetchOutOfStockRecords(criteria: criteria, page: 0, pageSize: 10)
-        // Filter for needsReturn in memory (small dataset)
-        return result.items.filter { $0.needsReturn }
-    }
-
-    private func fetchRecentCompleted(repository: CustomerOutOfStockRepository) async throws -> [CustomerOutOfStock] {
-        let criteria = OutOfStockFilterCriteria(
-            status: .completed,
-            pageSize: 10,  // Fetch top 10 completed items
-            sortOrder: .newestFirst
-        )
-        let result = try await repository.fetchOutOfStockRecords(criteria: criteria, page: 0, pageSize: 10)
-        return result.items
-    }
-
-    private func fetchStockoutCounts(repository: CustomerOutOfStockRepository) async throws -> StockoutCounts {
-        print("📊 [ViewModel] ULTRA-OPTIMIZED: Using pagination totalCount for all metrics")
-
-        // Calculate time windows
-        let now = Date()
-        let calendar = Calendar.current
-
-        guard let sevenDaysAgo = calendar.date(byAdding: .day, value: -7, to: now),
-              let fourteenDaysAgo = calendar.date(byAdding: .day, value: -14, to: now) else {
-            throw NSError(domain: "SalespersonDashboardViewModel", code: -1,
-                         userInfo: [NSLocalizedDescriptionKey: "Failed to calculate date ranges"])
-        }
-
-        // REVOLUTIONARY: Use pagination with pageSize=1 to get totalCount only
-        // All queries execute in parallel for maximum speed
-
-        // Pending Returns (≤7 days)
-        async let pendingReturnsTask = repository.fetchOutOfStockRecords(
-            criteria: OutOfStockFilterCriteria(
-                status: .pending,
-                dateRange: (sevenDaysAgo, now),
-                pageSize: 1
-            ),
-            page: 0,
-            pageSize: 1
-        )
-
-        // Due Soon (7-14 days)
-        async let dueSoonTask = repository.fetchOutOfStockRecords(
-            criteria: OutOfStockFilterCriteria(
-                status: .pending,
-                dateRange: (fourteenDaysAgo, sevenDaysAgo),
-                pageSize: 1
-            ),
-            page: 0,
-            pageSize: 1
-        )
-
-        // Overdue (>14 days)
-        async let overdueTask = repository.fetchOutOfStockRecords(
-            criteria: OutOfStockFilterCriteria(
-                status: .pending,
-                dateRange: (Date.distantPast, fourteenDaysAgo),
-                pageSize: 1
-            ),
-            page: 0,
-            pageSize: 1
-        )
-
-        // Total Pending (for metrics)
-        async let totalPendingTask = repository.fetchOutOfStockRecords(
-            criteria: OutOfStockFilterCriteria(
-                status: .pending,
-                pageSize: 1
-            ),
-            page: 0,
-            pageSize: 1
-        )
-
-        // Completed
-        async let completedTask = repository.fetchOutOfStockRecords(
-            criteria: OutOfStockFilterCriteria(
-                status: .completed,
-                pageSize: 1
-            ),
-            page: 0,
-            pageSize: 1
-        )
-
-        // Returned
-        async let returnedTask = repository.fetchOutOfStockRecords(
-            criteria: OutOfStockFilterCriteria(
-                status: .returned,
-                pageSize: 1
-            ),
-            page: 0,
-            pageSize: 1
-        )
-
-        // Needs Return (records with returnQuantity > 0)
-        async let needsReturnTask = repository.fetchOutOfStockRecords(
-            criteria: OutOfStockFilterCriteria(
-                pageSize: 1,
-                hasPartialReturn: true
-            ),
-            page: 0,
-            pageSize: 1
-        )
-
-        // Await all results in parallel
-        let pendingReturnsResult = try await pendingReturnsTask
-        let dueSoonResult = try await dueSoonTask
-        let overdueResult = try await overdueTask
-        let totalPendingResult = try await totalPendingTask
-        let completedResult = try await completedTask
-        let returnedResult = try await returnedTask
-        let needsReturnResult = try await needsReturnTask
-
-        print("📊 [ViewModel] Counts retrieved - Pending Returns: \(pendingReturnsResult.totalCount), Due Soon: \(dueSoonResult.totalCount), Overdue: \(overdueResult.totalCount)")
-
-        return StockoutCounts(
-            pending: totalPendingResult.totalCount,
-            completed: completedResult.totalCount,
-            returned: returnedResult.totalCount,
-            needsReturn: needsReturnResult.totalCount,
-            dueSoon: dueSoonResult.totalCount,
-            overdue: overdueResult.totalCount
-        )
-    }
-
-    struct StockoutCounts {
-        let pending: Int
-        let completed: Int
-        let returned: Int
-        let needsReturn: Int
-        let dueSoon: Int
-        let overdue: Int
-    }
-
     // MARK: - Builders
 
     private func configureSkeletonState() {
@@ -385,13 +236,13 @@ final class SalespersonDashboardViewModel: ObservableObject {
         recentActivities = []
     }
 
-    private func buildHero(customers: [Customer], stockoutCounts: StockoutCounts) -> HeroState {
+    private func buildHero(customers: [Customer], metrics: DashboardMetrics) -> HeroState {
         let userName = authService?.currentUser?.name ?? ""
         let greetingText = greeting(for: Date(), name: userName)
         let summaryLine = heroSummaryLine(
             customersCount: customers.count,
-            pendingCount: stockoutCounts.pending,
-            returnsCount: stockoutCounts.needsReturn
+            pendingCount: metrics.statusCounts[.pending] ?? 0,
+            returnsCount: metrics.needsReturnCount
         )
 
         return HeroState(
@@ -401,10 +252,10 @@ final class SalespersonDashboardViewModel: ObservableObject {
         )
     }
 
-    private func buildMetrics(customers: [Customer], products: [Product], stockoutCounts: StockoutCounts) -> [Metric] {
-        // Use completed count from efficient query
-        let completedCount = stockoutCounts.completed
-        let giveBackQueueCount = stockoutCounts.needsReturn
+    private func buildMetrics(customers: [Customer], products: [Product], metrics: DashboardMetrics) -> [Metric] {
+        // Use completed count from efficient single-pass query
+        let completedCount = metrics.statusCounts[.completed] ?? 0
+        let giveBackQueueCount = metrics.needsReturnCount
 
         let metrics: [Metric] = [
             Metric(
@@ -444,8 +295,13 @@ final class SalespersonDashboardViewModel: ObservableObject {
         return metrics
     }
 
-    private func buildPriorityTasks(pending: [CustomerOutOfStock], returns: [CustomerOutOfStock], completed: [CustomerOutOfStock]) -> [PriorityTask] {
-        // Pending tasks - already sorted by oldest first from query
+    private func buildPriorityTasks(metrics: DashboardMetrics) -> [PriorityTask] {
+        // Use display items from single-pass query
+        let pending = metrics.topPendingItems
+        let returns = metrics.topReturnItems
+        let completed = metrics.recentCompleted
+
+        // Pending tasks - already sorted by oldest first
         let pendingTasks: [PriorityTask] = pending
             .prefix(5)
             .map { item in
@@ -460,7 +316,7 @@ final class SalespersonDashboardViewModel: ObservableObject {
                 )
             }
 
-        // Return tasks - already filtered for needsReturn
+        // Return tasks
         let returnTasks: [PriorityTask] = returns
             .sorted { ($0.returnDate ?? $0.requestDate) < ($1.returnDate ?? $1.requestDate) }
             .prefix(4)
@@ -520,10 +376,15 @@ final class SalespersonDashboardViewModel: ObservableObject {
         ]
     }
 
-    private func buildRecentActivities(pending: [CustomerOutOfStock], returns: [CustomerOutOfStock], completed: [CustomerOutOfStock]) -> [Activity] {
+    private func buildRecentActivities(metrics: DashboardMetrics) -> [Activity] {
         var activities: [Activity] = []
 
-        // Recent shortages created - already sorted newest first from query
+        // Use display items from single-pass query
+        let pending = metrics.topPendingItems
+        let returns = metrics.topReturnItems
+        let completed = metrics.recentCompleted
+
+        // Recent shortages created
         let recentShortages = pending
             .prefix(2)
             .map { item in
@@ -538,7 +399,7 @@ final class SalespersonDashboardViewModel: ObservableObject {
             }
         activities.append(contentsOf: recentShortages)
 
-        // Recent returns processed - already filtered for needsReturn
+        // Recent returns processed
         let recentReturns = returns
             .filter { $0.returnDate != nil }
             .sorted { ($0.returnDate ?? Date.distantPast) > ($1.returnDate ?? Date.distantPast) }
@@ -555,7 +416,7 @@ final class SalespersonDashboardViewModel: ObservableObject {
             }
         activities.append(contentsOf: recentReturns)
 
-        // Recent completed orders - already sorted newest first from query
+        // Recent completed orders
         let completedActivities = completed
             .prefix(2)
             .map { item in
@@ -574,11 +435,11 @@ final class SalespersonDashboardViewModel: ObservableObject {
         return Array(activities.sorted { $0.date > $1.date }.prefix(5))
     }
 
-    private func buildReminders(stockoutCounts: StockoutCounts, pendingItems: [CustomerOutOfStock]) -> [ReminderItem] {
-        // Use accurate counts from efficient repository queries
-        let pendingReturnsCount = stockoutCounts.needsReturn
-        let dueSoonCount = stockoutCounts.dueSoon
-        let overdueCount = stockoutCounts.overdue
+    private func buildReminders(metrics: DashboardMetrics) -> [ReminderItem] {
+        // Use counts from single-pass query
+        let pendingReturnsCount = metrics.needsReturnCount
+        let dueSoonCount = metrics.dueSoonCount
+        let overdueCount = metrics.overdueCount
 
         return [
             ReminderItem(

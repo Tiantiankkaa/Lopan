@@ -545,13 +545,80 @@ extension CloudCustomerOutOfStockRepository {
     func invalidateCloudCache(for id: String) async throws {
         let endpoint = "\(baseEndpoint)/cache/invalidate/\(id)"
         let response = try await cloudProvider.delete(endpoint: endpoint)
-        
+
         guard response.success else {
             throw RepositoryError.unknownError(NSError(
-                domain: "CloudCache", 
+                domain: "CloudCache",
                 code: -1,
                 userInfo: [NSLocalizedDescriptionKey: response.error ?? "Cache invalidation failed"]
             ))
         }
+    }
+
+    // MARK: - OPTIMIZED Dashboard Metrics
+
+    /// Single-pass dashboard metrics calculation - calls dedicated cloud endpoint
+    func fetchDashboardMetrics() async throws -> DashboardMetrics {
+        let endpoint = "\(baseEndpoint)/analytics/dashboard-metrics"
+
+        do {
+            let response = try await cloudProvider.get(endpoint: endpoint, type: DashboardMetricsDTO.self)
+
+            guard response.success, let dto = response.data else {
+                // Fall back to local if available
+                if let localRepo = localFallback {
+                    print("☁️ CloudRepository: Dashboard metrics failed, using local fallback")
+                    return try await localRepo.fetchDashboardMetrics()
+                }
+                throw RepositoryError.connectionFailed(response.error ?? "Failed to fetch dashboard metrics")
+            }
+
+            return try dto.toDomain()
+
+        } catch {
+            // Fall back to local if available
+            if let localRepo = localFallback {
+                print("☁️ CloudRepository: Dashboard metrics error, using local fallback: \(error)")
+                return try await localRepo.fetchDashboardMetrics()
+            }
+            throw error
+        }
+    }
+}
+
+// MARK: - Dashboard Metrics DTO
+
+private struct DashboardMetricsDTO: Codable {
+    let statusCounts: [String: Int]
+    let needsReturnCount: Int
+    let dueSoonCount: Int
+    let overdueCount: Int
+    let topPendingItems: [CustomerOutOfStockDTO]
+    let topReturnItems: [CustomerOutOfStockDTO]
+    let recentCompleted: [CustomerOutOfStockDTO]
+
+    func toDomain() throws -> DashboardMetrics {
+        // Convert string keys to OutOfStockStatus enum
+        var domainStatusCounts: [OutOfStockStatus: Int] = [:]
+        for (key, value) in statusCounts {
+            if let status = OutOfStockStatus(rawValue: key) {
+                domainStatusCounts[status] = value
+            }
+        }
+
+        // Convert DTOs to domain models
+        let pendingItems = try topPendingItems.map { try $0.toDomain() }
+        let returnItems = try topReturnItems.map { try $0.toDomain() }
+        let completedItems = try recentCompleted.map { try $0.toDomain() }
+
+        return DashboardMetrics(
+            statusCounts: domainStatusCounts,
+            needsReturnCount: needsReturnCount,
+            dueSoonCount: dueSoonCount,
+            overdueCount: overdueCount,
+            topPendingItems: pendingItems,
+            topReturnItems: returnItems,
+            recentCompleted: completedItems
+        )
     }
 }

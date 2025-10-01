@@ -1203,6 +1203,19 @@ private class MockAuditCustomerOutOfStockRepository: CustomerOutOfStockRepositor
         return 0
     }
 
+    func fetchDashboardMetrics() async throws -> DashboardMetrics {
+        print("🔧 MockAuditCustomerOutOfStockRepository: fetchDashboardMetrics called")
+        return DashboardMetrics(
+            statusCounts: [:],
+            needsReturnCount: 0,
+            dueSoonCount: 0,
+            overdueCount: 0,
+            topPendingItems: [],
+            topReturnItems: [],
+            recentCompleted: []
+        )
+    }
+
     // CRUD operations
     func addOutOfStockRecord(_ record: CustomerOutOfStock) async throws {
         print("🔧 MockAuditCustomerOutOfStockRepository: addOutOfStockRecord called - NO-OP in placeholder mode")

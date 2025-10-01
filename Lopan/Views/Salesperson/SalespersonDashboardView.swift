@@ -57,11 +57,9 @@ struct SalespersonDashboardView: View {
                 toastManager.showSuccess(NSLocalizedString("salesperson_dashboard_refresh_success", comment: ""))
             }
             .onAppear {
+                // Configure once and load data
+                // configureIfNeeded already calls refresh internally
                 viewModel.configureIfNeeded(dependencies: appDependencies)
-                // Refresh data when view appears (e.g., returning from sales entry)
-                Task {
-                    await viewModel.refreshAsync()
-                }
             }
             .overlay(alignment: .top) {
                 if viewModel.isLoading {
