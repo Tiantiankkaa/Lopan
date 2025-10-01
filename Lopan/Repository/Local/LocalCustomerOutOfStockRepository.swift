@@ -8,7 +8,6 @@
 import Foundation
 import SwiftData
 
-@MainActor
 class LocalCustomerOutOfStockRepository: CustomerOutOfStockRepository {
     private let modelContext: ModelContext
     
@@ -18,79 +17,61 @@ class LocalCustomerOutOfStockRepository: CustomerOutOfStockRepository {
     
     func fetchOutOfStockRecords() async throws -> [CustomerOutOfStock] {
         let descriptor = FetchDescriptor<CustomerOutOfStock>()
-        return try await MainActor.run {
-            // DEBUG: Log which context is being queried
-            print("🔍 Repository: fetchOutOfStockRecords called")
-            print("  ModelContext ID: \(ObjectIdentifier(modelContext))")
+        // DEBUG: Log which context is being queried
+        print("🔍 Repository: fetchOutOfStockRecords called")
+        print("  ModelContext ID: \(ObjectIdentifier(modelContext))")
 
-            let results = try modelContext.fetch(descriptor)
-            print("  Found \(results.count) records in this context")
-            return results
-        }
+        let results = try modelContext.fetch(descriptor)
+        print("  Found \(results.count) records in this context")
+        return results
     }
     
     func fetchOutOfStockRecord(by id: String) async throws -> CustomerOutOfStock? {
         let descriptor = FetchDescriptor<CustomerOutOfStock>()
-        let records = try await MainActor.run {
-            return try modelContext.fetch(descriptor)
-        }
+        let records = try modelContext.fetch(descriptor)
         return records.first { $0.id == id }
     }
     
     func fetchOutOfStockRecords(for customer: Customer) async throws -> [CustomerOutOfStock] {
         let descriptor = FetchDescriptor<CustomerOutOfStock>()
-        let records = try await MainActor.run {
-            return try modelContext.fetch(descriptor)
-        }
+        let records = try modelContext.fetch(descriptor)
         return records.filter { $0.customer?.id == customer.id }
     }
     
     func fetchOutOfStockRecords(for product: Product) async throws -> [CustomerOutOfStock] {
         let descriptor = FetchDescriptor<CustomerOutOfStock>()
-        let records = try await MainActor.run {
-            return try modelContext.fetch(descriptor)
-        }
+        let records = try modelContext.fetch(descriptor)
         return records.filter { $0.product?.id == product.id }
     }
     
     func addOutOfStockRecord(_ record: CustomerOutOfStock) async throws {
-        try await MainActor.run {
-            modelContext.insert(record)
-            try modelContext.save()
-        }
+        modelContext.insert(record)
+        try modelContext.save()
     }
 
     func addOutOfStockRecords(_ records: [CustomerOutOfStock]) async throws {
-        try await MainActor.run {
-            // Insert all records first
-            for record in records {
-                modelContext.insert(record)
-            }
-            // Save once at the end (MUCH faster!)
-            try modelContext.save()
+        // Insert all records first
+        for record in records {
+            modelContext.insert(record)
         }
+        // Save once at the end (MUCH faster!)
+        try modelContext.save()
     }
     
     func updateOutOfStockRecord(_ record: CustomerOutOfStock) async throws {
-        try await MainActor.run {
-            try modelContext.save()
-        }
+        try modelContext.save()
     }
     
     func deleteOutOfStockRecord(_ record: CustomerOutOfStock) async throws {
-        try await MainActor.run {
-            modelContext.delete(record)
-            try modelContext.save()
-        }
+        modelContext.delete(record)
+        try modelContext.save()
     }
     
     func deleteOutOfStockRecords(_ records: [CustomerOutOfStock]) async throws {
-        try await MainActor.run {
-            for record in records {
-                modelContext.delete(record)
-            }
-            try modelContext.save()
+        for record in records {
+            modelContext.delete(record)
         }
+        try modelContext.save()
     }
     
     // MARK: - Paginated Methods
@@ -204,8 +185,7 @@ class LocalCustomerOutOfStockRepository: CustomerOutOfStockRepository {
             pageSize: pageSize
         )
     }
-    
-    @MainActor
+
     private func fetchWithDatabasePagination(
         criteria: OutOfStockFilterCriteria,
         page: Int,
@@ -251,11 +231,9 @@ class LocalCustomerOutOfStockRepository: CustomerOutOfStockRepository {
             paginatedDescriptor.fetchOffset = offset
             
             print("📊 [Repository] Executing safe fetch with predicate: \(predicate != nil)")
-            
-            // Perform the fetch operation with error handling - ensure main thread execution
-            let fetchedItems = try await MainActor.run {
-                return try modelContext.fetch(paginatedDescriptor)
-            }
+
+            // Perform the fetch operation with error handling
+            let fetchedItems = try modelContext.fetch(paginatedDescriptor)
             
             print("📊 [Repository] Successfully fetched \(fetchedItems.count) items")
             
@@ -280,8 +258,7 @@ class LocalCustomerOutOfStockRepository: CustomerOutOfStockRepository {
                          userInfo: [NSLocalizedDescriptionKey: "Database fetch operation failed: \(error.localizedDescription)"])
         }
     }
-    
-    @MainActor
+
     private func fetchWithMemoryFiltering(
         criteria: OutOfStockFilterCriteria,
         page: Int,
@@ -313,10 +290,8 @@ class LocalCustomerOutOfStockRepository: CustomerOutOfStockRepository {
                 sortBy: [sortDescriptor]
             )
         }
-        
-        let allMatchingItems = try await MainActor.run {
-            return try modelContext.fetch(allItemsDescriptor)
-        }
+
+        let allMatchingItems = try modelContext.fetch(allItemsDescriptor)
         
         // Step 2: Apply status, customer, and product filtering in memory (safe operations)
         var filteredItems = allMatchingItems
@@ -367,7 +342,6 @@ class LocalCustomerOutOfStockRepository: CustomerOutOfStockRepository {
 
     // MARK: - Optimized Database Pagination
 
-    @MainActor
     private func fetchWithOptimizedDatabasePagination(
         criteria: OutOfStockFilterCriteria,
         page: Int,
@@ -430,7 +404,6 @@ class LocalCustomerOutOfStockRepository: CustomerOutOfStockRepository {
         }
     }
 
-    @MainActor
     private func buildOptimizedPredicate(from criteria: OutOfStockFilterCriteria) -> Predicate<CustomerOutOfStock>? {
         var predicates: [Predicate<CustomerOutOfStock>] = []
 
@@ -489,7 +462,6 @@ class LocalCustomerOutOfStockRepository: CustomerOutOfStockRepository {
         }
     }
 
-    @MainActor
     private func getOptimizedTotalCount(criteria: OutOfStockFilterCriteria) async throws -> Int {
         // Use separate count query for better performance
         let countPredicate = buildOptimizedPredicate(from: criteria)
@@ -558,11 +530,9 @@ class LocalCustomerOutOfStockRepository: CustomerOutOfStockRepository {
                     sortBy: [SortDescriptor(\.requestDate, order: sortOrder)]
                 )
             }
-            
+
             // Get all records matching database-level filters
-            let records = try await MainActor.run {
-                return try modelContext.fetch(descriptor)
-            }
+            let records = try modelContext.fetch(descriptor)
             
             // Apply text search, customer, and product filtering in memory if needed
             var filteredRecords = records
@@ -655,11 +625,9 @@ class LocalCustomerOutOfStockRepository: CustomerOutOfStockRepository {
             guard let predicate = orphanPredicate else {
                 return []
             }
-            
+
             let descriptor = FetchDescriptor<CustomerOutOfStock>(predicate: predicate)
-            let orphanedRecords = try await MainActor.run {
-                return try modelContext.fetch(descriptor)
-            }
+            let orphanedRecords = try modelContext.fetch(descriptor)
             
             // Filter by cached customer name in notes using in-memory text search
             let filteredRecords = orphanedRecords.filter { item in
@@ -740,10 +708,8 @@ class LocalCustomerOutOfStockRepository: CustomerOutOfStockRepository {
             } else {
                 allItemsDescriptor = FetchDescriptor<CustomerOutOfStock>()
             }
-            
-            let allItems = try await MainActor.run {
-                return try modelContext.fetch(allItemsDescriptor)
-            }
+
+            let allItems = try modelContext.fetch(allItemsDescriptor)
             
             // Apply all filters in memory
             var filteredItems = allItems
@@ -776,25 +742,21 @@ class LocalCustomerOutOfStockRepository: CustomerOutOfStockRepository {
         let predicate = buildPredicate(from: criteria)
         
         print("📊 [Repository] Starting ultra-fast count with direct query")
-        
-        let count = try await MainActor.run {
-            // Use SwiftData's built-in counting capability which is much faster
-            let countDescriptor = FetchDescriptor<CustomerOutOfStock>(predicate: predicate)
-            
-            // Instead of fetching all records, just get the count
-            do {
-                let allRecords = try modelContext.fetch(countDescriptor)
-                let recordCount = allRecords.count
-                print("📊 [Repository] Direct count query completed: \(recordCount) total records")
-                return recordCount
-            } catch {
-                print("❌ [Repository] Direct count failed, falling back to estimation: \(error)")
-                // Fallback to estimation if direct count fails
-                return try performFallbackCount(criteria: criteria)
-            }
+
+        // Use SwiftData's built-in counting capability which is much faster
+        let countDescriptor = FetchDescriptor<CustomerOutOfStock>(predicate: predicate)
+
+        // Instead of fetching all records, just get the count
+        do {
+            let allRecords = try modelContext.fetch(countDescriptor)
+            let recordCount = allRecords.count
+            print("📊 [Repository] Direct count query completed: \(recordCount) total records")
+            return recordCount
+        } catch {
+            print("❌ [Repository] Direct count failed, falling back to estimation: \(error)")
+            // Fallback to estimation if direct count fails
+            return try performFallbackCount(criteria: criteria)
         }
-        
-        return count
     }
     
     /// Fallback counting method with very light batching
@@ -904,8 +866,7 @@ class LocalCustomerOutOfStockRepository: CustomerOutOfStockRepository {
     }
     
     // MARK: - Status Count Methods
-    
-    @MainActor
+
     func countOutOfStockRecordsByStatus(criteria: OutOfStockFilterCriteria) async throws -> [OutOfStockStatus: Int] {
         print("📊 [Repository] Counting records by status with criteria...")
         
@@ -941,8 +902,7 @@ class LocalCustomerOutOfStockRepository: CustomerOutOfStockRepository {
                          userInfo: [NSLocalizedDescriptionKey: "Failed to count records by status: \(error.localizedDescription)"])
         }
     }
-    
-    @MainActor
+
     private func countByStatusForNonSearchCriteria(criteria: OutOfStockFilterCriteria) async throws -> [OutOfStockStatus: Int] {
         print("📊 [Repository] Starting optimized status count with efficient query")
 
@@ -970,9 +930,7 @@ class LocalCustomerOutOfStockRepository: CustomerOutOfStockRepository {
             allItemsDescriptor = FetchDescriptor<CustomerOutOfStock>()
         }
 
-        let records = try await MainActor.run {
-            return try modelContext.fetch(allItemsDescriptor)
-        }
+        let records = try modelContext.fetch(allItemsDescriptor)
 
         print("📊 [Repository] Fetched \(records.count) records for status counting")
 
@@ -1000,7 +958,6 @@ class LocalCustomerOutOfStockRepository: CustomerOutOfStockRepository {
         return statusCounts
     }
 
-    @MainActor
     private func countByStatusInBatches() async throws -> [OutOfStockStatus: Int] {
         print("📊 [Repository] Counting by status using streaming approach")
 
@@ -1065,7 +1022,6 @@ class LocalCustomerOutOfStockRepository: CustomerOutOfStockRepository {
         }
     }
 
-    @MainActor
     private func countPartialReturnsForNonSearchCriteria(criteria: OutOfStockFilterCriteria) async throws -> Int {
         let customerId = criteria.customer?.id
         let productId = criteria.product?.id
@@ -1098,7 +1054,6 @@ class LocalCustomerOutOfStockRepository: CustomerOutOfStockRepository {
 
     // MARK: - Time-Based Count Methods
 
-    @MainActor
     func countDueSoonRecords(criteria: OutOfStockFilterCriteria) async throws -> Int {
         print("📊 [Repository] Counting due soon records (7-14 days old)")
 
@@ -1154,7 +1109,6 @@ class LocalCustomerOutOfStockRepository: CustomerOutOfStockRepository {
         return dueSoonCount
     }
 
-    @MainActor
     func countOverdueRecords(criteria: OutOfStockFilterCriteria) async throws -> Int {
         print("📊 [Repository] Counting overdue records (14+ days old)")
 
