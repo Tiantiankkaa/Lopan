@@ -26,6 +26,7 @@ final class CloudRepositoryFactory: RepositoryFactory {
     lazy var machineRepository: MachineRepository = CloudMachineRepository(cloudProvider: cloudProvider)
     lazy var colorRepository: ColorRepository = CloudColorRepository(cloudProvider: cloudProvider)
     lazy var productionBatchRepository: ProductionBatchRepository = CloudProductionBatchRepository(cloudProvider: cloudProvider)
+    lazy var salesRepository: SalesRepository = CloudSalesRepository(cloudProvider: cloudProvider)
     
     init(cloudProvider: CloudProvider, authenticationService: AuthenticationService? = nil) {
         self.cloudProvider = cloudProvider
@@ -95,7 +96,11 @@ final class HybridRepositoryFactory: RepositoryFactory {
     @MainActor var productionBatchRepository: ProductionBatchRepository {
         return isCloudEnabled ? cloudFactory!.productionBatchRepository : localFactory.productionBatchRepository
     }
-    
+
+    @MainActor var salesRepository: SalesRepository {
+        return isCloudEnabled ? cloudFactory!.salesRepository : localFactory.salesRepository
+    }
+
     // MARK: - Cloud Migration Support
     
     func enableCloudRepositories() {
@@ -229,6 +234,13 @@ final class FeatureFlagRepositoryFactory: RepositoryFactory {
             return cloudFactory.productionBatchRepository
         }
         return localFactory.productionBatchRepository
+    }
+
+    var salesRepository: SalesRepository {
+        if RepositoryFeatureFlag.useCloudAll.isEnabled, let cloudFactory = cloudFactory {
+            return cloudFactory.salesRepository
+        }
+        return localFactory.salesRepository
     }
 }
 

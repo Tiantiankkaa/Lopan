@@ -49,6 +49,10 @@ public protocol HasProductionBatchRepository {
     var productionBatchRepository: ProductionBatchRepository { get }
 }
 
+public protocol HasSalesRepository {
+    var salesRepository: SalesRepository { get }
+}
+
 // MARK: - Service Dependencies
 
 @MainActor
@@ -96,6 +100,10 @@ public protocol HasProductionBatchService {
     var productionBatchService: ProductionBatchService { get }
 }
 
+public protocol HasSalesService {
+    var salesService: SalesService { get }
+}
+
 // MARK: - Core Dependencies
 
 public protocol HasRepositoryFactory {
@@ -141,5 +149,7 @@ public protocol HasAppDependencies: HasRepositoryFactory,
                             HasDataInitializationService,
                             HasCustomerOutOfStockDependencies,
                             HasProductionDependencies,
-                            HasUserManagementDependencies {
+                            HasUserManagementDependencies,
+                            HasSalesRepository,
+                            HasSalesService {
 }

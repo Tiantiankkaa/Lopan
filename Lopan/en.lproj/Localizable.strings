@@ -669,3 +669,44 @@
 "insights_just_now" = "Just now";
 "insights_minutes_ago" = "%d minutes ago";
 "insights_hours_ago" = "%d hours ago";
+
+/* View Sales */
+"view_sales_title" = "View Sales";
+"view_sales_select_date" = "Select Date";
+"view_sales_today" = "Today";
+"view_sales_yesterday" = "Yesterday";
+"view_sales_custom" = "Custom";
+"view_sales_total_sales" = "Total Sales";
+"view_sales_total_items" = "Total Items";
+"view_sales_todays_sales" = "Today's Sales";
+"view_sales_units" = "units";
+"view_sales_source_entries" = "Source Entries";
+"view_sales_empty_title" = "No Sales on This Date";
+"view_sales_empty_message" = "There were no sales recorded for the selected date. Try another day.";
+"view_sales_error_title" = "Couldn't Load Sales";
+"view_sales_error_message" = "Something went wrong. Please check your connection and try again.";
+"view_sales_offline_message" = "You're offline. Sales data might be outdated.";
+"view_sales_delete_confirmation_title" = "Delete Sales Entry";
+"view_sales_delete_confirmation_message" = "Are you sure you want to delete this sales entry? This action cannot be undone.";
+"view_sales_delete_success" = "Sales entry deleted successfully";
+"view_sales_delete_error" = "Error deleting entry. Please try again.";
+"view_sales_refresh_success" = "Sales data refreshed successfully";
+"view_sales_error_no_user" = "No user found. Please log in again.";
+"view_sales_retry" = "Retry";
+
+/* Sales Entry */
+"sales_entry_saved_success" = "Sales entry saved successfully";
+"sales_entry_error_no_user" = "No user found. Please log in again.";
+"sales_entry_error_invalid_data" = "Please fill in all required fields.";
+"sales_entry_draft_not_implemented" = "Draft functionality coming soon";
+"sales_entry_error_no_items" = "Please add at least one item.";
+"sales_entry_error_no_product" = "Please select a product for item %d.";
+"sales_entry_error_invalid_quantity" = "Invalid quantity for %@.";
+"sales_entry_error_invalid_price" = "Invalid price for %@.";
+"sales_entry_error_future_date" = "Sales date cannot be in the future.";
+
+/* Sales Validation */
+"sales_validation_empty_items" = "Sales entry must have at least one item";
+"sales_validation_invalid_quantity" = "Invalid quantity for %@";
+"sales_validation_invalid_price" = "Invalid price for %@";
+"sales_validation_future_date" = "Sales date cannot be in the future";

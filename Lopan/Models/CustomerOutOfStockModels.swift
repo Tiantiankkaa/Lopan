@@ -33,7 +33,8 @@ public struct OutOfStockFilterCriteria {
     var page: Int
     var pageSize: Int
     var sortOrder: CustomerOutOfStockNavigationState.SortOrder
-    
+    var hasPartialReturn: Bool?  // NEW: Filter for records with returnQuantity > 0
+
     init(
         customer: Customer? = nil,
         product: Product? = nil,
@@ -42,7 +43,8 @@ public struct OutOfStockFilterCriteria {
         searchText: String = "",
         page: Int = 0,
         pageSize: Int = 50,
-        sortOrder: CustomerOutOfStockNavigationState.SortOrder = .newestFirst
+        sortOrder: CustomerOutOfStockNavigationState.SortOrder = .newestFirst,
+        hasPartialReturn: Bool? = nil
     ) {
         self.customer = customer
         self.product = product
@@ -52,6 +54,7 @@ public struct OutOfStockFilterCriteria {
         self.page = page
         self.pageSize = pageSize
         self.sortOrder = sortOrder
+        self.hasPartialReturn = hasPartialReturn
     }
 
     // MARK: - Optimization Helpers

@@ -1048,6 +1048,7 @@ private final class PlaceholderRepositoryFactory: RepositoryFactory, @unchecked 
     var machineRepository: MachineRepository { MockAuditMachineRepository() }
     var colorRepository: ColorRepository { MockAuditColorRepository() }
     var productionBatchRepository: ProductionBatchRepository { MockAuditProductionBatchRepository() }
+    var salesRepository: SalesRepository { MockAuditSalesRepository() }
 }
 
 // MARK: - Mock Audit Repositories (Production-Safe Placeholders)
@@ -1191,7 +1192,17 @@ private class MockAuditCustomerOutOfStockRepository: CustomerOutOfStockRepositor
         print("🔧 MockAuditCustomerOutOfStockRepository: countPartialReturnRecords called")
         return 0
     }
-    
+
+    func countDueSoonRecords(criteria: OutOfStockFilterCriteria) async throws -> Int {
+        print("🔧 MockAuditCustomerOutOfStockRepository: countDueSoonRecords called")
+        return 0
+    }
+
+    func countOverdueRecords(criteria: OutOfStockFilterCriteria) async throws -> Int {
+        print("🔧 MockAuditCustomerOutOfStockRepository: countOverdueRecords called")
+        return 0
+    }
+
     // CRUD operations
     func addOutOfStockRecord(_ record: CustomerOutOfStock) async throws {
         print("🔧 MockAuditCustomerOutOfStockRepository: addOutOfStockRecord called - NO-OP in placeholder mode")
@@ -1440,4 +1451,33 @@ private class MockAuditProductionBatchRepository: ProductionBatchRepository {
     func fetchLatestBatchForMachineAndShift(machineId: String, date: Date, shift: Shift) async throws -> ProductionBatch? { nil }
     func fetchActiveBatchesWithStatus(_ statuses: [BatchStatus]) async throws -> [ProductionBatch] { [] }
     func fetchBatchesForMachine(_ machineId: String, statuses: [BatchStatus], from startDate: Date?, to endDate: Date?) async throws -> [ProductionBatch] { [] }
+}
+
+private class MockAuditSalesRepository: SalesRepository {
+    func fetchSalesEntries(forDate date: Date) async throws -> [DailySalesEntry] {
+        print("🔧 MockAuditSalesRepository: fetchSalesEntries(forDate:) called")
+        return []
+    }
+
+    func fetchSalesEntries(from startDate: Date, to endDate: Date, salespersonId: String) async throws -> [DailySalesEntry] {
+        print("🔧 MockAuditSalesRepository: fetchSalesEntries(from:to:salespersonId:) called")
+        return []
+    }
+
+    func createSalesEntry(_ entry: DailySalesEntry) async throws {
+        print("🔧 MockAuditSalesRepository: createSalesEntry called")
+    }
+
+    func updateSalesEntry(_ entry: DailySalesEntry) async throws {
+        print("🔧 MockAuditSalesRepository: updateSalesEntry called")
+    }
+
+    func deleteSalesEntry(id: String) async throws {
+        print("🔧 MockAuditSalesRepository: deleteSalesEntry called")
+    }
+
+    func calculateDailySalesTotal(forDate date: Date, salespersonId: String) async throws -> Decimal {
+        print("🔧 MockAuditSalesRepository: calculateDailySalesTotal called")
+        return 0
+    }
 }

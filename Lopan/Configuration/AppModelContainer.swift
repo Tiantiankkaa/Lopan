@@ -35,6 +35,13 @@ class AppModelContainer {
     private(set) var container: ModelContainer
     
     private init() {
+        // DIAGNOSTIC: Log environment detection
+        print("🔍 AppModelContainer: Detecting environment...")
+        print("   AppEnvironment.current: \(AppEnvironment.current)")
+        print("   XCTestConfigurationFilePath: \(ProcessInfo.processInfo.environment["XCTestConfigurationFilePath"] ?? "nil")")
+        print("   USE_MEMORY_STORAGE: \(ProcessInfo.processInfo.environment["USE_MEMORY_STORAGE"] ?? "nil")")
+        print("   DEBUG mode: \(String(describing: _isDebugAssertConfiguration()))")
+
         do {
             let configuration: ModelConfiguration
             if AppEnvironment.current == .production {
@@ -46,12 +53,26 @@ class AppModelContainer {
                         CustomerOutOfStock.self,
                         User.self,
                         AuditLog.self,
-                        EVAGranulation.self
+                        EVAGranulation.self,
+                        DailySalesEntry.self,
+                        SalesLineItem.self
                     ]),
                     isStoredInMemoryOnly: false,
                     cloudKitDatabase: .private("iCloud.com.lopang.app")
                 )
             } else {
+                // Determine storage mode based on environment
+                let useInMemory: Bool
+                switch AppEnvironment.current {
+                case .testing:
+                    useInMemory = true
+                case .development:
+                    useInMemory = ProcessInfo.processInfo.environment["USE_MEMORY_STORAGE"] == "true"
+                case .production:
+                    useInMemory = false
+                }
+                print("   🔍 Using in-memory storage: \(useInMemory)")
+
                 configuration = ModelConfiguration(
                     schema: Schema([
                         Customer.self,
@@ -60,12 +81,14 @@ class AppModelContainer {
                         CustomerOutOfStock.self,
                         User.self,
                         AuditLog.self,
-                        EVAGranulation.self
+                        EVAGranulation.self,
+                        DailySalesEntry.self,
+                        SalesLineItem.self
                     ]),
-                    isStoredInMemoryOnly: AppEnvironment.current == .testing
+                    isStoredInMemoryOnly: useInMemory
                 )
             }
-            
+
             self.container = try ModelContainer(
                 for: Customer.self,
                 Product.self,
@@ -74,10 +97,20 @@ class AppModelContainer {
                 User.self,
                 AuditLog.self,
                 EVAGranulation.self,
+                DailySalesEntry.self,
+                SalesLineItem.self,
                 configurations: configuration
             )
-            
+
             print("✅ AppModelContainer initialized successfully for environment: \(AppEnvironment.current)")
+            print("📊 Container Configuration:")
+            print("   In-memory mode: \(isInMemoryMode)")
+            if let config = self.container.configurations.first {
+                print("   Store URL: \(config.url.absoluteString)")
+                print("   Is stored in memory: \(config.isStoredInMemoryOnly)")
+                print("   CloudKit: \(config.cloudKitDatabase != nil ? "Enabled" : "Disabled")")
+            }
+            print("   Models registered: Customer, Product, ProductSize, CustomerOutOfStock, User, AuditLog, EVAGranulation, DailySalesEntry, SalesLineItem")
             
         } catch {
             print("❌ Failed to initialize ModelContainer: \(error)")
@@ -92,11 +125,13 @@ class AppModelContainer {
                         CustomerOutOfStock.self,
                         User.self,
                         AuditLog.self,
-                        EVAGranulation.self
+                        EVAGranulation.self,
+                        DailySalesEntry.self,
+                        SalesLineItem.self
                     ]),
                     isStoredInMemoryOnly: true
                 )
-                
+
                 self.container = try ModelContainer(
                     for: Customer.self,
                     Product.self,
@@ -105,6 +140,8 @@ class AppModelContainer {
                     User.self,
                     AuditLog.self,
                     EVAGranulation.self,
+                    DailySalesEntry.self,
+                    SalesLineItem.self,
                     configurations: fallbackConfiguration
                 )
                 
@@ -208,7 +245,9 @@ class ModelContainerFactory {
                     CustomerOutOfStock.self,
                     User.self,
                     AuditLog.self,
-                    EVAGranulation.self
+                    EVAGranulation.self,
+                    DailySalesEntry.self,
+                    SalesLineItem.self
                 ]),
                 isStoredInMemoryOnly: isInMemory,
                 cloudKitDatabase: cloudKitDatabase
@@ -222,12 +261,14 @@ class ModelContainerFactory {
                     CustomerOutOfStock.self,
                     User.self,
                     AuditLog.self,
-                    EVAGranulation.self
+                    EVAGranulation.self,
+                    DailySalesEntry.self,
+                    SalesLineItem.self
                 ]),
                 isStoredInMemoryOnly: isInMemory
             )
         }
-        
+
         return try ModelContainer(
             for: Customer.self,
             Product.self,
@@ -236,6 +277,8 @@ class ModelContainerFactory {
             User.self,
             AuditLog.self,
             EVAGranulation.self,
+            DailySalesEntry.self,
+            SalesLineItem.self,
             configurations: configuration
         )
     }

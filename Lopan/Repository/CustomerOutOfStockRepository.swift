@@ -34,7 +34,9 @@ public protocol CustomerOutOfStockRepository {
     
     func countOutOfStockRecordsByStatus(criteria: OutOfStockFilterCriteria) async throws -> [OutOfStockStatus: Int]
     func countPartialReturnRecords(criteria: OutOfStockFilterCriteria) async throws -> Int
-    
+    func countDueSoonRecords(criteria: OutOfStockFilterCriteria) async throws -> Int
+    func countOverdueRecords(criteria: OutOfStockFilterCriteria) async throws -> Int
+
     // CRUD operations
     func addOutOfStockRecord(_ record: CustomerOutOfStock) async throws
     func addOutOfStockRecords(_ records: [CustomerOutOfStock]) async throws  // Bulk insert

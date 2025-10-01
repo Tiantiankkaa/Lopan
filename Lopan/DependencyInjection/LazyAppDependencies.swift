@@ -123,7 +123,14 @@ public final class LazyAppDependencies: HasAppDependencies, ObservableObject {
             return serviceFactory.productionBatchService
         }
     }
-    
+
+    public var salesService: SalesService {
+        return getCachedService("sales", priority: .feature) {
+            print("💰 Initializing Feature Service: Sales")
+            return serviceFactory.salesService
+        }
+    }
+
     // MARK: - TIER 3: Background Services (Ultra-Lazy, Frequent Eviction)
     
     public var dataInitializationService: NewDataInitializationService {
@@ -194,7 +201,13 @@ public final class LazyAppDependencies: HasAppDependencies, ObservableObject {
             repositoryFactory.productionBatchRepository
         }
     }
-    
+
+    public var salesRepository: SalesRepository {
+        return getCachedRepository("sales", priority: .feature) {
+            repositoryFactory.salesRepository
+        }
+    }
+
     // MARK: - Smart Caching Implementation
     
     private func getCachedService<T>(_ key: String, priority: ServicePriority, factory: () -> T) -> T {
@@ -393,6 +406,8 @@ public final class LazyAppDependencies: HasAppDependencies, ObservableObject {
                 _ = productionBatchService
             case "dataInit":
                 _ = dataInitializationService
+            case "sales":
+                _ = salesService
             default:
                 print("⚠️ Unknown service for preloading: \(serviceName)")
             }

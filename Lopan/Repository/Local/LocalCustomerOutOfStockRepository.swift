@@ -503,12 +503,23 @@ class LocalCustomerOutOfStockRepository: CustomerOutOfStockRepository {
 
         let allItems = try modelContext.fetch(countDescriptor)
 
-        // Apply status filtering in memory if needed (due to SwiftData enum limitations)
+        // Apply in-memory filters (SwiftData limitations)
+        var filteredItems = allItems
+
+        // Apply status filtering
         if let status = criteria.status {
-            return allItems.filter { $0.status == status }.count
-        } else {
-            return allItems.count
+            filteredItems = filteredItems.filter { $0.status == status }
         }
+
+        // Apply hasPartialReturn filtering
+        if let hasPartialReturn = criteria.hasPartialReturn {
+            filteredItems = filteredItems.filter { record in
+                let hasReturn = record.returnQuantity > 0
+                return hasReturn == hasPartialReturn
+            }
+        }
+
+        return filteredItems.count
     }
 
     func countOutOfStockRecords(criteria: OutOfStockFilterCriteria) async throws -> Int {
@@ -934,50 +945,103 @@ class LocalCustomerOutOfStockRepository: CustomerOutOfStockRepository {
     @MainActor
     private func countByStatusForNonSearchCriteria(criteria: OutOfStockFilterCriteria) async throws -> [OutOfStockStatus: Int] {
         print("📊 [Repository] Starting optimized status count with efficient query")
-        
+
+        // OPTIMIZATION: For dashboard (no filters), use batch counting to avoid loading all records at once
+        let hasNoFilters = criteria.customer == nil && criteria.product == nil && criteria.dateRange == nil
+
+        if hasNoFilters {
+            print("📊 [Repository] Using optimized batch counting for dashboard (no filters)")
+            return try await countByStatusInBatches()
+        }
+
         // Use safe approach - only date filtering in predicate for maximum efficiency
         var allItemsDescriptor: FetchDescriptor<CustomerOutOfStock>
-        
+
         if let dateRange = criteria.dateRange {
             let dateStart = dateRange.start
             let dateEnd = dateRange.end
             allItemsDescriptor = FetchDescriptor<CustomerOutOfStock>(
                 predicate: #Predicate<CustomerOutOfStock> { item in
-                    item.requestDate >= dateStart && 
+                    item.requestDate >= dateStart &&
                     item.requestDate < dateEnd
                 }
             )
         } else {
             allItemsDescriptor = FetchDescriptor<CustomerOutOfStock>()
         }
-        
+
         let records = try await MainActor.run {
             return try modelContext.fetch(allItemsDescriptor)
         }
-        
+
         print("📊 [Repository] Fetched \(records.count) records for status counting")
-        
+
         // Apply customer and product filters in memory to match main filtering logic
         var filteredRecords = records
-        
+
         // Apply customer filtering
         if let customerFilter = criteria.customer {
             filteredRecords = filteredRecords.filter { $0.customer?.id == customerFilter.id }
             print("📊 [Repository] After customer filter: \(filteredRecords.count) items match customer \(customerFilter.name)")
         }
-        
+
         // Apply product filtering
         if let productFilter = criteria.product {
             filteredRecords = filteredRecords.filter { $0.product?.id == productFilter.id }
             print("📊 [Repository] After product filter: \(filteredRecords.count) items match product \(productFilter.name)")
         }
-        
+
         // Efficiently count by status using reduce for better performance
         let statusCounts = filteredRecords.reduce(into: [OutOfStockStatus: Int]()) { counts, record in
             counts[record.status, default: 0] += 1
         }
-        
+
         print("📊 [Repository] Optimized count by status completed: \(statusCounts)")
+        return statusCounts
+    }
+
+    @MainActor
+    private func countByStatusInBatches() async throws -> [OutOfStockStatus: Int] {
+        print("📊 [Repository] Counting by status using streaming approach")
+
+        // ULTRA-OPTIMIZATION: Fetch in batches but only keep counts, not records
+        // This reduces memory pressure significantly
+
+        var statusCounts: [OutOfStockStatus: Int] = [:]
+        let batchSize = 10000  // Larger batches for better performance
+        var offset = 0
+        var processedCount = 0
+
+        while true {
+            // Fetch a batch of records (only IDs and status would be ideal, but SwiftData doesn't support that)
+            var descriptor = FetchDescriptor<CustomerOutOfStock>(
+                sortBy: [SortDescriptor(\.requestDate, order: .forward)]
+            )
+            descriptor.fetchLimit = batchSize
+            descriptor.fetchOffset = offset
+
+            let batch = try modelContext.fetch(descriptor)
+
+            if batch.isEmpty {
+                break
+            }
+
+            // Count statuses in this batch
+            for record in batch {
+                statusCounts[record.status, default: 0] += 1
+            }
+
+            processedCount += batch.count
+            offset += batch.count
+
+            print("📊 [Repository] Processed \(processedCount) records...")
+
+            if batch.count < batchSize {
+                break
+            }
+        }
+
+        print("📊 [Repository] Fast batch counting completed: \(statusCounts)")
         return statusCounts
     }
 
@@ -1031,5 +1095,113 @@ class LocalCustomerOutOfStockRepository: CustomerOutOfStockRepository {
 
         return filtered.count
     }
-    
+
+    // MARK: - Time-Based Count Methods
+
+    @MainActor
+    func countDueSoonRecords(criteria: OutOfStockFilterCriteria) async throws -> Int {
+        print("📊 [Repository] Counting due soon records (7-14 days old)")
+
+        // OPTIMIZATION: Calculate exact date range for due soon (7-14 days ago)
+        let now = Date()
+        let calendar = Calendar.current
+
+        // 14 days ago (start of due soon window)
+        guard let dueSoonStart = calendar.date(byAdding: .day, value: -14, to: now) else {
+            print("⚠️ [Repository] Failed to calculate due soon start date")
+            return 0
+        }
+
+        // 7 days ago (end of due soon window)
+        guard let dueSoonEnd = calendar.date(byAdding: .day, value: -7, to: now) else {
+            print("⚠️ [Repository] Failed to calculate due soon end date")
+            return 0
+        }
+
+        print("📊 [Repository] Due soon date range: \(dueSoonStart) to \(dueSoonEnd)")
+
+        // Use date predicate to fetch ONLY records in the 7-14 day window
+        let descriptor = FetchDescriptor<CustomerOutOfStock>(
+            predicate: #Predicate<CustomerOutOfStock> { item in
+                item.requestDate >= dueSoonStart && item.requestDate < dueSoonEnd
+            }
+        )
+
+        let records = try modelContext.fetch(descriptor)
+        print("📊 [Repository] Fetched \(records.count) records in due soon window")
+
+        // Apply status filtering in memory (required due to SwiftData enum limitations)
+        var filteredRecords = records.filter { $0.status == .pending }
+
+        // Apply customer and product filters if specified
+        if let customerFilter = criteria.customer {
+            filteredRecords = filteredRecords.filter { $0.customer?.id == customerFilter.id }
+        }
+
+        if let productFilter = criteria.product {
+            filteredRecords = filteredRecords.filter { $0.product?.id == productFilter.id }
+        }
+
+        // Apply text search if specified
+        if !criteria.searchText.isEmpty {
+            filteredRecords = filteredRecords.filter { record in
+                matchesTextSearch(record: record, searchText: criteria.searchText)
+            }
+        }
+
+        let dueSoonCount = filteredRecords.count
+        print("📊 [Repository] Due soon count: \(dueSoonCount)")
+        return dueSoonCount
+    }
+
+    @MainActor
+    func countOverdueRecords(criteria: OutOfStockFilterCriteria) async throws -> Int {
+        print("📊 [Repository] Counting overdue records (14+ days old)")
+
+        // OPTIMIZATION: Calculate exact date range for overdue (14+ days ago)
+        let now = Date()
+        let calendar = Calendar.current
+
+        // 14 days ago (anything before this is overdue)
+        guard let overdueThreshold = calendar.date(byAdding: .day, value: -14, to: now) else {
+            print("⚠️ [Repository] Failed to calculate overdue threshold date")
+            return 0
+        }
+
+        print("📊 [Repository] Overdue threshold: before \(overdueThreshold)")
+
+        // Use date predicate to fetch ONLY records before the 14-day threshold
+        let descriptor = FetchDescriptor<CustomerOutOfStock>(
+            predicate: #Predicate<CustomerOutOfStock> { item in
+                item.requestDate < overdueThreshold
+            }
+        )
+
+        let records = try modelContext.fetch(descriptor)
+        print("📊 [Repository] Fetched \(records.count) records before overdue threshold")
+
+        // Apply status filtering in memory (required due to SwiftData enum limitations)
+        var filteredRecords = records.filter { $0.status == .pending }
+
+        // Apply customer and product filters if specified
+        if let customerFilter = criteria.customer {
+            filteredRecords = filteredRecords.filter { $0.customer?.id == customerFilter.id }
+        }
+
+        if let productFilter = criteria.product {
+            filteredRecords = filteredRecords.filter { $0.product?.id == productFilter.id }
+        }
+
+        // Apply text search if specified
+        if !criteria.searchText.isEmpty {
+            filteredRecords = filteredRecords.filter { record in
+                matchesTextSearch(record: record, searchText: criteria.searchText)
+            }
+        }
+
+        let overdueCount = filteredRecords.count
+        print("📊 [Repository] Overdue count: \(overdueCount)")
+        return overdueCount
+    }
+
 }

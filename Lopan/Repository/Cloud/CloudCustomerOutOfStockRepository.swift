@@ -281,7 +281,103 @@ final class CloudCustomerOutOfStockRepository: CustomerOutOfStockRepository, Sen
         }.count
         return partialCount
     }
-    
+
+    func countDueSoonRecords(criteria: OutOfStockFilterCriteria) async throws -> Int {
+        let endpoint = "\(baseEndpoint)/analytics/due-soon-count"
+
+        var queryItems: [URLQueryItem] = []
+
+        if let customerId = criteria.customer?.id {
+            queryItems.append(URLQueryItem(name: "customerId", value: customerId))
+        }
+        if let productId = criteria.product?.id {
+            queryItems.append(URLQueryItem(name: "productId", value: productId))
+        }
+        if !criteria.searchText.isEmpty {
+            queryItems.append(URLQueryItem(name: "search", value: criteria.searchText))
+        }
+        if let dateRange = criteria.dateRange {
+            let formatter = ISO8601DateFormatter()
+            queryItems.append(URLQueryItem(name: "startDate", value: formatter.string(from: dateRange.start)))
+            queryItems.append(URLQueryItem(name: "endDate", value: formatter.string(from: dateRange.end)))
+        }
+
+        let fullEndpoint: String
+        if !queryItems.isEmpty {
+            var urlComponents = URLComponents(string: endpoint)
+            urlComponents?.queryItems = queryItems
+            fullEndpoint = urlComponents?.string ?? endpoint
+        } else {
+            fullEndpoint = endpoint
+        }
+
+        struct DueSoonCountResponse: Codable {
+            let count: Int
+        }
+
+        let response = try await cloudProvider.get(endpoint: fullEndpoint, type: DueSoonCountResponse.self)
+
+        if response.success, let data = response.data {
+            return data.count
+        }
+
+        // Fallback: use local repository if available
+        if let fallback = localFallback {
+            return try await fallback.countDueSoonRecords(criteria: criteria)
+        }
+
+        // Final fallback: return 0
+        return 0
+    }
+
+    func countOverdueRecords(criteria: OutOfStockFilterCriteria) async throws -> Int {
+        let endpoint = "\(baseEndpoint)/analytics/overdue-count"
+
+        var queryItems: [URLQueryItem] = []
+
+        if let customerId = criteria.customer?.id {
+            queryItems.append(URLQueryItem(name: "customerId", value: customerId))
+        }
+        if let productId = criteria.product?.id {
+            queryItems.append(URLQueryItem(name: "productId", value: productId))
+        }
+        if !criteria.searchText.isEmpty {
+            queryItems.append(URLQueryItem(name: "search", value: criteria.searchText))
+        }
+        if let dateRange = criteria.dateRange {
+            let formatter = ISO8601DateFormatter()
+            queryItems.append(URLQueryItem(name: "startDate", value: formatter.string(from: dateRange.start)))
+            queryItems.append(URLQueryItem(name: "endDate", value: formatter.string(from: dateRange.end)))
+        }
+
+        let fullEndpoint: String
+        if !queryItems.isEmpty {
+            var urlComponents = URLComponents(string: endpoint)
+            urlComponents?.queryItems = queryItems
+            fullEndpoint = urlComponents?.string ?? endpoint
+        } else {
+            fullEndpoint = endpoint
+        }
+
+        struct OverdueCountResponse: Codable {
+            let count: Int
+        }
+
+        let response = try await cloudProvider.get(endpoint: fullEndpoint, type: OverdueCountResponse.self)
+
+        if response.success, let data = response.data {
+            return data.count
+        }
+
+        // Fallback: use local repository if available
+        if let fallback = localFallback {
+            return try await fallback.countOverdueRecords(criteria: criteria)
+        }
+
+        // Final fallback: return 0
+        return 0
+    }
+
     // MARK: - CRUD Operations
     
     func addOutOfStockRecord(_ record: CustomerOutOfStock) async throws {

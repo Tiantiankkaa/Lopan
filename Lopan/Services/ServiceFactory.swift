@@ -33,6 +33,7 @@ public class ServiceFactory: ObservableObject {
     lazy var productService = ProductService(repositoryFactory: repositoryFactory)
     lazy var userService = UserService(repositoryFactory: repositoryFactory)
     lazy var auditingService = NewAuditingService(repositoryFactory: repositoryFactory)
+    lazy var salesService = SalesService(repositoryFactory: repositoryFactory)
     
     lazy var customerOutOfStockService: CustomerOutOfStockService = {
         let service = CustomerOutOfStockService(

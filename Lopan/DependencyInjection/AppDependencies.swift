@@ -29,6 +29,7 @@ public final class AppDependencies: HasAppDependencies, ObservableObject {
     public var machineRepository: MachineRepository { repositoryFactory.machineRepository }
     public var colorRepository: ColorRepository { repositoryFactory.colorRepository }
     public var productionBatchRepository: ProductionBatchRepository { repositoryFactory.productionBatchRepository }
+    public var salesRepository: SalesRepository { repositoryFactory.salesRepository }
     
     // MARK: - Service Dependencies
     public var authenticationService: AuthenticationService { serviceFactory.authenticationService }
@@ -42,6 +43,7 @@ public final class AppDependencies: HasAppDependencies, ObservableObject {
     public var machineService: MachineService { serviceFactory.machineService }
     public var colorService: ColorService { serviceFactory.colorService }
     public var productionBatchService: ProductionBatchService { serviceFactory.productionBatchService }
+    public var salesService: SalesService { serviceFactory.salesService }
     
     // MARK: - Initialization
     public init(repositoryFactory: RepositoryFactory, serviceFactory: ServiceFactory) {

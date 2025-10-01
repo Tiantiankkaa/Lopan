@@ -19,4 +19,5 @@ public protocol RepositoryFactory: AnyObject, Sendable {
     var machineRepository: MachineRepository { get }
     var colorRepository: ColorRepository { get }
     var productionBatchRepository: ProductionBatchRepository { get }
+    var salesRepository: SalesRepository { get }
 }

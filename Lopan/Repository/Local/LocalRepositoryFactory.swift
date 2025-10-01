@@ -23,6 +23,7 @@ final class LocalRepositoryFactory: RepositoryFactory {
     lazy var machineRepository: MachineRepository = LocalMachineRepository(context: modelContext)
     lazy var colorRepository: ColorRepository = LocalColorRepository(modelContext: modelContext)
     lazy var productionBatchRepository: ProductionBatchRepository = LocalProductionBatchRepository(modelContext: modelContext)
+    lazy var salesRepository: SalesRepository = LocalSalesRepository(modelContext: modelContext)
     
     init(modelContext: ModelContext) {
         self.modelContext = modelContext

@@ -825,3 +825,40 @@ final class CloudProductionBatchRepository: ProductionBatchRepository, Sendable 
         return []
     }
 }
+
+// MARK: - Sales Repository
+
+final class CloudSalesRepository: SalesRepository, Sendable {
+    private let cloudProvider: CloudProvider
+
+    init(cloudProvider: CloudProvider) {
+        self.cloudProvider = cloudProvider
+    }
+
+    func fetchSalesEntries(forDate date: Date) async throws -> [DailySalesEntry] {
+        // Stub implementation - would make API call to cloud
+        return []
+    }
+
+    func fetchSalesEntries(from startDate: Date, to endDate: Date, salespersonId: String) async throws -> [DailySalesEntry] {
+        // Stub implementation - would make API call to cloud
+        return []
+    }
+
+    func createSalesEntry(_ entry: DailySalesEntry) async throws {
+        // Stub implementation - would make POST request to cloud
+    }
+
+    func updateSalesEntry(_ entry: DailySalesEntry) async throws {
+        // Stub implementation - would make PUT request to cloud
+    }
+
+    func deleteSalesEntry(id: String) async throws {
+        // Stub implementation - would make DELETE request to cloud
+    }
+
+    func calculateDailySalesTotal(forDate date: Date, salespersonId: String) async throws -> Decimal {
+        // Stub implementation - would make API call to cloud
+        return 0
+    }
+}

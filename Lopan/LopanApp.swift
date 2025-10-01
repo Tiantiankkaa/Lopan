@@ -36,11 +36,13 @@ struct LopanApp: App {
             ColorCard.self,
             ProductionBatch.self,
             ProductConfig.self,
+            // Sales Tracking Models
+            DailySalesEntry.self,
+            SalesLineItem.self,
         ])
         
-        // For now, use in-memory storage to avoid schema migration issues
-        // This will be reset to persistent storage once the app is stable
-        let modelConfiguration = ModelConfiguration(schema: schema, isStoredInMemoryOnly: true)
+        // Enable persistent storage now that schema includes DailySalesEntry and SalesLineItem
+        let modelConfiguration = ModelConfiguration(schema: schema, isStoredInMemoryOnly: false)
 
         do {
             print("Creating ModelContainer...")
