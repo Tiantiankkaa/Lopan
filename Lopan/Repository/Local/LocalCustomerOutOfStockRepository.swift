@@ -8,13 +8,14 @@
 import Foundation
 import SwiftData
 
-class LocalCustomerOutOfStockRepository: CustomerOutOfStockRepository {
-    private let modelContext: ModelContext
-    
-    init(modelContext: ModelContext) {
-        self.modelContext = modelContext
-    }
-    
+@ModelActor
+actor LocalCustomerOutOfStockRepository: CustomerOutOfStockRepository {
+    // @ModelActor automatically provides:
+    // - modelExecutor: DefaultSerialModelExecutor
+    // - modelContainer: ModelContainer
+    // - modelContext: ModelContext (actor-isolated)
+    // - init(modelContainer: ModelContainer)
+
     func fetchOutOfStockRecords() async throws -> [CustomerOutOfStock] {
         let descriptor = FetchDescriptor<CustomerOutOfStock>()
         // DEBUG: Log which context is being queried
