@@ -121,7 +121,7 @@ public class CustomerOutOfStockService: ObservableObject {
             hasMoreData = true
             totalRecordsCount = 0
         }
-        
+
         // Update criteria for the new date
         currentCriteria = OutOfStockFilterCriteria(
             customer: currentCriteria.customer,
@@ -133,8 +133,11 @@ public class CustomerOutOfStockService: ObservableObject {
             pageSize: pageSize,
             sortOrder: CustomerOutOfStockNavigationState.shared.sortOrder
         )
-        
+
         await loadPage(criteria: currentCriteria, date: date, append: false)
+
+        // PHASE 2: Prefetch adjacent dates in background for smoother navigation
+        prefetchAdjacentDates(around: date, criteria: currentCriteria)
     }
     
     func loadFilteredItems(criteria: OutOfStockFilterCriteria, resetPagination: Bool = true) async {
@@ -692,14 +695,36 @@ public class CustomerOutOfStockService: ObservableObject {
     }
     
     // MARK: - Cache Management
-    
-    func invalidateCache(currentDate: Date) async {
-        await cacheManager.clearAllCaches()
-        await loadDataForDate(currentDate)
+
+    /// Smart cache invalidation - only clears affected caches
+    /// - Parameter affectedDate: The date affected by the operation (defaults to today)
+    /// - Parameter fullInvalidation: Whether to clear all caches (use sparingly)
+    private func invalidateCacheSmartly(affectedDate: Date? = nil, fullInvalidation: Bool = false) async {
+        if fullInvalidation {
+            // Full invalidation for major changes
+            logger.info("Full cache invalidation requested")
+            await cacheManager.clearAllCaches()
+        } else if let date = affectedDate {
+            // Selective invalidation for specific date
+            logger.info("Selective cache invalidation for date: \(date)")
+            await cacheManager.invalidateCache(for: date)
+        } else {
+            // Default: invalidate today's cache
+            let today = Calendar.current.startOfDay(for: Date())
+            logger.info("Invalidating cache for today: \(today)")
+            await cacheManager.invalidateCache(for: today)
+        }
     }
-    
+
+    /// Legacy method - kept for compatibility
+    @available(*, deprecated, message: "Use invalidateCacheSmartly instead")
+    func invalidateCache(currentDate: Date) async {
+        await invalidateCacheSmartly(affectedDate: currentDate, fullInvalidation: false)
+    }
+
+    /// Invalidate cache for specific date
     func invalidateCacheForDate(_ date: Date) async {
-        await cacheManager.invalidateCache(for: date)
+        await invalidateCacheSmartly(affectedDate: date, fullInvalidation: false)
     }
     
     // MARK: - Single Item Creation
@@ -724,9 +749,9 @@ public class CustomerOutOfStockService: ObservableObject {
             operatorUserId: currentUser.id,
             operatorUserName: currentUser.name
         )
-        
-        // Note: Data refresh should be handled by the calling view/state manager
-        await invalidateCache(currentDate: Date())
+
+        // Smart cache invalidation: only clear cache for affected date
+        await invalidateCacheSmartly(affectedDate: item.requestDate)
     }
     
     // MARK: - Batch Creation
@@ -734,7 +759,8 @@ public class CustomerOutOfStockService: ObservableObject {
     func createMultipleOutOfStockItems(_ requests: [OutOfStockCreationRequest]) async throws {
         let currentUser = try getCurrentUser()
         var createdItems: [CustomerOutOfStock] = []
-        
+        var affectedDates = Set<Date>()
+
         for request in requests {
             let item = CustomerOutOfStock(
                 customer: request.customer,
@@ -744,10 +770,15 @@ public class CustomerOutOfStockService: ObservableObject {
                 notes: request.notes,
                 createdBy: currentUser.id
             )
-            
+
             try await customerOutOfStockRepository.addOutOfStockRecord(item)
             createdItems.append(item)
-            
+
+            // Track affected dates for batch invalidation
+            let calendar = Calendar.current
+            let itemDate = calendar.startOfDay(for: item.requestDate)
+            affectedDates.insert(itemDate)
+
             // Log creation immediately
             await auditService.logCustomerOutOfStockCreation(
                 item: item,
@@ -755,9 +786,11 @@ public class CustomerOutOfStockService: ObservableObject {
                 operatorUserName: currentUser.name
             )
         }
-        
-        // Note: Data refresh should be handled by the calling view/state manager
-        await invalidateCache(currentDate: Date())
+
+        // Smart batch invalidation: only clear caches for affected dates
+        for date in affectedDates {
+            await invalidateCacheSmartly(affectedDate: date)
+        }
     }
     
     // MARK: - Item Updates
@@ -827,33 +860,33 @@ public class CustomerOutOfStockService: ObservableObject {
         }
         
         try await customerOutOfStockRepository.updateOutOfStockRecord(item)
-        
-        // Note: Data refresh should be handled by the calling view/state manager
-        await invalidateCache(currentDate: Date())
+
+        // Smart cache invalidation: only clear cache for affected date
+        await invalidateCacheSmartly(affectedDate: item.requestDate)
     }
-    
+
     // MARK: - Return Processing
-    
+
     func processReturn(_ request: ReturnProcessingRequest) async throws {
         let currentUser = try getCurrentUser()
         let item = request.item
-        
+
         // Validate return quantity
         guard request.returnQuantity > 0 && request.returnQuantity <= item.remainingQuantity else {
             throw ServiceError.invalidReturnQuantity
         }
-        
+
         // Update return information
         item.returnQuantity += request.returnQuantity
         item.returnDate = Date()
         item.returnNotes = request.returnNotes
         item.updatedAt = Date()
-        
+
         // Update status based on return progress
         if item.returnQuantity >= item.quantity {
             item.status = .completed
         }
-        
+
         // Log return processing
         await auditService.logReturnProcessing(
             item: item,
@@ -862,37 +895,43 @@ public class CustomerOutOfStockService: ObservableObject {
             operatorUserId: currentUser.id,
             operatorUserName: currentUser.name
         )
-        
+
         try await customerOutOfStockRepository.updateOutOfStockRecord(item)
-        
-        // Note: Data refresh should be handled by the calling view/state manager
-        await invalidateCache(currentDate: Date())
+
+        // Smart cache invalidation: only clear cache for affected date
+        await invalidateCacheSmartly(affectedDate: item.requestDate)
     }
     
     // MARK: - Batch Return Processing
     
     func processBatchReturns(_ requests: [ReturnProcessingRequest]) async throws {
         let currentUser = try getCurrentUser()
-        
+        var affectedDates = Set<Date>()
+
         for request in requests {
             let item = request.item
-            
+
             // Validate return quantity
             guard request.returnQuantity > 0 && request.returnQuantity <= item.remainingQuantity else {
                 continue // Skip invalid items
             }
-            
+
+            // Track affected dates
+            let calendar = Calendar.current
+            let itemDate = calendar.startOfDay(for: item.requestDate)
+            affectedDates.insert(itemDate)
+
             // Update return information
             item.returnQuantity += request.returnQuantity
             item.returnDate = Date()
             item.returnNotes = request.returnNotes
             item.updatedAt = Date()
-            
+
             // Update status based on return progress
             if item.returnQuantity >= item.quantity {
                 item.status = .completed
             }
-            
+
             // Log return processing
             await auditService.logReturnProcessing(
                 item: item,
@@ -901,51 +940,61 @@ public class CustomerOutOfStockService: ObservableObject {
                 operatorUserId: currentUser.id,
                 operatorUserName: currentUser.name
             )
-            
+
             // Update each item immediately
             try await customerOutOfStockRepository.updateOutOfStockRecord(item)
         }
-        
-        // Note: Data refresh should be handled by the calling view/state manager
-        await invalidateCache(currentDate: Date())
+
+        // Smart batch invalidation: only clear caches for affected dates
+        for date in affectedDates {
+            await invalidateCacheSmartly(affectedDate: date)
+        }
     }
     
     // MARK: - Item Deletion
     
     func deleteOutOfStockItem(_ item: CustomerOutOfStock) async throws {
         let currentUser = try getCurrentUser()
-        
+
         // Log deletion
         await auditService.logCustomerOutOfStockDeletion(
             item: item,
             operatorUserId: currentUser.id,
             operatorUserName: currentUser.name
         )
-        
+
         try await customerOutOfStockRepository.deleteOutOfStockRecord(item)
-        
-        // Note: Data refresh should be handled by the calling view/state manager
-        await invalidateCache(currentDate: Date())
+
+        // Smart cache invalidation: only clear cache for affected date
+        await invalidateCacheSmartly(affectedDate: item.requestDate)
     }
-    
+
     // MARK: - Batch Operations
-    
+
     func deleteBatchItems(_ items: [CustomerOutOfStock]) async throws {
         let currentUser = try getCurrentUser()
-        
-        // Log batch deletion and delete items
+        var affectedDates = Set<Date>()
+
+        // Log batch deletion and collect affected dates
         for item in items {
             await auditService.logCustomerOutOfStockDeletion(
                 item: item,
                 operatorUserId: currentUser.id,
                 operatorUserName: currentUser.name
             )
+
+            // Track affected dates
+            let calendar = Calendar.current
+            let itemDate = calendar.startOfDay(for: item.requestDate)
+            affectedDates.insert(itemDate)
         }
-        
+
         try await customerOutOfStockRepository.deleteOutOfStockRecords(items)
-        
-        // Note: Data refresh should be handled by the calling view/state manager
-        await invalidateCache(currentDate: Date())
+
+        // Smart batch invalidation: only clear caches for affected dates
+        for date in affectedDates {
+            await invalidateCacheSmartly(affectedDate: date)
+        }
     }
     
     /// Cache base data (without status filter) for incremental filtering
@@ -1170,8 +1219,102 @@ public class CustomerOutOfStockService: ObservableObject {
         )
     }
     
+    // MARK: - Smart Prefetching for Adjacent Dates
+
+    /// Prefetch data for adjacent dates in background for smoother navigation
+    /// - Parameter currentDate: The date currently being viewed
+    /// - Parameter criteria: Current filter criteria
+    func prefetchAdjacentDates(around currentDate: Date, criteria: OutOfStockFilterCriteria) {
+        // Run in background with low priority
+        Task.detached(priority: .utility) { [weak self] in
+            guard let self = self else { return }
+
+            let calendar = Calendar.current
+            let yesterday = calendar.date(byAdding: .day, value: -1, to: currentDate)!
+            let tomorrow = calendar.date(byAdding: .day, value: 1, to: currentDate)!
+
+            await self.logger.info("🔮 Prefetching adjacent dates: \(yesterday), \(tomorrow)")
+
+            // Prefetch yesterday's data
+            await self.prefetchDateData(date: yesterday, baseCriteria: criteria)
+
+            // Prefetch tomorrow's data
+            await self.prefetchDateData(date: tomorrow, baseCriteria: criteria)
+
+            await self.logger.info("✅ Prefetch completed for adjacent dates")
+        }
+    }
+
+    /// Prefetch data for a specific date without updating UI
+    private func prefetchDateData(date: Date, baseCriteria: OutOfStockFilterCriteria) async {
+        let dateRange = Self.createDateRange(for: date)
+
+        // Create prefetch criteria (first page, smaller size for quick preview)
+        let prefetchCriteria = OutOfStockFilterCriteria(
+            customer: baseCriteria.customer,
+            product: baseCriteria.product,
+            status: baseCriteria.status,
+            dateRange: dateRange,
+            searchText: baseCriteria.searchText,
+            page: 0,
+            pageSize: 20, // Smaller page size for prefetch
+            sortOrder: baseCriteria.sortOrder
+        )
+
+        // Check if already cached
+        let cacheKey = OutOfStockCacheKey(
+            date: date,
+            criteria: prefetchCriteria,
+            page: 0
+        )
+
+        if await cacheManager.getCachedPage(for: cacheKey) != nil {
+            logger.info("📥 Date \(date) already cached, skipping prefetch")
+            return
+        }
+
+        // Fetch and cache data
+        do {
+            let result = try await customerOutOfStockRepository.fetchOutOfStockRecords(
+                criteria: prefetchCriteria,
+                page: 0,
+                pageSize: 20
+            )
+
+            // Convert and cache
+            let cachedPage = await MainActor.run {
+                cacheManager.createCachedPage(
+                    from: result.items,
+                    totalCount: result.totalCount,
+                    hasMoreData: result.hasMoreData,
+                    priority: .low // Low priority for prefetched data
+                )
+            }
+
+            await cacheManager.cachePage(cachedPage, for: cacheKey, priority: .low)
+
+            // Also prefetch status counts for the date
+            let statusCountsCriteria = OutOfStockFilterCriteria(
+                customer: baseCriteria.customer,
+                product: baseCriteria.product,
+                status: nil, // Get all statuses
+                dateRange: dateRange,
+                searchText: baseCriteria.searchText,
+                page: 0,
+                pageSize: 1
+            )
+
+            let statusCounts = try await customerOutOfStockRepository.countOutOfStockRecordsByStatus(criteria: statusCountsCriteria)
+            cacheManager.cacheStatusCounts(statusCounts, for: statusCountsCriteria)
+
+            logger.info("✅ Prefetched \(result.items.count) items for date: \(date)")
+        } catch {
+            logger.safeError("Failed to prefetch data for date: \(date)", error: error)
+        }
+    }
+
     // MARK: - Additional Methods for ViewModel Support
-    
+
     func fetchOutOfStockRecords(
         criteria: OutOfStockFilterCriteria,
         page: Int,
