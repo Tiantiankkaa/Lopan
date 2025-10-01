@@ -1184,26 +1184,36 @@ struct CustomerOutOfStockDashboard: View {
         print("📊 Status filter: \(dashboardState.selectedStatusTab?.displayName ?? "All")")
 
         Task {
-            // Phase 1: Load current date out-of-stock data FIRST (priority)
+            // Determine date range based on active filters
+            let dateRange: (start: Date, end: Date)
+            if let filterDateRange = dashboardState.activeFilters.dateRange {
+                dateRange = filterDateRange.toDateInterval()
+                print("🔧 [Dashboard] Using filter date range: \(filterDateRange.displayText)")
+            } else {
+                dateRange = CustomerOutOfStockService.createDateRange(for: dashboardState.selectedDate)
+                print("🔧 [Dashboard] Using selected date range: \(dashboardState.selectedDate)")
+            }
+
+            // OPTIMIZED: Use same efficient loading pattern as refreshData()
             let criteria = OutOfStockFilterCriteria(
                 customer: dashboardState.activeFilters.customer,
                 product: dashboardState.activeFilters.product,
-                status: dashboardState.selectedStatusTab,
-                dateRange: CustomerOutOfStockService.createDateRange(for: dashboardState.selectedDate),
+                status: dashboardState.selectedStatusTab, // Pass status filter to repository
+                dateRange: dateRange,
                 searchText: dashboardState.searchText,
                 page: 0,
-                pageSize: 20, // Reduced initial batch for faster display
+                pageSize: 50, // Consistent page size with refreshData()
                 sortOrder: dashboardState.sortOrder
             )
 
-            print("📅 Loading current date out of stock data first...")
+            print("📅 Loading data with repository-level filtering...")
             await customerOutOfStockService.loadFilteredItems(criteria: criteria)
 
             await MainActor.run {
                 dashboardState.items = customerOutOfStockService.items
                 dashboardState.totalCount = customerOutOfStockService.totalRecordsCount
 
-                print("📋 Loaded \(dashboardState.items.count) out of stock items for current date")
+                print("📋 Loaded \(dashboardState.items.count) items (total: \(dashboardState.totalCount))")
 
                 // Check if service has any error
                 if let serviceError = customerOutOfStockService.error {
@@ -1228,17 +1238,16 @@ struct CustomerOutOfStockDashboard: View {
                     customer: dashboardState.activeFilters.customer,
                     product: dashboardState.activeFilters.product,
                     status: nil, // Don't filter by status to get all counts
-                    dateRange: CustomerOutOfStockService.createDateRange(for: dashboardState.selectedDate),
+                    dateRange: dateRange,
                     searchText: dashboardState.searchText,
                     page: 0,
-                    pageSize: 50,
-                    sortOrder: dashboardState.sortOrder
+                    pageSize: 1 // Only need counts, not data
                 )
                 let statusCounts = await customerOutOfStockService.loadStatusCounts(criteria: statusCriteria)
 
-                // Load unfiltered total count for "总计" display [rule:§3.2 Repository Protocol]
+                // Load unfiltered total count for "总计" display
                 let unfilteredCriteria = OutOfStockFilterCriteria(
-                    dateRange: CustomerOutOfStockService.createDateRange(for: dashboardState.selectedDate),
+                    dateRange: dateRange,
                     page: 0,
                     pageSize: 1 // Only need count, not data
                 )
@@ -1280,14 +1289,14 @@ struct CustomerOutOfStockDashboard: View {
         lastRefreshTime = Date()
         refreshTrigger.toggle()
         let refreshStartTime = Date()
-        
+
         print("🔄 Refreshing data for date: \(dashboardState.selectedDate)")
-        
+
         // Set loading state
         await MainActor.run {
             dashboardState.isLoading = true
         }
-        
+
         // Determine date range based on active filters
         let dateRange: (start: Date, end: Date)
         if let filterDateRange = dashboardState.activeFilters.dateRange {
@@ -1299,60 +1308,52 @@ struct CustomerOutOfStockDashboard: View {
             dateRange = CustomerOutOfStockService.createDateRange(for: dashboardState.selectedDate)
             print("🔧 [Dashboard] Using selected date range: \(dashboardState.selectedDate) -> \(dateRange.start) to \(dateRange.end)")
         }
-        
-        // First, load ALL items for status counting and display (without status filter)
-        let allItemsCriteria = OutOfStockFilterCriteria(
+
+        // OPTIMIZED: Use repository filtering with proper page size (50 instead of 1000)
+        // Let the repository handle status filtering efficiently at the data layer
+        let criteria = OutOfStockFilterCriteria(
             customer: dashboardState.activeFilters.customer,
             product: dashboardState.activeFilters.product,
-            status: nil, // No status filter to get all items
+            status: dashboardState.selectedStatusTab, // Pass status filter to repository
             dateRange: dateRange,
             searchText: dashboardState.searchText,
             page: 0,
-            pageSize: 1000, // Large enough to get all items
+            pageSize: 50, // FIXED: Use proper page size for efficient loading
             sortOrder: dashboardState.sortOrder
         )
-        
-        print("📊 [Data] Loading all items for status counting")
-        await customerOutOfStockService.loadFilteredItems(criteria: allItemsCriteria)
-        let allItems = customerOutOfStockService.items
-        
-        print("📊 [Data] Loaded \(allItems.count) total items")
-        
-        // Calculate status counts from all items
-        let statusCounts: [OutOfStockStatus: Int] = [
-            .pending: allItems.filter { $0.status == .pending }.count,
-            .completed: allItems.filter { $0.status == .completed }.count,
-            .returned: allItems.filter { $0.status == .returned }.count
-        ]
-        
-        print("📊 [Status Counts] Total items: \(allItems.count), pending=\(statusCounts[.pending] ?? 0), completed=\(statusCounts[.completed] ?? 0), returned=\(statusCounts[.returned] ?? 0)")
-        
-        // Filter items for display based on selected status tab
-        let displayItems: [CustomerOutOfStock]
-        let displayCount: Int
-        
-        if let selectedStatus = dashboardState.selectedStatusTab {
-            // Filter items by selected status
-            displayItems = allItems.filter { $0.status == selectedStatus }
-            displayCount = displayItems.count
-            print("📊 [Data] Filtered \(displayCount) items for status: \(selectedStatus.displayName)")
-        } else {
-            // Show all items
-            displayItems = allItems
-            displayCount = allItems.count
-            print("📊 [Data] Showing all \(displayCount) items (总计)")
-        }
-        
+
+        print("📊 [Data] Loading filtered items with repository-level filtering")
+        await customerOutOfStockService.loadFilteredItems(criteria: criteria)
+        let displayItems = customerOutOfStockService.items
+        let displayCount = customerOutOfStockService.totalRecordsCount
+
+        print("📊 [Data] Loaded \(displayItems.count) items (total: \(displayCount))")
+
+        // OPTIMIZED: Use repository count methods instead of in-memory counting
+        // Load status counts efficiently from repository
+        let statusCountsCriteria = OutOfStockFilterCriteria(
+            customer: dashboardState.activeFilters.customer,
+            product: dashboardState.activeFilters.product,
+            status: nil, // Get counts for all statuses
+            dateRange: dateRange,
+            searchText: dashboardState.searchText,
+            page: 0,
+            pageSize: 1
+        )
+        let statusCounts = await customerOutOfStockService.loadStatusCounts(criteria: statusCountsCriteria)
+
+        print("📊 [Status Counts] pending=\(statusCounts[.pending] ?? 0), completed=\(statusCounts[.completed] ?? 0), returned=\(statusCounts[.returned] ?? 0)")
+
         // Ensure minimum skeleton display time for smooth UX
         let elapsedTime = Date().timeIntervalSince(refreshStartTime)
         let minimumSkeletonTime: TimeInterval = 0.8 // Show skeleton for at least 800ms
         let additionalDelay = max(0, minimumSkeletonTime - elapsedTime)
-        
+
         if additionalDelay > 0 {
             print("⏱️ Adding \(Int(additionalDelay * 1000))ms delay for smooth skeleton transition")
             try? await Task.sleep(nanoseconds: UInt64(additionalDelay * 1_000_000_000))
         }
-        
+
         await MainActor.run {
             // Smooth transition with animation
             withAnimation(.easeInOut(duration: 0.4)) {
@@ -1362,15 +1363,15 @@ struct CustomerOutOfStockDashboard: View {
                 dashboardState.isLoading = false
                 dashboardState.isRefreshing = false // Clear skeleton loading state
             }
-            
+
             print("✅ Refresh completed: \(dashboardState.items.count) display items for date \(dashboardState.selectedDate)")
-            
+
             // Explicitly log empty state for debugging
             if dashboardState.items.isEmpty {
                 print("📭 [Dashboard] Empty state: No items found for selected date and filters")
             }
         }
-        
+
         // Load unfiltered total count in separate task
         Task {
             let unfilteredCriteria = OutOfStockFilterCriteria(
@@ -1379,7 +1380,7 @@ struct CustomerOutOfStockDashboard: View {
                 pageSize: 1 // Only need count, not data
             )
             let unfilteredTotal = await customerOutOfStockService.loadUnfilteredTotalCount(criteria: unfilteredCriteria)
-            
+
             await MainActor.run {
                 dashboardState.unfilteredTotalCount = unfilteredTotal
                 print("📊 Unfiltered total count: \(unfilteredTotal)")
@@ -1426,38 +1427,45 @@ struct CustomerOutOfStockDashboard: View {
     
     private func executeSearch() async {
         print("🔍 Searching for: \(dashboardState.searchText)")
-        
-        // Create search criteria including status filter
+
+        // Determine date range based on active filters (consistent with other methods)
+        let dateRange: (start: Date, end: Date)
+        if let filterDateRange = dashboardState.activeFilters.dateRange {
+            dateRange = filterDateRange.toDateInterval()
+        } else {
+            dateRange = CustomerOutOfStockService.createDateRange(for: dashboardState.selectedDate)
+        }
+
+        // OPTIMIZED: Use same efficient pattern with repository-level filtering
         let criteria = OutOfStockFilterCriteria(
             customer: dashboardState.activeFilters.customer,
             product: dashboardState.activeFilters.product,
             status: dashboardState.selectedStatusTab ?? dashboardState.activeFilters.status,
-            dateRange: CustomerOutOfStockService.createDateRange(for: dashboardState.selectedDate),
+            dateRange: dateRange,
             searchText: dashboardState.searchText,
             page: 0,
-            pageSize: 50,
+            pageSize: 50, // Consistent page size
             sortOrder: dashboardState.sortOrder
         )
-        
+
         // Load filtered data
         await customerOutOfStockService.loadFilteredItems(criteria: criteria)
-        
+
         await MainActor.run {
             dashboardState.items = customerOutOfStockService.items
             dashboardState.totalCount = customerOutOfStockService.totalRecordsCount
         }
-        
-        // Load real status counts from repository in a separate task
+
+        // Load status counts efficiently using repository method
         Task {
             let statusCriteria = OutOfStockFilterCriteria(
                 customer: dashboardState.activeFilters.customer,
                 product: dashboardState.activeFilters.product,
                 status: nil, // Don't filter by status to get all counts
-                dateRange: CustomerOutOfStockService.createDateRange(for: dashboardState.selectedDate),
+                dateRange: dateRange,
                 searchText: dashboardState.searchText,
                 page: 0,
-                pageSize: 50,
-                sortOrder: dashboardState.sortOrder
+                pageSize: 1 // Only need counts, not data
             )
             let statusCounts = await customerOutOfStockService.loadStatusCounts(criteria: statusCriteria)
             await MainActor.run {
