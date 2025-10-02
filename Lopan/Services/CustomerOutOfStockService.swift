@@ -31,7 +31,7 @@ enum CustomerOutOfStockServiceError: Error, LocalizedError {
     }
 }
 
-struct ReturnProcessingRequest {
+struct DeliveryProcessingRequest {
     let item: CustomerOutOfStock
     let deliveryQuantity: Int
     let deliveryNotes: String?
@@ -867,7 +867,7 @@ public class CustomerOutOfStockService: ObservableObject {
 
     // MARK: - Return Processing
 
-    func processReturn(_ request: ReturnProcessingRequest) async throws {
+    func processDelivery(_ request: DeliveryProcessingRequest) async throws {
         let currentUser = try getCurrentUser()
         let item = request.item
 
@@ -904,7 +904,7 @@ public class CustomerOutOfStockService: ObservableObject {
     
     // MARK: - Batch Return Processing
     
-    func processBatchReturns(_ requests: [ReturnProcessingRequest]) async throws {
+    func processBatchDeliveries(_ requests: [DeliveryProcessingRequest]) async throws {
         let currentUser = try getCurrentUser()
         var affectedDates = Set<Date>()
 
@@ -1170,12 +1170,12 @@ public class CustomerOutOfStockService: ObservableObject {
         return items.filter { $0.customer?.id == customer.id }
     }
     
-    func getReturnableItems() -> [CustomerOutOfStock] {
+    func getDeliverableItems() -> [CustomerOutOfStock] {
         return items.filter { $0.needsDelivery || $0.hasPartialDelivery }
     }
     
     func getItemsGroupedByCustomer() -> [String: [CustomerOutOfStock]] {
-        return Dictionary(grouping: getReturnableItems()) { item in
+        return Dictionary(grouping: getDeliverableItems()) { item in
             item.customer?.name ?? "未知客户"
         }
     }

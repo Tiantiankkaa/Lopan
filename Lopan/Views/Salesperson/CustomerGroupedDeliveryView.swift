@@ -113,7 +113,7 @@ struct CustomerGroupedDeliveryView: View {
             loadCustomerGroups()
         }
         .sheet(isPresented: $showingBatchProcessing) {
-            BatchCustomerReturnProcessingView(
+            BatchCustomerDeliveryProcessingView(
                 customerGroups: getSelectedGroups(),
                 onCompletion: {
                     selectedCustomerGroups.removeAll()
@@ -129,7 +129,7 @@ struct CustomerGroupedDeliveryView: View {
             }
         }
         .navigationDestination(item: $selectedGroupForDetail) { group in
-            CustomerReturnDetailView(customerGroup: group)
+            CustomerDeliveryDetailView(customerGroup: group)
         }
     }
     
@@ -294,11 +294,11 @@ struct CustomerGroupedDeliveryView: View {
         
         Task {
             do {
-                // Get returnable items from service
-                let returnableItems = salespersonService.customerOutOfStockService.getReturnableItems()
+                // Get deliverable items from service
+                let deliverableItems = salespersonService.customerOutOfStockService.getDeliverableItems()
                 
                 // Group by customer
-                let grouped = Dictionary(grouping: returnableItems) { item in
+                let grouped = Dictionary(grouping: deliverableItems) { item in
                     item.customer?.id ?? "unknown"
                 }
                 
@@ -447,10 +447,10 @@ struct EnhancedCustomerGroupRowView: View {
 
     @ViewBuilder
     private var statusBadge: some View {
-        let hasReturnable = group.deliverableQuantity > 0
-        let badgeColor = hasReturnable ? LopanColors.warning : LopanColors.success
-        let badgeIcon = hasReturnable ? "exclamationmark.triangle.fill" : "checkmark.circle.fill"
-        let badgeText = hasReturnable ? "可还货" : "已完成"
+        let hasDeliverable = group.deliverableQuantity > 0
+        let badgeColor = hasDeliverable ? LopanColors.warning : LopanColors.success
+        let badgeIcon = hasDeliverable ? "exclamationmark.triangle.fill" : "checkmark.circle.fill"
+        let badgeText = hasDeliverable ? "可还货" : "已完成"
 
         HStack(spacing: 4) {
             Image(systemName: badgeIcon)
@@ -468,7 +468,7 @@ struct EnhancedCustomerGroupRowView: View {
 
     @ViewBuilder
     private var statisticsGrid: some View {
-        let returnableColor = group.deliverableQuantity > 0 ? LopanColors.warning : LopanColors.textSecondary
+        let deliverableColor = group.deliverableQuantity > 0 ? LopanColors.warning : LopanColors.textSecondary
 
         LazyVGrid(columns: [
             GridItem(.flexible(), alignment: .leading),
@@ -491,7 +491,7 @@ struct EnhancedCustomerGroupRowView: View {
             StatisticItem(
                 title: "可还货",
                 value: "\(group.deliverableQuantity)",
-                color: returnableColor
+                color: deliverableColor
             )
 
             if group.deliveredQuantity > 0 {
@@ -552,7 +552,7 @@ struct StatisticItem: View {
     }
 }
 
-struct CustomerReturnDetailView: View {
+struct CustomerDeliveryDetailView: View {
     let customerGroup: CustomerDeliveryGroup
     @Environment(\.appDependencies) private var appDependencies
     @Environment(\.dismiss) private var dismiss
@@ -561,8 +561,8 @@ struct CustomerReturnDetailView: View {
         appDependencies.serviceFactory.salespersonServiceProvider
     }
     
-    @State private var returnQuantities: [String: String] = [:]
-    @State private var returnNotes: [String: String] = [:]
+    @State private var deliveryQuantities: [String: String] = [:]
+    @State private var deliveryNotes: [String: String] = [:]
     @State private var selectedItems: Set<String> = []
     @State private var showingProcessingAlert = false
     @State private var isProcessing = false
@@ -573,22 +573,22 @@ struct CustomerReturnDetailView: View {
             
             List {
                 ForEach(customerGroup.items) { item in
-                    ReturnItemDetailRow(
+                    DeliveryItemDetailRow(
                         item: item,
-                        returnQuantity: Binding(
-                            get: { returnQuantities[item.id] ?? "" },
-                            set: { returnQuantities[item.id] = $0 }
+                        deliveryQuantity: Binding(
+                            get: { deliveryQuantities[item.id] ?? "" },
+                            set: { deliveryQuantities[item.id] = $0 }
                         ),
-                        returnNotes: Binding(
-                            get: { returnNotes[item.id] ?? "" },
-                            set: { returnNotes[item.id] = $0 }
+                        deliveryNotes: Binding(
+                            get: { deliveryNotes[item.id] ?? "" },
+                            set: { deliveryNotes[item.id] = $0 }
                         ),
                         isSelected: selectedItems.contains(item.id),
                         onSelectionChanged: { isSelected in
                             if isSelected {
                                 selectedItems.insert(item.id)
-                                if returnQuantities[item.id]?.isEmpty ?? true {
-                                    returnQuantities[item.id] = String(item.remainingQuantity)
+                                if deliveryQuantities[item.id]?.isEmpty ?? true {
+                                    deliveryQuantities[item.id] = String(item.remainingQuantity)
                                 }
                             } else {
                                 selectedItems.remove(item.id)
@@ -605,7 +605,7 @@ struct CustomerReturnDetailView: View {
         .alert("确认处理还货", isPresented: $showingProcessingAlert) {
             Button("取消", role: .cancel) { }
             Button("确认") {
-                processSelectedReturns()
+                processSelectedDeliveries()
             }
         } message: {
             Text("确定要处理选中的 \(selectedItems.count) 项还货吗？")
@@ -658,35 +658,35 @@ struct CustomerReturnDetailView: View {
         .padding()
     }
     
-    private func processSelectedReturns() {
+    private func processSelectedDeliveries() {
         isProcessing = true
         
         Task {
             do {
-                let requests = selectedItems.compactMap { itemId -> ReturnProcessingRequest? in
+                let requests = selectedItems.compactMap { itemId -> DeliveryProcessingRequest? in
                     guard let item = customerGroup.items.first(where: { $0.id == itemId }),
-                          let quantityStr = returnQuantities[itemId],
+                          let quantityStr = deliveryQuantities[itemId],
                           let quantity = Int(quantityStr),
                           quantity > 0 && quantity <= item.remainingQuantity else {
                         return nil
                     }
                     
-                    let notes = returnNotes[itemId]?.isEmpty == false ? returnNotes[itemId] : nil
-                    return ReturnProcessingRequest(
+                    let notes = deliveryNotes[itemId]?.isEmpty == false ? deliveryNotes[itemId] : nil
+                    return DeliveryProcessingRequest(
                         item: item,
                         deliveryQuantity: quantity,
                         deliveryNotes: notes
                     )
                 }
                 
-                try await salespersonService.customerOutOfStockService.processBatchReturns(requests)
+                try await salespersonService.customerOutOfStockService.processBatchDeliveries(requests)
                 
                 await MainActor.run {
                     dismiss()
                 }
             } catch {
                 await MainActor.run {
-                    print("Error processing returns: \(error)")
+                    print("Error processing deliveries: \(error)")
                     isProcessing = false
                 }
             }
@@ -694,10 +694,10 @@ struct CustomerReturnDetailView: View {
     }
 }
 
-struct ReturnItemDetailRow: View {
+struct DeliveryItemDetailRow: View {
     let item: CustomerOutOfStock
-    @Binding var returnQuantity: String
-    @Binding var returnNotes: String
+    @Binding var deliveryQuantity: String
+    @Binding var deliveryNotes: String
     let isSelected: Bool
     let onSelectionChanged: (Bool) -> Void
     
@@ -738,7 +738,7 @@ struct ReturnItemDetailRow: View {
                 Spacer()
             }
             
-            // Return quantity and notes input (shown when selected)
+            // Delivery quantity and notes input (shown when selected)
             if isSelected {
                 VStack(spacing: 8) {
                     HStack {
@@ -746,13 +746,13 @@ struct ReturnItemDetailRow: View {
                             .font(.subheadline)
                             .frame(width: 80, alignment: .leading)
                         
-                        TextField("数量", text: $returnQuantity)
+                        TextField("数量", text: $deliveryQuantity)
                             .textFieldStyle(RoundedBorderTextFieldStyle())
                             .keyboardType(.numberPad)
                             .frame(width: 80)
                         
                        Button("最大值") {
-                           returnQuantity = String(item.remainingQuantity)
+                           deliveryQuantity = String(item.remainingQuantity)
                        }
                        .font(.caption)
                         .foregroundColor(LopanColors.info)
@@ -765,7 +765,7 @@ struct ReturnItemDetailRow: View {
                             .font(.subheadline)
                             .frame(width: 80, alignment: .leading)
                         
-                        TextField("备注（可选）", text: $returnNotes)
+                        TextField("备注（可选）", text: $deliveryNotes)
                             .textFieldStyle(RoundedBorderTextFieldStyle())
                     }
                 }
@@ -776,7 +776,7 @@ struct ReturnItemDetailRow: View {
     }
 }
 
-struct BatchCustomerReturnProcessingView: View {
+struct BatchCustomerDeliveryProcessingView: View {
     let customerGroups: [CustomerDeliveryGroup]
     let onCompletion: () -> Void
     @Environment(\.dismiss) private var dismiss
