@@ -27,7 +27,7 @@ struct CustomerReturnGroup: Identifiable, Hashable {
         items.reduce(0) { $0 + $1.remainingQuantity }
     }
     var returnedQuantity: Int {
-        items.reduce(0) { $0 + $1.returnQuantity }
+        items.reduce(0) { $0 + $1.deliveryQuantity }
     }
 }
 
@@ -648,8 +648,8 @@ struct CustomerReturnDetailView: View {
                     let notes = returnNotes[itemId]?.isEmpty == false ? returnNotes[itemId] : nil
                     return ReturnProcessingRequest(
                         item: item,
-                        returnQuantity: quantity,
-                        returnNotes: notes
+                        deliveryQuantity: quantity,
+                        deliveryNotes: notes
                     )
                 }
                 
@@ -697,8 +697,8 @@ struct ReturnItemDetailRow: View {
                             .font(.caption)
                             .foregroundColor(.secondary)
                         
-                       if item.returnQuantity > 0 {
-                           Text("已还: \(item.returnQuantity)")
+                       if item.deliveryQuantity > 0 {
+                           Text("已发: \(item.deliveryQuantity)")
                                .font(.caption)
                                 .foregroundColor(LopanColors.info)
                        }

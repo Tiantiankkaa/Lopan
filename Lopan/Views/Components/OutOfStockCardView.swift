@@ -94,7 +94,7 @@ struct OutOfStockCardView: View {
                 .padding(.horizontal, 16)
             detailSection
             
-            if item.needsReturn || item.hasPartialReturn {
+            if item.needsDelivery || item.hasPartialDelivery {
                 returnSection
             }
         }
@@ -256,11 +256,11 @@ struct OutOfStockCardView: View {
                 HStack(spacing: 16) {
                     quantityChip("缺货", "\(item.quantity)", LopanColors.warning)
                     
-                    if item.returnQuantity > 0 {
-                        quantityChip("已退", "\(item.returnQuantity)", LopanColors.primary)
+                    if item.deliveryQuantity > 0 {
+                        quantityChip("已退", "\(item.deliveryQuantity)", LopanColors.primary)
                     }
                     
-                    if item.remainingQuantity > 0 && item.returnQuantity > 0 {
+                    if item.remainingQuantity > 0 && item.deliveryQuantity > 0 {
                         quantityChip("剩余", "\(item.remainingQuantity)", LopanColors.error)
                     }
                 }
@@ -331,7 +331,7 @@ struct OutOfStockCardView: View {
                 
                 Spacer()
                 
-                if let returnDate = item.returnDate {
+                if let returnDate = item.deliveryDate {
                     Text(returnDate, style: .date)
                         .font(.caption2)
                         .foregroundColor(.secondary)
@@ -344,11 +344,11 @@ struct OutOfStockCardView: View {
     }
     
     private var returnStatusColor: Color {
-        if item.isFullyReturned {
+        if item.isFullyDelivered {
             return LopanColors.success
-        } else if item.hasPartialReturn {
+        } else if item.hasPartialDelivery {
             return LopanColors.primary
-        } else if item.needsReturn {
+        } else if item.needsDelivery {
             return LopanColors.warning
         } else {
             return LopanColors.textSecondary
@@ -356,11 +356,11 @@ struct OutOfStockCardView: View {
     }
     
     private var returnStatusText: String {
-        if item.isFullyReturned {
+        if item.isFullyDelivered {
             return "完全退货"
-        } else if item.hasPartialReturn {
+        } else if item.hasPartialDelivery {
             return "部分退货"
-        } else if item.needsReturn {
+        } else if item.needsDelivery {
             return "需要退货"
         } else {
             return ""
@@ -523,8 +523,8 @@ struct OutOfStockCardView: View {
     }
 
     private var accessibilityValue: Text {
-        if item.returnQuantity > 0 {
-            return Text("缺货 \(item.quantity) 件，已退 \(item.returnQuantity) 件")
+        if item.deliveryQuantity > 0 {
+            return Text("缺货 \(item.quantity) 件，已退 \(item.deliveryQuantity) 件")
         } else {
             return Text("缺货 \(item.quantity) 件")
         }
@@ -558,13 +558,13 @@ private struct OutOfStockCardAccessibilityModifier: ViewModifier {
             .accessibilityCustomContent("缺货数量", "\(item.quantity)")
             .accessibilityCustomContent(
                 "退货数量",
-                item.returnQuantity > 0 ? "\(item.returnQuantity)" : "无"
+                item.deliveryQuantity > 0 ? "\(item.deliveryQuantity)" : "无"
             )
     }
 
     private var accessibilityValue: Text {
-        if item.returnQuantity > 0 {
-            return Text("缺货 \(item.quantity) 件，已退 \(item.returnQuantity) 件")
+        if item.deliveryQuantity > 0 {
+            return Text("缺货 \(item.quantity) 件，已退 \(item.deliveryQuantity) 件")
         } else {
             return Text("缺货 \(item.quantity) 件")
         }

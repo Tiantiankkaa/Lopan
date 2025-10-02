@@ -45,22 +45,22 @@ struct ReturnFilterChip: View {
 }
 
 struct ActiveFiltersIndicator: View {
-    let selectedReturnStatus: ReturnStatus?
+    let selectedDeliveryStatus: DeliveryStatus?
     let selectedCustomer: Customer?
     let selectedAddress: String?
     let isFilteringByDate: Bool
     let selectedDate: Date
-    
-    let onRemoveReturnStatus: () -> Void
+
+    let onRemoveDeliveryStatus: () -> Void
     let onRemoveCustomer: () -> Void
     let onRemoveAddress: () -> Void
     let onRemoveDateFilter: () -> Void
     let onClearAllFilters: () -> Void
-    
+
     var hasActiveFilters: Bool {
-        selectedReturnStatus != nil || 
-        selectedCustomer != nil || 
-        selectedAddress != nil || 
+        selectedDeliveryStatus != nil ||
+        selectedCustomer != nil ||
+        selectedAddress != nil ||
         isFilteringByDate
     }
     
@@ -86,11 +86,11 @@ struct ActiveFiltersIndicator: View {
                 
                 ScrollView(.horizontal, showsIndicators: false) {
                     HStack(spacing: 8) {
-                        if let status = selectedReturnStatus {
+                        if let status = selectedDeliveryStatus {
                             ReturnFilterChip(
                                 title: status.displayName,
                                 color: status.chipColor,
-                                onRemove: onRemoveReturnStatus
+                                onRemove: onRemoveDeliveryStatus
                             )
                         }
                         

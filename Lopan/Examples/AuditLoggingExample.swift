@@ -54,8 +54,8 @@ class AuditLoggingExample {
             quantity: item.quantity,
             status: item.status.displayName,
             notes: item.notes,
-            returnQuantity: item.returnQuantity,
-            returnNotes: item.returnNotes
+            deliveryQuantity: item.deliveryQuantity,
+            deliveryNotes: item.deliveryNotes
         )
         
         // Track which fields changed
@@ -91,21 +91,21 @@ class AuditLoggingExample {
         // Changes are handled by the repository layer
     }
     
-    /// Example: Adding audit logging to RETURN PROCESSING operations
+    /// Example: Adding audit logging to DELIVERY PROCESSING operations
     func processReturn(
         item: CustomerOutOfStock,
-        returnQuantity: Int,
-        returnNotes: String?
+        deliveryQuantity: Int,
+        deliveryNotes: String?
     ) async {
-        // Process the return using the existing method
-        let success = item.processReturn(quantity: returnQuantity, notes: returnNotes)
-        
+        // Process the delivery using the existing method
+        let success = item.processDelivery(quantity: deliveryQuantity, notes: deliveryNotes)
+
         if success {
-            // Log the return processing
+            // Log the delivery processing
             await auditingService.logReturnProcessing(
                 item: item,
-                returnQuantity: returnQuantity,
-                returnNotes: returnNotes,
+                deliveryQuantity: deliveryQuantity,
+                deliveryNotes: deliveryNotes,
                 operatorUserId: "demo_user", // TODO: Get from authentication service
                 operatorUserName: "演示用户" // TODO: Get from authentication service
             )

@@ -327,8 +327,8 @@ public class CustomerOutOfStockCoordinator: ObservableObject {
         // Audit logging
         await auditService.logReturnProcessing(
             item: item,
-            returnQuantity: quantity,
-            returnNotes: notes,
+            deliveryQuantity: quantity,
+            deliveryNotes: notes,
             operatorUserId: getCurrentUserId(),
             operatorUserName: getCurrentUserName()
         )
@@ -918,8 +918,8 @@ public class CustomerOutOfStockCoordinator: ObservableObject {
             quantity: item.quantity,
             status: item.status.displayName,
             notes: item.notes,
-            returnQuantity: item.returnQuantity,
-            returnNotes: item.returnNotes
+            deliveryQuantity: item.deliveryQuantity,
+            deliveryNotes: item.deliveryNotes
         )
     }
 
@@ -941,11 +941,11 @@ public class CustomerOutOfStockCoordinator: ObservableObject {
         if before.notes != after.notes {
             changes["notes"] = ["before": before.notes, "after": after.notes]
         }
-        if before.returnQuantity != after.returnQuantity {
-            changes["returnQuantity"] = ["before": before.returnQuantity, "after": after.returnQuantity]
+        if before.deliveryQuantity != after.deliveryQuantity {
+            changes["deliveryQuantity"] = ["before": before.deliveryQuantity, "after": after.deliveryQuantity]
         }
-        if before.returnNotes != after.returnNotes {
-            changes["returnNotes"] = ["before": before.returnNotes, "after": after.returnNotes]
+        if before.deliveryNotes != after.deliveryNotes {
+            changes["deliveryNotes"] = ["before": before.deliveryNotes, "after": after.deliveryNotes]
         }
 
         return changes
@@ -1213,6 +1213,24 @@ private class MockAuditCustomerOutOfStockRepository: CustomerOutOfStockRepositor
             topPendingItems: [],
             topReturnItems: [],
             recentCompleted: []
+        )
+    }
+
+    func fetchDeliveryManagementMetrics(
+        criteria: OutOfStockFilterCriteria,
+        page: Int,
+        pageSize: Int
+    ) async throws -> DeliveryManagementMetrics {
+        print("🔧 MockAuditCustomerOutOfStockRepository: fetchDeliveryManagementMetrics called")
+        return DeliveryManagementMetrics(
+            items: [],
+            totalCount: 0,
+            hasMoreData: false,
+            page: page,
+            pageSize: pageSize,
+            needsDeliveryCount: 0,
+            partialDeliveryCount: 0,
+            completedDeliveryCount: 0
         )
     }
 

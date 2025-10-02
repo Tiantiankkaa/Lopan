@@ -192,16 +192,16 @@ public class ExcelService {
     }
     
     private func generateReturnOrdersCSV(_ items: [CustomerOutOfStock]) -> String {
-        let header = "客户姓名,客户地址,产品名称,已还数量,剩余数量,还货日期"
+        let header = "客户姓名,客户地址,产品名称,已发货数量,剩余数量,发货日期"
         let rows = items.map { item in
             let customerName = item.customer?.name ?? "未知客户"
             let customerAddress = item.customer?.address ?? "未知地址"
             let productName = item.product?.name ?? "未知产品"
-            let returnedQuantity = "\(item.returnQuantity)"
+            let deliveredQuantity = "\(item.deliveryQuantity)"
             let remainingQuantity = "\(item.remainingQuantity)"
-            let returnDate = item.returnDate?.formatted(date: .abbreviated, time: .omitted) ?? "未还货"
-            
-            return "\(customerName),\(customerAddress),\(productName),\(returnedQuantity),\(remainingQuantity),\(returnDate)"
+            let deliveryDate = item.deliveryDate?.formatted(date: .abbreviated, time: .omitted) ?? "未发货"
+
+            return "\(customerName),\(customerAddress),\(productName),\(deliveredQuantity),\(remainingQuantity),\(deliveryDate)"
         }
         return "\(header)\n\(rows.joined(separator: "\n"))"
     }

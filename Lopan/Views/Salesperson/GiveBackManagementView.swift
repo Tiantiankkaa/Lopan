@@ -18,7 +18,7 @@ struct GiveBackManagementView: View {
     @State private var searchText = ""
     @State private var debouncedSearchText = ""
     @State private var searchTask: Task<Void, Never>?
-    @State private var selectedReturnStatus: ReturnStatus? = nil
+    @State private var selectedDeliveryStatus: DeliveryStatus? = nil
     @State private var selectedCustomer: Customer? = nil
     @State private var selectedAddress: String? = nil
     @State private var selectedDate: Date = Date()
@@ -103,7 +103,7 @@ struct GiveBackManagementView: View {
             viewModel.configure(repository: customerOutOfStockDependencies.customerOutOfStockRepository)
             await viewModel.refresh(with: currentFilterState, force: true)
         }
-        .onChange(of: selectedReturnStatus) { _ in
+        .onChange(of: selectedDeliveryStatus) { _ in
             refreshData()
         }
         .onChange(of: selectedCustomer) { _ in
@@ -169,12 +169,12 @@ struct GiveBackManagementView: View {
             }
             
             ActiveFiltersIndicator(
-                selectedReturnStatus: selectedReturnStatus,
+                selectedDeliveryStatus: selectedDeliveryStatus,
                 selectedCustomer: selectedCustomer,
                 selectedAddress: selectedAddress,
                 isFilteringByDate: isFilteringByDate,
                 selectedDate: selectedDate,
-                onRemoveReturnStatus: { selectedReturnStatus = nil },
+                onRemoveDeliveryStatus: { selectedDeliveryStatus = nil },
                 onRemoveCustomer: { selectedCustomer = nil },
                 onRemoveAddress: { selectedAddress = nil },
                 onRemoveDateFilter: { isFilteringByDate = false },
@@ -191,9 +191,9 @@ struct GiveBackManagementView: View {
     
     private var statisticsCard: some View {
         StatisticsOverviewCard(
-            needsReturnCount: needsReturnCount,
-            partialReturnCount: partialReturnCount,
-            completedReturnCount: completedReturnCount,
+            needsDeliveryCount: needsDeliveryCount,
+            partialDeliveryCount: partialDeliveryCount,
+            completedDeliveryCount: completedDeliveryCount,
             lastUpdated: viewModel.lastUpdated ?? Date()
         )
         .onTapGesture {
@@ -256,23 +256,23 @@ struct GiveBackManagementView: View {
     
     private var enhancedReturnStatusFilterMenu: some View {
         Menu {
-            Button(action: { selectReturnStatus(nil) }) {
-                Label("全部状态", systemImage: selectedReturnStatus == nil ? "checkmark" : "")
+            Button(action: { selectDeliveryStatus(nil) }) {
+                Label("全部状态", systemImage: selectedDeliveryStatus == nil ? "checkmark" : "")
             }
-            
+
             Divider()
-            
-            ForEach(ReturnStatus.allCases, id: \.self) { status in
-                Button(action: { selectReturnStatus(status) }) {
+
+            ForEach(DeliveryStatus.allCases, id: \.self) { status in
+                Button(action: { selectDeliveryStatus(status) }) {
                     Label(
-                        status.displayName, 
-                        systemImage: selectedReturnStatus == status ? "checkmark" : status.systemImage
+                        status.displayName,
+                        systemImage: selectedDeliveryStatus == status ? "checkmark" : status.systemImage
                     )
                 }
             }
         } label: {
             HStack {
-                Text(selectedReturnStatus?.displayName ?? "全部状态")
+                Text(selectedDeliveryStatus?.displayName ?? "全部状态")
                     .foregroundColor(.primary)
                     .font(.subheadline)
                 Spacer()
@@ -284,8 +284,8 @@ struct GiveBackManagementView: View {
             .background(LopanColors.backgroundSecondary)
             .cornerRadius(10)
         }
-        .accessibilityLabel("选择还货状态")
-        .accessibilityValue(selectedReturnStatus?.displayName ?? "全部状态")
+        .accessibilityLabel("选择发货状态")
+        .accessibilityValue(selectedDeliveryStatus?.displayName ?? "全部状态")
     }
     
     private var enhancedCustomerFilterMenu: some View {
@@ -459,7 +459,7 @@ struct GiveBackManagementView: View {
     private var displayItems: [CustomerOutOfStock] {
         let items = viewModel.items.sorted { $0.requestDate > $1.requestDate }
         if isEditing {
-            return items.filter { $0.returnQuantity < $0.quantity || $0.hasPartialReturn }
+            return items.filter { $0.deliveryQuantity < $0.quantity || $0.hasPartialDelivery }
         }
         return items
     }
@@ -472,29 +472,29 @@ struct GiveBackManagementView: View {
         viewModel.availableAddresses
     }
     
-    private var needsReturnCount: Int { viewModel.overviewStatistics.needsReturn }
-    private var partialReturnCount: Int { viewModel.overviewStatistics.partialReturn }
-    private var completedReturnCount: Int { viewModel.overviewStatistics.completedReturn }
+    private var needsDeliveryCount: Int { viewModel.overviewStatistics.needsDelivery }
+    private var partialDeliveryCount: Int { viewModel.overviewStatistics.partialDelivery }
+    private var completedDeliveryCount: Int { viewModel.overviewStatistics.completedDelivery }
     
     // MARK: - Helper Functions
     
     private var activeFiltersCount: Int {
         var count = 0
-        if selectedReturnStatus != nil { count += 1 }
+        if selectedDeliveryStatus != nil { count += 1 }
         if selectedCustomer != nil { count += 1 }
         if selectedAddress != nil { count += 1 }
         if isFilteringByDate { count += 1 }
         return count
     }
-    
-    private func selectReturnStatus(_ status: ReturnStatus?) {
+
+    private func selectDeliveryStatus(_ status: DeliveryStatus?) {
         LopanHapticEngine.shared.light()
-        selectedReturnStatus = status
+        selectedDeliveryStatus = status
     }
     
     private func clearAllFilters() {
         LopanHapticEngine.shared.medium()
-        selectedReturnStatus = nil
+        selectedDeliveryStatus = nil
         selectedCustomer = nil
         selectedAddress = nil
         isFilteringByDate = false
@@ -534,7 +534,7 @@ struct GiveBackManagementView: View {
     private var currentFilterState: GiveBackManagementViewModel.FilterState {
         GiveBackManagementViewModel.FilterState(
             searchText: debouncedSearchText,
-            returnStatus: selectedReturnStatus,
+            deliveryStatus: selectedDeliveryStatus,
             customer: selectedCustomer,
             address: selectedAddress,
             isFilteringByDate: isFilteringByDate,
@@ -568,14 +568,14 @@ struct GiveBackManagementView: View {
     
     private func processReturnBatch(_ processedItems: [(CustomerOutOfStock, Int, String?)]) {
         for (item, quantity, notes) in processedItems {
-            _ = item.processReturn(quantity: quantity, notes: notes)
+            _ = item.processDelivery(quantity: quantity, notes: notes)
             
             // Log each return processing
             Task {
                 await appDependencies.serviceFactory.auditingService.logReturnProcessing(
                     item: item,
-                    returnQuantity: quantity,
-                    returnNotes: notes,
+                    deliveryQuantity: quantity,
+                    deliveryNotes: notes,
                     operatorUserId: "demo_user", // TODO: Get from authentication service
                     operatorUserName: "演示用户" // TODO: Get from authentication service
                 )
@@ -648,7 +648,7 @@ struct ReturnGoodsRowView: View {
                     VStack(alignment: .leading, spacing: 2) {
                         Text("原始数量: \(item.quantity)")
                             .font(.caption)
-                       Text("已还数量: \(item.returnQuantity)")
+                       Text("已发货数量: \(item.deliveryQuantity)")
                            .font(.caption)
                             .foregroundColor(LopanColors.info)
                         Text("剩余数量: \(item.remainingQuantity)")
@@ -658,12 +658,12 @@ struct ReturnGoodsRowView: View {
                     
                     Spacer()
                     
-                    if let returnDate = item.returnDate {
+                    if let deliveryDate = item.deliveryDate {
                         VStack(alignment: .trailing, spacing: 2) {
-                            Text("还货日期:")
+                            Text("发货日期:")
                                 .font(.caption)
                                 .foregroundColor(LopanColors.textSecondary)
-                            Text(returnDate, style: .date)
+                            Text(deliveryDate, style: .date)
                                 .font(.caption)
                                 .foregroundColor(LopanColors.textSecondary)
                         }
@@ -678,23 +678,23 @@ struct ReturnGoodsRowView: View {
     }
     
     private var returnStatusText: String {
-        if item.isFullyReturned {
-            return "fully_returned".localized
-        } else if item.hasPartialReturn {
-            return "partially_returned".localized
-        } else if item.needsReturn {
-            return "needs_return".localized
+        if item.isFullyDelivered {
+            return "fully_delivered".localized
+        } else if item.hasPartialDelivery {
+            return "partially_delivered".localized
+        } else if item.needsDelivery {
+            return "needs_delivery".localized
         } else {
             return item.status.displayName
         }
     }
-    
+
     private var returnStatusColor: Color {
-        if item.isFullyReturned {
+        if item.isFullyDelivered {
             return LopanColors.success
-        } else if item.hasPartialReturn {
+        } else if item.hasPartialDelivery {
             return LopanColors.primary
-        } else if item.needsReturn {
+        } else if item.needsDelivery {
             return LopanColors.warning
         } else {
             return LopanColors.textSecondary

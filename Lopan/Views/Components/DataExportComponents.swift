@@ -77,8 +77,8 @@ extension CustomerOutOfStock: ExportableData {
             String(quantity),
             status.displayName,
             dateFormatter.string(from: requestDate),
-            String(returnQuantity),
-            returnDate != nil ? dateFormatter.string(from: returnDate!) : "",
+            String(deliveryQuantity),
+            deliveryDate != nil ? dateFormatter.string(from: deliveryDate!) : "",
             notes ?? ""
         ]
     }
@@ -97,8 +97,8 @@ extension CustomerOutOfStock: ExportableData {
             "status": status.rawValue,
             "status_display": status.displayName,
             "request_date": dateFormatter.string(from: requestDate),
-            "return_quantity": returnQuantity,
-            "return_date": returnDate != nil ? dateFormatter.string(from: returnDate!) : "",
+            "delivery_quantity": deliveryQuantity,
+            "delivery_date": deliveryDate != nil ? dateFormatter.string(from: deliveryDate!) : "",
             "notes": notes ?? "",
             "created_by": createdBy,
             "created_at": dateFormatter.string(from: createdAt),

@@ -14,35 +14,35 @@ struct EnhancedReturnGoodsRowView: View {
     let onSelect: () -> Void
     
     private var returnStatusText: String {
-        if item.isFullyReturned {
-            return "fully_returned".localized
-        } else if item.hasPartialReturn {
-            return "partially_returned".localized
-        } else if item.needsReturn {
-            return "needs_return".localized
+        if item.isFullyDelivered {
+            return "fully_delivered".localized
+        } else if item.hasPartialDelivery {
+            return "partially_delivered".localized
+        } else if item.needsDelivery {
+            return "needs_delivery".localized
         } else {
             return item.status.displayName
         }
     }
-    
+
     private var returnStatusColor: Color {
-        if item.isFullyReturned {
+        if item.isFullyDelivered {
             return LopanColors.success
-        } else if item.hasPartialReturn {
+        } else if item.hasPartialDelivery {
             return LopanColors.info
-        } else if item.needsReturn {
+        } else if item.needsDelivery {
             return LopanColors.warning
         } else {
             return LopanColors.secondary
         }
     }
-    
+
     private var returnStatusIcon: String {
-        if item.isFullyReturned {
+        if item.isFullyDelivered {
             return "checkmark.circle.fill"
-        } else if item.hasPartialReturn {
+        } else if item.hasPartialDelivery {
             return "clock.fill"
-        } else if item.needsReturn {
+        } else if item.needsDelivery {
             return "exclamationmark.triangle.fill"
         } else {
             return "circle"
@@ -129,10 +129,10 @@ struct EnhancedReturnGoodsRowView: View {
                             color: .secondary
                         )
                         
-                        if item.returnQuantity > 0 {
+                        if item.deliveryQuantity > 0 {
                             QuantityInfoItem(
-                                title: "已还数量",
-                                value: "\(item.returnQuantity)",
+                                title: "已发货数量",
+                                value: "\(item.deliveryQuantity)",
                                 color: LopanColors.info
                             )
                         }
@@ -146,16 +146,16 @@ struct EnhancedReturnGoodsRowView: View {
                 }
                 
                 // Date Information
-                if let returnDate = item.returnDate {
+                if let deliveryDate = item.deliveryDate {
                     HStack(spacing: 8) {
                         Image(systemName: "calendar")
                             .font(.caption2)
                             .foregroundColor(.secondary)
-                        
-                        Text("还货日期：\(returnDate.formatted(.dateTime.month().day().year()))")
+
+                        Text("发货日期：\(deliveryDate.formatted(.dateTime.month().day().year()))")
                             .font(.caption)
                             .foregroundColor(.secondary)
-                        
+
                         Spacer()
                     }
                 }

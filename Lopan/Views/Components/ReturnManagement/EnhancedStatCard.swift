@@ -72,18 +72,18 @@ struct EnhancedStatCard: View {
 }
 
 struct StatisticsOverviewCard: View {
-    let needsReturnCount: Int
-    let partialReturnCount: Int
-    let completedReturnCount: Int
+    let needsDeliveryCount: Int
+    let partialDeliveryCount: Int
+    let completedDeliveryCount: Int
     let lastUpdated: Date
-    
+
     var totalItems: Int {
-        needsReturnCount + partialReturnCount + completedReturnCount
+        needsDeliveryCount + partialDeliveryCount + completedDeliveryCount
     }
-    
+
     var completionRate: Double {
         guard totalItems > 0 else { return 0 }
-        return Double(completedReturnCount) / Double(totalItems)
+        return Double(completedDeliveryCount) / Double(totalItems)
     }
     
     var body: some View {
@@ -124,36 +124,36 @@ struct StatisticsOverviewCard: View {
                         
                         Spacer()
                         
-                        Text("\(completedReturnCount)/\(totalItems)")
+                        Text("\(completedDeliveryCount)/\(totalItems)")
                             .font(.caption)
                             .fontWeight(.medium)
                     }
-                    
+
                     ProgressView(value: completionRate)
                         .progressViewStyle(LinearProgressViewStyle(tint: LopanColors.success))
                         .scaleEffect(y: 2)
                 }
             }
-            
+
             // Statistics Grid
             LazyVGrid(columns: Array(repeating: GridItem(.flexible(), spacing: 12), count: 3), spacing: 12) {
                 EnhancedStatCard(
-                    title: "待还货",
-                    count: needsReturnCount,
+                    title: "待发货",
+                    count: needsDeliveryCount,
                     color: LopanColors.warning,
                     icon: "exclamationmark.triangle.fill"
                 )
-                
+
                 EnhancedStatCard(
-                    title: "部分还货",
-                    count: partialReturnCount,
+                    title: "部分发货",
+                    count: partialDeliveryCount,
                     color: LopanColors.info,
                     icon: "clock.fill"
                 )
-                
+
                 EnhancedStatCard(
                     title: "已完成",
-                    count: completedReturnCount,
+                    count: completedDeliveryCount,
                     color: LopanColors.success,
                     icon: "checkmark.circle.fill"
                 )
@@ -167,7 +167,7 @@ struct StatisticsOverviewCard: View {
         )
         .accessibilityElement(children: .contain)
         .accessibilityLabel("还货统计概览")
-        .accessibilityValue("总共\(totalItems)项，已完成\(completedReturnCount)项，完成率\(Int(completionRate * 100))%")
+        .accessibilityValue("总共\(totalItems)项，已完成\(completedDeliveryCount)项，完成率\(Int(completionRate * 100))%")
     }
 }
 
@@ -182,9 +182,9 @@ struct StatisticsOverviewCard: View {
         )
         
         StatisticsOverviewCard(
-            needsReturnCount: 15,
-            partialReturnCount: 8,
-            completedReturnCount: 23,
+            needsDeliveryCount: 15,
+            partialDeliveryCount: 8,
+            completedDeliveryCount: 23,
             lastUpdated: Date()
         )
     }

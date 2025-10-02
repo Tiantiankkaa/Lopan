@@ -487,8 +487,8 @@ actor LocalCustomerOutOfStockRepository: CustomerOutOfStockRepository {
         // Apply hasPartialReturn filtering
         if let hasPartialReturn = criteria.hasPartialReturn {
             filteredItems = filteredItems.filter { record in
-                let hasReturn = record.returnQuantity > 0
-                return hasReturn == hasPartialReturn
+                let hasDelivery = record.deliveryQuantity > 0
+                return hasDelivery == hasPartialReturn
             }
         }
 
@@ -1014,7 +1014,7 @@ actor LocalCustomerOutOfStockRepository: CustomerOutOfStockRepository {
 
             let combined = activeRecords + orphanedRecords
             let partialCount = combined.filter { record in
-                record.returnQuantity > 0 && record.returnQuantity < record.quantity
+                record.deliveryQuantity > 0 && record.deliveryQuantity < record.quantity
             }.count
 
             return partialCount
@@ -1030,7 +1030,7 @@ actor LocalCustomerOutOfStockRepository: CustomerOutOfStockRepository {
 
         let descriptor = FetchDescriptor(
             predicate: #Predicate<CustomerOutOfStock> { item in
-                item.returnQuantity > 0
+                item.deliveryQuantity > 0
             }
         )
         let records = try modelContext.fetch(descriptor)
@@ -1047,7 +1047,7 @@ actor LocalCustomerOutOfStockRepository: CustomerOutOfStockRepository {
                 (customerId == nil || item.customer?.id == customerId) &&
                 (productId == nil || item.product?.id == productId) &&
                 (targetStatus == nil || item.status == targetStatus) &&
-                item.returnQuantity < item.quantity
+                item.deliveryQuantity < item.quantity
         }
 
         return filtered.count
@@ -1211,8 +1211,8 @@ actor LocalCustomerOutOfStockRepository: CustomerOutOfStockRepository {
                 // Count by status
                 statusCounts[record.status, default: 0] += 1
 
-                // Count needs return (returnQuantity > 0)
-                if record.returnQuantity > 0 {
+                // Count needs delivery (deliveryQuantity > 0)
+                if record.deliveryQuantity > 0 {
                     needsReturnCount += 1
 
                     // Collect top 10 return items
@@ -1278,6 +1278,127 @@ actor LocalCustomerOutOfStockRepository: CustomerOutOfStockRepository {
             topPendingItems: pendingItems,
             topReturnItems: returnItems,
             recentCompleted: Array(sortedCompleted)
+        )
+    }
+
+    // MARK: - OPTIMIZED Return Management Metrics
+
+    /// Ultra-optimized single-pass calculation of delivery management metrics
+    /// Fetches records once, applies filters, and calculates statistics + items in ONE pass
+    func fetchDeliveryManagementMetrics(
+        criteria: OutOfStockFilterCriteria,
+        page: Int,
+        pageSize: Int
+    ) async throws -> DeliveryManagementMetrics {
+        let startTime = CFAbsoluteTimeGetCurrent()
+        print("🚀 [Repository] OPTIMIZED: Delivery management metrics + items (single query)")
+
+        // Input validation
+        guard page >= 0 else {
+            throw NSError(domain: "CustomerOutOfStockRepository", code: 1001,
+                         userInfo: [NSLocalizedDescriptionKey: "Page number cannot be negative"])
+        }
+
+        guard pageSize > 0 && pageSize <= 1000 else {
+            throw NSError(domain: "CustomerOutOfStockRepository", code: 1002,
+                         userInfo: [NSLocalizedDescriptionKey: "Page size must be between 1 and 1000"])
+        }
+
+        // Build database predicate for initial filtering
+        let predicate = buildOptimizedPredicate(from: criteria)
+
+        // Fetch all matching records (will apply additional filters in memory)
+        var descriptor: FetchDescriptor<CustomerOutOfStock>
+        let sortOrder = criteria.sortOrder.isDescending ? SortOrder.reverse : SortOrder.forward
+
+        if let predicate = predicate {
+            descriptor = FetchDescriptor<CustomerOutOfStock>(
+                predicate: predicate,
+                sortBy: [SortDescriptor(\.requestDate, order: sortOrder)]
+            )
+        } else {
+            descriptor = FetchDescriptor<CustomerOutOfStock>(
+                sortBy: [SortDescriptor(\.requestDate, order: sortOrder)]
+            )
+        }
+
+        let allRecords = try modelContext.fetch(descriptor)
+
+        // Apply in-memory filters (status, return status, customer, product, search)
+        var filteredRecords = allRecords
+
+        // Status filtering
+        if let status = criteria.status {
+            filteredRecords = filteredRecords.filter { $0.status == status }
+        }
+
+        // Customer filtering
+        if let customer = criteria.customer {
+            filteredRecords = filteredRecords.filter { $0.customer?.id == customer.id }
+        }
+
+        // Product filtering
+        if let product = criteria.product {
+            filteredRecords = filteredRecords.filter { $0.product?.id == product.id }
+        }
+
+        // Text search filtering
+        if !criteria.searchText.isEmpty {
+            filteredRecords = filteredRecords.filter { record in
+                matchesTextSearch(record: record, searchText: criteria.searchText)
+            }
+        }
+
+        // SINGLE-PASS STATISTICS CALCULATION
+        // Logic matches ViewModel to ensure consistency
+        var needsDeliveryCount = 0
+        var partialDeliveryCount = 0
+        var completedDeliveryCount = 0
+
+        for record in filteredRecords {
+            // "待发货" (Needs Delivery): Pending orders not yet delivered to customer
+            if record.status == .pending && record.deliveryQuantity == 0 {
+                needsDeliveryCount += 1
+            }
+            // "部分发货" (Partial Delivery): Pending orders partially delivered to customer
+            else if record.status == .pending && record.deliveryQuantity > 0 && record.deliveryQuantity < record.quantity {
+                partialDeliveryCount += 1
+            }
+            // "已完成" (Completed): Fully delivered to customer
+            else if record.deliveryQuantity >= record.quantity {
+                completedDeliveryCount += 1
+            }
+        }
+
+        // Apply pagination
+        let totalCount = filteredRecords.count
+        let startIndex = page * pageSize
+        let endIndex = min(startIndex + pageSize, totalCount)
+
+        let paginatedItems: [CustomerOutOfStock]
+        if startIndex >= totalCount {
+            paginatedItems = []
+        } else {
+            paginatedItems = Array(filteredRecords[startIndex..<endIndex])
+        }
+
+        let hasMoreData = endIndex < totalCount
+
+        let elapsed = CFAbsoluteTimeGetCurrent() - startTime
+        print("🚀 [Repository] ✅ Delivery metrics + items in \(String(format: "%.3f", elapsed))s")
+        print("   Total records: \(totalCount)")
+        print("   Needs Delivery: \(needsDeliveryCount), Partial: \(partialDeliveryCount), Completed: \(completedDeliveryCount)")
+        print("   Page \(page): \(paginatedItems.count) items, hasMore: \(hasMoreData)")
+
+        return DeliveryManagementMetrics(
+            items: paginatedItems,
+            totalCount: totalCount,
+            hasMoreData: hasMoreData,
+            page: page,
+            pageSize: pageSize,
+            needsDeliveryCount: needsDeliveryCount,
+            partialDeliveryCount: partialDeliveryCount,
+            completedDeliveryCount: completedDeliveryCount
         )
     }
 

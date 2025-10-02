@@ -40,12 +40,12 @@ struct LopanApp: App {
             DailySalesEntry.self,
             SalesLineItem.self,
         ])
-        
-        // Enable persistent storage now that schema includes DailySalesEntry and SalesLineItem
+
+        // Enable persistent storage with lightweight migration
         let modelConfiguration = ModelConfiguration(schema: schema, isStoredInMemoryOnly: false)
 
         do {
-            print("Creating ModelContainer...")
+            print("Creating ModelContainer with lightweight migration...")
             let container = try ModelContainer(for: schema, configurations: [modelConfiguration])
             print("ModelContainer created successfully")
             return container

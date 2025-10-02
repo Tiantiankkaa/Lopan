@@ -12,30 +12,30 @@ import SwiftData
 final class GiveBackManagementViewModel: ObservableObject {
     struct FilterState: Equatable {
         var searchText: String = ""
-        var returnStatus: ReturnStatus? = nil
+        var deliveryStatus: DeliveryStatus? = nil
         var customer: Customer? = nil
         var address: String? = nil
         var isFilteringByDate: Bool = false
         var selectedDate: Date = Date()
-        
+
         static let `default` = FilterState()
-        
+
         static func == (lhs: FilterState, rhs: FilterState) -> Bool {
             let calendar = Calendar.current
             return lhs.searchText == rhs.searchText &&
-                lhs.returnStatus == rhs.returnStatus &&
+                lhs.deliveryStatus == rhs.deliveryStatus &&
                 lhs.customer?.id == rhs.customer?.id &&
                 lhs.address == rhs.address &&
                 lhs.isFilteringByDate == rhs.isFilteringByDate &&
                 (!lhs.isFilteringByDate || calendar.isDate(lhs.selectedDate, inSameDayAs: rhs.selectedDate))
         }
     }
-    
-    struct ReturnOverviewStatistics {
+
+    struct DeliveryOverviewStatistics {
         var totalCount: Int = 0
-        var needsReturn: Int = 0
-        var partialReturn: Int = 0
-        var completedReturn: Int = 0
+        var needsDelivery: Int = 0
+        var partialDelivery: Int = 0
+        var completedDelivery: Int = 0
     }
 
     @Published private(set) var items: [CustomerOutOfStock] = []
@@ -47,7 +47,7 @@ final class GiveBackManagementViewModel: ObservableObject {
     @Published private(set) var availableAddresses: [String] = []
     @Published private(set) var lastUpdated: Date?
     @Published private(set) var error: Error?
-    @Published private(set) var overviewStatistics = ReturnOverviewStatistics()
+    @Published private(set) var overviewStatistics = DeliveryOverviewStatistics()
     
     private var repository: CustomerOutOfStockRepository?
     private var isConfigured = false
@@ -57,8 +57,6 @@ final class GiveBackManagementViewModel: ObservableObject {
     private var isFetchingPage = false
     private var customerCache: [String: Customer] = [:]
     private var addressCache: Set<String> = []
-    private var statisticsTask: Task<Void, Never>?
-    private var baseCriteriaForStatistics: OutOfStockFilterCriteria?
     
     func configure(repository: CustomerOutOfStockRepository) {
         guard !isConfigured else { return }
@@ -76,9 +74,7 @@ final class GiveBackManagementViewModel: ObservableObject {
         hasMoreData = true
         customerCache.removeAll()
         addressCache.removeAll()
-        statisticsTask?.cancel()
-        baseCriteriaForStatistics = buildCriteria(for: filter, page: 0)
-        overviewStatistics = ReturnOverviewStatistics()
+        overviewStatistics = DeliveryOverviewStatistics()
         await loadPage(reset: true)
     }
     
@@ -97,14 +93,13 @@ final class GiveBackManagementViewModel: ObservableObject {
         if isFetchingPage { return }
         isFetchingPage = true
         error = nil
-        
+
         if reset {
             isLoading = true
-            items = []
         } else {
             isLoadingMore = true
         }
-        
+
         defer {
             if reset {
                 isLoading = false
@@ -113,70 +108,84 @@ final class GiveBackManagementViewModel: ObservableObject {
             }
             isFetchingPage = false
         }
-        
-        var aggregatedItems: [CustomerOutOfStock] = []
-        var page = nextPageToLoad
-        var hasMore = false
-        var totalCount = totalMatchingCount
-        var shouldContinue = true
-        
-        while shouldContinue {
-            do {
-                let criteria = buildCriteria(for: currentFilter, page: page)
-                let result = try await repository.fetchOutOfStockRecords(
+
+        do {
+            let criteria = buildCriteria(for: currentFilter, page: reset ? 0 : nextPageToLoad)
+
+            if reset {
+                // OPTIMIZED: Use single-query method for initial load
+                let result = try await repository.fetchDeliveryManagementMetrics(
                     criteria: criteria,
-                    page: page,
+                    page: 0,
                     pageSize: pageSize
                 )
-                page = result.page + 1
-                hasMore = result.hasMoreData
-                totalCount = result.totalCount
+
+                // Update all state atomically
+                items = result.items
                 updateCaches(with: result.items)
-                let filtered = applyPostFetchFilters(result.items, filter: currentFilter)
-                if !filtered.isEmpty {
-                    aggregatedItems.append(contentsOf: filtered)
-                }
-                
-                shouldContinue = false
-
-                if reset {
-                    if aggregatedItems.count < pageSize && hasMore {
-                        shouldContinue = true
-                    } else if filtered.isEmpty && hasMore {
-                        shouldContinue = true
-                    }
-                } else {
-                    if filtered.isEmpty && hasMore {
-                        shouldContinue = true
-                    }
-                }
-
-                if !shouldContinue {
-                    nextPageToLoad = page
-                    hasMoreData = hasMore
-                    totalMatchingCount = totalCount
-                    lastUpdated = Date()
-                    if reset {
-                        scheduleStatisticsUpdate(totalCount: totalCount)
-                    }
-                    break
-                }
-            } catch {
-                self.error = error
-                aggregatedItems.removeAll()
-                hasMoreData = false
-                totalMatchingCount = 0
+                nextPageToLoad = 1
+                hasMoreData = result.hasMoreData
+                totalMatchingCount = result.totalCount
                 lastUpdated = Date()
-                return
+
+                // Update statistics from single query result
+                overviewStatistics = DeliveryOverviewStatistics(
+                    totalCount: result.totalCount,
+                    needsDelivery: result.needsDeliveryCount,
+                    partialDelivery: result.partialDeliveryCount,
+                    completedDelivery: result.completedDeliveryCount
+                )
+
+            } else {
+                // Load more: use pagination
+                var aggregatedItems: [CustomerOutOfStock] = []
+                var page = nextPageToLoad
+                var hasMore = false
+                var totalCount = totalMatchingCount
+                var shouldContinue = true
+
+                while shouldContinue {
+                    let criteria = buildCriteria(for: currentFilter, page: page)
+                    let result = try await repository.fetchOutOfStockRecords(
+                        criteria: criteria,
+                        page: page,
+                        pageSize: pageSize
+                    )
+                    page = result.page + 1
+                    hasMore = result.hasMoreData
+                    totalCount = result.totalCount
+                    updateCaches(with: result.items)
+                    let filtered = applyPostFetchFilters(result.items, filter: currentFilter)
+                    if !filtered.isEmpty {
+                        aggregatedItems.append(contentsOf: filtered)
+                    }
+
+                    shouldContinue = filtered.isEmpty && hasMore
+
+                    if !shouldContinue {
+                        nextPageToLoad = page
+                        hasMoreData = hasMore
+                        totalMatchingCount = totalCount
+                        lastUpdated = Date()
+                        break
+                    }
+                }
+
+                let existingIds = Set(items.map { $0.id })
+                let uniqueItems = aggregatedItems.filter { !existingIds.contains($0.id) }
+                items.append(contentsOf: uniqueItems)
+
+                // Update statistics preview for load-more
+                overviewStatistics = makePreviewStatistics(totalCount: totalCount)
             }
-        }
-        
-        if reset {
-            items = aggregatedItems
-        } else {
-            let existingIds = Set(items.map { $0.id })
-            let uniqueItems = aggregatedItems.filter { !existingIds.contains($0.id) }
-            items.append(contentsOf: uniqueItems)
+        } catch {
+            self.error = error
+            if reset {
+                items = []
+            }
+            hasMoreData = false
+            totalMatchingCount = 0
+            lastUpdated = Date()
         }
     }
 
@@ -190,10 +199,13 @@ final class GiveBackManagementViewModel: ObservableObject {
             }
         }
         
+        // Don't map ReturnStatus to OutOfStockStatus - they are orthogonal concepts
+        // ReturnStatus filters by returnQuantity (applied in applyPostFetchFilters)
+        // OutOfStockStatus is about order state (pending/completed/returned to supplier)
         return OutOfStockFilterCriteria(
             customer: filter.customer,
             product: nil,
-            status: filter.returnStatus?.mappedOutOfStockStatus,
+            status: nil,  // Let repository fetch all statuses, filter by returnQuantity later
             dateRange: dateRange,
             searchText: filter.searchText,
             page: page,
@@ -214,21 +226,21 @@ final class GiveBackManagementViewModel: ObservableObject {
             }
         }
         
-        if let returnStatus = filter.returnStatus {
-            filtered = filtered.filter { matchesReturnStatus(record: $0, status: returnStatus) }
+        if let deliveryStatus = filter.deliveryStatus {
+            filtered = filtered.filter { matchesDeliveryStatus(record: $0, status: deliveryStatus) }
         }
-        
+
         return filtered
     }
 
-    private func matchesReturnStatus(record: CustomerOutOfStock, status: ReturnStatus) -> Bool {
+    private func matchesDeliveryStatus(record: CustomerOutOfStock, status: DeliveryStatus) -> Bool {
         switch status {
-        case .needsReturn:
-            return record.status == .pending && record.returnQuantity < record.quantity
-        case .partialReturn:
-            return record.returnQuantity > 0 && record.returnQuantity < record.quantity
+        case .needsDelivery:
+            return record.status == .pending && record.deliveryQuantity == 0
+        case .partialDelivery:
+            return record.deliveryQuantity > 0 && record.deliveryQuantity < record.quantity
         case .completed:
-            return record.returnQuantity >= record.quantity
+            return record.deliveryQuantity >= record.quantity
         }
     }
     
@@ -246,81 +258,15 @@ final class GiveBackManagementViewModel: ObservableObject {
         availableAddresses = addressCache.sorted()
     }
 
-    private func scheduleStatisticsUpdate(totalCount: Int) {
-        guard let repository, let baseCriteriaForStatistics else { return }
-        statisticsTask?.cancel()
-        let criteria = baseCriteriaForStatistics
-        let preview = makePreviewStatistics(totalCount: totalCount)
-        overviewStatistics = preview
-        statisticsTask = Task { [weak self] in
-            guard let self else { return }
-            let stats = await self.computeOverviewStatistics(
-                repository: repository,
-                criteria: criteria,
-                totalCount: totalCount
-            )
-            await MainActor.run {
-                self.overviewStatistics = stats
-            }
-        }
-    }
-
-    private func makePreviewStatistics(totalCount: Int) -> ReturnOverviewStatistics {
-        let needs = items.filter { $0.status == .pending && $0.returnQuantity == 0 }.count
-        let partial = items.filter { $0.status == .pending && $0.returnQuantity > 0 && $0.returnQuantity < $0.quantity }.count
-        let completed = items.filter { $0.status != .pending && $0.returnQuantity >= $0.quantity }.count
-        return ReturnOverviewStatistics(
+    private func makePreviewStatistics(totalCount: Int) -> DeliveryOverviewStatistics {
+        let needs = items.filter { $0.status == .pending && $0.deliveryQuantity == 0 }.count
+        let partial = items.filter { $0.status == .pending && $0.deliveryQuantity > 0 && $0.deliveryQuantity < $0.quantity }.count
+        let completed = items.filter { $0.status != .pending && $0.deliveryQuantity >= $0.quantity }.count
+        return DeliveryOverviewStatistics(
             totalCount: totalCount,
-            needsReturn: needs,
-            partialReturn: partial,
-            completedReturn: completed
+            needsDelivery: needs,
+            partialDelivery: partial,
+            completedDelivery: completed
         )
-    }
-
-    private func computeOverviewStatistics(
-        repository: CustomerOutOfStockRepository,
-        criteria: OutOfStockFilterCriteria,
-        totalCount: Int
-    ) async -> ReturnOverviewStatistics {
-        var result = ReturnOverviewStatistics(totalCount: totalCount)
-
-        do {
-            let statusCounts = try await repository.countOutOfStockRecordsByStatus(criteria: criteria)
-            let pendingCount = statusCounts[.pending] ?? 0
-            let returnedCount = statusCounts[.returned] ?? 0
-            let completedCount = statusCounts[.completed] ?? 0
-
-            let partialCount = try await repository.countPartialReturnRecords(criteria: criteria)
-
-            let needsCount = max(0, pendingCount - partialCount)
-            let finalCompleted = max(0, returnedCount + completedCount)
-
-            result.needsReturn = needsCount
-            result.partialReturn = partialCount
-            result.completedReturn = finalCompleted
-
-        } catch {
-            // Fallback to current in-memory items if repository aggregation fails
-            let pending = items.filter { $0.status == .pending && $0.returnQuantity == 0 }.count
-            let partial = items.filter { $0.status == .pending && $0.returnQuantity > 0 && $0.returnQuantity < $0.quantity }.count
-            let completed = items.filter { $0.status != .pending && $0.returnQuantity >= $0.quantity }.count
-
-            result.needsReturn = pending
-            result.partialReturn = partial
-            result.completedReturn = completed
-        }
-
-        return result
-    }
-}
-
-private extension ReturnStatus {
-    var mappedOutOfStockStatus: OutOfStockStatus? {
-        switch self {
-        case .needsReturn, .partialReturn:
-            return .pending
-        case .completed:
-            return .returned
-        }
     }
 }

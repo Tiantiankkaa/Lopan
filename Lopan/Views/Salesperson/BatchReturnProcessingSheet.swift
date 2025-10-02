@@ -13,8 +13,8 @@ struct BatchReturnProcessingSheet: View {
     let items: [CustomerOutOfStock]
     let onComplete: ([(CustomerOutOfStock, Int, String?)]) -> Void
     
-    @State private var returnQuantities: [String: String] = [:]
-    @State private var returnNotes: [String: String] = [:]
+    @State private var deliveryQuantities: [String: String] = [:]
+    @State private var deliveryNotes: [String: String] = [:]
     @State private var showingConfirmation = false
     
     var body: some View {
@@ -72,13 +72,13 @@ struct BatchReturnProcessingSheet: View {
             content: { item in
                 ReturnItemInputRow(
                     item: item,
-                    returnQuantity: Binding(
-                        get: { returnQuantities[item.id] ?? "" },
-                        set: { returnQuantities[item.id] = $0 }
+                    deliveryQuantity: Binding(
+                        get: { deliveryQuantities[item.id] ?? "" },
+                        set: { deliveryQuantities[item.id] = $0 }
                     ),
-                    returnNotes: Binding(
-                        get: { returnNotes[item.id] ?? "" },
-                        set: { returnNotes[item.id] = $0 }
+                    deliveryNotes: Binding(
+                        get: { deliveryNotes[item.id] ?? "" },
+                        set: { deliveryNotes[item.id] = $0 }
                     )
                 )
             },
@@ -130,7 +130,7 @@ struct BatchReturnProcessingSheet: View {
     
     private var isValidInput: Bool {
         for item in items {
-            guard let quantityStr = returnQuantities[item.id],
+            guard let quantityStr = deliveryQuantities[item.id],
                   let quantity = Int(quantityStr),
                   quantity > 0,
                   quantity <= item.remainingQuantity else {
@@ -139,32 +139,32 @@ struct BatchReturnProcessingSheet: View {
         }
         return true
     }
-    
+
     private func initializeQuantities() {
         for item in items {
-            returnQuantities[item.id] = String(item.remainingQuantity)
-            returnNotes[item.id] = ""
+            deliveryQuantities[item.id] = String(item.remainingQuantity)
+            deliveryNotes[item.id] = ""
         }
     }
-    
+
     private func fillMaxQuantities() {
         for item in items {
-            returnQuantities[item.id] = String(item.remainingQuantity)
+            deliveryQuantities[item.id] = String(item.remainingQuantity)
         }
     }
     
     private func processBatchReturn() {
         var processedItems: [(CustomerOutOfStock, Int, String?)] = []
-        
+
         for item in items {
-            guard let quantityStr = returnQuantities[item.id],
+            guard let quantityStr = deliveryQuantities[item.id],
                   let quantity = Int(quantityStr),
                   quantity > 0 else { continue }
-            
-            let notes = returnNotes[item.id]?.isEmpty == false ? returnNotes[item.id] : nil
+
+            let notes = deliveryNotes[item.id]?.isEmpty == false ? deliveryNotes[item.id] : nil
             processedItems.append((item, quantity, notes))
         }
-        
+
         onComplete(processedItems)
         dismiss()
     }
@@ -172,8 +172,8 @@ struct BatchReturnProcessingSheet: View {
 
 struct ReturnItemInputRow: View {
     let item: CustomerOutOfStock
-    @Binding var returnQuantity: String
-    @Binding var returnNotes: String
+    @Binding var deliveryQuantity: String
+    @Binding var deliveryNotes: String
     
     @State private var showingError = false
     
@@ -190,7 +190,7 @@ struct ReturnItemInputRow: View {
             }
         }
         .padding(.vertical, 8)
-        .onChange(of: returnQuantity) { _, newValue in
+        .onChange(of: deliveryQuantity) { _, newValue in
             validateQuantity(newValue)
         }
     }
@@ -218,8 +218,8 @@ struct ReturnItemInputRow: View {
                     .font(.caption)
                     .foregroundColor(LopanColors.warning)
                 
-                if item.hasPartialReturn {
-                    Text("已还: \(item.returnQuantity)")
+                if item.hasPartialDelivery {
+                    Text("已发货: \(item.deliveryQuantity)")
                         .font(.caption)
                         .foregroundColor(LopanColors.info)
                 }
@@ -230,28 +230,28 @@ struct ReturnItemInputRow: View {
     private var quantityInputSection: some View {
         VStack(alignment: .leading, spacing: 8) {
             LopanTextField(
-                title: "return_quantity".localized,
+                title: "delivery_quantity".localized,
                 placeholder: "最多: \(item.remainingQuantity)",
-                text: $returnQuantity,
+                text: $deliveryQuantity,
                 variant: .outline,
                 state: showingError ? .error : .normal,
                 keyboardType: .numberPad,
                 icon: "number",
-                helperText: "请输入要还货的数量",
-                errorText: showingError ? "请输入有效的还货数量（1-\(item.remainingQuantity)）" : nil
+                helperText: "请输入要发货的数量",
+                errorText: showingError ? "请输入有效的发货数量（1-\(item.remainingQuantity)）" : nil
             )
         }
     }
-    
+
     private var notesInputSection: some View {
         VStack(alignment: .leading, spacing: 8) {
             LopanTextField(
-                title: "return_notes".localized,
-                placeholder: "可选择填写还货原因或备注",
-                text: $returnNotes,
+                title: "delivery_notes".localized,
+                placeholder: "可选择填写发货原因或备注",
+                text: $deliveryNotes,
                 variant: .outline,
                 icon: "note.text",
-                helperText: "还货备注为可选信息"
+                helperText: "发货备注为可选信息"
             )
         }
     }

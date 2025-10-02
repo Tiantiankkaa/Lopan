@@ -277,7 +277,7 @@ final class CloudCustomerOutOfStockRepository: CustomerOutOfStockRepository, Sen
             pageSize: max(criteria.pageSize, 200)
         )
         let partialCount = fallback.items.filter { item in
-            item.returnQuantity > 0 && item.returnQuantity < item.quantity
+            item.deliveryQuantity > 0 && item.deliveryQuantity < item.quantity
         }.count
         return partialCount
     }
@@ -570,7 +570,7 @@ extension CloudCustomerOutOfStockRepository {
                     print("☁️ CloudRepository: Dashboard metrics failed, using local fallback")
                     return try await localRepo.fetchDashboardMetrics()
                 }
-                throw RepositoryError.connectionFailed(response.error ?? "Failed to fetch dashboard metrics")
+                throw RepositoryError.serverError(response.error ?? "Failed to fetch dashboard metrics")
             }
 
             return try dto.toDomain()
@@ -580,6 +580,66 @@ extension CloudCustomerOutOfStockRepository {
             if let localRepo = localFallback {
                 print("☁️ CloudRepository: Dashboard metrics error, using local fallback: \(error)")
                 return try await localRepo.fetchDashboardMetrics()
+            }
+            throw error
+        }
+    }
+
+    // MARK: - OPTIMIZED Delivery Management Metrics
+
+    /// Single-pass delivery management metrics calculation - calls dedicated cloud endpoint
+    func fetchDeliveryManagementMetrics(
+        criteria: OutOfStockFilterCriteria,
+        page: Int,
+        pageSize: Int
+    ) async throws -> DeliveryManagementMetrics {
+        // Build query string
+        var queryParams: [String] = [
+            "page=\(page)",
+            "pageSize=\(pageSize)"
+        ]
+
+        if let status = criteria.status {
+            queryParams.append("status=\(status.rawValue)")
+        }
+        if let customer = criteria.customer {
+            queryParams.append("customerId=\(customer.id)")
+        }
+        if let product = criteria.product {
+            queryParams.append("productId=\(product.id)")
+        }
+        if !criteria.searchText.isEmpty {
+            if let encoded = criteria.searchText.addingPercentEncoding(withAllowedCharacters: .urlQueryAllowed) {
+                queryParams.append("search=\(encoded)")
+            }
+        }
+        if let dateRange = criteria.dateRange {
+            let formatter = ISO8601DateFormatter()
+            queryParams.append("startDate=\(formatter.string(from: dateRange.start))")
+            queryParams.append("endDate=\(formatter.string(from: dateRange.end))")
+        }
+
+        let endpoint = "\(baseEndpoint)/analytics/delivery-management-metrics?\(queryParams.joined(separator: "&"))"
+
+        do {
+            let response = try await cloudProvider.get(endpoint: endpoint, type: DeliveryManagementMetricsDTO.self)
+
+            guard response.success, let dto = response.data else {
+                // Fall back to local if available
+                if let localRepo = localFallback {
+                    print("☁️ CloudRepository: Delivery management metrics failed, using local fallback")
+                    return try await localRepo.fetchDeliveryManagementMetrics(criteria: criteria, page: page, pageSize: pageSize)
+                }
+                throw RepositoryError.connectionFailed(response.error ?? "Failed to fetch delivery management metrics")
+            }
+
+            return try dto.toDomain()
+
+        } catch {
+            // Fall back to local if available
+            if let localRepo = localFallback {
+                print("☁️ CloudRepository: Delivery management metrics error, using local fallback: \(error)")
+                return try await localRepo.fetchDeliveryManagementMetrics(criteria: criteria, page: page, pageSize: pageSize)
             }
             throw error
         }
@@ -619,6 +679,35 @@ private struct DashboardMetricsDTO: Codable {
             topPendingItems: pendingItems,
             topReturnItems: returnItems,
             recentCompleted: completedItems
+        )
+    }
+}
+
+// MARK: - Delivery Management Metrics DTO
+
+private struct DeliveryManagementMetricsDTO: Codable {
+    let items: [CustomerOutOfStockDTO]
+    let totalCount: Int
+    let hasMoreData: Bool
+    let page: Int
+    let pageSize: Int
+    let needsDeliveryCount: Int
+    let partialDeliveryCount: Int
+    let completedDeliveryCount: Int
+
+    func toDomain() throws -> DeliveryManagementMetrics {
+        // Convert DTOs to domain models
+        let domainItems = try items.map { try $0.toDomain() }
+
+        return DeliveryManagementMetrics(
+            items: domainItems,
+            totalCount: totalCount,
+            hasMoreData: hasMoreData,
+            page: page,
+            pageSize: pageSize,
+            needsDeliveryCount: needsDeliveryCount,
+            partialDeliveryCount: partialDeliveryCount,
+            completedDeliveryCount: completedDeliveryCount
         )
     }
 }

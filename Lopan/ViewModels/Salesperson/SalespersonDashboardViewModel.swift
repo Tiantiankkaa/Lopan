@@ -318,7 +318,7 @@ final class SalespersonDashboardViewModel: ObservableObject {
 
         // Return tasks
         let returnTasks: [PriorityTask] = returns
-            .sorted { ($0.returnDate ?? $0.requestDate) < ($1.returnDate ?? $1.requestDate) }
+            .sorted { ($0.deliveryDate ?? $0.requestDate) < ($1.deliveryDate ?? $1.requestDate) }
             .prefix(4)
             .map { item in
                 PriorityTask(
@@ -328,7 +328,7 @@ final class SalespersonDashboardViewModel: ObservableObject {
                     category: "salesperson_dashboard_section_returns".localizedKey,
                     status: .warning,
                     destination: .giveBack,
-                    dueDate: item.returnDate ?? item.requestDate
+                    dueDate: item.deliveryDate ?? item.requestDate
                 )
             }
 
@@ -401,14 +401,14 @@ final class SalespersonDashboardViewModel: ObservableObject {
 
         // Recent returns processed
         let recentReturns = returns
-            .filter { $0.returnDate != nil }
-            .sorted { ($0.returnDate ?? Date.distantPast) > ($1.returnDate ?? Date.distantPast) }
+            .filter { $0.deliveryDate != nil }
+            .sorted { ($0.deliveryDate ?? Date.distantPast) > ($1.deliveryDate ?? Date.distantPast) }
             .prefix(2)
             .map { item in
                 Activity(
                     title: "Return processed for \(item.customerDisplayName).",
                     detail: "\(item.productDisplayName) - \(item.remainingQuantity) units",
-                    date: item.returnDate ?? item.updatedAt,
+                    date: item.deliveryDate ?? item.updatedAt,
                     destination: .giveBack,
                     iconName: "arrow.uturn.backward.circle.fill",
                     iconColor: Color(red: 0.15, green: 0.39, blue: 0.92)

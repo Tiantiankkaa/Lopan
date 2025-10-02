@@ -42,7 +42,7 @@ struct CustomerOutOfStockDetailView: View {
                 }
                 
                 // Return Info Card (if applicable)
-                if item.status == .returned && item.returnQuantity > 0 {
+                if item.status == .returned && item.deliveryQuantity > 0 {
                     returnInfoCard
                 }
             }
@@ -357,10 +357,10 @@ struct CustomerOutOfStockDetailView: View {
                 OutOfStockInfoRow(
                     icon: "minus.circle",
                     label: "退货数量",
-                    value: "\(item.returnQuantity)"
+                    value: "\(item.deliveryQuantity)"
                 )
                 
-                if let returnDate = item.returnDate {
+                if let returnDate = item.deliveryDate {
                     OutOfStockInfoRow(
                         icon: "calendar.badge.minus",
                         label: "退货时间",
@@ -368,7 +368,7 @@ struct CustomerOutOfStockDetailView: View {
                     )
                 }
                 
-                if let returnNotes = item.returnNotes, !returnNotes.isEmpty {
+                if let returnNotes = item.deliveryNotes, !returnNotes.isEmpty {
                     OutOfStockInfoRow(
                         icon: "note.text",
                         label: "退货备注",

@@ -33,8 +33,8 @@ enum CustomerOutOfStockServiceError: Error, LocalizedError {
 
 struct ReturnProcessingRequest {
     let item: CustomerOutOfStock
-    let returnQuantity: Int
-    let returnNotes: String?
+    let deliveryQuantity: Int
+    let deliveryNotes: String?
 }
 
 @MainActor
@@ -638,8 +638,8 @@ public class CustomerOutOfStockService: ObservableObject {
         item.requestDate = dto.requestDate
         item.updatedAt = dto.updatedAt
         item.status = OutOfStockStatus(rawValue: dto.status) ?? .pending
-        item.returnQuantity = dto.returnQuantity
-        item.returnNotes = dto.returnNotes
+        item.deliveryQuantity = dto.deliveryQuantity
+        item.deliveryNotes = dto.deliveryNotes
         
         return item
     }
@@ -812,8 +812,8 @@ public class CustomerOutOfStockService: ObservableObject {
             quantity: item.quantity,
             status: item.status.displayName,
             notes: item.notes,
-            returnQuantity: item.returnQuantity,
-            returnNotes: item.returnNotes
+            deliveryQuantity: item.deliveryQuantity,
+            deliveryNotes: item.deliveryNotes
         )
         
         // Track changed fields
@@ -871,27 +871,27 @@ public class CustomerOutOfStockService: ObservableObject {
         let currentUser = try getCurrentUser()
         let item = request.item
 
-        // Validate return quantity
-        guard request.returnQuantity > 0 && request.returnQuantity <= item.remainingQuantity else {
+        // Validate delivery quantity
+        guard request.deliveryQuantity > 0 && request.deliveryQuantity <= item.remainingQuantity else {
             throw ServiceError.invalidReturnQuantity
         }
 
-        // Update return information
-        item.returnQuantity += request.returnQuantity
-        item.returnDate = Date()
-        item.returnNotes = request.returnNotes
+        // Update delivery information
+        item.deliveryQuantity += request.deliveryQuantity
+        item.deliveryDate = Date()
+        item.deliveryNotes = request.deliveryNotes
         item.updatedAt = Date()
 
-        // Update status based on return progress
-        if item.returnQuantity >= item.quantity {
+        // Update status based on delivery progress
+        if item.deliveryQuantity >= item.quantity {
             item.status = .completed
         }
 
         // Log return processing
         await auditService.logReturnProcessing(
             item: item,
-            returnQuantity: request.returnQuantity,
-            returnNotes: request.returnNotes,
+            deliveryQuantity: request.deliveryQuantity,
+            deliveryNotes: request.deliveryNotes,
             operatorUserId: currentUser.id,
             operatorUserName: currentUser.name
         )
@@ -912,7 +912,7 @@ public class CustomerOutOfStockService: ObservableObject {
             let item = request.item
 
             // Validate return quantity
-            guard request.returnQuantity > 0 && request.returnQuantity <= item.remainingQuantity else {
+            guard request.deliveryQuantity > 0 && request.deliveryQuantity <= item.remainingQuantity else {
                 continue // Skip invalid items
             }
 
@@ -921,22 +921,22 @@ public class CustomerOutOfStockService: ObservableObject {
             let itemDate = calendar.startOfDay(for: item.requestDate)
             affectedDates.insert(itemDate)
 
-            // Update return information
-            item.returnQuantity += request.returnQuantity
-            item.returnDate = Date()
-            item.returnNotes = request.returnNotes
+            // Update delivery information
+            item.deliveryQuantity += request.deliveryQuantity
+            item.deliveryDate = Date()
+            item.deliveryNotes = request.deliveryNotes
             item.updatedAt = Date()
 
-            // Update status based on return progress
-            if item.returnQuantity >= item.quantity {
+            // Update status based on delivery progress
+            if item.deliveryQuantity >= item.quantity {
                 item.status = .completed
             }
 
-            // Log return processing
+            // Log delivery processing
             await auditService.logReturnProcessing(
                 item: item,
-                returnQuantity: request.returnQuantity,
-                returnNotes: request.returnNotes,
+                deliveryQuantity: request.deliveryQuantity,
+                deliveryNotes: request.deliveryNotes,
                 operatorUserId: currentUser.id,
                 operatorUserName: currentUser.name
             )
@@ -1118,9 +1118,9 @@ public class CustomerOutOfStockService: ObservableObject {
             item.requestDate = dto.requestDate
             item.actualCompletionDate = dto.actualCompletionDate
             item.updatedAt = dto.updatedAt
-            item.returnQuantity = dto.returnQuantity
-            item.returnDate = dto.returnDate
-            item.returnNotes = dto.returnNotes
+            item.deliveryQuantity = dto.deliveryQuantity
+            item.deliveryDate = dto.deliveryDate
+            item.deliveryNotes = dto.deliveryNotes
             return item
         }
     }
@@ -1171,7 +1171,7 @@ public class CustomerOutOfStockService: ObservableObject {
     }
     
     func getReturnableItems() -> [CustomerOutOfStock] {
-        return items.filter { $0.needsReturn || $0.hasPartialReturn }
+        return items.filter { $0.needsDelivery || $0.hasPartialDelivery }
     }
     
     func getItemsGroupedByCustomer() -> [String: [CustomerOutOfStock]] {
@@ -1552,8 +1552,8 @@ extension NewAuditingService {
     
     func logReturnProcessing(
         item: CustomerOutOfStock,
-        returnQuantity: Int,
-        returnNotes: String?,
+        deliveryQuantity: Int,
+        deliveryNotes: String?,
         operatorUserId: String,
         operatorUserName: String
     ) async {
@@ -1561,15 +1561,15 @@ extension NewAuditingService {
             operationType: .returnProcess,
             entityType: .customerOutOfStock,
             entityId: item.id,
-            entityDescription: "Return processed for \(item.productDisplayName) - Quantity: \(returnQuantity)",
+            entityDescription: "Delivery processed for \(item.productDisplayName) - Quantity: \(deliveryQuantity)",
             operatorUserId: operatorUserId,
             operatorUserName: operatorUserName,
             operationDetails: [
-                "return_quantity": returnQuantity,
-                "return_notes": returnNotes ?? "",
+                "delivery_quantity": deliveryQuantity,
+                "delivery_notes": deliveryNotes ?? "",
                 "product": item.productDisplayName,
                 "customer_name": item.customer?.name ?? "Unknown",
-                "total_returned": item.returnQuantity + returnQuantity
+                "total_delivered": item.deliveryQuantity + deliveryQuantity
             ]
         )
     }

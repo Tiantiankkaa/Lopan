@@ -25,9 +25,9 @@ struct CustomerOutOfStockDTO: Codable, Identifiable {
     let notes: String
     let requestDate: Date
     let actualCompletionDate: Date?
-    let returnQuantity: Int
-    let returnDate: Date?
-    let returnNotes: String?
+    let deliveryQuantity: Int
+    let deliveryDate: Date?
+    let deliveryNotes: String?
     let createdAt: Date
     let updatedAt: Date
     let createdBy: String
@@ -60,9 +60,9 @@ struct CustomerOutOfStockDTO: Codable, Identifiable {
         self.notes = model.notes ?? ""
         self.requestDate = model.requestDate
         self.actualCompletionDate = model.actualCompletionDate
-        self.returnQuantity = model.returnQuantity
-        self.returnDate = model.returnDate
-        self.returnNotes = model.returnNotes
+        self.deliveryQuantity = model.deliveryQuantity
+        self.deliveryDate = model.deliveryDate
+        self.deliveryNotes = model.deliveryNotes
         self.createdAt = model.createdAt
         self.updatedAt = model.updatedAt
         self.createdBy = model.createdBy

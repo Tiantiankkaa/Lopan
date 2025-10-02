@@ -82,8 +82,8 @@ public class AuditingService {
             quantity: item.quantity,
             status: item.status.displayName,
             notes: item.notes,
-            returnQuantity: item.returnQuantity,
-            returnNotes: item.returnNotes
+            deliveryQuantity: item.deliveryQuantity,
+            deliveryNotes: item.deliveryNotes
         )
         
         let operation = CustomerOutOfStockOperation(
@@ -124,8 +124,8 @@ public class AuditingService {
             quantity: item.quantity,
             status: item.status.displayName,
             notes: item.notes,
-            returnQuantity: item.returnQuantity,
-            returnNotes: item.returnNotes
+            deliveryQuantity: item.deliveryQuantity,
+            deliveryNotes: item.deliveryNotes
         )
         
         let operation = CustomerOutOfStockOperation(
@@ -177,19 +177,19 @@ public class AuditingService {
         )
     }
     
-    /// Log return processing
+    /// Log delivery processing
     func logReturnProcessing(
         item: CustomerOutOfStock,
-        returnQuantity: Int,
-        returnNotes: String?,
+        deliveryQuantity: Int,
+        deliveryNotes: String?,
         operatorUserId: String,
         operatorUserName: String
     ) async {
         let details: [String: Any] = [
-            "returnQuantity": returnQuantity,
-            "returnNotes": returnNotes ?? "",
-            "previousReturnQuantity": item.returnQuantity - returnQuantity,
-            "newTotalReturnQuantity": item.returnQuantity,
+            "deliveryQuantity": deliveryQuantity,
+            "deliveryNotes": deliveryNotes ?? "",
+            "previousDeliveryQuantity": item.deliveryQuantity - deliveryQuantity,
+            "newTotalDeliveryQuantity": item.deliveryQuantity,
             "remainingQuantity": item.remainingQuantity,
             "productDisplayName": item.productDisplayName
         ]
@@ -217,8 +217,8 @@ public class AuditingService {
             quantity: item.quantity,
             status: item.status.displayName,
             notes: item.notes,
-            returnQuantity: item.returnQuantity,
-            returnNotes: item.returnNotes
+            deliveryQuantity: item.deliveryQuantity,
+            deliveryNotes: item.deliveryNotes
         )
         
         let operation = CustomerOutOfStockOperation(

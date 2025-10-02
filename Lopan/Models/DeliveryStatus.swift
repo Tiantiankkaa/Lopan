@@ -1,44 +1,45 @@
 //
-//  ReturnStatus.swift
+//  DeliveryStatus.swift
 //  Lopan
 //
 //  Extracted for shared usage between views and view models.
+//  Tracks delivery status for customer out-of-stock fulfillment.
 //
 
 import SwiftUI
 
-enum ReturnStatus: CaseIterable {
-    case needsReturn
-    case partialReturn
+enum DeliveryStatus: CaseIterable {
+    case needsDelivery
+    case partialDelivery
     case completed
-    
+
     var displayName: String {
         switch self {
-        case .needsReturn:
-            return "pending_return".localized
-        case .partialReturn:
-            return "partial_return".localized
+        case .needsDelivery:
+            return "pending_delivery".localized
+        case .partialDelivery:
+            return "partial_delivery".localized
         case .completed:
-            return "completed_return".localized
+            return "completed_delivery".localized
         }
     }
-    
+
     var systemImage: String {
         switch self {
-        case .needsReturn:
+        case .needsDelivery:
             return "exclamationmark.triangle.fill"
-        case .partialReturn:
+        case .partialDelivery:
             return "clock.fill"
         case .completed:
             return "checkmark.circle.fill"
         }
     }
-    
+
     var chipColor: Color {
         switch self {
-        case .needsReturn:
+        case .needsDelivery:
             return LopanColors.warning
-        case .partialReturn:
+        case .partialDelivery:
             return LopanColors.info
         case .completed:
             return LopanColors.success

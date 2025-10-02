@@ -47,17 +47,20 @@ class VirtualListStateManager<Item: VirtualListItem>: ObservableObject {
     @Published var scrollOffset: CGFloat = 0
     
     // MARK: - Private Properties
-    
+
     private var allItems: [Item] = []
     fileprivate var itemHeights: [Item.ID: CGFloat] = [:]
     private var visibleRange: Range<Int> = 0..<0
     private let configuration: VirtualListConfiguration
     private var lastUpdateTime: Date = Date()
     private let throttleInterval: TimeInterval = 0.016 // 60fps
-    
+
     // Performance metrics
     private var renderCount = 0
     private var avgRenderTime: Double = 0
+
+    // Debouncing
+    private var lastItemsUpdate: [Item.ID] = []
     
     init(configuration: VirtualListConfiguration = .default) {
         self.configuration = configuration
@@ -66,38 +69,41 @@ class VirtualListStateManager<Item: VirtualListItem>: ObservableObject {
     // MARK: - Data Management
     
     func updateItems(_ newItems: [Item], viewportHeight: CGFloat = 800) {
+        // Debounce: Skip if items haven't actually changed (by IDs)
+        let newItemIds = newItems.map { $0.id }
+        guard newItemIds != lastItemsUpdate else { return }
+        lastItemsUpdate = newItemIds
+
         let startTime = CFAbsoluteTimeGetCurrent()
         defer {
             let renderTime = CFAbsoluteTimeGetCurrent() - startTime
             updateRenderMetrics(renderTime)
         }
-        
+
         let oldItemCount = allItems.count
         let wasInitialLoad = allItems.isEmpty
         allItems = newItems
         recalculateTotalHeight()
-        
+
         if !newItems.isEmpty {
             let effectiveHeight = viewportHeight > 0 ? viewportHeight : 800
-            
+
             if wasInitialLoad {
                 // Initial load - show first 50 items
                 visibleRange = calculateInitialVisibleRange(viewportHeight: effectiveHeight)
-                print("🔄 VirtualList: Initial load \(newItems.count) items, showing range: \(visibleRange)")
             } else if newItems.count > oldItemCount {
                 // Data appended - expand range to include new items
                 let newEndIndex = min(newItems.count, visibleRange.upperBound + 25) // Add 25 more items
                 visibleRange = visibleRange.lowerBound..<newEndIndex
-                print("🔄 VirtualList: Appended data (\(oldItemCount) -> \(newItems.count)), expanded range to: \(visibleRange)")
             } else {
                 // Data replaced - recalculate initial range
                 visibleRange = calculateInitialVisibleRange(viewportHeight: effectiveHeight)
-                print("🔄 VirtualList: Data replaced, reset range to: \(visibleRange)")
             }
         }
-        
+
         updateVisibleItems()
-        
+
+        // Only log summary (reduced verbosity)
         print("📊 VirtualList: Updated \(newItems.count) items, visible: \(visibleItems.count), range: \(visibleRange)")
     }
     
@@ -173,13 +179,11 @@ class VirtualListStateManager<Item: VirtualListItem>: ObservableObject {
     
     private func calculateInitialVisibleRange(viewportHeight: CGFloat) -> Range<Int> {
         guard !allItems.isEmpty else { return 0..<0 }
-        
+
         // Always start with at least 50 items or all items if less than 50
         let pageSize = 50
         let endIndex = min(allItems.count, pageSize)
-        
-        print("🎯 calculateInitialVisibleRange: viewport=\(viewportHeight), total=\(allItems.count), range=0..<\(endIndex)")
-        
+
         return 0..<endIndex
     }
     

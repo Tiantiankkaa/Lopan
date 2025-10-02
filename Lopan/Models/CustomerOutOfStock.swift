@@ -10,21 +10,21 @@ import SwiftData
 import SwiftUI
 
 public enum OutOfStockStatus: String, CaseIterable, Codable {
-    case pending = "pending"
-    case completed = "completed"
-    case returned = "returned"
-    
+    case pending = "pending"        // Order placed, awaiting fulfillment
+    case completed = "completed"    // Products delivered to customer
+    case returned = "returned"      // Order cancelled/refunded to supplier
+
     var displayName: String {
         switch self {
         case .pending:
-            return "待处理"
+            return "待处理"           // Pending
         case .completed:
-            return "已完成"
+            return "已发货"           // Delivered (to customer)
         case .returned:
-            return "已退货"
+            return "已退货"           // Refunded (to supplier)
         }
     }
-    
+
     var color: Color {
         switch self {
         case .pending:
@@ -53,10 +53,15 @@ public final class CustomerOutOfStock {
     var createdAt: Date
     var updatedAt: Date
     
-    // Return goods fields
-    var returnQuantity: Int
-    var returnDate: Date?
-    var returnNotes: String?
+    // Delivery goods fields (products delivered TO customer from out-of-stock orders)
+    var deliveryQuantity: Int = 0
+    var deliveryDate: Date?
+    var deliveryNotes: String?
+
+    // Refund fields (order returned TO supplier/cancelled)
+    var isRefunded: Bool = false
+    var refundDate: Date?
+    var refundReason: String?
     
     init(customer: Customer?, product: Product?, productSize: ProductSize? = nil, quantity: Int, notes: String? = nil, createdBy: String) {
         self.id = UUID().uuidString
@@ -72,10 +77,15 @@ public final class CustomerOutOfStock {
         self.createdAt = Date()
         self.updatedAt = Date()
         
-        // Initialize return fields
-        self.returnQuantity = 0
-        self.returnDate = nil
-        self.returnNotes = nil
+        // Initialize delivery fields
+        self.deliveryQuantity = 0
+        self.deliveryDate = nil
+        self.deliveryNotes = nil
+
+        // Initialize refund fields
+        self.isRefunded = false
+        self.refundDate = nil
+        self.refundReason = nil
     }
     
     // Helper method to get display name for the customer (safe for orphaned records)
@@ -197,36 +207,52 @@ public final class CustomerOutOfStock {
         return cleanedNotes.isEmpty ? nil : cleanedNotes
     }
     
-    // Return goods computed properties
+    // Delivery goods computed properties
     var remainingQuantity: Int {
-        return quantity - returnQuantity
+        return quantity - deliveryQuantity
     }
-    
-    var needsReturn: Bool {
+
+    var needsDelivery: Bool {
         return remainingQuantity > 0 && status == .pending
     }
-    
-    var isFullyReturned: Bool {
-        return returnQuantity >= quantity
+
+    var isFullyDelivered: Bool {
+        return deliveryQuantity >= quantity
     }
-    
-    var hasPartialReturn: Bool {
-        return returnQuantity > 0 && returnQuantity < quantity
+
+    var hasPartialDelivery: Bool {
+        return deliveryQuantity > 0 && deliveryQuantity < quantity
     }
-    
-    // Method to process return
-    func processReturn(quantity: Int, notes: String? = nil) -> Bool {
+
+    // Method to process delivery (products delivered to customer)
+    func processDelivery(quantity: Int, notes: String? = nil) -> Bool {
         guard quantity > 0 && quantity <= remainingQuantity else { return false }
-        
-        self.returnQuantity += quantity
-        self.returnDate = Date()
-        self.returnNotes = notes
+
+        self.deliveryQuantity += quantity
+        self.deliveryDate = Date()
+        self.deliveryNotes = notes
         self.updatedAt = Date()
-        
-        // Update status to returned when processing returns
+
+        // Update status to completed when fully delivered
+        if self.deliveryQuantity >= self.quantity {
+            self.status = .completed
+            self.actualCompletionDate = Date()
+        }
+
+        return true
+    }
+
+    // Method to process refund (order cancelled/returned to supplier)
+    func processRefund(reason: String) -> Bool {
+        guard !isRefunded else { return false }
+
+        self.isRefunded = true
+        self.refundDate = Date()
+        self.refundReason = reason
         self.status = .returned
         self.actualCompletionDate = Date()
-        
+        self.updatedAt = Date()
+
         return true
     }
     
@@ -271,7 +297,8 @@ extension CustomerOutOfStock: Identifiable {
 extension CustomerOutOfStock: Codable {
     enum CodingKeys: String, CodingKey {
         case id, quantity, status, requestDate, actualCompletionDate, notes, createdBy, updatedBy, createdAt, updatedAt
-        case returnQuantity, returnDate, returnNotes
+        case deliveryQuantity, deliveryDate, deliveryNotes
+        case isRefunded, refundDate, refundReason
         case customerName, customerAddress, customerPhone
         case productName, productSize
     }
@@ -293,9 +320,13 @@ extension CustomerOutOfStock: Codable {
         self.createdAt = try container.decode(Date.self, forKey: .createdAt)
         self.updatedAt = try container.decode(Date.self, forKey: .updatedAt)
         
-        self.returnQuantity = try container.decode(Int.self, forKey: .returnQuantity)
-        self.returnDate = try container.decodeIfPresent(Date.self, forKey: .returnDate)
-        self.returnNotes = try container.decodeIfPresent(String.self, forKey: .returnNotes)
+        self.deliveryQuantity = try container.decode(Int.self, forKey: .deliveryQuantity)
+        self.deliveryDate = try container.decodeIfPresent(Date.self, forKey: .deliveryDate)
+        self.deliveryNotes = try container.decodeIfPresent(String.self, forKey: .deliveryNotes)
+
+        self.isRefunded = try container.decodeIfPresent(Bool.self, forKey: .isRefunded) ?? false
+        self.refundDate = try container.decodeIfPresent(Date.self, forKey: .refundDate)
+        self.refundReason = try container.decodeIfPresent(String.self, forKey: .refundReason)
     }
     
     public func encode(to encoder: Encoder) throws {
@@ -311,9 +342,13 @@ extension CustomerOutOfStock: Codable {
         try container.encode(createdAt, forKey: .createdAt)
         try container.encode(updatedAt, forKey: .updatedAt)
         
-        try container.encode(returnQuantity, forKey: .returnQuantity)
-        try container.encodeIfPresent(returnDate, forKey: .returnDate)
-        try container.encodeIfPresent(returnNotes, forKey: .returnNotes)
+        try container.encode(deliveryQuantity, forKey: .deliveryQuantity)
+        try container.encodeIfPresent(deliveryDate, forKey: .deliveryDate)
+        try container.encodeIfPresent(deliveryNotes, forKey: .deliveryNotes)
+
+        try container.encode(isRefunded, forKey: .isRefunded)
+        try container.encodeIfPresent(refundDate, forKey: .refundDate)
+        try container.encodeIfPresent(refundReason, forKey: .refundReason)
         
         try container.encode(customerDisplayName, forKey: .customerName)
         try container.encode(customerAddress, forKey: .customerAddress)

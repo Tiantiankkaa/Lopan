@@ -2313,17 +2313,17 @@ private struct OutOfStockItemCard: View {
                 }
                 
                 // Return information (if applicable)
-                if item.status == .returned && item.returnQuantity > 0 {
+                if item.status == .returned && item.deliveryQuantity > 0 {
                     HStack(spacing: 8) {
                         Image(systemName: "return.left")
                             .foregroundColor(LopanColors.warning)
                             .font(.caption)
                         
-                        Text("退货数量: \(item.returnQuantity)")
+                        Text("退货数量: \(item.deliveryQuantity)")
                             .font(.caption)
                             .foregroundColor(LopanColors.warning)
                         
-                        if let returnDate = item.returnDate {
+                        if let returnDate = item.deliveryDate {
                             Text(returnDate, style: .date)
                                 .font(.caption)
                                 .foregroundColor(LopanColors.textSecondary)

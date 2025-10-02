@@ -305,8 +305,8 @@ struct CustomerOutOfStockOperation: Codable {
         let quantity: Int?
         let status: String?
         let notes: String?
-        let returnQuantity: Int?
-        let returnNotes: String?
+        let deliveryQuantity: Int?
+        let deliveryNotes: String?
     }
 }
 

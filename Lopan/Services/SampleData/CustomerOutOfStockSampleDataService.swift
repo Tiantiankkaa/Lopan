@@ -387,11 +387,11 @@ class CustomerOutOfStockSampleDataService {
             record.actualCompletionDate = LargeSampleDataGenerator.generateCompletionDate(from: requestDate)
             
         case .returned:
-            let returnDate = LargeSampleDataGenerator.generateReturnDate(from: requestDate)
-            let returnQuantity = LargeSampleDataGenerator.generateReturnQuantity(originalQuantity: quantity)
-            record.returnDate = returnDate
-            record.returnQuantity = returnQuantity
-            record.returnNotes = "样本数据：模拟退货记录"
+            let deliveryDate = LargeSampleDataGenerator.generateReturnDate(from: requestDate)
+            let deliveryQuantity = LargeSampleDataGenerator.generateReturnQuantity(originalQuantity: quantity)
+            record.deliveryDate = deliveryDate
+            record.deliveryQuantity = deliveryQuantity
+            record.deliveryNotes = "样本数据：模拟发货记录"
         }
         
         return record

@@ -173,28 +173,28 @@ struct ReturnOrderExportView: View {
     private var filteredItems: [CustomerOutOfStock] {
         switch exportType {
         case .pendingReturns:
-            return items.filter { $0.needsReturn }
+            return items.filter { $0.needsDelivery }
         case .allReturns:
             return items
         case .selectedOnly:
             return items.filter { selectedItems.contains($0.id) }
         }
     }
-    
+
     private var itemsToExport: [CustomerOutOfStock] {
         switch exportType {
         case .pendingReturns:
-            return items.filter { $0.needsReturn }
+            return items.filter { $0.needsDelivery }
         case .allReturns:
             return items
         case .selectedOnly:
             return items.filter { selectedItems.contains($0.id) }
         }
     }
-    
+
     private func initializeSelection() {
-        // Select all items that need return by default
-        selectedItems = Set(items.filter { $0.needsReturn }.map { $0.id })
+        // Select all items that need delivery by default
+        selectedItems = Set(items.filter { $0.needsDelivery }.map { $0.id })
     }
     
     private func toggleSelectAll() {
@@ -306,8 +306,8 @@ struct ExportItemRow: View {
                             .font(.caption)
                             .foregroundColor(LopanColors.warning)
                         
-                        if item.hasPartialReturn {
-                            Text("已还: \(item.returnQuantity)")
+                        if item.hasPartialDelivery {
+                            Text("已发货: \(item.deliveryQuantity)")
                                 .font(.caption)
                                 .foregroundColor(LopanColors.info)
                         }
@@ -334,23 +334,23 @@ struct ExportItemRow: View {
     }
     
     private var returnStatusText: String {
-        if item.isFullyReturned {
-            return "fully_returned".localized
-        } else if item.hasPartialReturn {
-            return "partially_returned".localized
-        } else if item.needsReturn {
-            return "needs_return".localized
+        if item.isFullyDelivered {
+            return "fully_delivered".localized
+        } else if item.hasPartialDelivery {
+            return "partially_delivered".localized
+        } else if item.needsDelivery {
+            return "needs_delivery".localized
         } else {
             return item.status.displayName
         }
     }
-    
+
     private var returnStatusColor: Color {
-        if item.isFullyReturned {
+        if item.isFullyDelivered {
             return LopanColors.success
-        } else if item.hasPartialReturn {
+        } else if item.hasPartialDelivery {
             return LopanColors.primary
-        } else if item.needsReturn {
+        } else if item.needsDelivery {
             return LopanColors.warning
         } else {
             return LopanColors.textSecondary

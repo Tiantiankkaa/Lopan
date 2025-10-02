@@ -50,9 +50,9 @@ class DefaultCustomerOutOfStockBusinessService: CustomerOutOfStockBusinessServic
             throw BusinessError.missingProduct("Product is required")
         }
         
-        // Validate return quantity doesn't exceed original quantity
-        if record.returnQuantity > record.quantity {
-            throw BusinessError.invalidReturnQuantity("Return quantity cannot exceed original quantity")
+        // Validate delivery quantity doesn't exceed original quantity
+        if record.deliveryQuantity > record.quantity {
+            throw BusinessError.invalidReturnQuantity("Delivery quantity cannot exceed original quantity")
         }
         
         logger.safeInfo("Record validation passed", [
@@ -88,33 +88,33 @@ class DefaultCustomerOutOfStockBusinessService: CustomerOutOfStockBusinessServic
     // MARK: - Business Operations
     
     func processReturn(_ item: CustomerOutOfStock, quantity: Int, notes: String?) async throws {
-        logger.safeInfo("Processing return", [
+        logger.safeInfo("Processing delivery", [
             "itemId": item.id,
-            "returnQuantity": String(quantity),
+            "deliveryQuantity": String(quantity),
             "hasNotes": String(notes != nil)
         ])
-        
-        // Validate return quantity
-        let remainingQuantity = item.quantity - item.returnQuantity
+
+        // Validate delivery quantity
+        let remainingQuantity = item.quantity - item.deliveryQuantity
         guard quantity > 0 && quantity <= remainingQuantity else {
             throw BusinessError.invalidReturnQuantity("Invalid return quantity: \(quantity)")
         }
         
-        // Update item return information
-        item.returnQuantity += quantity
-        item.returnNotes = combineNotes(existing: item.returnNotes, new: notes)
+        // Update item delivery information
+        item.deliveryQuantity += quantity
+        item.deliveryNotes = combineNotes(existing: item.deliveryNotes, new: notes)
         item.updatedAt = Date()
-        
-        // Update status to returned when processing returns
-        item.status = .returned
+
+        // Update status to completed when delivering
+        item.status = .completed
         
         // Save the updated item
         try await dataService.updateRecord(item)
         
-        logger.safeInfo("Return processed successfully", [
+        logger.safeInfo("Delivery processed successfully", [
             "itemId": item.id,
             "newStatus": item.status.displayName,
-            "totalReturned": String(item.returnQuantity)
+            "totalDelivered": String(item.deliveryQuantity)
         ])
     }
     
@@ -148,13 +148,13 @@ class DefaultCustomerOutOfStockBusinessService: CustomerOutOfStockBusinessServic
                         totalProcessingTime += record.updatedAt.timeIntervalSince(record.requestDate)
                     }
                     
-                    // Check for partial returns
-                    if record.returnQuantity > 0 && record.returnQuantity < record.quantity {
+                    // Check for partial deliveries
+                    if record.deliveryQuantity > 0 && record.deliveryQuantity < record.quantity {
                         partiallyReturnedCount += 1
                     }
-                    
+
                     totalQuantity += record.quantity
-                    totalReturnedQuantity += record.returnQuantity
+                    totalReturnedQuantity += record.deliveryQuantity
                 }
                 
                 let averageProcessingTime = completedItemsCount > 0 ? 

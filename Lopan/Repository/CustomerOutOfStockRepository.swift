@@ -29,6 +29,21 @@ public struct DashboardMetrics {
     let recentCompleted: [CustomerOutOfStock]  // Top 10 recently completed
 }
 
+// MARK: - Delivery Management Metrics Result
+public struct DeliveryManagementMetrics {
+    let items: [CustomerOutOfStock]
+    let totalCount: Int
+    let hasMoreData: Bool
+    let page: Int
+    let pageSize: Int
+
+    // Statistics collected during single pass
+    // Logic matches ViewModel for consistency
+    let needsDeliveryCount: Int      // status == .pending && deliveryQuantity == 0
+    let partialDeliveryCount: Int    // status == .pending && 0 < deliveryQuantity < quantity
+    let completedDeliveryCount: Int  // deliveryQuantity >= quantity
+}
+
 public protocol CustomerOutOfStockRepository {
     // Legacy methods (maintained for backward compatibility)
     func fetchOutOfStockRecords() async throws -> [CustomerOutOfStock]
@@ -52,6 +67,13 @@ public protocol CustomerOutOfStockRepository {
 
     // OPTIMIZED: Single-pass dashboard metrics calculation
     func fetchDashboardMetrics() async throws -> DashboardMetrics
+
+    // OPTIMIZED: Single-pass delivery management metrics calculation
+    func fetchDeliveryManagementMetrics(
+        criteria: OutOfStockFilterCriteria,
+        page: Int,
+        pageSize: Int
+    ) async throws -> DeliveryManagementMetrics
 
     // CRUD operations
     func addOutOfStockRecord(_ record: CustomerOutOfStock) async throws
