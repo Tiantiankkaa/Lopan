@@ -8,13 +8,13 @@
 import Foundation
 import SwiftData
 
-@ModelActor
-actor LocalCustomerOutOfStockRepository: CustomerOutOfStockRepository {
-    // @ModelActor automatically provides:
-    // - modelExecutor: DefaultSerialModelExecutor
-    // - modelContainer: ModelContainer
-    // - modelContext: ModelContext (actor-isolated)
-    // - init(modelContainer: ModelContainer)
+@MainActor
+final class LocalCustomerOutOfStockRepository: CustomerOutOfStockRepository {
+    private let modelContext: ModelContext
+
+    init(modelContext: ModelContext) {
+        self.modelContext = modelContext
+    }
 
     func fetchOutOfStockRecords() async throws -> [CustomerOutOfStock] {
         let descriptor = FetchDescriptor<CustomerOutOfStock>()
@@ -1356,16 +1356,16 @@ actor LocalCustomerOutOfStockRepository: CustomerOutOfStockRepository {
         var completedDeliveryCount = 0
 
         for record in filteredRecords {
-            // "待发货" (Needs Delivery): Pending orders not yet delivered to customer
-            if record.status == .pending && record.deliveryQuantity == 0 {
+            // "待发货" (Waiting Delivery): Not completed/refunded AND no delivery recorded
+            if record.status != .completed && record.status != .refunded && record.deliveryQuantity == 0 {
                 needsDeliveryCount += 1
             }
-            // "部分发货" (Partial Delivery): Pending orders partially delivered to customer
-            else if record.status == .pending && record.deliveryQuantity > 0 && record.deliveryQuantity < record.quantity {
+            // "部分发货" (Partial Delivery): Has delivery but not fully delivered
+            else if record.deliveryQuantity > 0 && record.deliveryQuantity < record.quantity {
                 partialDeliveryCount += 1
             }
-            // "已完成" (Completed): Fully delivered to customer
-            else if record.deliveryQuantity >= record.quantity {
+            // "已完成" (Completed): Status marked as completed/refunded OR fully delivered
+            else if record.status == .completed || record.status == .refunded || record.deliveryQuantity >= record.quantity {
                 completedDeliveryCount += 1
             }
         }

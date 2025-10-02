@@ -17,7 +17,7 @@ final class LocalRepositoryFactory: RepositoryFactory {
     lazy var userRepository: UserRepository = LocalUserRepository(modelContext: modelContext)
     lazy var customerRepository: CustomerRepository = LocalCustomerRepository(modelContext: modelContext)
     lazy var productRepository: ProductRepository = LocalProductRepository(modelContext: modelContext)
-    lazy var customerOutOfStockRepository: CustomerOutOfStockRepository = LocalCustomerOutOfStockRepository(modelContainer: modelContainer)
+    lazy var customerOutOfStockRepository: CustomerOutOfStockRepository = LocalCustomerOutOfStockRepository(modelContext: modelContext)
     lazy var packagingRepository: PackagingRepository = LocalPackagingRepository(modelContext: modelContext)
     lazy var productionRepository: ProductionRepository = LocalProductionRepository(modelContext: modelContext)
     lazy var auditRepository: AuditRepository = LocalAuditRepository(modelContext: modelContext)
