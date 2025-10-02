@@ -1,5 +1,5 @@
 //
-//  CustomerGroupedReturnView.swift
+//  CustomerGroupedDeliveryView.swift
 //  Lopan
 //
 //  Created by Claude Code on 2025/8/16.
@@ -8,7 +8,7 @@
 import SwiftUI
 import SwiftData
 
-struct CustomerReturnGroup: Identifiable, Hashable {
+struct CustomerDeliveryGroup: Identifiable, Hashable {
     var id: String { customer.id }
     let customer: Customer
     let items: [CustomerOutOfStock]
@@ -17,21 +17,21 @@ struct CustomerReturnGroup: Identifiable, Hashable {
         hasher.combine(customer.id)
     }
     
-    static func == (lhs: CustomerReturnGroup, rhs: CustomerReturnGroup) -> Bool {
+    static func == (lhs: CustomerDeliveryGroup, rhs: CustomerDeliveryGroup) -> Bool {
         lhs.customer.id == rhs.customer.id
     }
     var totalQuantity: Int {
         items.reduce(0) { $0 + $1.quantity }
     }
-    var returnableQuantity: Int {
+    var deliverableQuantity: Int {
         items.reduce(0) { $0 + $1.remainingQuantity }
     }
-    var returnedQuantity: Int {
+    var deliveredQuantity: Int {
         items.reduce(0) { $0 + $1.deliveryQuantity }
     }
 }
 
-struct CustomerGroupedReturnView: View {
+struct CustomerGroupedDeliveryView: View {
     @Environment(\.appDependencies) private var appDependencies
     @Environment(\.dismiss) private var dismiss
     
@@ -39,16 +39,16 @@ struct CustomerGroupedReturnView: View {
         appDependencies.serviceFactory.salespersonServiceProvider
     }
     
-    @State private var customerGroups: [CustomerReturnGroup] = []
+    @State private var customerGroups: [CustomerDeliveryGroup] = []
     @State private var selectedCustomerGroups: Set<String> = []
     @State private var showingBatchProcessing = false
     @State private var isLoading = false
     @State private var searchText = ""
     @State private var searchTask: Task<Void, Never>?
-    @State private var selectedGroupForDetail: CustomerReturnGroup?
+    @State private var selectedGroupForDetail: CustomerDeliveryGroup?
     @State private var isSelectionMode = false
     
-    var filteredGroups: [CustomerReturnGroup] {
+    var filteredGroups: [CustomerDeliveryGroup] {
         guard !searchText.isEmpty else { return customerGroups }
         
         return customerGroups.filter { group in
@@ -244,7 +244,7 @@ struct CustomerGroupedReturnView: View {
             
             EnhancedStatCard(
                 title: "可还货量",
-                count: filteredGroups.reduce(0) { $0 + $1.returnableQuantity },
+                count: filteredGroups.reduce(0) { $0 + $1.deliverableQuantity },
                 color: LopanColors.warning,
                 icon: "arrow.uturn.left.fill"
             )
@@ -302,9 +302,9 @@ struct CustomerGroupedReturnView: View {
                     item.customer?.id ?? "unknown"
                 }
                 
-                let groups = grouped.compactMap { (customerId, items) -> CustomerReturnGroup? in
+                let groups = grouped.compactMap { (customerId, items) -> CustomerDeliveryGroup? in
                     guard let customer = items.first?.customer else { return nil }
-                    return CustomerReturnGroup(customer: customer, items: items)
+                    return CustomerDeliveryGroup(customer: customer, items: items)
                 }
                 
                 await MainActor.run {
@@ -332,7 +332,7 @@ struct CustomerGroupedReturnView: View {
         }
     }
     
-    private func toggleSelection(for group: CustomerReturnGroup, isSelected: Bool) {
+    private func toggleSelection(for group: CustomerDeliveryGroup, isSelected: Bool) {
         LopanHapticEngine.shared.light()
         if isSelected {
             selectedCustomerGroups.insert(group.customer.id)
@@ -341,165 +341,191 @@ struct CustomerGroupedReturnView: View {
         }
     }
     
-    private func getSelectedGroups() -> [CustomerReturnGroup] {
+    private func getSelectedGroups() -> [CustomerDeliveryGroup] {
         return customerGroups.filter { selectedCustomerGroups.contains($0.customer.id) }
     }
 }
 
 struct EnhancedCustomerGroupRowView: View {
-    let group: CustomerReturnGroup
+    let group: CustomerDeliveryGroup
     let isSelected: Bool
     let isSelectionMode: Bool
     let onSelectionChanged: (Bool) -> Void
     let onTap: () -> Void
-    
+
     var body: some View {
         HStack(spacing: 16) {
-            // Selection indicator (only in selection mode)
             if isSelectionMode {
-                Button(action: {
-                    onSelectionChanged(!isSelected)
-                }) {
-                    Image(systemName: isSelected ? "checkmark.circle.fill" : "circle")
-                        .foregroundColor(isSelected ? LopanColors.primary : LopanColors.textSecondary)
-                        .font(.title2)
-                        .frame(width: 24, height: 24)
-                }
-                .buttonStyle(PlainButtonStyle())
+                selectionButton
             }
-            
-            // Main content area - clickable for navigation
+
             Button(action: onTap) {
                 HStack(spacing: 16) {
-                    // Customer Avatar
-                    Circle()
-                        .fill(LinearGradient(
-                            gradient: Gradient(colors: [LopanColors.primary.opacity(0.6), LopanColors.primary.opacity(0.3)]),
-                            startPoint: .topLeading,
-                            endPoint: .bottomTrailing
-                        ))
-                        .frame(width: 44, height: 44)
-                        .overlay(
-                            Text(String(group.customer.name.prefix(1)))
-                                .font(.headline)
-                                .fontWeight(.bold)
-                                .foregroundColor(LopanColors.textPrimary)
-                        )
-                    
-                    // Customer Information
-                    VStack(alignment: .leading, spacing: 8) {
-                    // Header Row
-                    HStack(alignment: .top) {
-                        VStack(alignment: .leading, spacing: 4) {
-                            Text(group.customer.name)
-                                .font(.headline)
-                                .fontWeight(.semibold)
-                                .foregroundColor(.primary)
-                                
-                                .lineLimit(1)
-                            
-                            Text(group.customer.address)
-                                .font(.caption)
-                                .foregroundColor(.secondary)
-                                .lineLimit(1)
-                        }
-                        
-                        Spacer()
-                        
-                        // Status Badge
-                        if group.returnableQuantity > 0 {
-                            HStack(spacing: 4) {
-                                Image(systemName: "exclamationmark.triangle.fill")
-                                    .font(.caption2)
-                                Text("可还货")
-                                    .font(.caption)
-                                    .fontWeight(.medium)
-                            }
-                            .padding(.horizontal, 8)
-                            .padding(.vertical, 4)
-                            .background(LopanColors.warning.opacity(0.15))
-                            .foregroundColor(LopanColors.warning)
-                            .cornerRadius(12)
-                        } else {
-                            HStack(spacing: 4) {
-                                Image(systemName: "checkmark.circle.fill")
-                                    .font(.caption2)
-                                Text("已完成")
-                                    .font(.caption)
-                                    .fontWeight(.medium)
-                            }
-                            .padding(.horizontal, 8)
-                            .padding(.vertical, 4)
-                            .background(LopanColors.success.opacity(0.15))
-                            .foregroundColor(LopanColors.success)
-                            .cornerRadius(12)
-                        }
+                    customerAvatar
+                    customerInformation
+
+                    if !isSelectionMode {
+                        actionIndicator
                     }
-                    
-                    // Statistics Grid
-                    LazyVGrid(columns: [
-                        GridItem(.flexible(), alignment: .leading),
-                        GridItem(.flexible(), alignment: .leading),
-                        GridItem(.flexible(), alignment: .leading),
-                        GridItem(.flexible(), alignment: .leading)
-                    ], spacing: 8) {
-                        StatisticItem(
-                            title: "商品数",
-                            value: "\(group.items.count)",
-                            color: .secondary
-                        )
-                        
-                        StatisticItem(
-                            title: "总数量",
-                            value: "\(group.totalQuantity)",
-                            color: .primary
-                        )
-                        
-                        StatisticItem(
-                            title: "可还货",
-                            value: "\(group.returnableQuantity)",
-                            color: group.returnableQuantity > 0 ? LopanColors.warning : LopanColors.textSecondary
-                        )
-                        
-                        if group.refundedQuantity > 0 {
-                            StatisticItem(
-                                title: "已还货",
-                                value: "\(group.refundedQuantity)",
-                                color: LopanColors.primary
-                            )
-                        }
-                    }
-                }
-                
-                // Action Indicator
-                if !isSelectionMode {
-                    Image(systemName: "chevron.right")
-                        .foregroundColor(.secondary)
-                        .font(.caption)
-                        .opacity(0.6)
-                }
                 }
             }
             .buttonStyle(PlainButtonStyle())
         }
         .padding(16)
-        .background(
-            RoundedRectangle(cornerRadius: 12)
-                .fill(isSelected ? LopanColors.primary.opacity(0.05) : LopanColors.background)
-        )
-        .overlay(
-            RoundedRectangle(cornerRadius: 12)
-                .stroke(
-                    isSelected ? LopanColors.primary.opacity(0.3) : LopanColors.border,
-                    lineWidth: isSelected ? 1.5 : 0.5
-                )
-        )
+        .background(cardBackground)
+        .overlay(cardBorder)
         .scaleEffect(isSelected ? 1.02 : 1.0)
         .animation(.spring(response: 0.3, dampingFraction: 0.8), value: isSelected)
         .accessibilityElement(children: .combine)
         .accessibilityLabel("\(group.customer.name)的还货信息")
-        .accessibilityValue("共\(group.items.count)个商品，可还货\(group.returnableQuantity)件")
+        .accessibilityValue("共\(group.items.count)个商品，可还货\(group.deliverableQuantity)件")
         .accessibilityHint(isSelectionMode ? "可选择进行批量操作" : "双击查看详情")
+    }
+
+    // MARK: - Sub-views
+
+    @ViewBuilder
+    private var selectionButton: some View {
+        Button(action: {
+            onSelectionChanged(!isSelected)
+        }) {
+            Image(systemName: isSelected ? "checkmark.circle.fill" : "circle")
+                .foregroundColor(isSelected ? LopanColors.primary : LopanColors.textSecondary)
+                .font(.title2)
+                .frame(width: 24, height: 24)
+        }
+        .buttonStyle(PlainButtonStyle())
+    }
+
+    @ViewBuilder
+    private var customerAvatar: some View {
+        let gradient = LinearGradient(
+            gradient: Gradient(colors: [LopanColors.primary.opacity(0.6), LopanColors.primary.opacity(0.3)]),
+            startPoint: .topLeading,
+            endPoint: .bottomTrailing
+        )
+
+        Circle()
+            .fill(gradient)
+            .frame(width: 44, height: 44)
+            .overlay(
+                Text(String(group.customer.name.prefix(1)))
+                    .font(.headline)
+                    .fontWeight(.bold)
+                    .foregroundColor(LopanColors.textPrimary)
+            )
+    }
+
+    @ViewBuilder
+    private var customerInformation: some View {
+        VStack(alignment: .leading, spacing: 8) {
+            headerRow
+            statisticsGrid
+        }
+    }
+
+    @ViewBuilder
+    private var headerRow: some View {
+        HStack(alignment: .top) {
+            VStack(alignment: .leading, spacing: 4) {
+                Text(group.customer.name)
+                    .font(.headline)
+                    .fontWeight(.semibold)
+                    .foregroundColor(.primary)
+                    .lineLimit(1)
+
+                Text(group.customer.address)
+                    .font(.caption)
+                    .foregroundColor(.secondary)
+                    .lineLimit(1)
+            }
+
+            Spacer()
+            statusBadge
+        }
+    }
+
+    @ViewBuilder
+    private var statusBadge: some View {
+        let hasReturnable = group.deliverableQuantity > 0
+        let badgeColor = hasReturnable ? LopanColors.warning : LopanColors.success
+        let badgeIcon = hasReturnable ? "exclamationmark.triangle.fill" : "checkmark.circle.fill"
+        let badgeText = hasReturnable ? "可还货" : "已完成"
+
+        HStack(spacing: 4) {
+            Image(systemName: badgeIcon)
+                .font(.caption2)
+            Text(badgeText)
+                .font(.caption)
+                .fontWeight(.medium)
+        }
+        .padding(.horizontal, 8)
+        .padding(.vertical, 4)
+        .background(badgeColor.opacity(0.15))
+        .foregroundColor(badgeColor)
+        .cornerRadius(12)
+    }
+
+    @ViewBuilder
+    private var statisticsGrid: some View {
+        let returnableColor = group.deliverableQuantity > 0 ? LopanColors.warning : LopanColors.textSecondary
+
+        LazyVGrid(columns: [
+            GridItem(.flexible(), alignment: .leading),
+            GridItem(.flexible(), alignment: .leading),
+            GridItem(.flexible(), alignment: .leading),
+            GridItem(.flexible(), alignment: .leading)
+        ], spacing: 8) {
+            StatisticItem(
+                title: "商品数",
+                value: "\(group.items.count)",
+                color: .secondary
+            )
+
+            StatisticItem(
+                title: "总数量",
+                value: "\(group.totalQuantity)",
+                color: .primary
+            )
+
+            StatisticItem(
+                title: "可还货",
+                value: "\(group.deliverableQuantity)",
+                color: returnableColor
+            )
+
+            if group.deliveredQuantity > 0 {
+                StatisticItem(
+                    title: "已还货",
+                    value: "\(group.deliveredQuantity)",
+                    color: LopanColors.primary
+                )
+            }
+        }
+    }
+
+    @ViewBuilder
+    private var actionIndicator: some View {
+        Image(systemName: "chevron.right")
+            .foregroundColor(.secondary)
+            .font(.caption)
+            .opacity(0.6)
+    }
+
+    @ViewBuilder
+    private var cardBackground: some View {
+        let fillColor = isSelected ? LopanColors.primary.opacity(0.05) : LopanColors.background
+        RoundedRectangle(cornerRadius: 12)
+            .fill(fillColor)
+    }
+
+    @ViewBuilder
+    private var cardBorder: some View {
+        let strokeColor = isSelected ? LopanColors.primary.opacity(0.3) : LopanColors.border
+        let lineWidth: CGFloat = isSelected ? 1.5 : 0.5
+
+        RoundedRectangle(cornerRadius: 12)
+            .stroke(strokeColor, lineWidth: lineWidth)
     }
 }
 
@@ -527,7 +553,7 @@ struct StatisticItem: View {
 }
 
 struct CustomerReturnDetailView: View {
-    let customerGroup: CustomerReturnGroup
+    let customerGroup: CustomerDeliveryGroup
     @Environment(\.appDependencies) private var appDependencies
     @Environment(\.dismiss) private var dismiss
     
@@ -751,7 +777,7 @@ struct ReturnItemDetailRow: View {
 }
 
 struct BatchCustomerReturnProcessingView: View {
-    let customerGroups: [CustomerReturnGroup]
+    let customerGroups: [CustomerDeliveryGroup]
     let onCompletion: () -> Void
     @Environment(\.dismiss) private var dismiss
     
@@ -777,5 +803,5 @@ struct BatchCustomerReturnProcessingView: View {
 }
 
 #Preview {
-    CustomerGroupedReturnView()
+    CustomerGroupedDeliveryView()
 }
