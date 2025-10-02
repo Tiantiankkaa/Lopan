@@ -48,8 +48,11 @@ final class DeliveryManagementViewModel: ObservableObject {
     @Published private(set) var lastUpdated: Date?
     @Published private(set) var error: Error?
     @Published private(set) var overviewStatistics = DeliveryOverviewStatistics()
-    
+    @Published private(set) var isLoadingStatistics = false
+    @Published private(set) var statisticsLoaded = false
+
     private var repository: CustomerOutOfStockRepository?
+    private var modelContainer: ModelContainer?
     private var isConfigured = false
     private let pageSize = 50
     private var nextPageToLoad = 0
@@ -57,11 +60,18 @@ final class DeliveryManagementViewModel: ObservableObject {
     private var isFetchingPage = false
     private var customerCache: [String: Customer] = [:]
     private var addressCache: Set<String> = []
-    
-    func configure(repository: CustomerOutOfStockRepository) {
+    private var statisticsTask: Task<Void, Never>?
+
+    func configure(repository: CustomerOutOfStockRepository, modelContainer: ModelContainer) {
         guard !isConfigured else { return }
         self.repository = repository
+        self.modelContainer = modelContainer
         isConfigured = true
+    }
+
+    deinit {
+        // Cancel any pending statistics task to prevent crashes
+        statisticsTask?.cancel()
     }
     
     func refresh(with filter: FilterState, force: Bool = false) async {
@@ -69,6 +79,10 @@ final class DeliveryManagementViewModel: ObservableObject {
         if !force && filter == currentFilter && !items.isEmpty {
             return
         }
+
+        // Cancel any pending statistics task when refreshing with new filters
+        statisticsTask?.cancel()
+
         currentFilter = filter
         nextPageToLoad = 0
         hasMoreData = true
@@ -96,6 +110,7 @@ final class DeliveryManagementViewModel: ObservableObject {
 
         if reset {
             isLoading = true
+            statisticsLoaded = false
         } else {
             isLoadingMore = true
         }
@@ -113,28 +128,47 @@ final class DeliveryManagementViewModel: ObservableObject {
             let criteria = buildCriteria(for: currentFilter, page: reset ? 0 : nextPageToLoad)
 
             if reset {
-                // OPTIMIZED: Use single-query method for initial load
+                // INSTANT: Fetch only the first page immediately
                 let result = try await repository.fetchDeliveryManagementMetrics(
                     criteria: criteria,
                     page: 0,
                     pageSize: pageSize
                 )
 
-                // Update all state atomically
+                // Update UI immediately with items
                 items = result.items
                 updateCaches(with: result.items)
                 nextPageToLoad = 1
                 hasMoreData = result.hasMoreData
-                totalMatchingCount = result.totalCount
                 lastUpdated = Date()
 
-                // Update statistics from single query result
+                // Placeholder statistics (totalCount = -1 means loading)
                 overviewStatistics = DeliveryOverviewStatistics(
-                    totalCount: result.totalCount,
-                    needsDelivery: result.needsDeliveryCount,
-                    partialDelivery: result.partialDeliveryCount,
-                    completedDelivery: result.completedDeliveryCount
+                    totalCount: -1,  // -1 indicates loading
+                    needsDelivery: 0,
+                    partialDelivery: 0,
+                    completedDelivery: 0
                 )
+
+                // Cancel any existing statistics task
+                statisticsTask?.cancel()
+
+                // BACKGROUND: Load full statistics asynchronously
+                // Use regular Task (inherits MainActor) with yields for thread safety
+                statisticsTask = Task { [weak self] in
+                    guard let self else { return }
+
+                    // Delay to allow UI to fully render before statistics load
+                    try? await Task.sleep(nanoseconds: 300_000_000) // 300ms
+
+                    // Check if task was cancelled during sleep
+                    guard !Task.isCancelled else {
+                        print("📊 [ViewModel] Statistics task cancelled before starting")
+                        return
+                    }
+
+                    await self.loadStatistics(criteria: criteria)
+                }
 
             } else {
                 // Load more: use pagination
@@ -280,5 +314,49 @@ final class DeliveryManagementViewModel: ObservableObject {
             partialDelivery: partial,
             completedDelivery: completed
         )
+    }
+
+    // MARK: - Background Statistics Loading (ModelActor Pattern)
+
+    private func loadStatistics(criteria: OutOfStockFilterCriteria) async {
+        guard let container = modelContainer else {
+            print("❌ [ViewModel] ModelContainer not available")
+            return
+        }
+
+        isLoadingStatistics = true
+
+        do {
+            // Create actor for off-MainActor computation
+            let actor = DeliveryStatisticsActor(modelContainer: container)
+
+            // Compute statistics entirely off MainActor (zero scroll impact)
+            let stats = try await actor.computeStatistics(criteria: criteria)
+
+            // Check if task was cancelled during fetch
+            guard !Task.isCancelled else {
+                print("📊 [ViewModel] Statistics task cancelled after fetch")
+                isLoadingStatistics = false
+                return
+            }
+
+            // Update UI on MainActor
+            overviewStatistics = DeliveryOverviewStatistics(
+                totalCount: stats.totalCount,
+                needsDelivery: stats.needsDeliveryCount,
+                partialDelivery: stats.partialDeliveryCount,
+                completedDelivery: stats.completedDeliveryCount
+            )
+            totalMatchingCount = stats.totalCount
+            statisticsLoaded = true
+            isLoadingStatistics = false
+            print("✅ [ViewModel] Statistics loaded via ModelActor (off MainActor)")
+        } catch is CancellationError {
+            isLoadingStatistics = false
+            print("📊 [ViewModel] Statistics loading cancelled")
+        } catch {
+            isLoadingStatistics = false
+            print("❌ [ViewModel] Failed to load statistics: \(error)")
+        }
     }
 }

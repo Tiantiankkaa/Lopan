@@ -7,6 +7,7 @@
 
 import Foundation
 import SwiftUI
+import SwiftData
 
 @MainActor
 final class SalespersonDashboardViewModel: ObservableObject {
@@ -123,6 +124,7 @@ final class SalespersonDashboardViewModel: ObservableObject {
 
     private weak var authService: AuthenticationService?
     private var dependencies: HasAppDependencies?
+    private var modelContainer: ModelContainer?
     private let calendar = Calendar.current
     private var isRefreshing = false  // Debounce flag
     private var periodicRefreshTask: Task<Void, Never>?  // Periodic refresh timer
@@ -136,9 +138,10 @@ final class SalespersonDashboardViewModel: ObservableObject {
 
     // MARK: - Configuration
 
-    func configureIfNeeded(dependencies: HasAppDependencies) {
+    func configureIfNeeded(dependencies: HasAppDependencies, modelContainer: ModelContainer) {
         guard self.dependencies == nil else { return }
         self.dependencies = dependencies
+        self.modelContainer = modelContainer
         refresh()
     }
 
@@ -220,15 +223,24 @@ final class SalespersonDashboardViewModel: ObservableObject {
         let stockoutRepository = repositoryFactory.customerOutOfStockRepository
 
         do {
-            // PHASE 2 OPTIMIZATION: Single mega-query for all data
-            // Load customers and products for metrics + single metrics fetch with display items
+            // PHASE 2 OPTIMIZATION: Load customers/products + compute metrics off MainActor
+            // Use ModelActor for dashboard metrics to avoid blocking UI during initial load
             async let customersTask = customerRepository.fetchCustomers()
             async let productsTask = productRepository.fetchProducts()
-            async let dashboardMetricsTask = stockoutRepository.fetchDashboardMetrics()
+
+            // Compute dashboard metrics using ModelActor (off MainActor for zero UI blocking)
+            let dashboardMetricsTask = Task {
+                guard let container = modelContainer else {
+                    throw NSError(domain: "SalespersonDashboardViewModel", code: 5001,
+                                userInfo: [NSLocalizedDescriptionKey: "ModelContainer not available"])
+                }
+                let actor = DashboardStatisticsActor(modelContainer: container)
+                return try await actor.computeDashboardMetrics()
+            }
 
             let customers = try await customersTask
             let products = try await productsTask
-            let dashboardMetrics = try await dashboardMetricsTask
+            let dashboardMetrics = try await dashboardMetricsTask.value
 
             // Build UI components from single-pass data
             let hero = buildHero(customers: customers, metrics: dashboardMetrics)
@@ -572,13 +584,13 @@ final class SalespersonDashboardViewModel: ObservableObject {
         return formatter.string(from: date)
     }
 
-    private func formattedQuantityDetail(for item: CustomerOutOfStock) -> String {
+    private func formattedQuantityDetail(for item: OutOfStockDisplayItem) -> String {
         let quantityText = NumberFormatter.localizedString(from: NSNumber(value: item.remainingQuantity), number: .decimal)
         let requestDate = relativeDateString(for: item.requestDate)
         return String(format: NSLocalizedString("salesperson_dashboard_task_pending_detail", comment: ""), quantityText, requestDate)
     }
 
-    private func formattedReturnDetail(for item: CustomerOutOfStock) -> String {
+    private func formattedReturnDetail(for item: OutOfStockDisplayItem) -> String {
         let quantityText = NumberFormatter.localizedString(from: NSNumber(value: item.remainingQuantity), number: .decimal)
         let requestDate = relativeDateString(for: item.requestDate)
         return String(format: NSLocalizedString("salesperson_dashboard_task_return_detail", comment: ""), quantityText, requestDate)
@@ -596,7 +608,7 @@ final class SalespersonDashboardViewModel: ObservableObject {
         )
     }
 
-    private func overdueStatus(for item: CustomerOutOfStock) -> TaskStatus {
+    private func overdueStatus(for item: OutOfStockDisplayItem) -> TaskStatus {
         let hours = calendar.dateComponents([.hour], from: item.requestDate, to: Date()).hour ?? 0
         if hours >= 72 {
             return .critical
@@ -613,7 +625,7 @@ final class SalespersonDashboardViewModel: ObservableObject {
         return formatter.localizedString(for: date, relativeTo: Date())
     }
 
-    private func stockoutsCompletedThisWeek(_ stockouts: [CustomerOutOfStock]) -> Int {
+    private func stockoutsCompletedThisWeek(_ stockouts: [OutOfStockDisplayItem]) -> Int {
         let now = Date()
         guard let startOfWeek = calendar.dateInterval(of: .weekOfYear, for: now)?.start else { return 0 }
         return stockouts.filter { record in
@@ -623,23 +635,23 @@ final class SalespersonDashboardViewModel: ObservableObject {
         }.count
     }
 
-    private func isRecentCompletion(_ record: CustomerOutOfStock) -> Bool {
+    private func isRecentCompletion(_ record: OutOfStockDisplayItem) -> Bool {
         guard record.status == .completed else { return false }
         let completion = completionDate(for: record)
         guard let diff = calendar.dateComponents([.day], from: completion, to: Date()).day else { return false }
         return diff <= 2
     }
 
-    private func completionDate(for record: CustomerOutOfStock) -> Date {
+    private func completionDate(for record: OutOfStockDisplayItem) -> Date {
         return record.actualCompletionDate ?? record.updatedAt
     }
 
-    private func isDueSoon(_ record: CustomerOutOfStock) -> Bool {
+    private func isDueSoon(_ record: OutOfStockDisplayItem) -> Bool {
         let days = calendar.dateComponents([.day], from: record.requestDate, to: Date()).day ?? 0
         return days >= 7 && days < 14
     }
 
-    private func isOverdue(_ record: CustomerOutOfStock) -> Bool {
+    private func isOverdue(_ record: OutOfStockDisplayItem) -> Bool {
         let days = calendar.dateComponents([.day], from: record.requestDate, to: Date()).day ?? 0
         return days >= 14
     }

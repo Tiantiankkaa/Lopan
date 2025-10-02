@@ -1197,10 +1197,10 @@ final class LocalCustomerOutOfStockRepository: CustomerOutOfStockRepository {
         var overdueCount = 0
         var recentPendingCount = 0  // Pending items < 7 days
 
-        // Display items collection
-        var pendingItems: [CustomerOutOfStock] = []
-        var returnItems: [CustomerOutOfStock] = []
-        var completedItems: [CustomerOutOfStock] = []
+        // Display items collection (convert to DTOs to prevent ModelContext violations)
+        var pendingItems: [OutOfStockDisplayItem] = []
+        var returnItems: [OutOfStockDisplayItem] = []
+        var completedItems: [OutOfStockDisplayItem] = []
 
         // Batch processing to avoid memory issues
         let batchSize = 10000
@@ -1229,9 +1229,9 @@ final class LocalCustomerOutOfStockRepository: CustomerOutOfStockRepository {
                 if record.status == .pending && record.remainingQuantity > 0 {
                     needsReturnCount += 1
 
-                    // Collect top 10 return items
+                    // Collect top 10 return items (convert to DTO)
                     if returnItems.count < 10 {
-                        returnItems.append(record)
+                        returnItems.append(OutOfStockDisplayItem(from: record))
                     }
                 }
 
@@ -1242,9 +1242,9 @@ final class LocalCustomerOutOfStockRepository: CustomerOutOfStockRepository {
                         // Recent (< 7 days) - only collect and count these
                         recentPendingCount += 1
 
-                        // Collect top 50 pending/partial items from last 7 days only
+                        // Collect top 50 pending/partial items from last 7 days only (convert to DTO)
                         if pendingItems.count < 50 {
-                            pendingItems.append(record)
+                            pendingItems.append(OutOfStockDisplayItem(from: record))
                         }
                     } else if record.requestDate >= fourteenDaysAgo {
                         // Due soon (7-14 days)
@@ -1255,9 +1255,9 @@ final class LocalCustomerOutOfStockRepository: CustomerOutOfStockRepository {
                     }
                 }
 
-                // Collect recently completed items (need reverse sort later)
+                // Collect recently completed items (convert to DTO, will sort later)
                 if record.status == .completed {
-                    completedItems.append(record)
+                    completedItems.append(OutOfStockDisplayItem(from: record))
                 }
             }
 
@@ -1399,13 +1399,13 @@ final class LocalCustomerOutOfStockRepository: CustomerOutOfStockRepository {
     // MARK: - Background Statistics Loading
 
     /// Background statistics calculation for delivery management (non-blocking)
-    /// Fetches all records and calculates complete statistics without returning items
-    /// Uses MainActor with Task.yield() to prevent UI blocking while ensuring thread safety
+    /// Fetches records in batches and calculates complete statistics without blocking UI
+    /// Uses MainActor with Task.yield() between batches for thread safety and responsiveness
     func fetchDeliveryStatistics(
         criteria: OutOfStockFilterCriteria
     ) async throws -> DeliveryStatistics {
         let startTime = CFAbsoluteTimeGetCurrent()
-        print("📊 [Repository] Loading delivery statistics with MainActor safety...")
+        print("📊 [Repository] Loading delivery statistics with batched processing...")
 
         // Check for cancellation before starting
         try Task.checkCancellation()
@@ -1413,94 +1413,125 @@ final class LocalCustomerOutOfStockRepository: CustomerOutOfStockRepository {
         // Build database predicate
         let predicate = buildOptimizedPredicate(from: criteria)
 
-        // Fetch ALL matching records for accurate statistics
-        var descriptor: FetchDescriptor<CustomerOutOfStock>
+        // Create base descriptor for batched fetching
         let sortOrder = criteria.sortOrder.isDescending ? SortOrder.reverse : SortOrder.forward
+        var baseDescriptor: FetchDescriptor<CustomerOutOfStock>
 
         if let predicate = predicate {
-            descriptor = FetchDescriptor<CustomerOutOfStock>(
+            baseDescriptor = FetchDescriptor<CustomerOutOfStock>(
                 predicate: predicate,
                 sortBy: [SortDescriptor(\.requestDate, order: sortOrder)]
             )
         } else {
-            descriptor = FetchDescriptor<CustomerOutOfStock>(
+            baseDescriptor = FetchDescriptor<CustomerOutOfStock>(
                 sortBy: [SortDescriptor(\.requestDate, order: sortOrder)]
             )
         }
 
-        // Yield to allow UI updates and cancellation
-        await Task.yield()
-        try Task.checkCancellation()
-
-        // Use main context for thread-safe SwiftData access
-        let allRecords = try modelContext.fetch(descriptor)
-
-        print("📊 [Repository] Fetched \(allRecords.count) records for statistics")
-
-        // Yield after fetch operation
-        await Task.yield()
-        try Task.checkCancellation()
-
-        // Apply in-memory filters
-        var filteredRecords = allRecords
-
-        // Status filtering
-        if let status = criteria.status {
-            filteredRecords = filteredRecords.filter { $0.status == status }
-        }
-
-        // Customer filtering
-        if let customer = criteria.customer {
-            filteredRecords = filteredRecords.filter { $0.customer?.id == customer.id }
-        }
-
-        // Product filtering
-        if let product = criteria.product {
-            filteredRecords = filteredRecords.filter { $0.product?.id == product.id }
-        }
-
-        // Text search filtering
-        if !criteria.searchText.isEmpty {
-            filteredRecords = filteredRecords.filter { record in
-                matchesTextSearch(record: record, searchText: criteria.searchText)
-            }
-        }
-
-        // Yield after filtering
-        await Task.yield()
-        try Task.checkCancellation()
-
-        // Calculate complete statistics
+        // Initialize statistics counters
         var needsDeliveryCount = 0
         var partialDeliveryCount = 0
         var completedDeliveryCount = 0
+        var totalCount = 0
 
-        for (index, record) in filteredRecords.enumerated() {
-            // "待发货" (Waiting Delivery): Not completed/refunded AND no delivery recorded
-            if record.status != .completed && record.status != .refunded && record.deliveryQuantity == 0 {
-                needsDeliveryCount += 1
-            }
-            // "部分发货" (Partial Delivery): Has delivery but not fully delivered
-            else if record.deliveryQuantity > 0 && record.deliveryQuantity < record.quantity {
-                partialDeliveryCount += 1
-            }
-            // "已完成" (Completed): Status marked as completed/refunded OR fully delivered
-            else if record.status == .completed || record.status == .refunded || record.deliveryQuantity >= record.quantity {
-                completedDeliveryCount += 1
+        // Batch processing configuration
+        let batchSize = 100  // Smaller batches for smoother scrolling (was 500)
+        var offset = 0
+        var batchNumber = 0
+
+        // Yield before starting batch processing
+        await Task.yield()
+        try Task.checkCancellation()
+
+        print("📊 [Repository] Starting batched fetch (batch size: \(batchSize), optimized for scroll responsiveness)")
+
+        // Process records in batches
+        while true {
+            // Create descriptor for this batch
+            var batchDescriptor = baseDescriptor
+            batchDescriptor.fetchLimit = batchSize
+            batchDescriptor.fetchOffset = offset
+
+            // Fetch this batch
+            let batch = try modelContext.fetch(batchDescriptor)
+
+            // If batch is empty, we've processed all records
+            guard !batch.isEmpty else {
+                print("📊 [Repository] Batch \(batchNumber) empty, processing complete")
+                break
             }
 
-            // Yield periodically during calculation to prevent blocking
-            if index % 100 == 0 {
-                await Task.yield()
-                try Task.checkCancellation()
+            batchNumber += 1
+            print("📊 [Repository] Processing batch \(batchNumber): \(batch.count) records at offset \(offset)")
+
+            // Apply in-memory filters to this batch
+            var filteredBatch = batch
+
+            // Status filtering
+            if let status = criteria.status {
+                filteredBatch = filteredBatch.filter { $0.status == status }
+            }
+
+            // Customer filtering
+            if let customer = criteria.customer {
+                filteredBatch = filteredBatch.filter { $0.customer?.id == customer.id }
+            }
+
+            // Product filtering
+            if let product = criteria.product {
+                filteredBatch = filteredBatch.filter { $0.product?.id == product.id }
+            }
+
+            // Text search filtering
+            if !criteria.searchText.isEmpty {
+                filteredBatch = filteredBatch.filter { record in
+                    matchesTextSearch(record: record, searchText: criteria.searchText)
+                }
+            }
+
+            // Process filtered records in this batch with micro-yields for smooth scrolling
+            for (index, record) in filteredBatch.enumerated() {
+                totalCount += 1
+
+                // Categorize record
+                if record.status != .completed && record.status != .refunded && record.deliveryQuantity == 0 {
+                    needsDeliveryCount += 1
+                }
+                else if record.deliveryQuantity > 0 && record.deliveryQuantity < record.quantity {
+                    partialDeliveryCount += 1
+                }
+                else if record.status == .completed || record.status == .refunded || record.deliveryQuantity >= record.quantity {
+                    completedDeliveryCount += 1
+                }
+
+                // Micro-yield every 25 records to maintain scroll smoothness
+                if index % 25 == 0 && index > 0 {
+                    await Task.yield()
+                    try Task.checkCancellation()
+                }
+            }
+
+            // Move to next batch
+            offset += batch.count
+
+            // CRITICAL: Yield after each batch to allow UI updates and check for cancellation
+            await Task.yield()
+            try Task.checkCancellation()
+
+            // Small delay to prioritize UI/scroll events (10ms)
+            try? await Task.sleep(nanoseconds: 10_000_000)
+
+            // If batch was smaller than requested size, we've reached the end
+            if batch.count < batchSize {
+                print("📊 [Repository] Batch \(batchNumber) was last batch (\(batch.count) < \(batchSize))")
+                break
             }
         }
 
-        let totalCount = filteredRecords.count
-
         let elapsed = CFAbsoluteTimeGetCurrent() - startTime
-        print("📊 [Repository] ✅ Statistics loaded safely in \(String(format: "%.3f", elapsed))s")
-        print("   Total: \(totalCount), Needs Delivery: \(needsDeliveryCount), Partial: \(partialDeliveryCount), Completed: \(completedDeliveryCount)")
+        print("📊 [Repository] ✅ Batched statistics loaded in \(String(format: "%.3f", elapsed))s")
+        print("   Processed \(batchNumber) batches, Total: \(totalCount)")
+        print("   Needs Delivery: \(needsDeliveryCount), Partial: \(partialDeliveryCount), Completed: \(completedDeliveryCount)")
 
         return DeliveryStatistics(
             totalCount: totalCount,

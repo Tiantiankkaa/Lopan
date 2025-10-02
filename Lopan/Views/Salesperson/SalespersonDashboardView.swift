@@ -12,6 +12,7 @@ struct SalespersonDashboardView: View {
     @ObservedObject var navigationService: WorkbenchNavigationService
     @Environment(\.appDependencies) private var appDependencies
     @Environment(\.scenePhase) private var scenePhase
+    @Environment(\.modelContext) private var modelContext
 
     @StateObject private var viewModel: SalespersonDashboardViewModel
     @StateObject private var toastManager = EnhancedToastManager()
@@ -60,7 +61,10 @@ struct SalespersonDashboardView: View {
             .onAppear {
                 // Configure once and load data
                 // configureIfNeeded already calls refresh internally
-                viewModel.configureIfNeeded(dependencies: appDependencies)
+                viewModel.configureIfNeeded(
+                    dependencies: appDependencies,
+                    modelContainer: modelContext.container
+                )
                 // Start periodic refresh timer
                 viewModel.startPeriodicRefresh()
             }

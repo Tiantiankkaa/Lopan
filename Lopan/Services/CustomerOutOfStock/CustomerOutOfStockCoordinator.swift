@@ -1235,6 +1235,18 @@ private class MockAuditCustomerOutOfStockRepository: CustomerOutOfStockRepositor
         )
     }
 
+    func fetchDeliveryStatistics(
+        criteria: OutOfStockFilterCriteria
+    ) async throws -> DeliveryStatistics {
+        print("🔧 MockAuditCustomerOutOfStockRepository: fetchDeliveryStatistics called")
+        return DeliveryStatistics(
+            totalCount: 0,
+            needsDeliveryCount: 0,
+            partialDeliveryCount: 0,
+            completedDeliveryCount: 0
+        )
+    }
+
     // CRUD operations
     func addOutOfStockRecord(_ record: CustomerOutOfStock) async throws {
         print("🔧 MockAuditCustomerOutOfStockRepository: addOutOfStockRecord called - NO-OP in placeholder mode")

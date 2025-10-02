@@ -713,10 +713,10 @@ private struct DashboardMetricsDTO: Codable {
             }
         }
 
-        // Convert DTOs to domain models
-        let pendingItems = try topPendingItems.map { try $0.toDomain() }
-        let returnItems = try topReturnItems.map { try $0.toDomain() }
-        let completedItems = try recentCompleted.map { try $0.toDomain() }
+        // Convert DTOs to display items (not full SwiftData models to avoid context issues)
+        let pendingItems = try topPendingItems.map { OutOfStockDisplayItem(from: try $0.toDomain()) }
+        let returnItems = try topReturnItems.map { OutOfStockDisplayItem(from: try $0.toDomain()) }
+        let completedItems = try recentCompleted.map { OutOfStockDisplayItem(from: try $0.toDomain()) }
 
         return DashboardMetrics(
             statusCounts: domainStatusCounts,

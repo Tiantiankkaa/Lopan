@@ -100,7 +100,10 @@ struct DeliveryManagementView: View {
             }
         }
         .task {
-            viewModel.configure(repository: customerOutOfStockDependencies.customerOutOfStockRepository)
+            viewModel.configure(
+                repository: customerOutOfStockDependencies.customerOutOfStockRepository,
+                modelContainer: modelContext.container
+            )
             await viewModel.refresh(with: currentFilterState, force: true)
         }
         .onChange(of: selectedDeliveryStatus) { _ in
