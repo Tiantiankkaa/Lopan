@@ -284,7 +284,7 @@ struct DeliveryManagementView: View {
             .background(LopanColors.backgroundSecondary)
             .cornerRadius(10)
         }
-        .accessibilityLabel("选择发货状态")
+        .accessibilityLabel("选择还货状态")
         .accessibilityValue(selectedDeliveryStatus?.displayName ?? "全部状态")
     }
     
@@ -648,7 +648,7 @@ struct ReturnGoodsRowView: View {
                     VStack(alignment: .leading, spacing: 2) {
                         Text("原始数量: \(item.quantity)")
                             .font(.caption)
-                       Text("已发货数量: \(item.deliveryQuantity)")
+                       Text("已还货数量: \(item.deliveryQuantity)")
                            .font(.caption)
                             .foregroundColor(LopanColors.info)
                         Text("剩余数量: \(item.remainingQuantity)")
@@ -660,7 +660,7 @@ struct ReturnGoodsRowView: View {
                     
                     if let deliveryDate = item.deliveryDate {
                         VStack(alignment: .trailing, spacing: 2) {
-                            Text("发货日期:")
+                            Text("还货日期:")
                                 .font(.caption)
                                 .foregroundColor(LopanColors.textSecondary)
                             Text(deliveryDate, style: .date)

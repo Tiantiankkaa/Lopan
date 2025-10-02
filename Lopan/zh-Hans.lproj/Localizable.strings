@@ -149,33 +149,33 @@
 "select_role" = "选择角色";
 
 /* Delivery Goods Management */
-"delivery_management" = "发货管理";
-"delivery_management_subtitle" = "处理客户发货请求";
-"delivery_quantity" = "发货数量";
+"delivery_management" = "还货管理";
+"delivery_management_subtitle" = "处理客户还货请求";
+"delivery_quantity" = "还货数量";
 "remaining_quantity" = "剩余数量";
-"delivered_quantity" = "已发货数量";
-"delivery_date" = "发货日期";
-"delivery_notes" = "发货备注";
-"process_delivery" = "处理发货";
-"batch_delivery" = "批量发货";
-"delivery_confirmation" = "发货确认";
-"needs_delivery" = "需要发货";
-"partially_delivered" = "部分发货";
-"fully_delivered" = "已全部发货";
-"delivery_status" = "发货状态";
-"export_delivery_orders" = "导出发货单";
-"process_selected_deliveries" = "处理选中发货";
-"delivery_processing" = "发货处理";
-"max_delivery_quantity" = "最大发货数量";
-"invalid_delivery_quantity" = "无效的发货数量";
-"delivery_success" = "发货处理成功";
-"delivery_failed" = "发货处理失败";
-"customers_needing_deliveries" = "需发货客户";
-"filter_by_delivery_status" = "按发货状态筛选";
-"all_delivery_status" = "全部发货状态";
-"pending_delivery" = "待发货";
-"partial_delivery" = "部分发货";
-"completed_delivery" = "发货完成";
+"delivered_quantity" = "已还货数量";
+"delivery_date" = "还货日期";
+"delivery_notes" = "还货备注";
+"process_delivery" = "处理还货";
+"batch_delivery" = "批量还货";
+"delivery_confirmation" = "还货确认";
+"needs_delivery" = "需要还货";
+"partially_delivered" = "部分还货";
+"fully_delivered" = "已全部还货";
+"delivery_status" = "还货状态";
+"export_delivery_orders" = "导出还货单";
+"process_selected_deliveries" = "处理选中还货";
+"delivery_processing" = "还货处理";
+"max_delivery_quantity" = "最大还货数量";
+"invalid_delivery_quantity" = "无效的还货数量";
+"delivery_success" = "还货处理成功";
+"delivery_failed" = "还货处理失败";
+"customers_needing_deliveries" = "需还货客户";
+"filter_by_delivery_status" = "按还货状态筛选";
+"all_delivery_status" = "全部还货状态";
+"pending_delivery" = "待还货";
+"partial_delivery" = "部分还货";
+"completed_delivery" = "还货完成";
 
 /* Refund Management */
 "refund_status" = "退货状态";
@@ -186,7 +186,7 @@
 
 /* Out-of-Stock Status */
 "out_of_stock_status_pending" = "待处理";
-"out_of_stock_status_completed" = "已发货";
+"out_of_stock_status_completed" = "已还货";
 "out_of_stock_status_returned" = "已退货";
 
 /* Analytics */

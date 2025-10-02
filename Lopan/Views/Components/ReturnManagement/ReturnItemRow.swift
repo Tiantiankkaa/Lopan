@@ -131,7 +131,7 @@ struct EnhancedReturnGoodsRowView: View {
                         
                         if item.deliveryQuantity > 0 {
                             QuantityInfoItem(
-                                title: "已发货数量",
+                                title: "已还货数量",
                                 value: "\(item.deliveryQuantity)",
                                 color: LopanColors.info
                             )
@@ -152,7 +152,7 @@ struct EnhancedReturnGoodsRowView: View {
                             .font(.caption2)
                             .foregroundColor(.secondary)
 
-                        Text("发货日期：\(deliveryDate.formatted(.dateTime.month().day().year()))")
+                        Text("还货日期：\(deliveryDate.formatted(.dateTime.month().day().year()))")
                             .font(.caption)
                             .foregroundColor(.secondary)
 

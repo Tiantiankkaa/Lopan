@@ -219,7 +219,7 @@ struct ReturnItemInputRow: View {
                     .foregroundColor(LopanColors.warning)
                 
                 if item.hasPartialDelivery {
-                    Text("已发货: \(item.deliveryQuantity)")
+                    Text("已还货: \(item.deliveryQuantity)")
                         .font(.caption)
                         .foregroundColor(LopanColors.info)
                 }
@@ -237,8 +237,8 @@ struct ReturnItemInputRow: View {
                 state: showingError ? .error : .normal,
                 keyboardType: .numberPad,
                 icon: "number",
-                helperText: "请输入要发货的数量",
-                errorText: showingError ? "请输入有效的发货数量（1-\(item.remainingQuantity)）" : nil
+                helperText: "请输入要还货的数量",
+                errorText: showingError ? "请输入有效的还货数量（1-\(item.remainingQuantity)）" : nil
             )
         }
     }
@@ -247,11 +247,11 @@ struct ReturnItemInputRow: View {
         VStack(alignment: .leading, spacing: 8) {
             LopanTextField(
                 title: "delivery_notes".localized,
-                placeholder: "可选择填写发货原因或备注",
+                placeholder: "可选择填写还货原因或备注",
                 text: $deliveryNotes,
                 variant: .outline,
                 icon: "note.text",
-                helperText: "发货备注为可选信息"
+                helperText: "还货备注为可选信息"
             )
         }
     }

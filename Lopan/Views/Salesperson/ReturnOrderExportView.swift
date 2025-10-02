@@ -307,7 +307,7 @@ struct ExportItemRow: View {
                             .foregroundColor(LopanColors.warning)
                         
                         if item.hasPartialDelivery {
-                            Text("已发货: \(item.deliveryQuantity)")
+                            Text("已还货: \(item.deliveryQuantity)")
                                 .font(.caption)
                                 .foregroundColor(LopanColors.info)
                         }

@@ -324,10 +324,10 @@ struct OperationDetailView: View {
                 AuditInfoRow(label: "备注", value: notes, compact: true)
             }
             if let deliveryQuantity = values.deliveryQuantity, deliveryQuantity > 0 {
-                AuditInfoRow(label: "发货数量", value: "\(deliveryQuantity)", compact: true)
+                AuditInfoRow(label: "还货数量", value: "\(deliveryQuantity)", compact: true)
             }
             if let deliveryNotes = values.deliveryNotes, !deliveryNotes.isEmpty {
-                AuditInfoRow(label: "发货备注", value: deliveryNotes, compact: true)
+                AuditInfoRow(label: "还货备注", value: deliveryNotes, compact: true)
             }
         }
     }

@@ -138,14 +138,14 @@ struct StatisticsOverviewCard: View {
             // Statistics Grid
             LazyVGrid(columns: Array(repeating: GridItem(.flexible(), spacing: 12), count: 3), spacing: 12) {
                 EnhancedStatCard(
-                    title: "待发货",
+                    title: "待还货",
                     count: needsDeliveryCount,
                     color: LopanColors.warning,
                     icon: "exclamationmark.triangle.fill"
                 )
 
                 EnhancedStatCard(
-                    title: "部分发货",
+                    title: "部分还货",
                     count: partialDeliveryCount,
                     color: LopanColors.info,
                     icon: "clock.fill"
