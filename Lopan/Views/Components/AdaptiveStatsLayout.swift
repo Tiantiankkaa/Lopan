@@ -126,7 +126,7 @@ public struct StatusCardConfig: Identifiable {
             status: .completed
         ),
         StatusCardConfig(
-            id: "returned",
+            id: "refunded",
             title: "已退货",
             value: "18",
             icon: "arrow.uturn.left",
@@ -171,7 +171,7 @@ public struct StatusCardConfig: Identifiable {
             status: .completed
         ),
         StatusCardConfig(
-            id: "returned",
+            id: "refunded",
             title: "已退货",
             value: "234",
             icon: "arrow.uturn.left",

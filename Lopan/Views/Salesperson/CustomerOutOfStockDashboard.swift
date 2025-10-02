@@ -937,7 +937,7 @@ struct CustomerOutOfStockDashboard: View {
                 accessibilityHint: "仅显示已完成记录"
             ),
             StatusCardConfig(
-                id: "returned",
+                id: "refunded",
                 title: "已退货",
                 value: formattedCount(dashboardState.statusCounts[.refunded] ?? 0),
                 icon: "arrow.uturn.left",

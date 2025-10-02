@@ -125,10 +125,10 @@ class DefaultCustomerOutOfStockBusinessService: CustomerOutOfStockBusinessServic
         return await withTaskGroup(of: OutOfStockStatistics.self) { group in
             group.addTask {
                 var pendingCount = 0
-                var partiallyReturnedCount = 0
-                var fullyReturnedCount = 0
+                var partiallyDeliveredCount = 0
+                var fullyDeliveredCount = 0
                 var totalQuantity = 0
-                var totalReturnedQuantity = 0
+                var totalDeliveredQuantity = 0
                 var totalProcessingTime: TimeInterval = 0
                 var completedItemsCount = 0
                 
@@ -139,22 +139,22 @@ class DefaultCustomerOutOfStockBusinessService: CustomerOutOfStockBusinessServic
                     case .pending:
                         pendingCount += 1
                     case .completed:
-                        fullyReturnedCount += 1
+                        fullyDeliveredCount += 1
                         completedItemsCount += 1
                         totalProcessingTime += record.updatedAt.timeIntervalSince(record.requestDate)
                     case .refunded:
-                        fullyReturnedCount += 1
+                        fullyDeliveredCount += 1
                         completedItemsCount += 1
                         totalProcessingTime += record.updatedAt.timeIntervalSince(record.requestDate)
                     }
                     
                     // Check for partial deliveries
                     if record.deliveryQuantity > 0 && record.deliveryQuantity < record.quantity {
-                        partiallyReturnedCount += 1
+                        partiallyDeliveredCount += 1
                     }
 
                     totalQuantity += record.quantity
-                    totalReturnedQuantity += record.deliveryQuantity
+                    totalDeliveredQuantity += record.deliveryQuantity
                 }
                 
                 let averageProcessingTime = completedItemsCount > 0 ? 
@@ -163,10 +163,10 @@ class DefaultCustomerOutOfStockBusinessService: CustomerOutOfStockBusinessServic
                 return OutOfStockStatistics(
                     totalItems: records.count,
                     pendingCount: pendingCount,
-                    partiallyReturnedCount: partiallyReturnedCount,
-                    fullyReturnedCount: fullyReturnedCount,
+                    partiallyDeliveredCount: partiallyDeliveredCount,
+                    fullyDeliveredCount: fullyDeliveredCount,
                     totalQuantity: totalQuantity,
-                    totalReturnedQuantity: totalReturnedQuantity,
+                    totalDeliveredQuantity: totalDeliveredQuantity,
                     averageProcessingTime: averageProcessingTime
                 )
             }
@@ -178,8 +178,8 @@ class DefaultCustomerOutOfStockBusinessService: CustomerOutOfStockBusinessServic
                 break
             }
             return result ?? OutOfStockStatistics(
-                totalItems: 0, pendingCount: 0, partiallyReturnedCount: 0,
-                fullyReturnedCount: 0, totalQuantity: 0, totalReturnedQuantity: 0,
+                totalItems: 0, pendingCount: 0, partiallyDeliveredCount: 0,
+                fullyDeliveredCount: 0, totalQuantity: 0, totalDeliveredQuantity: 0,
                 averageProcessingTime: 0
             )
         }

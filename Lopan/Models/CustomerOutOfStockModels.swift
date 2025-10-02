@@ -86,10 +86,10 @@ public struct OutOfStockFilterCriteria {
 struct OutOfStockStatistics {
     let totalItems: Int
     let pendingCount: Int
-    let partiallyReturnedCount: Int
-    let fullyReturnedCount: Int
+    let partiallyDeliveredCount: Int
+    let fullyDeliveredCount: Int
     let totalQuantity: Int
-    let totalReturnedQuantity: Int
+    let totalDeliveredQuantity: Int
     let averageProcessingTime: TimeInterval
 }
 

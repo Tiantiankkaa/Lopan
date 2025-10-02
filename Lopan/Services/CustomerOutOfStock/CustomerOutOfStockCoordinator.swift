@@ -980,8 +980,8 @@ private class MockCustomerOutOfStockBusinessService: CustomerOutOfStockBusinessS
     func validateCreationRequest(_ request: OutOfStockCreationRequest) throws {}
     func processReturn(_ item: CustomerOutOfStock, quantity: Int, notes: String?) async throws {}
     func calculateStatistics(_ criteria: OutOfStockFilterCriteria) async throws -> OutOfStockStatistics {
-        OutOfStockStatistics(totalItems: 0, pendingCount: 0, partiallyReturnedCount: 0, 
-                           fullyReturnedCount: 0, totalQuantity: 0, totalReturnedQuantity: 0, averageProcessingTime: 0)
+        OutOfStockStatistics(totalItems: 0, pendingCount: 0, partiallyDeliveredCount: 0, 
+                           fullyDeliveredCount: 0, totalQuantity: 0, totalDeliveredQuantity: 0, averageProcessingTime: 0)
     }
     func getStatusCounts(_ criteria: OutOfStockFilterCriteria) async throws -> [OutOfStockStatus: Int] { [:] }
     func canUserModify(_ item: CustomerOutOfStock, userId: String) -> Bool { true }
