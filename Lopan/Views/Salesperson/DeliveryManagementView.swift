@@ -1,5 +1,5 @@
 //
-//  GiveBackManagementView.swift
+//  DeliveryManagementView.swift
 //  Lopan
 //
 //  Created by Bobo on 2025/7/28.
@@ -8,12 +8,12 @@
 import SwiftUI
 import SwiftData
 
-struct GiveBackManagementView: View {
+struct DeliveryManagementView: View {
     @Environment(\.modelContext) private var modelContext
     @Environment(\.appDependencies) private var appDependencies
     @Environment(\.customerOutOfStockDependencies) private var customerOutOfStockDependencies
-    
-    @StateObject private var viewModel = GiveBackManagementViewModel()
+
+    @StateObject private var viewModel = DeliveryManagementViewModel()
     
     @State private var searchText = ""
     @State private var debouncedSearchText = ""
@@ -531,8 +531,8 @@ struct GiveBackManagementView: View {
         }
     }
     
-    private var currentFilterState: GiveBackManagementViewModel.FilterState {
-        GiveBackManagementViewModel.FilterState(
+    private var currentFilterState: DeliveryManagementViewModel.FilterState {
+        DeliveryManagementViewModel.FilterState(
             searchText: debouncedSearchText,
             deliveryStatus: selectedDeliveryStatus,
             customer: selectedCustomer,
@@ -752,6 +752,6 @@ enum DateRange: CaseIterable {
 }
 
 #Preview {
-    GiveBackManagementView()
+    DeliveryManagementView()
         .modelContainer(for: CustomerOutOfStock.self, inMemory: true)
 }

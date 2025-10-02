@@ -77,10 +77,10 @@
 "salesperson_dashboard_metric_open_stockouts_caption" = "Awaiting resolution";
 "salesperson_dashboard_metric_completed" = "Resolved this week";
 "salesperson_dashboard_metric_completed_caption" = "Closed stock-outs";
-"salesperson_dashboard_metric_returns" = "Pending give backs";
+"salesperson_dashboard_metric_returns" = "Pending deliveries";
 "salesperson_dashboard_metric_returns_caption" = "Customers waiting for their goods";
 "salesperson_dashboard_summary_loading" = "Syncing key metrics…";
-"salesperson_dashboard_summary_format" = "%@ customers | %@ stock-outs | %@ returns";
+"salesperson_dashboard_summary_format" = "%@ customers | %@ stock-outs | %@ deliveries";
 
 "salesperson_dashboard_section_metrics" = "Insight metrics";
 "salesperson_dashboard_section_priority" = "Priority queue";
@@ -88,22 +88,22 @@
 "salesperson_dashboard_section_activity" = "Recent activity";
 
 "salesperson_dashboard_section_critical" = "Critical stock-outs";
-"salesperson_dashboard_section_returns" = "Give backs to process";
+"salesperson_dashboard_section_returns" = "Deliveries to process";
 "salesperson_dashboard_section_followup" = "Suggested follow-ups";
 
 "salesperson_dashboard_task_pending_detail" = "Remaining %@ units, %@";
-"salesperson_dashboard_task_return_detail" = "Give back %@ units, %@";
+"salesperson_dashboard_task_return_detail" = "Deliver %@ units, %@";
 "salesperson_dashboard_task_followup_detail" = "Check in on %@";
 
 "salesperson_dashboard_action_stockouts" = "Stock-out board";
-"salesperson_dashboard_action_returns" = "Process give backs";
+"salesperson_dashboard_action_returns" = "Process deliveries";
 "salesperson_dashboard_action_customers" = "Manage customers";
 "salesperson_dashboard_action_products" = "Manage products";
 "salesperson_dashboard_action_analytics" = "View analytics";
 "salesperson_dashboard_refresh_success" = "Dashboard refreshed";
 "salesperson_tab_overview" = "Overview";
 "salesperson_tab_stockouts" = "Stock-outs";
-"salesperson_tab_returns" = "Returns";
+"salesperson_tab_returns" = "Deliveries";
 "salesperson_tab_customers" = "Customers";
 "salesperson_tab_analytics" = "Insights";
 
@@ -148,39 +148,39 @@
 "demo_login" = "Demo Login";
 "select_role" = "Select Role";
 
-/* Return Goods Management */
-"return_goods_management" = "Return Goods Management";
-"return_goods_management_subtitle" = "Process customer return requests";
-"return_quantity" = "Return Quantity";
+/* Delivery Management (还货 - delivering goods back to customers) */
+"return_goods_management" = "Delivery Management";
+"return_goods_management_subtitle" = "Process customer delivery requests";
+"return_quantity" = "Delivery Quantity";
 "remaining_quantity" = "Remaining Quantity";
-"returned_quantity" = "Returned Quantity";
-"return_date" = "Return Date";
-"return_notes" = "Return Notes";
-"process_return" = "Process Return";
-"batch_return" = "Batch Return";
-"return_confirmation" = "Return Confirmation";
-"needs_return" = "Needs Return";
-"partially_returned" = "Partially Returned";
-"fully_returned" = "Fully Returned";
-"return_status" = "Return Status";
-"export_return_orders" = "Export Return Orders";
-"process_selected_returns" = "Process Selected Returns";
-"return_processing" = "Return Processing";
-"max_return_quantity" = "Max Return Quantity";
-"invalid_return_quantity" = "Invalid Return Quantity";
-"return_success" = "Return Processed Successfully";
-"return_failed" = "Return Processing Failed";
-"customers_needing_returns" = "Customers Needing Returns";
-"filter_by_return_status" = "Filter by Return Status";
-"all_return_status" = "All Return Status";
-"pending_return" = "Pending Return";
-"partial_return" = "Partial Return";
-"completed_return" = "Completed Return";
+"returned_quantity" = "Delivered Quantity";
+"return_date" = "Delivery Date";
+"return_notes" = "Delivery Notes";
+"process_return" = "Process Delivery";
+"batch_return" = "Batch Delivery";
+"return_confirmation" = "Delivery Confirmation";
+"needs_return" = "Needs Delivery";
+"partially_returned" = "Partially Delivered";
+"fully_returned" = "Fully Delivered";
+"return_status" = "Delivery Status";
+"export_return_orders" = "Export Delivery Orders";
+"process_selected_returns" = "Process Selected Deliveries";
+"return_processing" = "Delivery Processing";
+"max_return_quantity" = "Max Delivery Quantity";
+"invalid_return_quantity" = "Invalid Delivery Quantity";
+"return_success" = "Delivery Processed Successfully";
+"return_failed" = "Delivery Processing Failed";
+"customers_needing_returns" = "Customers Needing Deliveries";
+"filter_by_return_status" = "Filter by Delivery Status";
+"all_return_status" = "All Delivery Status";
+"pending_return" = "Pending Delivery";
+"partial_return" = "Partial Delivery";
+"completed_return" = "Completed Delivery";
 
 /* Out-of-Stock Status */
 "out_of_stock_status_pending" = "Pending";
 "out_of_stock_status_completed" = "Completed";
-"out_of_stock_status_returned" = "Returned";
+"out_of_stock_status_returned" = "Refunded";
 
 /* Analytics */
 "analytics_screen_accessibility_label" = "Out-of-stock analytics screen";

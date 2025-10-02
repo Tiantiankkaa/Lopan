@@ -366,8 +366,8 @@ struct SalespersonDashboardView: View {
         switch destination {
         case .customerOutOfStock:
             CustomerOutOfStockDashboard()
-        case .giveBack:
-            GiveBackManagementView()
+        case .deliveryManagement:
+            DeliveryManagementView()
         case .customerManagement:
             CustomerManagementView()
         case .productManagement:

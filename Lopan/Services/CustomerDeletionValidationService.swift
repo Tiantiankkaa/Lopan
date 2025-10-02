@@ -38,7 +38,7 @@ public class CustomerDeletionValidationService: ObservableObject {
         
         let pendingRecords = customerRecords.filter { $0.status == .pending }
         let completedRecords = customerRecords.filter { $0.status == .completed }
-        let returnedRecords = customerRecords.filter { $0.status == .returned }
+        let returnedRecords = customerRecords.filter { $0.status == .refunded }
         
         let canDelete = pendingRecords.isEmpty
         let warningMessage = pendingRecords.isEmpty ? nil : 

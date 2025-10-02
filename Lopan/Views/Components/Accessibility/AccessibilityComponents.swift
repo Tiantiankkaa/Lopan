@@ -335,7 +335,7 @@ extension OutOfStockStatus {
             return "等待处理的缺货申请"
         case .completed:
             return "已完成的缺货申请"
-        case .returned:
+        case .refunded:
             return "已退回的缺货申请"
         }
     }

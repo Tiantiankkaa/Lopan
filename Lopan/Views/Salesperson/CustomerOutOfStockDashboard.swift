@@ -939,10 +939,10 @@ struct CustomerOutOfStockDashboard: View {
             StatusCardConfig(
                 id: "returned",
                 title: "已退货",
-                value: formattedCount(dashboardState.statusCounts[.returned] ?? 0),
+                value: formattedCount(dashboardState.statusCounts[.refunded] ?? 0),
                 icon: "arrow.uturn.left",
                 color: LopanColors.error,
-                status: .returned,
+                status: .refunded,
                 accessibilityHint: "仅显示已退货记录"
             )
         ]
@@ -1342,7 +1342,7 @@ struct CustomerOutOfStockDashboard: View {
         )
         let statusCounts = await customerOutOfStockService.loadStatusCounts(criteria: statusCountsCriteria)
 
-        print("📊 [Status Counts] pending=\(statusCounts[.pending] ?? 0), completed=\(statusCounts[.completed] ?? 0), returned=\(statusCounts[.returned] ?? 0)")
+        print("📊 [Status Counts] pending=\(statusCounts[.pending] ?? 0), completed=\(statusCounts[.completed] ?? 0), returned=\(statusCounts[.refunded] ?? 0)")
 
         // Ensure minimum skeleton display time for smooth UX
         let elapsedTime = Date().timeIntervalSince(refreshStartTime)
@@ -2313,7 +2313,7 @@ private struct OutOfStockItemCard: View {
                 }
                 
                 // Return information (if applicable)
-                if item.status == .returned && item.deliveryQuantity > 0 {
+                if item.status == .refunded && item.deliveryQuantity > 0 {
                     HStack(spacing: 8) {
                         Image(systemName: "return.left")
                             .foregroundColor(LopanColors.warning)
@@ -2367,7 +2367,7 @@ private struct OutOfStockItemCard: View {
             return LopanColors.warning
         case .completed:
             return LopanColors.success
-        case .returned:
+        case .refunded:
             return LopanColors.error
         }
     }

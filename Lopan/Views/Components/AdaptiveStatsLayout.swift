@@ -131,7 +131,7 @@ public struct StatusCardConfig: Identifiable {
             value: "18",
             icon: "arrow.uturn.left",
             color: LopanColors.error,
-            status: .returned
+            status: .refunded
         )
     ]
 
@@ -176,7 +176,7 @@ public struct StatusCardConfig: Identifiable {
             value: "234",
             icon: "arrow.uturn.left",
             color: LopanColors.error,
-            status: .returned
+            status: .refunded
         )
     ]
 

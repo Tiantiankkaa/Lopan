@@ -17,7 +17,7 @@ struct OutOfStockStatusTabBar: View {
             TabItem(status: .all, title: "全部"),
             TabItem(status: .pending, title: "待处理"),
             TabItem(status: .completed, title: "已完成"),
-            TabItem(status: .returned, title: "已退")
+            TabItem(status: .refunded, title: "已退")
         ]
     }
     
@@ -67,8 +67,8 @@ struct OutOfStockStatusTabBar: View {
             return statusCounts[.pending] ?? 0
         case .completed:
             return statusCounts[.completed] ?? 0
-        case .returned:
-            return statusCounts[.returned] ?? 0
+        case .refunded:
+            return statusCounts[.refunded] ?? 0
         }
     }
 }
@@ -137,7 +137,7 @@ private struct TabItemView: View {
         statusCounts: [
             .pending: 20,
             .completed: 24,
-            .returned: 5
+            .refunded: 5
         ],
         totalCount: 187
     )

@@ -14,7 +14,7 @@ enum StatusTab: Int, CaseIterable, Identifiable {
     case all = 0
     case pending = 1
     case completed = 2
-    case returned = 3
+    case refunded = 3
     
     var id: Int { rawValue }
     
@@ -23,7 +23,7 @@ enum StatusTab: Int, CaseIterable, Identifiable {
         case .all: return "总计"
         case .pending: return "待处理"
         case .completed: return "已完成"
-        case .returned: return "已退货"
+        case .refunded: return "已退货"
         }
     }
     
@@ -32,7 +32,7 @@ enum StatusTab: Int, CaseIterable, Identifiable {
         case .all: return nil
         case .pending: return .pending
         case .completed: return .completed
-        case .returned: return .returned
+        case .refunded: return .refunded
         }
     }
     
@@ -41,7 +41,7 @@ enum StatusTab: Int, CaseIterable, Identifiable {
         switch status {
         case .pending: return .pending
         case .completed: return .completed
-        case .returned: return .returned
+        case .refunded: return .refunded
         }
     }
 }
@@ -164,8 +164,8 @@ struct StatusNavigationBar: View {
             return statusCounts[.pending] ?? 0
         case .completed:
             return statusCounts[.completed] ?? 0
-        case .returned:
-            return statusCounts[.returned] ?? 0
+        case .refunded:
+            return statusCounts[.refunded] ?? 0
         }
     }
 }
@@ -192,7 +192,7 @@ private extension StatusNavigationBar {
             statusCounts: [
                 .pending: 63,
                 .completed: 60,
-                .returned: 14
+                .refunded: 14
             ],
             totalCount: 137,
             isLocked: false,
@@ -210,7 +210,7 @@ private extension StatusNavigationBar {
             statusCounts: [
                 .pending: 63,
                 .completed: 60,
-                .returned: 14
+                .refunded: 14
             ],
             totalCount: 137,
             isLocked: true,

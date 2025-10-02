@@ -80,7 +80,7 @@ struct SalespersonWorkbenchTabView: View {
             .tag(SalespersonTab.stockouts)
 
             tabContainer {
-                GiveBackManagementView()
+                DeliveryManagementView()
             }
             .tabItem {
                 Label(SalespersonTab.returns.titleKey, systemImage: SalespersonTab.returns.systemImage)

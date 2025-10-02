@@ -12,7 +12,7 @@ import SwiftUI
 public enum OutOfStockStatus: String, CaseIterable, Codable {
     case pending = "pending"        // Order placed, awaiting fulfillment
     case completed = "completed"    // Products delivered to customer
-    case returned = "returned"      // Order cancelled/refunded to supplier
+    case refunded = "returned"      // Order cancelled/refunded to supplier (raw value kept for backward compatibility)
 
     var displayName: String {
         switch self {
@@ -20,7 +20,7 @@ public enum OutOfStockStatus: String, CaseIterable, Codable {
             return "待处理"           // Pending
         case .completed:
             return "已发货"           // Delivered (to customer)
-        case .returned:
+        case .refunded:
             return "已退货"           // Refunded (to supplier)
         }
     }
@@ -31,7 +31,7 @@ public enum OutOfStockStatus: String, CaseIterable, Codable {
             return LopanColors.warning
         case .completed:
             return LopanColors.success
-        case .returned:
+        case .refunded:
             return LopanColors.error
         }
     }
@@ -249,7 +249,7 @@ public final class CustomerOutOfStock {
         self.isRefunded = true
         self.refundDate = Date()
         self.refundReason = reason
-        self.status = .returned
+        self.status = .refunded
         self.actualCompletionDate = Date()
         self.updatedAt = Date()
 

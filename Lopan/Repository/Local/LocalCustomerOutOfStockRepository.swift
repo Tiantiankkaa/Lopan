@@ -1266,7 +1266,7 @@ actor LocalCustomerOutOfStockRepository: CustomerOutOfStockRepository {
         let elapsed = CFAbsoluteTimeGetCurrent() - startTime
         print("🚀 [Repository] ✅ All metrics + display items in \(String(format: "%.3f", elapsed))s")
         print("   Total records: \(totalProcessed)")
-        print("   Pending: \(statusCounts[.pending] ?? 0), Completed: \(statusCounts[.completed] ?? 0), Returned: \(statusCounts[.returned] ?? 0)")
+        print("   Pending: \(statusCounts[.pending] ?? 0), Completed: \(statusCounts[.completed] ?? 0), Returned: \(statusCounts[.refunded] ?? 0)")
         print("   Needs Return: \(needsReturnCount), Due Soon: \(dueSoonCount), Overdue: \(overdueCount)")
         print("   Display items: Pending=\(pendingItems.count), Return=\(returnItems.count), Completed=\(sortedCompleted.count)")
 

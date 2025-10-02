@@ -380,8 +380,8 @@ class CustomerOutOfStockDIViewModel: ObservableObject {
             criteria.status = .pending
         case .completed:
             criteria.status = .completed
-        case .returned:
-            criteria.status = .returned
+        case .refunded:
+            criteria.status = .refunded
         }
         
         // Date filter

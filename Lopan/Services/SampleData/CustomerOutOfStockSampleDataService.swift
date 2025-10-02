@@ -386,7 +386,7 @@ class CustomerOutOfStockSampleDataService {
         case .completed:
             record.actualCompletionDate = LargeSampleDataGenerator.generateCompletionDate(from: requestDate)
             
-        case .returned:
+        case .refunded:
             let deliveryDate = LargeSampleDataGenerator.generateReturnDate(from: requestDate)
             let deliveryQuantity = LargeSampleDataGenerator.generateReturnQuantity(originalQuantity: quantity)
             record.deliveryDate = deliveryDate

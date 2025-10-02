@@ -97,7 +97,7 @@ struct AdaptiveColors {
             return LopanColors.warning
         case .completed:
             return LopanColors.success
-        case .returned:
+        case .refunded:
             return LopanColors.premium
         }
     }

@@ -203,7 +203,7 @@ struct CustomerDetailView: View {
         switch status {
         case .pending: return LopanColors.warning
         case .completed: return LopanColors.success
-        case .returned: return LopanColors.success
+        case .refunded: return LopanColors.success
         }
     }
     

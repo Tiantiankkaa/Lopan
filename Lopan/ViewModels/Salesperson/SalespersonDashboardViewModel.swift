@@ -94,7 +94,7 @@ final class SalespersonDashboardViewModel: ObservableObject {
 
     enum Destination: Hashable {
         case customerOutOfStock
-        case giveBack
+        case deliveryManagement
         case customerManagement
         case productManagement
         case analytics
@@ -255,7 +255,7 @@ final class SalespersonDashboardViewModel: ObservableObject {
     private func buildMetrics(customers: [Customer], products: [Product], metrics: DashboardMetrics) -> [Metric] {
         // Use completed count from efficient single-pass query
         let completedCount = metrics.statusCounts[.completed] ?? 0
-        let giveBackQueueCount = metrics.needsReturnCount
+        let deliveryQueueCount = metrics.needsReturnCount
 
         let metrics: [Metric] = [
             Metric(
@@ -284,10 +284,10 @@ final class SalespersonDashboardViewModel: ObservableObject {
             ),
             Metric(
                 title: "salesperson_dashboard_metric_returns".localizedKey,
-                value: NumberFormatter.localizedString(from: NSNumber(value: giveBackQueueCount), number: .decimal),
+                value: NumberFormatter.localizedString(from: NSNumber(value: deliveryQueueCount), number: .decimal),
                 caption: "salesperson_dashboard_metric_returns_caption".localizedKey,
                 systemImage: "arrow.uturn.left.circle.fill",
-                accent: giveBackQueueCount > 0 ? .warning : .neutral,
+                accent: deliveryQueueCount > 0 ? .warning : .neutral,
                 trend: .steady
             )
         ]
@@ -327,7 +327,7 @@ final class SalespersonDashboardViewModel: ObservableObject {
                     detail: formattedReturnDetail(for: item),
                     category: "salesperson_dashboard_section_returns".localizedKey,
                     status: .warning,
-                    destination: .giveBack,
+                    destination: .deliveryManagement,
                     dueDate: item.deliveryDate ?? item.requestDate
                 )
             }
@@ -371,7 +371,7 @@ final class SalespersonDashboardViewModel: ObservableObject {
             QuickAction(
                 title: "salesperson_dashboard_action_returns".localizedKey,
                 systemImage: "arrow.uturn.left.circle.fill",
-                destination: .giveBack
+                destination: .deliveryManagement
             )
         ]
     }
@@ -409,7 +409,7 @@ final class SalespersonDashboardViewModel: ObservableObject {
                     title: "Return processed for \(item.customerDisplayName).",
                     detail: "\(item.productDisplayName) - \(item.remainingQuantity) units",
                     date: item.deliveryDate ?? item.updatedAt,
-                    destination: .giveBack,
+                    destination: .deliveryManagement,
                     iconName: "arrow.uturn.backward.circle.fill",
                     iconColor: Color(red: 0.15, green: 0.39, blue: 0.92)
                 )
@@ -447,7 +447,7 @@ final class SalespersonDashboardViewModel: ObservableObject {
                 count: pendingReturnsCount,
                 systemImage: "arrow.uturn.backward.circle.fill",
                 accentColor: Color(red: 0.2, green: 0.6, blue: 1.0),
-                destination: .giveBack
+                destination: .deliveryManagement
             ),
             ReminderItem(
                 title: "Due Soon",

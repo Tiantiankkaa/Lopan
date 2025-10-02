@@ -559,7 +559,7 @@ private struct StatusFilterButton: View {
         switch status {
         case .pending: return LopanColors.warning
         case .completed: return LopanColors.success
-        case .returned: return LopanColors.error
+        case .refunded: return LopanColors.error
         }
     }
 }

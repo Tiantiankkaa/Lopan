@@ -210,7 +210,7 @@ class LargeSampleDataGenerator {
         } else if random < SampleDataConstants.Distribution.pendingRatio + SampleDataConstants.Distribution.completedRatio {
             return .completed
         } else {
-            return .returned
+            return .refunded
         }
     }
     

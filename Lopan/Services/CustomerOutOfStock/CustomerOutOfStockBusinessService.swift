@@ -142,7 +142,7 @@ class DefaultCustomerOutOfStockBusinessService: CustomerOutOfStockBusinessServic
                         fullyReturnedCount += 1
                         completedItemsCount += 1
                         totalProcessingTime += record.updatedAt.timeIntervalSince(record.requestDate)
-                    case .returned:
+                    case .refunded:
                         fullyReturnedCount += 1
                         completedItemsCount += 1
                         totalProcessingTime += record.updatedAt.timeIntervalSince(record.requestDate)
@@ -207,7 +207,7 @@ class DefaultCustomerOutOfStockBusinessService: CustomerOutOfStockBusinessServic
         logger.safeInfo("Status counts calculated", [
             "pending": String(statusCounts[.pending] ?? 0),
             "completed": String(statusCounts[.completed] ?? 0),
-            "returned": String(statusCounts[.returned] ?? 0)
+            "returned": String(statusCounts[.refunded] ?? 0)
         ])
         
         return statusCounts

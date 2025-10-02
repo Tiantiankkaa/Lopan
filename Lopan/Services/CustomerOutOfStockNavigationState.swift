@@ -296,32 +296,32 @@ extension CustomerOutOfStockNavigationState {
         case all
         case pending
         case completed
-        case returned
-        
+        case refunded
+
         var outOfStockStatus: OutOfStockStatus? {
             switch self {
             case .pending: return .pending
             case .completed: return .completed
-            case .returned: return .returned
+            case .refunded: return .refunded
             default: return nil
             }
         }
-        
+
         var displayName: String {
             switch self {
             case .all: return "全部"
             case .pending: return "待处理"
             case .completed: return "已完成"
-            case .returned: return "已退货"
+            case .refunded: return "已退货"
             }
         }
-        
+
         var icon: String {
             switch self {
             case .all: return "list.bullet"
             case .pending: return "clock"
             case .completed: return "checkmark.circle"
-            case .returned: return "arrow.uturn.backward"
+            case .refunded: return "arrow.uturn.backward"
             }
         }
     }

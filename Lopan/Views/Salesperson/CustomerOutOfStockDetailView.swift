@@ -42,7 +42,7 @@ struct CustomerOutOfStockDetailView: View {
                 }
                 
                 // Return Info Card (if applicable)
-                if item.status == .returned && item.deliveryQuantity > 0 {
+                if item.status == .refunded && item.deliveryQuantity > 0 {
                     returnInfoCard
                 }
             }
@@ -65,7 +65,7 @@ struct CustomerOutOfStockDetailView: View {
                         }
                         .disabled(isUpdatingStatus)
                         
-                        Button(action: { updateStatus(to: .returned) }) {
+                        Button(action: { updateStatus(to: .refunded) }) {
                             Label("标记为已退货", systemImage: "return.left")
                         }
                         .disabled(isUpdatingStatus)
@@ -407,7 +407,7 @@ struct CustomerOutOfStockDetailView: View {
             return LopanColors.warning
         case .completed:
             return LopanColors.success
-        case .returned:
+        case .refunded:
             return LopanColors.error
         }
     }

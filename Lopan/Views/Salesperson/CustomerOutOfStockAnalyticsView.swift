@@ -244,7 +244,7 @@ struct CustomerOutOfStockAnalyticsView: View {
             return "out_of_stock_status_pending".localized
         case .completed:
             return "out_of_stock_status_completed".localized
-        case .returned:
+        case .refunded:
             return "out_of_stock_status_returned".localized
         }
     }
@@ -255,7 +255,7 @@ struct CustomerOutOfStockAnalyticsView: View {
             return LopanColors.warning
         case .completed:
             return LopanColors.success
-        case .returned:
+        case .refunded:
             return LopanColors.error
         }
     }

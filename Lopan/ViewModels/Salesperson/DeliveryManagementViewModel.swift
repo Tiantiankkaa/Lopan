@@ -1,15 +1,15 @@
 //
-//  GiveBackManagementViewModel.swift
+//  DeliveryManagementViewModel.swift
 //  Lopan
 //
-//  Created to improve data loading efficiency for Return Goods Management.
+//  Created to improve data loading efficiency for Delivery Management.
 //
 
 import Foundation
 import SwiftData
 
 @MainActor
-final class GiveBackManagementViewModel: ObservableObject {
+final class DeliveryManagementViewModel: ObservableObject {
     struct FilterState: Equatable {
         var searchText: String = ""
         var deliveryStatus: DeliveryStatus? = nil

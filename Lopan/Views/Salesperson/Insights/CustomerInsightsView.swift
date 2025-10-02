@@ -577,7 +577,7 @@ private struct ProductItemRow: View {
         switch productItem.status {
         case .pending: return LopanColors.warning
         case .completed: return LopanColors.success
-        case .returned: return LopanColors.error
+        case .refunded: return LopanColors.error
         }
     }
 }
@@ -741,7 +741,7 @@ private struct DetailedProductItemRow: View {
         switch productItem.status {
         case .pending: return LopanColors.warning
         case .completed: return LopanColors.success
-        case .returned: return LopanColors.error
+        case .refunded: return LopanColors.error
         }
     }
 
@@ -749,7 +749,7 @@ private struct DetailedProductItemRow: View {
         switch productItem.status {
         case .pending: return "待处理"
         case .completed: return "已完成"
-        case .returned: return "已退货"
+        case .refunded: return "已退货"
         }
     }
 }

@@ -361,7 +361,7 @@ extension LopanBadge {
             return ("待处理", .warning, "clock")
         case .completed:
             return ("已完成", .success, "checkmark.circle")
-        case .returned:
+        case .refunded:
             return ("已退货", .success, "return")
         }
     }

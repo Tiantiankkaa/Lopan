@@ -461,10 +461,10 @@ struct EnhancedCustomerGroupRowView: View {
                             color: group.returnableQuantity > 0 ? LopanColors.warning : LopanColors.textSecondary
                         )
                         
-                        if group.returnedQuantity > 0 {
+                        if group.refundedQuantity > 0 {
                             StatisticItem(
                                 title: "已还货",
-                                value: "\(group.returnedQuantity)",
+                                value: "\(group.refundedQuantity)",
                                 color: LopanColors.primary
                             )
                         }

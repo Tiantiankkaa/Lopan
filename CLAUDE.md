@@ -175,14 +175,17 @@ Lopan/
 ### Business Modules
 
 #### Customer Out-of-Stock Management
-- **Status Model**: `pending` | `completed` | `returned`
-- **Flow**: Request → pending → fulfilled/completed OR refunded/returned
+- **Status Model**: `pending` | `completed` | `refunded`
+- **Flow**: Request → pending → fulfilled/completed OR cancelled/refunded
 - **Location**: `Models/CustomerOutOfStock.swift`
 
-#### Give-Back Management
-- **Purpose**: Handle returns of delivered products
-- **Separate**: Independent from out-of-stock management
-- **Location**: `Views/Salesperson/GiveBackManagementView.swift`
+#### Business Terminology
+- **Delivery (还货)**: Fulfilling out-of-stock orders by delivering goods TO customers (Company → Customer)
+  - This is the primary workflow for handling pending out-of-stock requests
+  - Located in: `Views/Salesperson/DeliveryManagementView.swift`
+- **Refund (退货)**: Cancelling orders and returning TO supplier (Customer → Company/Supplier)
+  - This represents order cancellation or refund scenarios
+  - Status: `.refunded` in `OutOfStockStatus` enum
 
 ## Coding Standards
 - Value semantics & immutability preferred

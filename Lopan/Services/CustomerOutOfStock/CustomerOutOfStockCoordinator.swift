@@ -372,7 +372,7 @@ public class CustomerOutOfStockCoordinator: ObservableObject {
             logger.safeInfo("Status counts loaded", [
                 "pending": String(statusCounts[.pending] ?? 0),
                 "completed": String(statusCounts[.completed] ?? 0),
-                "returned": String(statusCounts[.returned] ?? 0)
+                "returned": String(statusCounts[.refunded] ?? 0)
             ])
             
             return statusCounts
