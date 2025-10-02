@@ -149,8 +149,8 @@
 "select_role" = "Select Role";
 
 /* Delivery Management (还货 - delivering goods back to customers) */
-"return_goods_management" = "Delivery Management";
-"return_goods_management_subtitle" = "Process customer delivery requests";
+"delivery_management" = "Delivery Management";
+"delivery_management_subtitle" = "Process customer delivery requests";
 "return_quantity" = "Delivery Quantity";
 "remaining_quantity" = "Remaining Quantity";
 "returned_quantity" = "Delivered Quantity";

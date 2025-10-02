@@ -159,7 +159,7 @@ enum EntityType: String, CaseIterable, Codable {
     case customer = "customer"
     case product = "product"
     case user = "user"
-    case returnGoods = "return_goods"
+    case delivery = "delivery"
     case machine = "machine"
     case station = "station"
     case workstation = "workstation"
@@ -179,7 +179,7 @@ enum EntityType: String, CaseIterable, Codable {
             return "产品"
         case .user:
             return "用户"
-        case .returnGoods:
+        case .delivery:
             return "还货"
         case .machine:
             return "生产设备"

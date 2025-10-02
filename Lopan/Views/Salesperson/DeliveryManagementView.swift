@@ -74,7 +74,7 @@ struct DeliveryManagementView: View {
                 }
             }
         }
-        .navigationTitle("return_goods_management".localized)
+        .navigationTitle("delivery_management".localized)
         .navigationBarTitleDisplayMode(.inline)
         .background(LopanColors.backgroundSecondary)
         .accessibilityElement(children: .contain)
