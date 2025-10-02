@@ -19,7 +19,7 @@ public enum OutOfStockStatus: String, CaseIterable, Codable {
         case .pending:
             return "待处理"           // Pending
         case .completed:
-            return "已发货"           // Delivered (to customer)
+            return "已还货"           // Delivered (to customer)
         case .refunded:
             return "已退货"           // Refunded (to supplier)
         }

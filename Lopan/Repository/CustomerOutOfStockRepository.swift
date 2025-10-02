@@ -20,11 +20,12 @@ public struct OutOfStockPaginationResult {
 public struct DashboardMetrics {
     let statusCounts: [OutOfStockStatus: Int]
     let needsReturnCount: Int
+    let recentPendingCount: Int  // Pending items < 7 days old
     let dueSoonCount: Int
     let overdueCount: Int
 
     // Display items collected during single pass
-    let topPendingItems: [CustomerOutOfStock]  // Top 50 oldest pending
+    let topPendingItems: [CustomerOutOfStock]  // Top 50 oldest pending (< 7 days)
     let topReturnItems: [CustomerOutOfStock]   // Top 10 items needing return
     let recentCompleted: [CustomerOutOfStock]  // Top 10 recently completed
 }

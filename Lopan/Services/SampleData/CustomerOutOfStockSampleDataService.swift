@@ -380,12 +380,26 @@ class CustomerOutOfStockSampleDataService {
         // 根据状态设置相关日期和数据
         switch status {
         case .pending:
-            // 待处理状态不需要额外设置
-            break
-            
+            // Generate realistic mix: 70% waiting delivery, 30% partial delivery
+            let deliveryScenario = Int.random(in: 0...100)
+            if deliveryScenario < 70 {
+                // 70%: Waiting delivery (no delivery yet)
+                break
+            } else {
+                // 30%: Partial delivery
+                let partialQty = Int.random(in: 1..<quantity)
+                record.deliveryQuantity = partialQty
+                record.deliveryDate = LargeSampleDataGenerator.generatePartialDeliveryDate(from: requestDate)
+                record.deliveryNotes = "样本数据：部分发货 \(partialQty)/\(quantity)"
+            }
+
         case .completed:
+            // Fully delivered to customer
             record.actualCompletionDate = LargeSampleDataGenerator.generateCompletionDate(from: requestDate)
-            
+            record.deliveryQuantity = quantity  // Set full delivery quantity
+            record.deliveryDate = record.actualCompletionDate
+            record.deliveryNotes = "样本数据：完整发货"
+
         case .refunded:
             let deliveryDate = LargeSampleDataGenerator.generateReturnDate(from: requestDate)
             let deliveryQuantity = LargeSampleDataGenerator.generateReturnQuantity(originalQuantity: quantity)

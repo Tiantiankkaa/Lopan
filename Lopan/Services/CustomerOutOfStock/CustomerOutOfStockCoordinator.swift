@@ -1208,6 +1208,7 @@ private class MockAuditCustomerOutOfStockRepository: CustomerOutOfStockRepositor
         return DashboardMetrics(
             statusCounts: [:],
             needsReturnCount: 0,
+            recentPendingCount: 0,
             dueSoonCount: 0,
             overdueCount: 0,
             topPendingItems: [],

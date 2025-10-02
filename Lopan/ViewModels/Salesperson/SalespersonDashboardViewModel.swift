@@ -297,11 +297,12 @@ final class SalespersonDashboardViewModel: ObservableObject {
 
     private func buildPriorityTasks(metrics: DashboardMetrics) -> [PriorityTask] {
         // Use display items from single-pass query
+        // Note: topPendingItems are already filtered to < 7 days by repository
         let pending = metrics.topPendingItems
         let returns = metrics.topReturnItems
         let completed = metrics.recentCompleted
 
-        // Pending tasks - already sorted by oldest first
+        // Pending tasks - already filtered to < 7 days and sorted by oldest first
         let pendingTasks: [PriorityTask] = pending
             .prefix(5)
             .map { item in
@@ -437,7 +438,8 @@ final class SalespersonDashboardViewModel: ObservableObject {
 
     private func buildReminders(metrics: DashboardMetrics) -> [ReminderItem] {
         // Use counts from single-pass query
-        let pendingReturnsCount = metrics.needsReturnCount
+        // Use recentPendingCount (< 7 days) instead of needsReturnCount (all pending)
+        let pendingReturnsCount = metrics.recentPendingCount
         let dueSoonCount = metrics.dueSoonCount
         let overdueCount = metrics.overdueCount
 
@@ -595,13 +597,13 @@ final class SalespersonDashboardViewModel: ObservableObject {
     }
 
     private func isDueSoon(_ record: CustomerOutOfStock) -> Bool {
-        let hours = calendar.dateComponents([.hour], from: record.requestDate, to: Date()).hour ?? 0
-        return hours >= 24 && hours < 48
+        let days = calendar.dateComponents([.day], from: record.requestDate, to: Date()).day ?? 0
+        return days >= 7 && days < 14
     }
 
     private func isOverdue(_ record: CustomerOutOfStock) -> Bool {
-        let hours = calendar.dateComponents([.hour], from: record.requestDate, to: Date()).hour ?? 0
-        return hours >= 48
+        let days = calendar.dateComponents([.day], from: record.requestDate, to: Date()).day ?? 0
+        return days >= 14
     }
 }
 private extension String {

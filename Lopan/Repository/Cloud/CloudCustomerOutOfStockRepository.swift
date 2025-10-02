@@ -651,6 +651,7 @@ extension CloudCustomerOutOfStockRepository {
 private struct DashboardMetricsDTO: Codable {
     let statusCounts: [String: Int]
     let needsReturnCount: Int
+    let recentPendingCount: Int?  // Optional for backward compatibility
     let dueSoonCount: Int
     let overdueCount: Int
     let topPendingItems: [CustomerOutOfStockDTO]
@@ -674,6 +675,7 @@ private struct DashboardMetricsDTO: Codable {
         return DashboardMetrics(
             statusCounts: domainStatusCounts,
             needsReturnCount: needsReturnCount,
+            recentPendingCount: recentPendingCount ?? 0,  // Default to 0 if not provided
             dueSoonCount: dueSoonCount,
             overdueCount: overdueCount,
             topPendingItems: pendingItems,

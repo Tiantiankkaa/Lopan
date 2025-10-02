@@ -274,7 +274,16 @@ class LargeSampleDataGenerator {
         let daysToAdd = Int.random(in: 1...15)
         return Calendar.current.date(byAdding: .day, value: daysToAdd, to: requestDate) ?? requestDate
     }
-    
+
+    /// 生成部分发货日期（基于请求日期）
+    /// - Parameter requestDate: 请求日期
+    /// - Returns: 部分发货日期
+    static func generatePartialDeliveryDate(from requestDate: Date) -> Date {
+        // 部分发货时间通常在请求后1-20天
+        let daysToAdd = Int.random(in: 1...20)
+        return Calendar.current.date(byAdding: .day, value: daysToAdd, to: requestDate) ?? requestDate
+    }
+
     // MARK: - 辅助方法
     
     /// 生成创建者ID

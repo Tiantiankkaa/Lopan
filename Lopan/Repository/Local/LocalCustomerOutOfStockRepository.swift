@@ -1182,6 +1182,7 @@ final class LocalCustomerOutOfStockRepository: CustomerOutOfStockRepository {
         var needsReturnCount = 0
         var dueSoonCount = 0
         var overdueCount = 0
+        var recentPendingCount = 0  // Pending items < 7 days
 
         // Display items collection
         var pendingItems: [CustomerOutOfStock] = []
@@ -1211,8 +1212,8 @@ final class LocalCustomerOutOfStockRepository: CustomerOutOfStockRepository {
                 // Count by status
                 statusCounts[record.status, default: 0] += 1
 
-                // Count needs delivery (deliveryQuantity > 0)
-                if record.deliveryQuantity > 0 {
+                // Count needs delivery (pending with no delivery or partial delivery)
+                if record.status == .pending && record.remainingQuantity > 0 {
                     needsReturnCount += 1
 
                     // Collect top 10 return items
@@ -1221,16 +1222,17 @@ final class LocalCustomerOutOfStockRepository: CustomerOutOfStockRepository {
                     }
                 }
 
-                // Handle pending records
-                if record.status == .pending {
-                    // Collect top 50 pending items (oldest first, already sorted)
-                    if pendingItems.count < 50 {
-                        pendingItems.append(record)
-                    }
-
+                // Handle pending records AND partial delivery records
+                if record.status == .pending || record.hasPartialDelivery {
                     // Count by date range
                     if record.requestDate >= sevenDaysAgo {
-                        // Recent (< 7 days) - not counted separately
+                        // Recent (< 7 days) - only collect and count these
+                        recentPendingCount += 1
+
+                        // Collect top 50 pending/partial items from last 7 days only
+                        if pendingItems.count < 50 {
+                            pendingItems.append(record)
+                        }
                     } else if record.requestDate >= fourteenDaysAgo {
                         // Due soon (7-14 days)
                         dueSoonCount += 1
@@ -1267,12 +1269,13 @@ final class LocalCustomerOutOfStockRepository: CustomerOutOfStockRepository {
         print("🚀 [Repository] ✅ All metrics + display items in \(String(format: "%.3f", elapsed))s")
         print("   Total records: \(totalProcessed)")
         print("   Pending: \(statusCounts[.pending] ?? 0), Completed: \(statusCounts[.completed] ?? 0), Returned: \(statusCounts[.refunded] ?? 0)")
-        print("   Needs Return: \(needsReturnCount), Due Soon: \(dueSoonCount), Overdue: \(overdueCount)")
+        print("   Recent Pending (< 7 days): \(recentPendingCount), Needs Return: \(needsReturnCount), Due Soon: \(dueSoonCount), Overdue: \(overdueCount)")
         print("   Display items: Pending=\(pendingItems.count), Return=\(returnItems.count), Completed=\(sortedCompleted.count)")
 
         return DashboardMetrics(
             statusCounts: statusCounts,
             needsReturnCount: needsReturnCount,
+            recentPendingCount: recentPendingCount,
             dueSoonCount: dueSoonCount,
             overdueCount: overdueCount,
             topPendingItems: pendingItems,

@@ -191,14 +191,23 @@ final class DeliveryManagementViewModel: ObservableObject {
 
     private func buildCriteria(for filter: FilterState, page: Int) -> OutOfStockFilterCriteria {
         var dateRange: (start: Date, end: Date)? = nil
+
+        // Apply date filter based on user selection or delivery status
         if filter.isFilteringByDate {
             let calendar = Calendar.current
             let start = calendar.startOfDay(for: filter.selectedDate)
             if let end = calendar.date(byAdding: .day, value: 1, to: start) {
                 dateRange = (start: start, end: end)
             }
+        } else if filter.deliveryStatus == .needsDelivery {
+            // For "needsDelivery" (pending status), limit to last 7 days
+            let calendar = Calendar.current
+            let now = Date()
+            if let sevenDaysAgo = calendar.date(byAdding: .day, value: -7, to: now) {
+                dateRange = (start: sevenDaysAgo, end: now)
+            }
         }
-        
+
         // Don't map ReturnStatus to OutOfStockStatus - they are orthogonal concepts
         // ReturnStatus filters by returnQuantity (applied in applyPostFetchFilters)
         // OutOfStockStatus is about order state (pending/completed/returned to supplier)
@@ -236,11 +245,14 @@ final class DeliveryManagementViewModel: ObservableObject {
     private func matchesDeliveryStatus(record: CustomerOutOfStock, status: DeliveryStatus) -> Bool {
         switch status {
         case .needsDelivery:
-            return record.status == .pending && record.deliveryQuantity == 0
+            // Waiting: Not completed/refunded AND no delivery recorded
+            return record.status != .completed && record.status != .refunded && record.deliveryQuantity == 0
         case .partialDelivery:
+            // Partial: Has delivery but not fully delivered
             return record.deliveryQuantity > 0 && record.deliveryQuantity < record.quantity
         case .completed:
-            return record.deliveryQuantity >= record.quantity
+            // Completed: Status marked as completed/refunded OR fully delivered
+            return record.status == .completed || record.status == .refunded || record.deliveryQuantity >= record.quantity
         }
     }
     
@@ -259,9 +271,9 @@ final class DeliveryManagementViewModel: ObservableObject {
     }
 
     private func makePreviewStatistics(totalCount: Int) -> DeliveryOverviewStatistics {
-        let needs = items.filter { $0.status == .pending && $0.deliveryQuantity == 0 }.count
-        let partial = items.filter { $0.status == .pending && $0.deliveryQuantity > 0 && $0.deliveryQuantity < $0.quantity }.count
-        let completed = items.filter { $0.status != .pending && $0.deliveryQuantity >= $0.quantity }.count
+        let needs = items.filter { $0.status != .completed && $0.status != .refunded && $0.deliveryQuantity == 0 }.count
+        let partial = items.filter { $0.deliveryQuantity > 0 && $0.deliveryQuantity < $0.quantity }.count
+        let completed = items.filter { $0.status == .completed || $0.status == .refunded || $0.deliveryQuantity >= $0.quantity }.count
         return DeliveryOverviewStatistics(
             totalCount: totalCount,
             needsDelivery: needs,
