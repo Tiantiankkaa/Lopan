@@ -125,6 +125,7 @@ final class SalespersonDashboardViewModel: ObservableObject {
     private var dependencies: HasAppDependencies?
     private let calendar = Calendar.current
     private var isRefreshing = false  // Debounce flag
+    private var periodicRefreshTask: Task<Void, Never>?  // Periodic refresh timer
 
     // MARK: - Initialization
 
@@ -161,6 +162,43 @@ final class SalespersonDashboardViewModel: ObservableObject {
 
     func dismissTask(_ task: PriorityTask) {
         priorityTasks.removeAll { $0.id == task.id }
+    }
+
+    // MARK: - Auto-Refresh Support
+
+    /// Check if data is stale beyond the threshold (in seconds)
+    func isDataStale(threshold: TimeInterval) -> Bool {
+        guard let lastUpdated else { return true }
+        return Date().timeIntervalSince(lastUpdated) > threshold
+    }
+
+    /// Start periodic background refresh (5 minutes interval)
+    func startPeriodicRefresh() {
+        // Cancel any existing task first
+        periodicRefreshTask?.cancel()
+
+        periodicRefreshTask = Task { [weak self] in
+            while !Task.isCancelled {
+                // Wait 5 minutes (300 seconds)
+                try? await Task.sleep(nanoseconds: 300_000_000_000)
+
+                // Check if cancelled during sleep
+                guard !Task.isCancelled else { break }
+
+                // Only refresh if data is stale (>5 min old)
+                if await self?.isDataStale(threshold: 300) == true {
+                    print("🔄 [ViewModel] Periodic refresh triggered (5 min)")
+                    await self?.refreshAsync()
+                }
+            }
+        }
+    }
+
+    /// Stop periodic refresh timer
+    func stopPeriodicRefresh() {
+        periodicRefreshTask?.cancel()
+        periodicRefreshTask = nil
+        print("⏹️ [ViewModel] Periodic refresh stopped")
     }
 
     // MARK: - Loading

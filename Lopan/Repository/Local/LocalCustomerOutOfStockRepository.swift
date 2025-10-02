@@ -11,9 +11,12 @@ import SwiftData
 @MainActor
 final class LocalCustomerOutOfStockRepository: CustomerOutOfStockRepository {
     private let modelContext: ModelContext
+    private nonisolated let backgroundContext: ModelContext
 
     init(modelContext: ModelContext) {
         self.modelContext = modelContext
+        // Create background context from same container for non-blocking queries
+        self.backgroundContext = ModelContext(modelContext.container)
     }
 
     func fetchOutOfStockRecords() async throws -> [CustomerOutOfStock] {
@@ -48,6 +51,8 @@ final class LocalCustomerOutOfStockRepository: CustomerOutOfStockRepository {
     func addOutOfStockRecord(_ record: CustomerOutOfStock) async throws {
         modelContext.insert(record)
         try modelContext.save()
+        // Notify observers of new record
+        NotificationCenter.default.post(name: .outOfStockAdded, object: record)
     }
 
     func addOutOfStockRecords(_ records: [CustomerOutOfStock]) async throws {
@@ -57,15 +62,21 @@ final class LocalCustomerOutOfStockRepository: CustomerOutOfStockRepository {
         }
         // Save once at the end (MUCH faster!)
         try modelContext.save()
+        // Notify observers of new records (single notification for batch)
+        NotificationCenter.default.post(name: .outOfStockAdded, object: nil)
     }
     
     func updateOutOfStockRecord(_ record: CustomerOutOfStock) async throws {
         try modelContext.save()
+        // Notify observers of updated record
+        NotificationCenter.default.post(name: .outOfStockUpdated, object: record)
     }
     
     func deleteOutOfStockRecord(_ record: CustomerOutOfStock) async throws {
         modelContext.delete(record)
         try modelContext.save()
+        // Notify observers of deletion
+        NotificationCenter.default.post(name: .outOfStockUpdated, object: record)
     }
     
     func deleteOutOfStockRecords(_ records: [CustomerOutOfStock]) async throws {
@@ -73,6 +84,8 @@ final class LocalCustomerOutOfStockRepository: CustomerOutOfStockRepository {
             modelContext.delete(record)
         }
         try modelContext.save()
+        // Notify observers of batch deletion (single notification)
+        NotificationCenter.default.post(name: .outOfStockUpdated, object: nil)
     }
     
     // MARK: - Paginated Methods
@@ -405,7 +418,7 @@ final class LocalCustomerOutOfStockRepository: CustomerOutOfStockRepository {
         }
     }
 
-    private func buildOptimizedPredicate(from criteria: OutOfStockFilterCriteria) -> Predicate<CustomerOutOfStock>? {
+    private nonisolated func buildOptimizedPredicate(from criteria: OutOfStockFilterCriteria) -> Predicate<CustomerOutOfStock>? {
         var predicates: [Predicate<CustomerOutOfStock>] = []
 
         // Date range filtering (most selective, apply first)
@@ -664,7 +677,7 @@ final class LocalCustomerOutOfStockRepository: CustomerOutOfStockRepository {
         return item.extractCustomerNameFromNotes()
     }
     
-    private func matchesTextSearch(record: CustomerOutOfStock, searchText: String) -> Bool {
+    private nonisolated func matchesTextSearch(record: CustomerOutOfStock, searchText: String) -> Bool {
         let searchTextLowercase = searchText.lowercased()
         
         // Check customer name
@@ -1310,7 +1323,7 @@ final class LocalCustomerOutOfStockRepository: CustomerOutOfStockRepository {
         // Build database predicate for initial filtering
         let predicate = buildOptimizedPredicate(from: criteria)
 
-        // Fetch all matching records (will apply additional filters in memory)
+        // OPTIMIZED: Fetch only the requested page with database-level pagination
         var descriptor: FetchDescriptor<CustomerOutOfStock>
         let sortOrder = criteria.sortOrder.isDescending ? SortOrder.reverse : SortOrder.forward
 
@@ -1325,9 +1338,110 @@ final class LocalCustomerOutOfStockRepository: CustomerOutOfStockRepository {
             )
         }
 
-        let allRecords = try modelContext.fetch(descriptor)
+        // Apply database-level pagination for immediate response
+        descriptor.fetchLimit = pageSize
+        descriptor.fetchOffset = page * pageSize
+
+        let paginatedRecords = try modelContext.fetch(descriptor)
 
         // Apply in-memory filters (status, return status, customer, product, search)
+        var filteredRecords = paginatedRecords
+
+        // Status filtering
+        if let status = criteria.status {
+            filteredRecords = filteredRecords.filter { $0.status == status }
+        }
+
+        // Customer filtering
+        if let customer = criteria.customer {
+            filteredRecords = filteredRecords.filter { $0.customer?.id == customer.id }
+        }
+
+        // Product filtering
+        if let product = criteria.product {
+            filteredRecords = filteredRecords.filter { $0.product?.id == product.id }
+        }
+
+        // Text search filtering
+        if !criteria.searchText.isEmpty {
+            filteredRecords = filteredRecords.filter { record in
+                matchesTextSearch(record: record, searchText: criteria.searchText)
+            }
+        }
+
+        // PLACEHOLDER STATISTICS (will be loaded in background)
+        // Return -1 to indicate "loading" state
+        let needsDeliveryCount = 0
+        let partialDeliveryCount = 0
+        let completedDeliveryCount = 0
+        let totalCount = -1  // -1 indicates statistics are loading
+
+        // Assume more data exists (will be confirmed by background statistics)
+        let hasMoreData = filteredRecords.count >= pageSize
+
+        let elapsed = CFAbsoluteTimeGetCurrent() - startTime
+        print("🚀 [Repository] ✅ INSTANT Delivery page in \(String(format: "%.3f", elapsed))s")
+        print("   Page \(page): \(filteredRecords.count) items loaded")
+        print("   Statistics will load in background...")
+
+        return DeliveryManagementMetrics(
+            items: filteredRecords,
+            totalCount: totalCount,
+            hasMoreData: hasMoreData,
+            page: page,
+            pageSize: pageSize,
+            needsDeliveryCount: needsDeliveryCount,
+            partialDeliveryCount: partialDeliveryCount,
+            completedDeliveryCount: completedDeliveryCount
+        )
+    }
+
+    // MARK: - Background Statistics Loading
+
+    /// Background statistics calculation for delivery management (non-blocking)
+    /// Fetches all records and calculates complete statistics without returning items
+    /// Uses MainActor with Task.yield() to prevent UI blocking while ensuring thread safety
+    func fetchDeliveryStatistics(
+        criteria: OutOfStockFilterCriteria
+    ) async throws -> DeliveryStatistics {
+        let startTime = CFAbsoluteTimeGetCurrent()
+        print("📊 [Repository] Loading delivery statistics with MainActor safety...")
+
+        // Check for cancellation before starting
+        try Task.checkCancellation()
+
+        // Build database predicate
+        let predicate = buildOptimizedPredicate(from: criteria)
+
+        // Fetch ALL matching records for accurate statistics
+        var descriptor: FetchDescriptor<CustomerOutOfStock>
+        let sortOrder = criteria.sortOrder.isDescending ? SortOrder.reverse : SortOrder.forward
+
+        if let predicate = predicate {
+            descriptor = FetchDescriptor<CustomerOutOfStock>(
+                predicate: predicate,
+                sortBy: [SortDescriptor(\.requestDate, order: sortOrder)]
+            )
+        } else {
+            descriptor = FetchDescriptor<CustomerOutOfStock>(
+                sortBy: [SortDescriptor(\.requestDate, order: sortOrder)]
+            )
+        }
+
+        // Yield to allow UI updates and cancellation
+        await Task.yield()
+        try Task.checkCancellation()
+
+        // Use main context for thread-safe SwiftData access
+        let allRecords = try modelContext.fetch(descriptor)
+
+        print("📊 [Repository] Fetched \(allRecords.count) records for statistics")
+
+        // Yield after fetch operation
+        await Task.yield()
+        try Task.checkCancellation()
+
+        // Apply in-memory filters
         var filteredRecords = allRecords
 
         // Status filtering
@@ -1352,13 +1466,16 @@ final class LocalCustomerOutOfStockRepository: CustomerOutOfStockRepository {
             }
         }
 
-        // SINGLE-PASS STATISTICS CALCULATION
-        // Logic matches ViewModel to ensure consistency
+        // Yield after filtering
+        await Task.yield()
+        try Task.checkCancellation()
+
+        // Calculate complete statistics
         var needsDeliveryCount = 0
         var partialDeliveryCount = 0
         var completedDeliveryCount = 0
 
-        for record in filteredRecords {
+        for (index, record) in filteredRecords.enumerated() {
             // "待发货" (Waiting Delivery): Not completed/refunded AND no delivery recorded
             if record.status != .completed && record.status != .refunded && record.deliveryQuantity == 0 {
                 needsDeliveryCount += 1
@@ -1371,34 +1488,22 @@ final class LocalCustomerOutOfStockRepository: CustomerOutOfStockRepository {
             else if record.status == .completed || record.status == .refunded || record.deliveryQuantity >= record.quantity {
                 completedDeliveryCount += 1
             }
+
+            // Yield periodically during calculation to prevent blocking
+            if index % 100 == 0 {
+                await Task.yield()
+                try Task.checkCancellation()
+            }
         }
 
-        // Apply pagination
         let totalCount = filteredRecords.count
-        let startIndex = page * pageSize
-        let endIndex = min(startIndex + pageSize, totalCount)
-
-        let paginatedItems: [CustomerOutOfStock]
-        if startIndex >= totalCount {
-            paginatedItems = []
-        } else {
-            paginatedItems = Array(filteredRecords[startIndex..<endIndex])
-        }
-
-        let hasMoreData = endIndex < totalCount
 
         let elapsed = CFAbsoluteTimeGetCurrent() - startTime
-        print("🚀 [Repository] ✅ Delivery metrics + items in \(String(format: "%.3f", elapsed))s")
-        print("   Total records: \(totalCount)")
-        print("   Needs Delivery: \(needsDeliveryCount), Partial: \(partialDeliveryCount), Completed: \(completedDeliveryCount)")
-        print("   Page \(page): \(paginatedItems.count) items, hasMore: \(hasMoreData)")
+        print("📊 [Repository] ✅ Statistics loaded safely in \(String(format: "%.3f", elapsed))s")
+        print("   Total: \(totalCount), Needs Delivery: \(needsDeliveryCount), Partial: \(partialDeliveryCount), Completed: \(completedDeliveryCount)")
 
-        return DeliveryManagementMetrics(
-            items: paginatedItems,
+        return DeliveryStatistics(
             totalCount: totalCount,
-            hasMoreData: hasMoreData,
-            page: page,
-            pageSize: pageSize,
             needsDeliveryCount: needsDeliveryCount,
             partialDeliveryCount: partialDeliveryCount,
             completedDeliveryCount: completedDeliveryCount

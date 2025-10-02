@@ -11,6 +11,7 @@ struct SalespersonDashboardView: View {
     @ObservedObject var authService: AuthenticationService
     @ObservedObject var navigationService: WorkbenchNavigationService
     @Environment(\.appDependencies) private var appDependencies
+    @Environment(\.scenePhase) private var scenePhase
 
     @StateObject private var viewModel: SalespersonDashboardViewModel
     @StateObject private var toastManager = EnhancedToastManager()
@@ -60,6 +61,29 @@ struct SalespersonDashboardView: View {
                 // Configure once and load data
                 // configureIfNeeded already calls refresh internally
                 viewModel.configureIfNeeded(dependencies: appDependencies)
+                // Start periodic refresh timer
+                viewModel.startPeriodicRefresh()
+            }
+            .onDisappear {
+                // Stop periodic refresh to save resources
+                viewModel.stopPeriodicRefresh()
+            }
+            .onReceive(NotificationCenter.default.publisher(for: .outOfStockAdded)) { _ in
+                print("🔔 [View] Received .outOfStockAdded notification")
+                viewModel.refresh()
+            }
+            .onReceive(NotificationCenter.default.publisher(for: .outOfStockUpdated)) { _ in
+                print("🔔 [View] Received .outOfStockUpdated notification")
+                viewModel.refresh()
+            }
+            .onChange(of: scenePhase) { oldPhase, newPhase in
+                if newPhase == .active && oldPhase != .active {
+                    // Only refresh if data is stale (>5 min old)
+                    if viewModel.isDataStale(threshold: 300) {
+                        print("🔄 [View] Scene became active, refreshing stale data")
+                        viewModel.refresh()
+                    }
+                }
             }
             .overlay(alignment: .top) {
                 if viewModel.isLoading {
@@ -91,10 +115,24 @@ struct SalespersonDashboardView: View {
 
     private var todaysRemindersSection: some View {
         VStack(alignment: .leading, spacing: LopanSpacing.sm) {
-            Text("Today's Reminders")
-                .lopanTitleMedium()
-                .padding(.horizontal, LopanSpacing.xs)
-                .padding(.bottom, LopanSpacing.xxs)
+            HStack(alignment: .center) {
+                Text("Today's Reminders")
+                    .lopanTitleMedium()
+
+                Spacer()
+
+                if let lastUpdate = viewModel.lastUpdated {
+                    HStack(spacing: 4) {
+                        Image(systemName: "clock")
+                            .font(.caption2)
+                        Text(formatLastUpdatedTime(lastUpdate))
+                            .font(.caption)
+                    }
+                    .foregroundColor(Color(UIColor.secondaryLabel))
+                }
+            }
+            .padding(.horizontal, LopanSpacing.xs)
+            .padding(.bottom, LopanSpacing.xxs)
 
             VStack(spacing: 0) {
                 ForEach(Array(viewModel.reminders.enumerated()), id: \.element.id) { index, reminder in
@@ -359,6 +397,12 @@ struct SalespersonDashboardView: View {
             formatter.locale = Locale.current
             return formatter.string(from: date)
         }
+    }
+
+    private func formatLastUpdatedTime(_ date: Date) -> String {
+        let formatter = RelativeDateTimeFormatter()
+        formatter.unitsStyle = .short
+        return formatter.localizedString(for: date, relativeTo: Date())
     }
 
     @ViewBuilder

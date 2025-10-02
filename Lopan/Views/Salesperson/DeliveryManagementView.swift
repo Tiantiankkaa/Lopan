@@ -567,28 +567,30 @@ struct DeliveryManagementView: View {
     }
     
     private func processReturnBatch(_ processedItems: [(CustomerOutOfStock, Int, String?)]) {
-        for (item, quantity, notes) in processedItems {
-            _ = item.processDelivery(quantity: quantity, notes: notes)
-            
-            // Log each return processing
-            Task {
-                await appDependencies.serviceFactory.auditingService.logReturnProcessing(
-                    item: item,
-                    deliveryQuantity: quantity,
-                    deliveryNotes: notes,
-                    operatorUserId: "demo_user", // TODO: Get from authentication service
-                    operatorUserName: "演示用户" // TODO: Get from authentication service
-                )
+        Task {
+            do {
+                let service = appDependencies.serviceFactory.customerOutOfStockService
+
+                // Process each delivery through service layer (includes audit logging and notifications)
+                for (item, quantity, notes) in processedItems {
+                    let request = DeliveryProcessingRequest(
+                        item: item,
+                        deliveryQuantity: quantity,
+                        deliveryNotes: notes
+                    )
+                    try await service.processDelivery(request)
+                }
+
+                // Update UI on success
+                await MainActor.run {
+                    selectedItems.removeAll()
+                    isEditing = false
+                    refreshData(force: true)
+                }
+            } catch {
+                print("Error processing return batch: \(error)")
+                // TODO: Show error alert to user
             }
-        }
-        
-        do {
-            try modelContext.save()
-            selectedItems.removeAll()
-            isEditing = false
-            refreshData(force: true)
-        } catch {
-            print("Error processing return batch: \(error)")
         }
     }
     

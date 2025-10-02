@@ -391,11 +391,21 @@ final class CloudCustomerOutOfStockRepository: CustomerOutOfStockRepository, Sen
         guard response.success else {
             throw RepositoryError.saveFailed(response.error ?? "Create operation failed")
         }
+
+        // Notify observers of new record
+        await MainActor.run {
+            NotificationCenter.default.post(name: .outOfStockAdded, object: record)
+        }
     }
 
     func addOutOfStockRecords(_ records: [CustomerOutOfStock]) async throws {
         // Use existing batch create method for optimal performance
         _ = try await batchCreateRecords(records)
+
+        // Notify observers of new records (single notification for batch)
+        await MainActor.run {
+            NotificationCenter.default.post(name: .outOfStockAdded, object: nil)
+        }
     }
     
     func updateOutOfStockRecord(_ record: CustomerOutOfStock) async throws {
@@ -406,37 +416,52 @@ final class CloudCustomerOutOfStockRepository: CustomerOutOfStockRepository, Sen
             body: dto,
             responseType: CustomerOutOfStockDTO.self
         )
-        
+
         guard response.success else {
             throw RepositoryError.saveFailed(response.error ?? "Update operation failed")
+        }
+
+        // Notify observers of updated record
+        await MainActor.run {
+            NotificationCenter.default.post(name: .outOfStockUpdated, object: record)
         }
     }
     
     func deleteOutOfStockRecord(_ record: CustomerOutOfStock) async throws {
         let endpoint = "\(baseEndpoint)/\(record.id)"
         let response = try await cloudProvider.delete(endpoint: endpoint)
-        
+
         guard response.success else {
             throw RepositoryError.deleteFailed(response.error ?? "Delete operation failed")
+        }
+
+        // Notify observers of deletion
+        await MainActor.run {
+            NotificationCenter.default.post(name: .outOfStockUpdated, object: record)
         }
     }
     
     func deleteOutOfStockRecords(_ records: [CustomerOutOfStock]) async throws {
         let ids = records.map { $0.id }
-        
+
         struct DeleteBatchRequest: Codable {
             let ids: [String]
         }
-        
+
         let endpoint = "\(baseEndpoint)/batch/delete"
         let response = try await cloudProvider.post(
             endpoint: endpoint,
             body: DeleteBatchRequest(ids: ids),
             responseType: EmptyResponse.self
         )
-        
+
         guard response.success else {
             throw RepositoryError.deleteFailed(response.error ?? "Batch delete operation failed")
+        }
+
+        // Notify observers of batch deletion (single notification)
+        await MainActor.run {
+            NotificationCenter.default.post(name: .outOfStockUpdated, object: nil)
         }
     }
     
@@ -643,6 +668,27 @@ extension CloudCustomerOutOfStockRepository {
             }
             throw error
         }
+    }
+
+    // MARK: - Background Statistics
+
+    func fetchDeliveryStatistics(
+        criteria: OutOfStockFilterCriteria
+    ) async throws -> DeliveryStatistics {
+        // For cloud implementation, fall back to local repository
+        // Cloud API would need a separate endpoint for statistics only
+        if let localRepo = localFallback {
+            print("☁️ CloudRepository: Using local fallback for delivery statistics")
+            return try await localRepo.fetchDeliveryStatistics(criteria: criteria)
+        }
+
+        // If no local fallback, return empty statistics
+        return DeliveryStatistics(
+            totalCount: 0,
+            needsDeliveryCount: 0,
+            partialDeliveryCount: 0,
+            completedDeliveryCount: 0
+        )
     }
 }
 
