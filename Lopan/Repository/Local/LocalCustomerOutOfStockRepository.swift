@@ -110,9 +110,18 @@ final class LocalCustomerOutOfStockRepository: CustomerOutOfStockRepository {
                              userInfo: [NSLocalizedDescriptionKey: "Page size must be between 1 and 1000"])
             }
             
-            // Use optimized database pagination for all queries
-            print("📊 [Repository] Using optimized database pagination with search predicates")
-            return try await fetchWithOptimizedDatabasePagination(criteria: criteria, page: page, pageSize: pageSize)
+            // Route to appropriate pagination strategy based on filter criteria
+            // SwiftData limitation: enum predicates not supported, so status/customer/product
+            // filters require memory-based filtering with pagination applied after filtering
+            if criteria.status != nil || criteria.customer != nil || criteria.product != nil {
+                print("📊 [Repository] Using memory-based filtering (status/customer/product filter detected)")
+                print("   Status: \(criteria.status?.displayName ?? "nil"), Customer: \(criteria.customer?.name ?? "nil"), Product: \(criteria.product?.name ?? "nil")")
+                return try await fetchWithMemoryFiltering(criteria: criteria, page: page, pageSize: pageSize)
+            } else {
+                // Use optimized database pagination for date-only or search queries
+                print("📊 [Repository] Using optimized database pagination (date-only/search filter)")
+                return try await fetchWithOptimizedDatabasePagination(criteria: criteria, page: page, pageSize: pageSize)
+            }
         } catch {
             print("❌ [Repository] fetchOutOfStockRecords failed: \(error)")
             
@@ -332,10 +341,33 @@ final class LocalCustomerOutOfStockRepository: CustomerOutOfStockRepository {
         let offset = page * pageSize
         let startIndex = offset
         let endIndex = min(startIndex + pageSize, filteredItems.count)
-        
+
         let paginatedItems: [CustomerOutOfStock]
         if startIndex < filteredItems.count {
-            paginatedItems = Array(filteredItems[startIndex..<endIndex])
+            let itemsSlice = Array(filteredItems[startIndex..<endIndex])
+
+            // 🔧 FIX: Force-load all properties while in ModelContext
+            // This prevents SwiftData faulting issues when items cross actor boundaries
+            for item in itemsSlice {
+                // Force access to trigger fault resolution
+                _ = item.id
+                _ = item.quantity
+                _ = item.deliveryQuantity  // ← Critical for partial delivery display
+                _ = item.deliveryDate
+                _ = item.deliveryNotes
+                _ = item.status
+                _ = item.requestDate
+                _ = item.actualCompletionDate
+                _ = item.notes
+                _ = item.customer?.id
+                _ = item.customer?.name
+                _ = item.product?.id
+                _ = item.product?.name
+
+                print("🔧 [Repository] Force-loaded item: qty=\(item.quantity), delivered=\(item.deliveryQuantity), hasPartial=\(item.hasPartialDelivery)")
+            }
+
+            paginatedItems = itemsSlice
         } else {
             paginatedItems = []
         }

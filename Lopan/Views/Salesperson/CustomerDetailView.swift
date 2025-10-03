@@ -7,11 +7,14 @@
 
 import SwiftUI
 import SwiftData
+import os
 
 struct CustomerDetailView: View {
     @Environment(\.appDependencies) private var appDependencies
     @Environment(\.dismiss) private var dismiss
     let customer: Customer
+
+    private let logger = Logger(subsystem: "com.lopan.app", category: "CustomerDetail")
 
     private var customerRepository: CustomerRepository {
         appDependencies.serviceFactory.repositoryFactory.customerRepository
@@ -240,7 +243,7 @@ struct CustomerDetailView: View {
     // MARK: - Out of Stock Card
     private var outOfStockOverviewCard: some View {
         VStack(alignment: .leading, spacing: LopanSpacing.md) {
-            Text("Out of Stock (Last 7 Days)")
+            Text("Out of Stock - All Status (Last 7 Days)")
                 .font(LopanTypography.titleMedium)
                 .foregroundColor(LopanColors.textSecondary)
                 .lopanPaddingHorizontal(LopanSpacing.xs)
@@ -380,26 +383,142 @@ struct CustomerDetailView: View {
     }
 
     private func loadRecentOutOfStockRecords() {
-        Task {
-            isLoadingOutOfStock = true
-            
+        // Log entry to customer detail page
+        logger.safeInfo("📋 Loading customer detail page (pending only)", [
+            "customer_name": customer.name,
+            "customer_id": customer.id
+        ])
+
+        Task(priority: .userInitiated) {
+            await MainActor.run {
+                isLoadingOutOfStock = true
+            }
+
+            // Log query parameters
+            await MainActor.run {
+                logger.safeInfo("🔍 Querying pending out-of-stock records", [
+                    "customer_name": customer.name,
+                    "status_filter": "pending",
+                    "date_from": sevenDaysAgo.description,
+                    "date_to": Date().description,
+                    "page_size": "3"
+                ])
+            }
+
             do {
-                // Fetch all records for this customer
-                let allRecords = try await customerOutOfStockRepository.fetchOutOfStockRecords(for: customer)
-                
-                // Filter to last 7 days only and sort by most recent first
-                let filteredRecords = allRecords
-                    .filter { $0.requestDate >= sevenDaysAgo }
-                    .sorted { $0.requestDate > $1.requestDate }
-                
+                // First, fetch ALL records to see complete status picture
+                let allStatusesCriteria = OutOfStockFilterCriteria(
+                    customer: customer,
+                    status: nil,  // No status filter - get ALL
+                    dateRange: (sevenDaysAgo, Date()),
+                    page: 0,
+                    pageSize: 50,  // Increase to get more records for analysis
+                    sortOrder: .newestFirst
+                )
+
+                let allRecordsResult = try await customerOutOfStockRepository
+                    .fetchOutOfStockRecords(criteria: allStatusesCriteria, page: 0, pageSize: 50)
+
+                // Log ALL records grouped by status
                 await MainActor.run {
-                    recentOutOfStockItems = filteredRecords
+                    logger.info("📊 === COMPLETE STATUS BREAKDOWN (Last 7 Days) ===")
+                    logger.info("Customer: \(customer.name), Total Records: \(allRecordsResult.items.count)")
+
+                    // Group by status
+                    let pendingRecords = allRecordsResult.items.filter { $0.status == .pending }
+                    let completedRecords = allRecordsResult.items.filter { $0.status == .completed }
+                    let refundedRecords = allRecordsResult.items.filter { $0.status == .refunded }
+
+                    logger.info("📦 Pending: \(pendingRecords.count)")
+                    logger.info("✅ Completed: \(completedRecords.count)")
+                    logger.info("🔙 Refunded: \(refundedRecords.count)")
+
+                    // Log each status group
+                    if !pendingRecords.isEmpty {
+                        logger.info("\n📦 PENDING RECORDS:")
+                        for (index, item) in pendingRecords.prefix(10).enumerated() {
+                            logger.safeInfo("  [\(index + 1)] Pending", [
+                                "product_name": item.product?.name ?? "Unknown",
+                                "quantity": String(item.quantity),
+                                "deliveryQuantity": String(item.deliveryQuantity),
+                                "hasPartialDelivery": String(item.hasPartialDelivery),
+                                "request_date": item.requestDate.description
+                            ])
+                        }
+                    }
+
+                    if !completedRecords.isEmpty {
+                        logger.info("\n✅ COMPLETED RECORDS:")
+                        for (index, item) in completedRecords.prefix(10).enumerated() {
+                            logger.safeInfo("  [\(index + 1)] Completed", [
+                                "product_name": item.product?.name ?? "Unknown",
+                                "quantity": String(item.quantity),
+                                "deliveryQuantity": String(item.deliveryQuantity),
+                                "completion_date": item.actualCompletionDate?.description ?? "N/A"
+                            ])
+                        }
+                    }
+
+                    if !refundedRecords.isEmpty {
+                        logger.info("\n🔙 REFUNDED RECORDS:")
+                        for (index, item) in refundedRecords.prefix(10).enumerated() {
+                            logger.safeInfo("  [\(index + 1)] Refunded", [
+                                "product_name": item.product?.name ?? "Unknown",
+                                "quantity": String(item.quantity),
+                                "refund_date": item.refundDate?.description ?? "N/A"
+                            ])
+                        }
+                    }
+                }
+
+                // Fetch ALL statuses for UI display
+                let displayCriteria = OutOfStockFilterCriteria(
+                    customer: customer,
+                    status: nil,  // Show all statuses
+                    dateRange: (sevenDaysAgo, Date()),
+                    page: 0,
+                    pageSize: 10,  // Increase to show more records
+                    sortOrder: .newestFirst
+                )
+
+                let paginationResult = try await customerOutOfStockRepository
+                    .fetchOutOfStockRecords(criteria: displayCriteria, page: 0, pageSize: 10)
+
+                // Log successful load with summary
+                await MainActor.run {
+                    logger.safeInfo("✅ Out-of-stock records (all statuses) loaded successfully", [
+                        "customer_name": customer.name,
+                        "record_count": String(paginationResult.items.count),
+                        "total_count": String(paginationResult.totalCount),
+                        "has_more": String(paginationResult.hasMoreData)
+                    ])
+
+                    // Log individual records (with privacy redaction)
+                    if paginationResult.items.isEmpty {
+                        logger.info("📭 No out-of-stock records found for last 7 days")
+                    } else {
+                        logger.info("📦 Out-of-stock records - all statuses (last 7 days):")
+                        for (index, item) in paginationResult.items.enumerated() {
+                            logger.safeInfo("  [\(index + 1)] Record details", [
+                                "product_name": item.product?.name ?? "Unknown",
+                                "quantity": String(item.quantity),
+                                "status": item.status.rawValue,
+                                "request_date": item.requestDate.description,
+                                "delivery_quantity": String(item.deliveryQuantity)
+                            ])
+                        }
+                    }
+
+                    recentOutOfStockItems = paginationResult.items
                     isLoadingOutOfStock = false
                 }
             } catch {
                 await MainActor.run {
                     isLoadingOutOfStock = false
-                    print("Failed to load out-of-stock records: \(error)")
+                    logger.safeError("❌ Failed to load out-of-stock records", error: error, [
+                        "customer_name": customer.name,
+                        "customer_id": customer.id
+                    ])
                 }
             }
         }
@@ -487,41 +606,140 @@ struct EditableContactRow: View {
     }
 }
 
-/// Product out of stock row with product image
+/// Product out of stock row with product image, quantity, and date
 struct ProductOutOfStockRow: View {
     let item: CustomerOutOfStock
+
+    private var formattedDate: String {
+        let formatter = DateFormatter()
+        formatter.dateFormat = "yyyy/MM/dd"
+        return formatter.string(from: item.requestDate)
+    }
+
+    private var accessibilityDescription: String {
+        let productName = item.product?.name ?? "未知产品"
+        let dateText = "日期 \(formattedDate)"
+
+        let statusText: String
+        switch item.status {
+        case .pending:
+            if item.deliveryQuantity == 0 {
+                statusText = "待处理 \(item.quantity)"
+            } else {
+                let remaining = item.quantity - item.deliveryQuantity
+                statusText = "已还货 \(item.deliveryQuantity), 待还货 \(remaining)"
+            }
+        case .completed:
+            statusText = "已还货 \(item.deliveryQuantity)"
+        case .refunded:
+            statusText = "已退货 \(item.quantity)"
+        }
+
+        return "\(productName), \(statusText), \(dateText)"
+    }
+
+    private var statusQuantityView: some View {
+        Group {
+            switch item.status {
+            case .pending:
+                if item.deliveryQuantity == 0 {
+                    // Pure pending: "Pending: 20"
+                    HStack(spacing: 4) {
+                        Text("Pending:")
+                        Text("\(item.quantity)")
+                            .fontWeight(.bold)
+                    }
+                    .font(LopanTypography.caption)
+                    .foregroundColor(LopanColors.textSecondary)
+                } else {
+                    // Partial delivery: "Delivered: 100 | Remain: 33"
+                    HStack(spacing: 4) {
+                        Text("Delivered:")
+                        Text("\(item.deliveryQuantity)")
+                            .fontWeight(.bold)
+
+                        Text("|")
+                            .foregroundColor(LopanColors.textSecondary.opacity(0.5))
+
+                        Text("Remain:")
+                        Text("\(item.quantity - item.deliveryQuantity)")
+                            .fontWeight(.bold)
+                    }
+                    .font(LopanTypography.caption)
+                    .foregroundColor(LopanColors.textSecondary)
+                }
+
+            case .completed:
+                // Completed: "Completed: 12"
+                HStack(spacing: 4) {
+                    Text("Completed:")
+                    Text("\(item.deliveryQuantity)")
+                        .fontWeight(.bold)
+                }
+                .font(LopanTypography.caption)
+                .foregroundColor(LopanColors.textSecondary)
+
+            case .refunded:
+                // Refunded: "Refunded: 20"
+                HStack(spacing: 4) {
+                    Text("Refunded:")
+                    Text("\(item.quantity)")
+                        .fontWeight(.bold)
+                }
+                .font(LopanTypography.caption)
+                .foregroundColor(LopanColors.textSecondary)
+            }
+        }
+    }
 
     var body: some View {
         HStack(spacing: LopanSpacing.md) {
             // Product image
-            Group {
-                if let product = item.product,
-                   let imageData = product.imageData,
-                   let uiImage = UIImage(data: imageData) {
-                    Image(uiImage: uiImage)
-                        .resizable()
-                        .scaledToFill()
-                } else {
-                    RoundedRectangle(cornerRadius: LopanSpacing.xs)
-                        .fill(LopanColors.primary.opacity(0.1))
-                        .overlay {
-                            Image(systemName: "cube.box")
-                                .foregroundColor(LopanColors.primary)
-                        }
-                }
-            }
-            .frame(width: 40, height: 40)
-            .clipShape(RoundedRectangle(cornerRadius: LopanSpacing.xs))
+            productImage
 
-            // Product name
-            Text(item.product?.name ?? "未知产品")
-                .font(LopanTypography.bodyMedium)
-                .foregroundColor(LopanColors.textPrimary)
-                .lineLimit(1)
+            // Product info with quantity and date
+            VStack(alignment: .leading, spacing: LopanSpacing.xxs) {
+                // Line 1: Product name only
+                Text(item.product?.name ?? "未知产品")
+                    .font(LopanTypography.bodyMedium)
+                    .foregroundColor(LopanColors.textPrimary)
+                    .lineLimit(1)
+
+                // Line 2: Status-based quantity display
+                statusQuantityView
+            }
 
             Spacer()
+
+            // Date (right aligned)
+            Text(formattedDate)
+                .font(LopanTypography.caption)
+                .foregroundColor(LopanColors.textSecondary)
         }
         .lopanPadding(LopanSpacing.sm)
+        .accessibilityElement(children: .combine)
+        .accessibilityLabel(accessibilityDescription)
+    }
+
+    private var productImage: some View {
+        Group {
+            if let product = item.product,
+               let imageData = product.imageData,
+               let uiImage = UIImage(data: imageData) {
+                Image(uiImage: uiImage)
+                    .resizable()
+                    .scaledToFill()
+            } else {
+                RoundedRectangle(cornerRadius: LopanSpacing.xs)
+                    .fill(LopanColors.primary.opacity(0.1))
+                    .overlay {
+                        Image(systemName: "cube.box")
+                            .foregroundColor(LopanColors.primary)
+                    }
+            }
+        }
+        .frame(width: 40, height: 40)
+        .clipShape(RoundedRectangle(cornerRadius: LopanSpacing.xs))
     }
 }
 
