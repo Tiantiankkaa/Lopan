@@ -34,8 +34,8 @@ struct CustomerCardView: View {
 
     var body: some View {
         HStack(spacing: LopanSpacing.md) {
-            // Avatar
-            CustomerAvatarView(customerName: customer.name, size: 48)
+            // Avatar - use customer object for photo/color support
+            CustomerAvatarView(customer: customer, size: 48)
 
             // Customer Info
             VStack(alignment: .leading, spacing: LopanSpacing.xxs) {

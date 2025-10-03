@@ -15,6 +15,9 @@ public final class Customer {
     var name: String
     var address: String
     var phone: String
+    var whatsappNumber: String = ""    // WhatsApp contact number
+    var avatarImageData: Data? = nil   // Customer profile photo
+    var avatarBackgroundColor: String? = nil  // Hex color for avatar background (e.g., "#007AFF")
     var createdAt: Date
     var updatedAt: Date
     var isFavorite: Bool = false
@@ -25,12 +28,15 @@ public final class Customer {
     var pinyinName: String = ""        // Full pinyin: "zhang san"
     var pinyinInitial: String = ""     // First letter: "Z"
 
-    init(name: String, address: String, phone: String) {
+    init(name: String, address: String, phone: String, whatsappNumber: String = "", avatarImageData: Data? = nil, avatarBackgroundColor: String? = nil) {
         self.id = UUID().uuidString
         self.customerNumber = CustomerIDService.shared.generateNextCustomerID()
         self.name = name
         self.address = address
         self.phone = phone
+        self.whatsappNumber = whatsappNumber
+        self.avatarImageData = avatarImageData
+        self.avatarBackgroundColor = avatarBackgroundColor
         self.createdAt = Date()
         self.updatedAt = Date()
         self.isFavorite = false

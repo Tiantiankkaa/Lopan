@@ -20,7 +20,9 @@
 
 ## Platform & Build
 
-- iOS 17+; latest stable Xcode; Swift 5.9+
+- **iOS 26+ (Liquid Glass design)**; Xcode 17+; Swift 6.0+
+- Deployment Target: iOS 17.0 minimum, iOS 26.0 target
+- Target Device: iPhone 17 Pro Max running iOS 26
 - **Swift Package Manager** for dependencies
 - Test coverage target ≥ 70% overall, ≥ 85% for core services
 
@@ -58,6 +60,46 @@ extension EnvironmentValues {
 - Use `@MainActor` for UI state management
 - Support cancellation with `Task.checkCancellation()`
 - Prefer structured concurrency (`withTaskGroup`) over ad-hoc tasks
+
+---
+
+## iOS 26 & Liquid Glass Design
+
+### Liquid Glass Material
+- **Translucent UI**: Dynamic material that reflects and refracts surroundings
+- **Real-time Rendering**: Specular highlights and lensing effects along edges
+- **Adaptive Appearance**: Automatically adjusts to light/dark environments
+- **Depth & Motion**: Creates visual continuity through morphing animations
+
+### Modal Presentation Guidelines
+- **Critical**: `confirmationDialog()` MUST attach to triggering view (e.g., button)
+- Liquid Glass animation flows from the source view
+- Bottom sheets float with rounded corners, don't touch screen edges
+- Use `.presentationDetents([.medium, .large])` for partial heights
+- Sheets transition to opaque when expanded to full height
+
+### SwiftUI Best Practices
+```swift
+// ✅ CORRECT - Attach to triggering button (iOS 26)
+Button("Cancel") {
+    showDialog = true
+}
+.confirmationDialog("Title", isPresented: $showDialog) {
+    // actions
+}
+
+// ❌ WRONG - Attached to parent container
+VStack {
+    Button("Cancel") { showDialog = true }
+}
+.confirmationDialog(...) // Dialog won't animate correctly
+```
+
+### Version Adaptability
+- Minimum deployment: iOS 17.0
+- Target platform: iOS 26.0
+- Use `@available(iOS 26, *)` for Liquid Glass-specific features
+- Maintain backward compatibility for modal presentations
 
 ---
 
@@ -228,5 +270,6 @@ Lopan/
 
 ---
 
-*iOS 17+ SwiftUI Architecture Guide*
-*Last Updated: 2025-09-19*
+*iOS 26 Liquid Glass SwiftUI Architecture Guide*
+*Target: iPhone 17 Pro Max • iOS 26.0*
+*Last Updated: 2025-10-03*

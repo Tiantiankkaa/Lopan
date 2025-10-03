@@ -8,14 +8,45 @@
 import SwiftUI
 
 /// A color-coded avatar component for customers
-/// Generates consistent gradient colors based on customer name
+/// Shows custom photo, custom color, or generates consistent colors based on customer name
 struct CustomerAvatarView: View {
+    let customer: Customer?  // Optional customer for full avatar support
     let customerName: String
     let size: CGFloat
+    let avatarImageData: Data?
+    let avatarBackgroundColor: String?
+    let overrideColor: Color?  // Optional preview color for edit mode
 
-    // Generate consistent color from name
+    // Convenience initializer for name-only (backward compatibility)
+    init(customerName: String, size: CGFloat) {
+        self.customer = nil
+        self.customerName = customerName
+        self.size = size
+        self.avatarImageData = nil
+        self.avatarBackgroundColor = nil
+        self.overrideColor = nil
+    }
+
+    // Full initializer with customer object
+    init(customer: Customer, size: CGFloat, overrideColor: Color? = nil) {
+        self.customer = customer
+        self.customerName = customer.name
+        self.size = size
+        self.avatarImageData = customer.avatarImageData
+        self.avatarBackgroundColor = customer.avatarBackgroundColor
+        self.overrideColor = overrideColor
+    }
+
+    // Generate consistent color from name (fallback)
     private var avatarColor: Color {
-        generateColorFromName(customerName)
+        // Priority: override color > custom color > generated color
+        if let override = overrideColor {
+            return override
+        }
+        if let colorHex = avatarBackgroundColor, let color = Color(hex: colorHex) {
+            return color
+        }
+        return generateColorFromName(customerName)
     }
 
     // Get first letter (or # for empty names)
@@ -27,22 +58,52 @@ struct CustomerAvatarView: View {
     }
 
     var body: some View {
-        Circle()
-            .fill(
-                LinearGradient(
-                    colors: [avatarColor, avatarColor.opacity(0.7)],
-                    startPoint: .topLeading,
-                    endPoint: .bottomTrailing
-                )
-            )
-            .frame(width: size, height: size)
-            .overlay {
-                Text(initial)
-                    .font(.system(size: size * 0.45, weight: .semibold, design: .rounded))
-                    .foregroundColor(.white)
+        Group {
+            // If override color is set (edit mode preview), show color instead of photo
+            if overrideColor != nil {
+                // Show color with initial (preview mode)
+                Circle()
+                    .fill(
+                        LinearGradient(
+                            colors: [avatarColor, avatarColor.opacity(0.7)],
+                            startPoint: .topLeading,
+                            endPoint: .bottomTrailing
+                        )
+                    )
+                    .frame(width: size, height: size)
+                    .overlay {
+                        Text(initial)
+                            .font(.system(size: size * 0.45, weight: .semibold, design: .rounded))
+                            .foregroundColor(.white)
+                    }
+            } else if let imageData = avatarImageData,
+                      let uiImage = UIImage(data: imageData) {
+                // Show custom photo
+                Image(uiImage: uiImage)
+                    .resizable()
+                    .scaledToFill()
+                    .frame(width: size, height: size)
+                    .clipShape(Circle())
+            } else {
+                // Show color with initial
+                Circle()
+                    .fill(
+                        LinearGradient(
+                            colors: [avatarColor, avatarColor.opacity(0.7)],
+                            startPoint: .topLeading,
+                            endPoint: .bottomTrailing
+                        )
+                    )
+                    .frame(width: size, height: size)
+                    .overlay {
+                        Text(initial)
+                            .font(.system(size: size * 0.45, weight: .semibold, design: .rounded))
+                            .foregroundColor(.white)
+                    }
             }
-            .shadow(color: avatarColor.opacity(0.3), radius: 4, x: 0, y: 2)
-            .accessibilityLabel("\(customerName) 头像")
+        }
+        .shadow(color: avatarColor.opacity(0.3), radius: 4, x: 0, y: 2)
+        .accessibilityLabel("\(customerName) 头像")
     }
 
     // MARK: - Color Generation
