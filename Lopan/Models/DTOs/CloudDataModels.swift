@@ -297,8 +297,17 @@ extension UserDTO {
             return User(wechatId: "", name: name, phone: phone)
         }
     }
-    
+
     static func fromDomain(_ user: User) -> UserDTO {
         return UserDTO(from: user)
     }
+}
+
+// MARK: - Duplicate Check DTO
+
+/// DTO for checking duplicate customer names
+struct DuplicateCheckDTO: Codable {
+    let isDuplicate: Bool
+    let existingCustomerId: String?
+    let message: String?
 }

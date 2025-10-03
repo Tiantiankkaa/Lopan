@@ -320,16 +320,18 @@ struct EditCustomerView: View {
     @State private var address: String
     @State private var phone: String
     @State private var isSaving = false
-    
+    @State private var isCheckingDuplicate = false
+    @State private var duplicateError: String?
+
     init(customer: Customer) {
         self.customer = customer
         self._name = State(initialValue: customer.name)
         self._address = State(initialValue: customer.address)
         self._phone = State(initialValue: customer.phone)
     }
-    
+
     var isValid: Bool {
-        !name.isEmpty && !address.isEmpty
+        !name.isEmpty && !address.isEmpty && duplicateError == nil && !isCheckingDuplicate
     }
     
     var body: some View {
@@ -340,18 +342,53 @@ struct EditCustomerView: View {
                     .foregroundColor(LopanColors.textPrimary)
                 
                 VStack(spacing: LopanSpacing.md) {
-                    TextField("客户姓名", text: $name)
-                        .textFieldStyle(RoundedBorderTextFieldStyle())
-                        .disabled(isSaving)
-                    
-                    TextField("客户地址", text: $address)
-                        .textFieldStyle(RoundedBorderTextFieldStyle())
-                        .disabled(isSaving)
-                    
-                    TextField("联系电话", text: $phone)
-                        .textFieldStyle(RoundedBorderTextFieldStyle())
-                        .keyboardType(.phonePad)
-                        .disabled(isSaving)
+                    LopanTextField(
+                        title: "客户姓名",
+                        placeholder: "请输入客户姓名",
+                        text: $name,
+                        variant: .outline,
+                        state: {
+                            if duplicateError != nil {
+                                return .error
+                            } else if name.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty {
+                                return .error
+                            } else {
+                                return .normal
+                            }
+                        }(),
+                        isRequired: true,
+                        icon: "person",
+                        errorText: duplicateError ?? (name.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty ? "客户姓名不能为空" : nil)
+                    )
+                    .onChange(of: name) { _, newValue in
+                        Task {
+                            await checkForDuplicates()
+                        }
+                    }
+                    .disabled(isSaving)
+
+                    LopanTextField(
+                        title: "客户地址",
+                        placeholder: "请输入客户地址",
+                        text: $address,
+                        variant: .outline,
+                        state: address.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty ? .error : .normal,
+                        isRequired: true,
+                        icon: "location",
+                        errorText: address.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty ? "客户地址不能为空" : nil
+                    )
+                    .disabled(isSaving)
+
+                    LopanTextField(
+                        title: "联系电话",
+                        placeholder: "请输入联系电话（可选）",
+                        text: $phone,
+                        variant: .outline,
+                        keyboardType: .phonePad,
+                        icon: "phone",
+                        helperText: "联系电话为可选信息"
+                    )
+                    .disabled(isSaving)
                 }
                 
                 Spacer()
@@ -377,14 +414,45 @@ struct EditCustomerView: View {
         }
     }
     
+    private func checkForDuplicates() async {
+        let trimmedName = name.trimmingCharacters(in: .whitespacesAndNewlines)
+        guard !trimmedName.isEmpty else {
+            duplicateError = nil
+            return
+        }
+
+        // Skip check if name unchanged from original
+        if trimmedName == customer.name.trimmingCharacters(in: .whitespacesAndNewlines) {
+            duplicateError = nil
+            return
+        }
+
+        isCheckingDuplicate = true
+        do {
+            let hasDuplicate = try await customerRepository.checkDuplicateName(trimmedName, excludingId: customer.id)
+            await MainActor.run {
+                duplicateError = hasDuplicate ? "客户姓名已存在，请使用其他姓名" : nil
+                isCheckingDuplicate = false
+            }
+        } catch {
+            await MainActor.run {
+                duplicateError = nil
+                isCheckingDuplicate = false
+            }
+        }
+    }
+
     private func saveCustomer() {
         isSaving = true
-        
+
         customer.name = name
         customer.address = address
         customer.phone = phone
         customer.updatedAt = Date()
-        
+
+        // Update cached pinyin values if name changed
+        customer.updatePinyinCache()
+
         Task {
             do {
                 try await customerRepository.updateCustomer(customer)

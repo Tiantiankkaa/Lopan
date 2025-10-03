@@ -28,6 +28,12 @@ class LocalCustomerRepository: CustomerRepository {
     }
     
     func addCustomer(_ customer: Customer) async throws {
+        // Check for duplicate name before inserting
+        let hasDuplicate = try await checkDuplicateName(customer.name, excludingId: nil)
+        if hasDuplicate {
+            throw RepositoryError.duplicateKey("客户姓名 '\(customer.name)' 已存在")
+        }
+
         modelContext.insert(customer)
         try modelContext.save()
     }
@@ -97,11 +103,37 @@ class LocalCustomerRepository: CustomerRepository {
     func searchCustomers(query: String) async throws -> [Customer] {
         let descriptor = FetchDescriptor<Customer>()
         let customers = try modelContext.fetch(descriptor)
-        
+
         return customers.filter { customer in
             customer.name.localizedCaseInsensitiveContains(query) ||
             customer.address.localizedCaseInsensitiveContains(query) ||
             customer.phone.localizedCaseInsensitiveContains(query)
+        }
+    }
+
+    func toggleFavorite(_ customer: Customer) async throws {
+        customer.isFavorite.toggle()
+        customer.updatedAt = Date()
+        try modelContext.save()
+    }
+
+    func updateLastViewed(_ customer: Customer) async throws {
+        customer.lastViewedAt = Date()
+        try modelContext.save()
+    }
+
+    func checkDuplicateName(_ name: String, excludingId: String?) async throws -> Bool {
+        let descriptor = FetchDescriptor<Customer>()
+        let customers = try modelContext.fetch(descriptor)
+
+        // Normalize the name for comparison: trim whitespace and lowercase
+        let normalizedName = name.trimmingCharacters(in: .whitespacesAndNewlines).lowercased()
+
+        // Check if any customer has the same normalized name
+        return customers.contains { customer in
+            let existingName = customer.name.trimmingCharacters(in: .whitespacesAndNewlines).lowercased()
+            // Match if names are equal AND it's not the excluded customer
+            return existingName == normalizedName && customer.id != excludingId
         }
     }
 }

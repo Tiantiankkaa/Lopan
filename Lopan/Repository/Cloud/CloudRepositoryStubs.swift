@@ -233,11 +233,48 @@ final class CloudCustomerRepository: CustomerRepository, Sendable {
         for customer in customers {
             let endpoint = "\(baseEndpoint)/\(customer.id)"
             let response = try await cloudProvider.delete(endpoint: endpoint)
-            
+
             if !response.success {
                 throw RepositoryError.deleteFailed(response.error ?? "Delete customer failed")
             }
         }
+    }
+
+    func toggleFavorite(_ customer: Customer) async throws {
+        let endpoint = "\(baseEndpoint)/\(customer.id)/favorite"
+        let response = try await cloudProvider.put(endpoint: endpoint, body: ["isFavorite": !customer.isFavorite], responseType: CustomerDTO.self)
+
+        guard response.success else {
+            throw RepositoryError.saveFailed(response.error ?? "Toggle favorite failed")
+        }
+    }
+
+    func updateLastViewed(_ customer: Customer) async throws {
+        let endpoint = "\(baseEndpoint)/\(customer.id)/last-viewed"
+        let response = try await cloudProvider.put(endpoint: endpoint, body: ["lastViewedAt": Date()], responseType: CustomerDTO.self)
+
+        guard response.success else {
+            throw RepositoryError.saveFailed(response.error ?? "Update last viewed failed")
+        }
+    }
+
+    func checkDuplicateName(_ name: String, excludingId: String?) async throws -> Bool {
+        // Cloud implementation: call API endpoint to check for duplicates
+        let normalizedName = name.trimmingCharacters(in: .whitespacesAndNewlines)
+        let encodedName = normalizedName.addingPercentEncoding(withAllowedCharacters: .urlQueryAllowed) ?? ""
+
+        var endpoint = "\(baseEndpoint)/check-duplicate?name=\(encodedName)"
+        if let excludingId = excludingId {
+            endpoint += "&excludeId=\(excludingId)"
+        }
+
+        let response = try await cloudProvider.get(endpoint: endpoint, type: DuplicateCheckDTO.self)
+
+        guard response.success, let data = response.data else {
+            throw RepositoryError.connectionFailed(response.error ?? "Duplicate check failed")
+        }
+
+        return data.isDuplicate
     }
 }
 

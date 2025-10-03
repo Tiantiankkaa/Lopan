@@ -1110,9 +1110,19 @@ private class MockAuditCustomerRepository: CustomerRepository {
     func deleteCustomers(_ customers: [Customer]) async throws { 
         print("🔧 MockAuditCustomerRepository: deleteCustomers called - NO-OP in placeholder mode")
     }
-    func searchCustomers(query: String) async throws -> [Customer] { 
+    func searchCustomers(query: String) async throws -> [Customer] {
         print("🔧 MockAuditCustomerRepository: searchCustomers called")
         return []
+    }
+    func toggleFavorite(_ customer: Customer) async throws {
+        print("🔧 MockAuditCustomerRepository: toggleFavorite called - NO-OP in placeholder mode")
+    }
+    func updateLastViewed(_ customer: Customer) async throws {
+        print("🔧 MockAuditCustomerRepository: updateLastViewed called - NO-OP in placeholder mode")
+    }
+    func checkDuplicateName(_ name: String, excludingId: String?) async throws -> Bool {
+        print("🔧 MockAuditCustomerRepository: checkDuplicateName called - always returns false in placeholder mode")
+        return false
     }
 }
 
