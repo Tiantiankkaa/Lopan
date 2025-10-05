@@ -1,0 +1,223 @@
+//
+//  HTMLProductCard.swift
+//  Lopan
+//
+//  Created by Claude Code on 2025-10-05.
+//  Product card matching HTML mockup exactly - unified design
+//
+
+import SwiftUI
+
+/// Product card component matching HTML mockup pixel-perfect
+/// Single unified design with status dot + ring, stock count, timestamp
+struct HTMLProductCard: View {
+    let product: Product
+    let onTap: () -> Void
+
+    var body: some View {
+        VStack(spacing: 0) {
+            // Top Row: Name + SKU (left), Price (right)
+            HStack(alignment: .top, spacing: 12) {
+                // Left: Name + SKU
+                VStack(alignment: .leading, spacing: 4) {
+                    Text(product.name)
+                        .font(.system(size: 16, weight: .semibold))
+                        .foregroundColor(Color(hex: "#111827") ?? Color.primary) // gray-900
+                        .lineLimit(1)
+
+                    Text("SKU: \(product.formattedSKU)")
+                        .font(.system(size: 14))
+                        .foregroundColor(Color(hex: "#6B7280") ?? Color.secondary) // gray-500
+                }
+
+                Spacer(minLength: 8)
+
+                // Right: Price
+                Text(product.formattedPrice)
+                    .font(.system(size: 18, weight: .bold))
+                    .foregroundColor(Color(hex: "#111827") ?? Color.primary) // gray-900
+            }
+
+            // Bottom Row: Status, Stock, Timestamp
+            HStack(spacing: 12) {
+                // Status with dot + ring
+                HStack(spacing: 8) {
+                    statusDotWithRing
+
+                    Text(product.inventoryStatus.htmlLabel)
+                        .font(.system(size: 14))
+                        .foregroundColor(Color(hex: "#4B5563") ?? Color.secondary) // gray-600
+                }
+
+                Spacer()
+
+                // Stock count
+                HStack(spacing: 4) {
+                    Text("\(product.inventoryQuantity)")
+                        .font(.system(size: 14, weight: .medium))
+                        .foregroundColor(stockColor)
+
+                    Text("in stock")
+                        .font(.system(size: 14))
+                        .foregroundColor(Color(hex: "#4B5563") ?? Color.secondary) // gray-600
+                }
+
+                Spacer()
+
+                // Timestamp
+                Text(product.htmlRelativeTime)
+                    .font(.system(size: 14))
+                    .foregroundColor(Color(hex: "#6B7280") ?? Color.secondary) // gray-500
+            }
+            .padding(.top, 16)
+        }
+        .padding(16)
+        .background(Color.white)
+        .clipShape(RoundedRectangle(cornerRadius: 16))
+        .overlay(
+            RoundedRectangle(cornerRadius: 16)
+                .stroke(Color(hex: "#E5E7EB") ?? Color.gray.opacity(0.2), lineWidth: 1) // border-color
+        )
+        .shadow(color: Color.black.opacity(0.05), radius: 2, x: 0, y: 1)
+        .contentShape(Rectangle())
+        .onTapGesture(perform: onTap)
+        .accessibilityElement(children: .combine)
+        .accessibilityLabel(accessibilityLabel)
+        .accessibilityHint("Tap to view product details")
+    }
+
+    // MARK: - Status Dot with Ring Effect
+
+    /// Status indicator with ring-2 effect matching HTML
+    /// <span class="h-2.5 w-2.5 rounded-full bg-green-500 ring-2 ring-green-100"></span>
+    private var statusDotWithRing: some View {
+        ZStack {
+            // Outer ring
+            Circle()
+                .fill(product.inventoryStatus.htmlRingColor)
+                .frame(width: 14, height: 14) // 2.5 (10pt) + ring-2 (4pt)
+
+            // Inner dot
+            Circle()
+                .fill(product.inventoryStatus.htmlDotColor)
+                .frame(width: 10, height: 10) // h-2.5 w-2.5 = 10pt
+        }
+    }
+
+    // MARK: - Stock Color Coding
+
+    private var stockColor: Color {
+        switch product.inventoryStatus {
+        case .active:
+            return Color(hex: "#1F2937") ?? Color.primary // gray-800
+        case .lowStock:
+            return Color(hex: "#EF4444") ?? Color.red // red-500
+        case .outOfStock:
+            return Color(hex: "#1F2937") ?? Color.primary // gray-800
+        case .inactive:
+            return Color(hex: "#1F2937") ?? Color.primary // gray-800
+        }
+    }
+
+    // MARK: - Accessibility
+
+    private var accessibilityLabel: String {
+        var label = product.name
+        label += ", SKU \(product.formattedSKU)"
+        label += ", \(product.formattedPrice)"
+        label += ", \(product.inventoryStatus.htmlLabel)"
+        label += ", \(product.inventoryQuantity) in stock"
+        label += ", \(product.htmlRelativeTime)"
+        return label
+    }
+}
+
+// MARK: - Product Extension for HTML Rendering
+
+extension Product {
+    /// HTML-style relative time (e.g., "Updated 2h ago")
+    var htmlRelativeTime: String {
+        let formatter = RelativeDateTimeFormatter()
+        formatter.unitsStyle = .abbreviated
+        let relativeTime = formatter.localizedString(for: updatedAt, relativeTo: Date())
+        return "Updated \(relativeTime)"
+    }
+}
+
+extension Product.InventoryStatus {
+    /// HTML-style status labels
+    var htmlLabel: String {
+        switch self {
+        case .active: return "Active"
+        case .lowStock: return "Low Stock"
+        case .outOfStock: return "Inactive"
+        case .inactive: return "Inactive"
+        }
+    }
+
+    /// Status dot colors matching HTML
+    var htmlDotColor: Color {
+        switch self {
+        case .active: return Color(hex: "#10B981") ?? Color.green // green-500
+        case .lowStock: return Color(hex: "#F59E0B") ?? Color.yellow // yellow-500
+        case .outOfStock: return Color(hex: "#9CA3AF") ?? Color.gray // gray-400
+        case .inactive: return Color(hex: "#9CA3AF") ?? Color.gray // gray-400
+        }
+    }
+
+    /// Ring colors matching HTML (lighter shade)
+    var htmlRingColor: Color {
+        switch self {
+        case .active: return Color(hex: "#D1FAE5") ?? Color.green.opacity(0.2) // green-100
+        case .lowStock: return Color(hex: "#FEF3C7") ?? Color.yellow.opacity(0.2) // yellow-100
+        case .outOfStock: return Color(hex: "#F3F4F6") ?? Color.gray.opacity(0.2) // gray-100
+        case .inactive: return Color(hex: "#F3F4F6") ?? Color.gray.opacity(0.2) // gray-100
+        }
+    }
+}
+
+// Note: Color.init(hex:) extension already exists in ColorCard.swift
+
+// MARK: - Preview
+
+#Preview {
+    let sampleProduct1 = Product(
+        name: "Air Max 270",
+        colors: ["Black", "White"],
+        imageData: nil,
+        price: 150.00
+    )
+    sampleProduct1.sizes = [
+        ProductSize(size: "S", quantity: 25, product: sampleProduct1),
+        ProductSize(size: "M", quantity: 30, product: sampleProduct1),
+        ProductSize(size: "L", quantity: 20, product: sampleProduct1)
+    ]
+
+    let sampleProduct2 = Product(
+        name: "React Presto",
+        colors: ["Blue"],
+        imageData: nil,
+        price: 120.00
+    )
+    sampleProduct2.sizes = [
+        ProductSize(size: "M", quantity: 8, product: sampleProduct2),
+        ProductSize(size: "L", quantity: 4, product: sampleProduct2)
+    ]
+
+    let sampleProduct3 = Product(
+        name: "ZoomX Invincible Run",
+        colors: ["Red", "Black"],
+        imageData: nil,
+        price: 180.00
+    )
+    sampleProduct3.sizes = []
+
+    return VStack(spacing: 12) {
+        HTMLProductCard(product: sampleProduct1, onTap: { print("Tapped 1") })
+        HTMLProductCard(product: sampleProduct2, onTap: { print("Tapped 2") })
+        HTMLProductCard(product: sampleProduct3, onTap: { print("Tapped 3") })
+        Spacer()
+    }
+    .padding(16)
+    .background(Color(hex: "#F7F8FA") ?? Color.gray.opacity(0.05))
+}
