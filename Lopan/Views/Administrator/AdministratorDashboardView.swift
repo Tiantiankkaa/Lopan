@@ -27,36 +27,24 @@ struct AdministratorDashboardView: View {
     enum AdministratorTab: String, CaseIterable {
         case overview = "overview"
         case analytics = "analytics"
-        case reports = "reports"
-        case batches = "batches"
-        case users = "users"
-        case dataManagement = "data_management"
-        case configuration = "configuration"
-        case system = "system"
-        
+        case management = "management"
+        case settings = "settings"
+
         var displayName: String {
             switch self {
             case .overview: return "概览"
-            case .analytics: return "数据分析"
-            case .reports: return "报告中心"
-            case .batches: return "批次管理"
-            case .users: return "用户管理"
-            case .dataManagement: return "数据管理"
-            case .configuration: return "系统配置"
-            case .system: return "系统监控"
+            case .analytics: return "分析"
+            case .management: return "管理"
+            case .settings: return "设置"
             }
         }
-        
+
         var icon: String {
             switch self {
-            case .overview: return "gauge.with.dots.needle.67percent"
-            case .analytics: return "chart.line.uptrend.xyaxis"
-            case .reports: return "doc.text.fill"
-            case .batches: return "list.clipboard.fill"
-            case .users: return "person.3.fill"
-            case .dataManagement: return "externaldrive.connected.to.line.below"
-            case .configuration: return "slider.horizontal.3"
-            case .system: return "gear.circle.fill"
+            case .overview: return "house.fill"
+            case .analytics: return "chart.bar.fill"
+            case .management: return "person.3.fill"
+            case .settings: return "gearshape.fill"
             }
         }
     }
@@ -68,199 +56,232 @@ struct AdministratorDashboardView: View {
     }
     
     var body: some View {
+        TabView(selection: $selectedTab) {
+            overviewTabView
+                .tabItem {
+                    Label(AdministratorTab.overview.displayName, systemImage: AdministratorTab.overview.icon)
+                }
+                .tag(AdministratorTab.overview)
+
+            analyticsTabView
+                .tabItem {
+                    Label(AdministratorTab.analytics.displayName, systemImage: AdministratorTab.analytics.icon)
+                }
+                .tag(AdministratorTab.analytics)
+
+            managementTabView
+                .tabItem {
+                    Label(AdministratorTab.management.displayName, systemImage: AdministratorTab.management.icon)
+                }
+                .tag(AdministratorTab.management)
+
+            settingsTabView
+                .tabItem {
+                    Label(AdministratorTab.settings.displayName, systemImage: AdministratorTab.settings.icon)
+                }
+                .tag(AdministratorTab.settings)
+        }
+        .sheet(isPresented: $showingSystemHealth) {
+            SystemHealthDashboard(
+                monitoringService: serviceFactory.systemConsistencyMonitoringService
+            )
+        }
+        .sheet(isPresented: $showingAnalytics) {
+            AnalyticsDashboardView(serviceFactory: serviceFactory)
+        }
+        .sheet(isPresented: $showingReports) {
+            ReportGeneratorView(
+                reportGenerator: serviceFactory.advancedReportGenerator,
+                currentMetrics: nil
+            )
+        }
+        .sheet(isPresented: $showingUserManagement) {
+            UserManagementView()
+        }
+        .sheet(isPresented: $showingNotificationCenter) {
+            NotificationCenterView()
+                .environmentObject(serviceFactory)
+        }
+        .sheet(isPresented: $showingPermissionManagement) {
+            PermissionManagementView(
+                permissionService: serviceFactory.advancedPermissionService,
+                roleManagementService: serviceFactory.roleManagementService
+            )
+            .environmentObject(serviceFactory)
+        }
+    }
+    
+    // MARK: - Tab Views
+
+    private var overviewTabView: some View {
         NavigationStack {
-            VStack(spacing: 0) {
-                // Header section
-                headerSection
-                
-                // Tab selector
-                tabSelector
-                
-                // Content based on selected tab
-                contentView
-            }
-            .navigationTitle("管理员控制台")
-            .navigationBarTitleDisplayMode(.large)
-            .toolbar {
-                ToolbarItem(placement: .navigationBarTrailing) {
-                    HStack(spacing: 12) {
-                        // Notification bell
-                        Button(action: { showingNotificationCenter = true }) {
-                            ZStack {
-                                Image(systemName: "bell")
-                                    .font(.title3)
-                                
-                                // Notification badge
-                                if !serviceFactory.notificationEngine.activeNotifications.filter({ !$0.isRead }).isEmpty {
-                                    NotificationBadge(
-                                        count: serviceFactory.notificationEngine.activeNotifications.filter { !$0.isRead }.count
-                                    )
-                                    .offset(x: 8, y: -8)
+            ScrollView {
+                LazyVStack(spacing: 20) {
+                    // Welcome header
+                    VStack(spacing: 16) {
+                        HStack {
+                            VStack(alignment: .leading, spacing: 4) {
+                                Text("欢迎，\(authService.currentUser?.name ?? "管理员")")
+                                    .font(.title2)
+                                    .fontWeight(.bold)
+                                    .foregroundColor(.primary)
+
+                                Text("系统管理控制台")
+                                    .font(.subheadline)
+                                    .foregroundColor(.secondary)
+                            }
+
+                            Spacer()
+
+                            VStack(alignment: .trailing, spacing: 4) {
+                                Text(currentDateFormatted)
+                                    .font(.caption)
+                                    .foregroundColor(.secondary)
+
+                                HStack(spacing: 4) {
+                                    Circle()
+                                        .fill(LopanColors.success)
+                                        .frame(width: 8, height: 8)
+
+                                    Text("系统正常")
+                                        .font(.caption)
+                                        .foregroundColor(.secondary)
                                 }
                             }
                         }
-                        
-                        Menu {
-                            Button("系统健康检查") {
-                                showingSystemHealth = true
+
+                        SystemOverviewWidget(serviceFactory: serviceFactory)
+                    }
+                    .padding()
+                    .background(
+                        RoundedRectangle(cornerRadius: 12)
+                            .fill(LopanColors.backgroundSecondary)
+                    )
+
+                    overviewContent
+                }
+                .padding()
+            }
+            .navigationTitle("概览")
+            .toolbar {
+                ToolbarItem(placement: .navigationBarTrailing) {
+                    Menu {
+                        Button("工作台选择器") {
+                            navigationService.showWorkbenchSelector()
+                        }
+
+                        Button("注销") {
+                            authService.logout()
+                        }
+                    } label: {
+                        Image(systemName: "ellipsis.circle")
+                    }
+                }
+            }
+        }
+    }
+
+    private var analyticsTabView: some View {
+        NavigationStack {
+            ScrollView {
+                LazyVStack(spacing: 20) {
+                    analyticsContent
+
+                    Divider()
+                        .padding(.vertical)
+
+                    reportsContent
+                }
+                .padding()
+            }
+            .navigationTitle("数据分析")
+            .toolbar {
+                ToolbarItem(placement: .navigationBarTrailing) {
+                    Button(action: { showingNotificationCenter = true }) {
+                        ZStack {
+                            Image(systemName: "bell")
+
+                            if !serviceFactory.notificationEngine.activeNotifications.filter({ !$0.isRead }).isEmpty {
+                                NotificationBadge(
+                                    count: serviceFactory.notificationEngine.activeNotifications.filter { !$0.isRead }.count
+                                )
+                                .offset(x: 8, y: -8)
                             }
-                            
-                            Button("生成系统报告") {
-                                showingReports = true
-                            }
-                            
-                            Button("数据分析") {
-                                showingAnalytics = true
-                            }
-                            
-                            Button("权限管理") {
-                                showingPermissionManagement = true
-                            }
-                            
-                            Button("数据管理") {
-                                selectedTab = .dataManagement
-                            }
-                            
-                            Button("系统配置") {
-                                selectedTab = .configuration
-                            }
-                            
-                            Divider()
-                            
-                            Button("工作台选择器") {
-                                navigationService.showWorkbenchSelector()
-                            }
-                            
-                            Button("注销") {
-                                authService.logout()
-                            }
-                        } label: {
-                            Image(systemName: "ellipsis.circle")
                         }
                     }
                 }
             }
-            .sheet(isPresented: $showingSystemHealth) {
-                SystemHealthDashboard(
-                    monitoringService: serviceFactory.systemConsistencyMonitoringService
-                )
-            }
-            .sheet(isPresented: $showingAnalytics) {
-                AnalyticsDashboardView(serviceFactory: serviceFactory)
-            }
-            .sheet(isPresented: $showingReports) {
-                ReportGeneratorView(
-                    reportGenerator: serviceFactory.advancedReportGenerator,
-                    currentMetrics: nil
-                )
-            }
-            .sheet(isPresented: $showingUserManagement) {
-                UserManagementView()
-            }
-            .sheet(isPresented: $showingNotificationCenter) {
-                NotificationCenterView()
-                    .environmentObject(serviceFactory)
-            }
-            .sheet(isPresented: $showingPermissionManagement) {
-                PermissionManagementView(
-                    permissionService: serviceFactory.advancedPermissionService,
-                    roleManagementService: serviceFactory.roleManagementService
-                )
-                .environmentObject(serviceFactory)
-            }
         }
     }
-    
-    // MARK: - Header Section (头部区域)
-    
-    private var headerSection: some View {
-        VStack(spacing: 16) {
-            HStack {
-                VStack(alignment: .leading, spacing: 4) {
-                    Text("欢迎，\(authService.currentUser?.name ?? "管理员")")
-                        .font(.title2)
-                        .fontWeight(.bold)
-                        .foregroundColor(.primary)
-                    
-                    Text("系统管理控制台")
-                        .font(.subheadline)
-                        .foregroundColor(.secondary)
+
+    private var managementTabView: some View {
+        NavigationStack {
+            List {
+                Section("用户与权限") {
+                    NavigationLink(destination: UserManagementView()) {
+                        Label("用户管理", systemImage: "person.3.fill")
+                    }
+
+                    NavigationLink(destination: PermissionManagementView(
+                        permissionService: serviceFactory.advancedPermissionService,
+                        roleManagementService: serviceFactory.roleManagementService
+                    ).environmentObject(serviceFactory)) {
+                        Label("权限管理", systemImage: "lock.shield.fill")
+                    }
                 }
-                
-                Spacer()
-                
-                VStack(alignment: .trailing, spacing: 4) {
-                    Text(currentDateFormatted)
-                        .font(.caption)
-                        .foregroundColor(.secondary)
-                    
-                    HStack(spacing: 4) {
-                        Circle()
-                            .fill(LopanColors.success)
-                            .frame(width: 8, height: 8)
-                        
-                        Text("系统正常")
-                            .font(.caption)
-                            .foregroundColor(.secondary)
+
+                Section("生产管理") {
+                    NavigationLink(destination: BatchManagementView(
+                        repositoryFactory: serviceFactory.repositoryFactory,
+                        authService: authService,
+                        auditService: serviceFactory.auditingService
+                    )) {
+                        Label("批次管理", systemImage: "list.clipboard.fill")
+                    }
+                }
+
+                Section("数据管理") {
+                    NavigationLink(destination: DataManagementView()
+                        .environmentObject(serviceFactory)) {
+                        Label("数据管理", systemImage: "externaldrive.connected.to.line.below")
                     }
                 }
             }
-            
-            // Quick stats
-            SystemOverviewWidget(serviceFactory: serviceFactory)
+            .navigationTitle("管理")
         }
-        .padding()
-        .background(
-            RoundedRectangle(cornerRadius: 12)
-                .fill(LopanColors.backgroundSecondary)
-        )
-        .padding(.horizontal)
     }
-    
-    // MARK: - Tab Selector (标签选择器)
-    
-    private var tabSelector: some View {
-        ScrollView(.horizontal, showsIndicators: false) {
-            HStack(spacing: 12) {
-                ForEach(AdministratorTab.allCases, id: \.self) { tab in
-                    AdministratorTabButton(
-                        tab: tab,
-                        isSelected: selectedTab == tab,
-                        action: { selectedTab = tab }
-                    )
+
+    private var settingsTabView: some View {
+        NavigationStack {
+            List {
+                Section("系统配置") {
+                    NavigationLink(destination: SystemConfigurationView()
+                        .environmentObject(serviceFactory)) {
+                        Label("系统配置", systemImage: "slider.horizontal.3")
+                    }
+
+                    NavigationLink(destination: CurrencySettingsView()) {
+                        Label("货币设置", systemImage: "dollarsign.circle.fill")
+                    }
+                }
+
+                Section("系统监控") {
+                    NavigationLink(destination: SystemHealthDashboard(
+                        monitoringService: serviceFactory.systemConsistencyMonitoringService
+                    )) {
+                        Label("系统健康检查", systemImage: "heart.text.square.fill")
+                    }
+
+                    Button(action: { showingAnalytics = true }) {
+                        Label("数据分析", systemImage: "chart.line.uptrend.xyaxis")
+                    }
+
+                    Button(action: { showingReports = true }) {
+                        Label("生成系统报告", systemImage: "doc.text.fill")
+                    }
                 }
             }
-            .padding(.horizontal)
-        }
-        .padding(.vertical, 12)
-        .background(LopanColors.backgroundTertiary)
-    }
-    
-    // MARK: - Content View (内容视图)
-    
-    private var contentView: some View {
-        ScrollView {
-            LazyVStack(spacing: 20) {
-                switch selectedTab {
-                case .overview:
-                    overviewContent
-                case .analytics:
-                    analyticsContent
-                case .reports:
-                    reportsContent
-                case .batches:
-                    batchManagementContent
-                case .users:
-                    userManagementContent
-                case .dataManagement:
-                    dataManagementContent
-                case .configuration:
-                    configurationManagementContent
-                case .system:
-                    systemManagementContent
-                }
-            }
-            .padding()
+            .navigationTitle("设置")
         }
     }
     
@@ -311,68 +332,9 @@ struct AdministratorDashboardView: View {
         VStack(spacing: 20) {
             // Recent reports
             RecentReportsWidget(reportGenerator: serviceFactory.advancedReportGenerator)
-            
+
             Button("打开报告生成器") {
                 showingReports = true
-            }
-            .font(.headline)
-            .fontWeight(.medium)
-            .foregroundColor(LopanColors.textPrimary)
-            .frame(maxWidth: .infinity)
-            .padding()
-            .background(
-                RoundedRectangle(cornerRadius: 12)
-                    .fill(LopanColors.primary)
-            )
-        }
-    }
-    
-    private var batchManagementContent: some View {
-        BatchManagementView(
-            repositoryFactory: serviceFactory.repositoryFactory,
-            authService: authService,
-            auditService: serviceFactory.auditingService
-        )
-    }
-    
-    private var userManagementContent: some View {
-        VStack(spacing: 20) {
-            Text("用户管理功能")
-                .font(.title2)
-                .fontWeight(.bold)
-            
-            Button("打开用户管理界面") {
-                showingUserManagement = true
-            }
-            .font(.headline)
-            .fontWeight(.medium)
-            .foregroundColor(LopanColors.textPrimary)
-            .frame(maxWidth: .infinity)
-            .padding()
-            .background(
-                RoundedRectangle(cornerRadius: 12)
-                    .fill(LopanColors.primary)
-            )
-        }
-    }
-    
-    private var dataManagementContent: some View {
-        DataManagementView()
-            .environmentObject(serviceFactory)
-    }
-    
-    private var configurationManagementContent: some View {
-        SystemConfigurationView()
-            .environmentObject(serviceFactory)
-    }
-    
-    private var systemManagementContent: some View {
-        VStack(spacing: 20) {
-            // System health overview
-            SystemHealthOverviewWidget(monitoringService: serviceFactory.systemConsistencyMonitoringService)
-            
-            Button("打开系统健康仪表板") {
-                showingSystemHealth = true
             }
             .font(.headline)
             .fontWeight(.medium)
@@ -397,35 +359,6 @@ struct AdministratorDashboardView: View {
 }
 
 // MARK: - Supporting Views (支持视图)
-
-/// Administrator tab button
-/// 管理员标签按钮
-struct AdministratorTabButton: View {
-    let tab: AdministratorDashboardView.AdministratorTab
-    let isSelected: Bool
-    let action: () -> Void
-    
-    var body: some View {
-        Button(action: action) {
-            VStack(spacing: 4) {
-                Image(systemName: tab.icon)
-                    .font(.system(size: 16, weight: .medium))
-                
-                Text(tab.displayName)
-                    .font(.caption)
-                    .fontWeight(.medium)
-            }
-            .foregroundColor(isSelected ? LopanColors.primary : .secondary)
-            .padding(.horizontal, 16)
-            .padding(.vertical, 8)
-            .background(
-                RoundedRectangle(cornerRadius: 20)
-                    .fill(isSelected ? LopanColors.primary.opacity(0.1) : LopanColors.clear)
-            )
-        }
-        .buttonStyle(PlainButtonStyle())
-    }
-}
 
 /// System overview widget
 /// 系统概览小组件

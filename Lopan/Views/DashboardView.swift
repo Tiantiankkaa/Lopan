@@ -16,29 +16,34 @@ enum DashboardVisualStyle {
 struct DashboardView: View {
     @ObservedObject var authService: AuthenticationService
     @StateObject private var navigationService = WorkbenchNavigationService()
-    
+    @Environment(\.appDependencies) private var appDependencies
+
     var body: some View {
-        Group {
+        ZStack {
             if let user = authService.currentUser {
                 switch user.primaryRole {
-                case .unauthorized:
-                    UnauthorizedView(authService: authService)
-                case .salesperson:
-                    SalespersonWorkbenchTabView(authService: authService, navigationService: navigationService)
-                        .onAppear { navigationService.setCurrentWorkbenchContext(.salesperson) }
-                case .warehouseKeeper:
-                    WarehouseKeeperDashboardView(authService: authService, navigationService: navigationService)
-                        .onAppear { navigationService.setCurrentWorkbenchContext(.warehouseKeeper) }
-                case .workshopManager:
-                    WorkshopManagerDashboardView(authService: authService, navigationService: navigationService)
-                case .evaGranulationTechnician:
-                    EVAGranulationDashboardView(authService: authService, navigationService: navigationService)
-                        .onAppear { navigationService.setCurrentWorkbenchContext(.evaGranulationTechnician) }
-                case .workshopTechnician:
-                    WorkshopTechnicianDashboardView(authService: authService, navigationService: navigationService)
-                        .onAppear { navigationService.setCurrentWorkbenchContext(.workshopTechnician) }
-                case .administrator:
-                    SimplifiedAdministratorDashboardView(authService: authService, navigationService: navigationService)
+                    case .unauthorized:
+                        UnauthorizedView(authService: authService)
+                    case .salesperson:
+                        SalespersonWorkbenchTabView(authService: authService, navigationService: navigationService)
+                            .onAppear { navigationService.setCurrentWorkbenchContext(.salesperson) }
+                    case .warehouseKeeper:
+                        WarehouseKeeperDashboardView(authService: authService, navigationService: navigationService)
+                            .onAppear { navigationService.setCurrentWorkbenchContext(.warehouseKeeper) }
+                    case .workshopManager:
+                        WorkshopManagerDashboardView(authService: authService, navigationService: navigationService)
+                    case .evaGranulationTechnician:
+                        EVAGranulationDashboardView(authService: authService, navigationService: navigationService)
+                            .onAppear { navigationService.setCurrentWorkbenchContext(.evaGranulationTechnician) }
+                    case .workshopTechnician:
+                        WorkshopTechnicianDashboardView(authService: authService, navigationService: navigationService)
+                            .onAppear { navigationService.setCurrentWorkbenchContext(.workshopTechnician) }
+                    case .administrator:
+                        AdministratorDashboardView(
+                            authService: authService,
+                            navigationService: navigationService,
+                            serviceFactory: appDependencies.serviceFactory
+                        )
                         .onAppear { navigationService.setCurrentWorkbenchContext(.administrator) }
                 }
             } else {
@@ -287,124 +292,6 @@ struct WorkshopTechnicianDashboardView: View {
     }
 }
 
-struct SimplifiedAdministratorDashboardView: View {
-    @ObservedObject var authService: AuthenticationService
-    @ObservedObject var navigationService: WorkbenchNavigationService
-    @Environment(\.appDependencies) private var appDependencies
-    
-    @State private var navigationPath = NavigationPath()
-    
-    // Dashboard items defined inline for simplicity
-    
-    var body: some View {
-        NavigationStack(path: $navigationPath) {
-            ScrollView(.vertical, showsIndicators: false) {
-                LazyVStack(spacing: 16) {
-                    // Header section
-                    headerView
-                    
-                    // Dashboard cards
-                    LazyVStack(spacing: 12) {
-                        ModernDashboardCard(
-                            title: "用户管理",
-                            subtitle: "管理系统用户、角色和权限设置",
-                            icon: "person.2.circle",
-                            color: LopanColors.roleSalesperson
-                        ) {
-                            navigationPath.append("UserManagement")
-                        }
-                        
-                        ModernDashboardCard(
-                            title: "批次管理",
-                            subtitle: "审核生产配置批次和查看历史记录",
-                            icon: "doc.text.magnifyingglass",
-                            color: LopanColors.roleWorkshopTechnician
-                        ) {
-                            navigationPath.append("BatchManagement")
-                        }
-                        
-                        ModernDashboardCard(
-                            title: "系统概览",
-                            subtitle: "查看系统整体运行状态和统计信息",
-                            icon: "chart.bar.doc.horizontal",
-                            color: LopanColors.roleWorkshopManager
-                        ) {
-                            navigationPath.append("SystemOverview")
-                        }
-                        
-                        ModernDashboardCard(
-                            title: "生产概览",
-                            subtitle: "监控生产线状态和设备运行情况",
-                            icon: "gearshape.2.fill",
-                            color: LopanColors.roleAdministrator
-                        ) {
-                            navigationPath.append("ProductionOverview")
-                        }
-                    }
-                    .padding(.horizontal, 20)
-                }
-                .padding(.vertical, 16)
-            }
-            .background(Color(UIColor.systemBackground))
-            .navigationTitle("管理员控制台")
-            .navigationBarTitleDisplayMode(.large)
-            .toolbar {
-                ToolbarItem(placement: .navigationBarTrailing) {
-                    workbenchButton
-                }
-            }
-            .navigationDestination(for: String.self) { destination in
-                switch destination {
-                case "UserManagement":
-                    UserManagementView()
-                case "BatchManagement":
-                    BatchManagementView(
-                        repositoryFactory: appDependencies.repositoryFactory,
-                        authService: authService,
-                        auditService: appDependencies.auditingService
-                    )
-                case "SystemOverview":
-                    SystemConfigurationView()
-                case "ProductionOverview":
-                    AnalyticsDashboardView(serviceFactory: appDependencies.serviceFactory)
-                default:
-                    Text("Unknown destination")
-                }
-            }
-        }
-    }
-    
-    private var headerView: some View {
-        VStack(spacing: 12) {
-            Text("欢迎使用管理员控制台")
-                .font(.title2)
-                .fontWeight(.medium)
-                .foregroundColor(LopanColors.textSecondary)
-                .multilineTextAlignment(.center)
-            
-            Text("全面管理系统用户、审核生产批次并监控整体运营状况")
-                .font(.subheadline)
-                .foregroundColor(LopanColors.textSecondary)
-                .multilineTextAlignment(.center)
-        }
-        .padding(.horizontal, 20)
-        .padding(.bottom, 8)
-    }
-    
-    private var workbenchButton: some View {
-        Button(action: {
-            navigationService.showWorkbenchSelector()
-        }) {
-            Label("工作台操作", systemImage: "gearshape.arrow.triangle.2.circlepath")
-                .font(.subheadline)
-                .fontWeight(.medium)
-        }
-        .accessibilityLabel("切换工作台")
-        .accessibilityHint("双击以显示工作台选择器")
-    }
-    
-    // Navigation functions removed - using NavigationLink directly
-}
 
 struct DashboardCard: View {
     let title: String
