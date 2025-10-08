@@ -58,6 +58,11 @@ struct CustomerManagementView: View {
     // Accessibility
     @Environment(\.accessibilityReduceMotion) var reduceMotion
 
+    // Performance optimization: Cache filtered customers
+    @State private var cachedFilteredCustomers: [Customer] = []
+    @State private var filterCacheKey: String = ""
+    @State private var searchDebounceTask: Task<Void, Never>?
+
     // Seven days ago for "Recent" filter
     private var sevenDaysAgo: Date {
         Calendar.current.date(byAdding: .day, value: -7, to: Date()) ?? Date()
@@ -66,7 +71,17 @@ struct CustomerManagementView: View {
     // MARK: - Computed Properties
 
     /// Filtered and sorted customers based on tab and search
+    /// Optimized with caching to avoid recomputation on every render
     var filteredCustomers: [Customer] {
+        // Generate cache key from current filter state
+        let currentCacheKey = "\(selectedTab.rawValue)-\(searchText)-\(sortOrder.rawValue)-\(customers.count)"
+
+        // Return cached result if filter state hasn't changed
+        if currentCacheKey == filterCacheKey && !cachedFilteredCustomers.isEmpty {
+            return cachedFilteredCustomers
+        }
+
+        // Recompute filtered customers
         var filtered = customers
 
         // Apply tab filter
@@ -209,12 +224,32 @@ struct CustomerManagementView: View {
             }
             loadCustomers()
 
-            // Auto-migrate pinyin cache for existing customers (runs once)
-            Task {
+            // Auto-migrate pinyin cache for existing customers (runs in background)
+            Task.detached(priority: .utility) {
                 // Wait for customers to load first
-                try? await Task.sleep(nanoseconds: 500_000_000) // 0.5 second delay
+                try? await Task.sleep(nanoseconds: 1_000_000_000) // 1 second delay
                 await migratePinyinIfNeeded()
             }
+        }
+        .onChange(of: selectedTab) { _, _ in
+            updateFilterCache()
+        }
+        .onChange(of: sortOrder) { _, _ in
+            updateFilterCache()
+        }
+        .onChange(of: searchText) { _, newValue in
+            // Debounce search to avoid excessive filtering
+            searchDebounceTask?.cancel()
+            searchDebounceTask = Task {
+                try? await Task.sleep(nanoseconds: 300_000_000) // 300ms debounce
+                guard !Task.isCancelled else { return }
+                await MainActor.run {
+                    updateFilterCache()
+                }
+            }
+        }
+        .onChange(of: customers.count) { _, _ in
+            updateFilterCache()
         }
         .sheet(isPresented: $showingAddCustomer) {
             AddCustomerView(onSave: { customer in
@@ -352,6 +387,7 @@ struct CustomerManagementView: View {
                                             onToggleFavorite: { toggleFavorite(customer) },
                                             onDelete: { handleDeleteCustomer(customer) }
                                         )
+                                        .id(customer.id) // Optimize view identity for better diffing
                                     }
                                     .buttonStyle(PlainButtonStyle())
                                 }
@@ -514,51 +550,130 @@ struct CustomerManagementView: View {
         Task {
             do {
                 isLoadingCustomers = true
-                customers = try await customerRepository.fetchCustomers()
-                isLoadingCustomers = false
+
+                // Load customers in background thread for better performance
+                let loadedCustomers = try await Task.detached(priority: .userInitiated) {
+                    try await self.customerRepository.fetchCustomers()
+                }.value
+
+                await MainActor.run {
+                    self.customers = loadedCustomers
+                    self.isLoadingCustomers = false
+                    self.updateFilterCache()
+                }
             } catch {
                 print("Error loading customers: \(error)")
-                isLoadingCustomers = false
+                await MainActor.run {
+                    isLoadingCustomers = false
+                }
             }
         }
+    }
+
+    /// Updates the filtered customers cache
+    private func updateFilterCache() {
+        let currentCacheKey = "\(selectedTab.rawValue)-\(searchText)-\(sortOrder.rawValue)-\(customers.count)"
+
+        // Only recompute if cache key changed
+        guard currentCacheKey != filterCacheKey else { return }
+
+        // Recompute filtered customers
+        var filtered = customers
+
+        // Apply tab filter
+        switch selectedTab {
+        case .all:
+            break
+        case .recent:
+            filtered = filtered.filter { customer in
+                if let lastViewed = customer.lastViewedAt {
+                    return lastViewed >= sevenDaysAgo
+                }
+                return false
+            }
+        case .favourite:
+            filtered = filtered.filter { $0.isFavorite }
+        }
+
+        // Apply search filter
+        if !searchText.isEmpty {
+            filtered = filtered.filter { customer in
+                customer.name.localizedCaseInsensitiveContains(searchText) ||
+                customer.address.localizedCaseInsensitiveContains(searchText) ||
+                customer.phone.localizedCaseInsensitiveContains(searchText)
+            }
+        }
+
+        // Apply sorting
+        filtered = filtered.sorted { customer1, customer2 in
+            let name1 = customer1.pinyinName.uppercased()
+            let name2 = customer2.pinyinName.uppercased()
+            return sortOrder == .ascending ? name1 < name2 : name1 > name2
+        }
+
+        // Update cache
+        cachedFilteredCustomers = filtered
+        filterCacheKey = currentCacheKey
     }
 
     private func refreshCustomers() async {
         do {
             customers = try await customerRepository.fetchCustomers()
+            updateFilterCache()
         } catch {
             print("Error refreshing customers: \(error)")
         }
     }
 
     /// Migrates existing customers to populate pinyin cache
-    /// This runs automatically on first load for customers with empty pinyin values
+    /// Optimized with background processing and batching to avoid UI freeze
     private func migratePinyinIfNeeded() async {
         // Check if any customers need migration
-        let needsMigration = customers.contains { $0.pinyinInitial.isEmpty || $0.pinyinName.isEmpty }
+        let customersNeedingMigration = await MainActor.run {
+            customers.filter { $0.pinyinInitial.isEmpty || $0.pinyinName.isEmpty }
+        }
 
-        guard needsMigration else {
+        guard !customersNeedingMigration.isEmpty else {
             print("✓ All customers have pinyin cache populated")
             return
         }
 
-        print("🔄 Starting pinyin cache migration for existing customers...")
+        // If too many customers need migration, defer to avoid blocking
+        if customersNeedingMigration.count > 200 {
+            print("⚠️ \(customersNeedingMigration.count) customers need pinyin migration, deferring to background")
+            return
+        }
+
+        print("🔄 Starting background pinyin cache migration for \(customersNeedingMigration.count) customers...")
 
         var migratedCount = 0
+        let batchSize = 50
 
-        for customer in customers where customer.pinyinInitial.isEmpty || customer.pinyinName.isEmpty {
-            // Compute pinyin values
-            customer.pinyinName = customer.name.toPinyin()
-            customer.pinyinInitial = customer.name.pinyinInitial()
+        // Process in batches to avoid blocking
+        for batchStart in stride(from: 0, to: customersNeedingMigration.count, by: batchSize) {
+            let batchEnd = min(batchStart + batchSize, customersNeedingMigration.count)
+            let batch = Array(customersNeedingMigration[batchStart..<batchEnd])
 
-            // Update in database
-            do {
-                try await customerRepository.updateCustomer(customer)
-                migratedCount += 1
-                print("  ✓ Migrated: \(customer.name) → \(customer.pinyinInitial)")
-            } catch {
-                print("  ✗ Failed to migrate \(customer.name): \(error)")
+            for customer in batch {
+                // Compute pinyin values
+                customer.pinyinName = customer.name.toPinyin()
+                customer.pinyinInitial = customer.name.pinyinInitial()
+
+                // Update in database
+                do {
+                    try await customerRepository.updateCustomer(customer)
+                    migratedCount += 1
+                    print("  ✓ Migrated: \(customer.name) → \(customer.pinyinInitial)")
+                } catch {
+                    print("  ✗ Failed to migrate \(customer.name): \(error)")
+                }
             }
+
+            // Yield to let other tasks run (prevents UI freeze)
+            await Task.yield()
+
+            // Small delay between batches
+            try? await Task.sleep(nanoseconds: 100_000_000) // 100ms
         }
 
         // Refresh to show updated data with proper sectioning
@@ -687,11 +802,16 @@ struct AddCustomerView: View {
     @Environment(\.dismiss) private var dismiss
     @Environment(\.appDependencies) private var appDependencies
     @State private var name = ""
-    @State private var address = ""
+    @State private var selectedCountry: Country?
+    @State private var region = ""
+    @State private var city = ""
     @State private var phone = ""
+    @State private var whatsappNumber = ""
     @State private var isSaving = false
     @State private var isCheckingDuplicate = false
     @State private var duplicateError: String?
+    @State private var showCountrySelection = false
+    @State private var showRegionSelection = false
 
     let onSave: (Customer) -> Void
 
@@ -700,86 +820,214 @@ struct AddCustomerView: View {
     }
 
     var isValid: Bool {
-        !name.isEmpty && !address.isEmpty && duplicateError == nil && !isCheckingDuplicate
+        let trimmedName = name.trimmingCharacters(in: .whitespacesAndNewlines)
+        let trimmedRegion = region.trimmingCharacters(in: .whitespacesAndNewlines)
+        let trimmedPhone = phone.trimmingCharacters(in: .whitespacesAndNewlines)
+
+        return !trimmedName.isEmpty &&
+               selectedCountry != nil &&
+               !trimmedRegion.isEmpty &&
+               !trimmedPhone.isEmpty &&
+               duplicateError == nil &&
+               !isCheckingDuplicate
     }
     
     var body: some View {
-        NavigationStack {
-            VStack(alignment: .leading, spacing: LopanSpacing.lg) {
-                Text("客户信息")
-                    .font(LopanTypography.headlineSmall)
-                    .foregroundColor(LopanColors.textPrimary)
-                
-                VStack(spacing: LopanSpacing.md) {
-                    LopanTextField(
-                        title: "客户姓名",
-                        placeholder: "请输入客户姓名",
-                        text: $name,
-                        variant: .outline,
-                        state: {
-                            if duplicateError != nil {
-                                return .error
-                            } else if name.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty {
-                                return .error
-                            } else {
-                                return .normal
-                            }
-                        }(),
-                        isRequired: true,
-                        icon: "person",
-                        errorText: duplicateError ?? (name.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty ? "客户姓名不能为空" : nil)
-                    )
-                    .onChange(of: name) { _, newValue in
-                        Task {
-                            await checkForDuplicates()
-                        }
-                    }
+        ZStack {
+            // Background
+            Color(red: 0.965, green: 0.965, blue: 0.973)
+                .ignoresSafeArea()
 
-                    LopanTextField(
-                        title: "客户地址",
-                        placeholder: "请输入客户地址",
-                        text: $address,
-                        variant: .outline,
-                        state: address.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty ? .error : .normal,
-                        isRequired: true,
-                        icon: "location",
-                        errorText: address.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty ? "客户地址不能为空" : nil
-                    )
-
-                    LopanTextField(
-                        title: "联系电话",
-                        placeholder: "请输入联系电话（可选）",
-                        text: $phone,
-                        variant: .outline,
-                        keyboardType: .phonePad,
-                        icon: "phone",
-                        helperText: "联系电话为可选信息"
-                    )
-                }
-                
-                Spacer()
-            }
-            .screenPadding()
-            .navigationTitle("添加客户")
-            .navigationBarTitleDisplayMode(.inline)
-            .toolbar {
-                ToolbarItem(placement: .navigationBarLeading) {
-                    Button("取消") {
-                        dismiss()
+            VStack(spacing: 0) {
+                // Custom Header
+                HStack {
+                    // Close button
+                    Button(action: { dismiss() }) {
+                        Image(systemName: "xmark")
+                            .font(.system(size: 24, weight: .light))
+                            .foregroundColor(Color(red: 0.153, green: 0.345, blue: 0.925))
+                            .frame(width: 44, height: 44)
                     }
                     .disabled(isSaving)
+
+                    Spacer()
+
+                    // Title
+                    Text("New Customer")
+                        .font(.system(size: 16, weight: .semibold))
+                        .foregroundColor(LopanColors.textPrimary)
+
+                    Spacer()
+
+                    // Empty space for symmetry
+                    Color.clear
+                        .frame(width: 44, height: 44)
                 }
-                
-                ToolbarItem(placement: .navigationBarTrailing) {
-                    Button("保存") {
-                        saveCustomer()
+                .padding(.horizontal, 16)
+                .padding(.top, 16)
+                .padding(.bottom, 8)
+                .background(
+                    Color(red: 0.965, green: 0.965, blue: 0.973).opacity(0.8)
+                        .background(.ultraThinMaterial)
+                )
+
+                // Content
+                ScrollView {
+                    VStack(spacing: 28) {
+                        // Customer Name
+                        TextField("Customer Name", text: $name)
+                            .font(.system(size: 16))
+                            .foregroundColor(LopanColors.textPrimary)
+                            .padding(.horizontal, LopanSpacing.lg)
+                            .frame(height: LopanSpacing.inputHeightEnhanced)
+                            .background(Color.white)
+                            .cornerRadius(LopanCornerRadius.lg)
+                            .lopanShadow(LopanShadows.sm)
+                            .onChange(of: name) { _, newValue in
+                                Task {
+                                    await checkForDuplicates()
+                                }
+                            }
+
+                        // Country Selector
+                        Button(action: { showCountrySelection = true }) {
+                            HStack {
+                                if let country = selectedCountry {
+                                    Text("\(country.flag) \(country.name)")
+                                        .font(.system(size: 16))
+                                        .foregroundColor(LopanColors.textPrimary)
+                                } else {
+                                    Text("Country")
+                                        .font(.system(size: 16))
+                                        .foregroundColor(Color(.placeholderText))
+                                }
+                                Spacer()
+                                Image(systemName: "chevron.right")
+                                    .font(.system(size: 14, weight: .medium))
+                                    .foregroundColor(Color(.systemGray))
+                            }
+                            .padding(.horizontal, LopanSpacing.lg)
+                            .frame(height: LopanSpacing.inputHeightEnhanced)
+                            .background(Color.white)
+                            .cornerRadius(LopanCornerRadius.lg)
+                            .lopanShadow(LopanShadows.sm)
+                        }
+
+                        // Region Selector (only show if country is selected)
+                        if selectedCountry != nil {
+                            Button(action: {
+                                if selectedCountry != nil {
+                                    showRegionSelection = true
+                                }
+                            }) {
+                                HStack {
+                                    Text(region.isEmpty ? "Region" : region)
+                                        .font(.system(size: 16))
+                                        .foregroundColor(region.isEmpty ? Color(.placeholderText) : LopanColors.textPrimary)
+                                    Spacer()
+                                    Image(systemName: "chevron.right")
+                                        .font(.system(size: 14, weight: .medium))
+                                        .foregroundColor(Color(.systemGray))
+                                }
+                                .padding(.horizontal, LopanSpacing.lg)
+                                .frame(height: LopanSpacing.inputHeightEnhanced)
+                                .background(Color.white)
+                                .cornerRadius(LopanCornerRadius.lg)
+                                .lopanShadow(LopanShadows.sm)
+                            }
+                        }
+
+                        // Phone Number
+                        HStack(spacing: 8) {
+                            // Dial Code Prefix
+                            if let country = selectedCountry {
+                                Text(country.dialCode)
+                                    .font(.system(size: 16))
+                                    .foregroundColor(LopanColors.textPrimary)
+                            }
+
+                            TextField("Phone Number", text: $phone)
+                                .font(.system(size: 16))
+                                .foregroundColor(LopanColors.textPrimary)
+                                .keyboardType(.phonePad)
+                        }
+                        .padding(.horizontal, LopanSpacing.lg)
+                        .frame(height: LopanSpacing.inputHeightEnhanced)
+                        .background(Color.white)
+                        .cornerRadius(LopanCornerRadius.lg)
+                        .lopanShadow(LopanShadows.sm)
+
+                        // WhatsApp Number
+                        HStack(spacing: 8) {
+                            // Dial Code Prefix
+                            if let country = selectedCountry {
+                                Text(country.dialCode)
+                                    .font(.system(size: 16))
+                                    .foregroundColor(LopanColors.textPrimary)
+                            }
+
+                            TextField("WhatsApp Number", text: $whatsappNumber)
+                                .font(.system(size: 16))
+                                .foregroundColor(LopanColors.textPrimary)
+                                .keyboardType(.phonePad)
+                        }
+                        .padding(.horizontal, LopanSpacing.lg)
+                        .frame(height: LopanSpacing.inputHeightEnhanced)
+                        .background(Color.white)
+                        .cornerRadius(LopanCornerRadius.lg)
+                        .lopanShadow(LopanShadows.sm)
+
+                        // Error message for duplicate
+                        if let error = duplicateError {
+                            Text(error)
+                                .font(.system(size: 14))
+                                .foregroundColor(.red)
+                                .frame(maxWidth: .infinity, alignment: .leading)
+                        }
+                    }
+                    .padding(.horizontal, 16)
+                    .padding(.top, 16)
+                    .padding(.bottom, 16)
+                }
+
+                // Footer with Add Customer button
+                VStack(spacing: 0) {
+                    Divider()
+                        .background(Color(.separator))
+
+                    Button(action: saveCustomer) {
+                        Text("Add Customer")
+                            .font(.system(size: 16, weight: .semibold))
+                            .foregroundColor(.white)
+                            .frame(maxWidth: .infinity)
+                            .frame(height: 48)
+                            .background(Color(red: 0.153, green: 0.345, blue: 0.925))
+                            .cornerRadius(8)
                     }
                     .disabled(!isValid || isSaving)
+                    .opacity(!isValid || isSaving ? 0.5 : 1.0)
+                    .padding(.horizontal, 16)
+                    .padding(.vertical, 12)
+                    .background(Color(red: 0.965, green: 0.965, blue: 0.973))
                 }
             }
         }
+        .sheet(isPresented: $showCountrySelection) {
+            CountrySelectionView(selectedCountry: $selectedCountry)
+                .onDisappear {
+                    // Reset region when country changes
+                    if selectedCountry != nil {
+                        region = ""
+                    }
+                }
+        }
+        .sheet(isPresented: $showRegionSelection) {
+            if let country = selectedCountry {
+                RegionSelectionView(country: country, selectedRegion: $region)
+            }
+        }
     }
-    
+
     private func checkForDuplicates() async {
         let trimmedName = name.trimmingCharacters(in: .whitespacesAndNewlines)
         guard !trimmedName.isEmpty else {
@@ -804,7 +1052,27 @@ struct AddCustomerView: View {
 
     private func saveCustomer() {
         isSaving = true
-        let customer = Customer(name: name, address: address, phone: phone)
+
+        // Combine dial code with phone numbers
+        let dialCode = selectedCountry?.dialCode ?? ""
+        let trimmedPhone = phone.trimmingCharacters(in: .whitespacesAndNewlines)
+        let trimmedWhatsApp = whatsappNumber.trimmingCharacters(in: .whitespacesAndNewlines)
+
+        let fullPhone = trimmedPhone.isEmpty ? "" : "\(dialCode)\(trimmedPhone)"
+        let fullWhatsApp = trimmedWhatsApp.isEmpty ? "" : "\(dialCode)\(trimmedWhatsApp)"
+
+        let customer = Customer(
+            name: name.trimmingCharacters(in: .whitespacesAndNewlines),
+            address: "", // Free text address field removed, will be added later if needed
+            phone: fullPhone,
+            whatsappNumber: fullWhatsApp,
+            country: selectedCountry?.id ?? "",
+            countryName: selectedCountry?.name ?? "",
+            region: region.trimmingCharacters(in: .whitespacesAndNewlines),
+            city: city.trimmingCharacters(in: .whitespacesAndNewlines),
+            contactName: "",
+            notes: ""
+        )
         onSave(customer)
         dismiss()
     }

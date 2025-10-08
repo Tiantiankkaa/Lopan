@@ -187,11 +187,17 @@ struct SalespersonDashboardView: View {
                 }
 
                 if let sales = viewModel.dailySales {
-                    HStack(alignment: .firstTextBaseline, spacing: 0) {
+                    HStack(alignment: .firstTextBaseline, spacing: 2) {
                         Text("₦")
-                            .lopanHeadlineLarge()
-                        Text(formatCurrency(sales.amount))
-                            .lopanHeadlineLarge()
+                            .font(.system(size: 24, weight: .semibold, design: .rounded))
+                            .foregroundColor(Color(UIColor.label))
+
+                        EnhancedAnimatedNumber(
+                            value: Double(truncating: sales.amount as NSNumber),
+                            format: .number.precision(.fractionLength(2)),
+                            font: .system(size: 28, weight: .bold, design: .rounded),
+                            foregroundColor: Color(UIColor.label)
+                        )
                     }
                 }
 
@@ -255,13 +261,16 @@ struct SalespersonDashboardView: View {
                             } label: {
                                 HStack(alignment: .top, spacing: 12) {
                                     Text(activity.title)
-                                        .lopanBodyLarge()
+                                        .font(LopanTypography.bodyLarge)
+                                        .lineLimit(1)
+                                        .truncationMode(.tail)
                                         .foregroundColor(Color(UIColor.label))
                                         .multilineTextAlignment(.leading)
                                         .frame(maxWidth: .infinity, alignment: .leading)
 
                                     Text(formatActivityTime(activity.date))
-                                        .lopanLabelMedium()
+                                        .font(LopanTypography.labelMedium)
+                                        .lineLimit(1)
                                         .foregroundColor(Color(UIColor.secondaryLabel))
                                         .fixedSize()
                                 }
