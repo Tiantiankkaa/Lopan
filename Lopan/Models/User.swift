@@ -59,8 +59,8 @@ public final class User: @unchecked Sendable {
     var createdAt: Date
     var lastLoginAt: Date?
     
-    init(wechatId: String, name: String, phone: String? = nil) {
-        self.id = UUID().uuidString
+    init(wechatId: String, name: String, phone: String? = nil, fixedId: String? = nil) {
+        self.id = fixedId ?? UUID().uuidString
         self.wechatId = wechatId
         self.name = name
         self.phone = phone
@@ -71,8 +71,8 @@ public final class User: @unchecked Sendable {
         self.createdAt = Date()
     }
     
-    init(appleUserId: String, name: String, email: String? = nil) {
-        self.id = UUID().uuidString
+    init(appleUserId: String, name: String, email: String? = nil, fixedId: String? = nil) {
+        self.id = fixedId ?? UUID().uuidString
         self.appleUserId = appleUserId
         self.name = name
         self.email = email
@@ -83,8 +83,8 @@ public final class User: @unchecked Sendable {
         self.createdAt = Date()
     }
     
-    init(phone: String, name: String) {
-        self.id = UUID().uuidString
+    init(phone: String, name: String, fixedId: String? = nil) {
+        self.id = fixedId ?? UUID().uuidString
         self.phone = phone
         self.name = name
         self.authMethod = .phoneNumber

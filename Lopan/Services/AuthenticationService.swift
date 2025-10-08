@@ -17,6 +17,7 @@ public class AuthenticationService: ObservableObject {
     @Published var smsCode = ""
     @Published var phoneNumber = ""
     @Published var showingSMSVerification = false
+    @Published var isDemoMode = false
     
     private let userRepository: UserRepository
     private var pendingSMSUser: User?
@@ -32,8 +33,9 @@ public class AuthenticationService: ObservableObject {
     
     // Simulate WeChat login
     // TODO: Replace with proper WeChat SDK integration and server-side verification
-    func loginWithWeChat(wechatId: String, name: String, phone: String? = nil) async {
+    func loginWithWeChat(wechatId: String, name: String, phone: String? = nil, fixedId: String? = nil, isDemoLogin: Bool = false) async {
         isLoading = true
+        isDemoMode = isDemoLogin
         
         // Check rate limiting
         guard let sessionService = sessionSecurityService,
@@ -77,11 +79,11 @@ public class AuthenticationService: ObservableObject {
                 }
             } else {
                 // Create new user
-                let newUser = User(wechatId: wechatId, name: name, phone: phone)
-                
+                let newUser = User(wechatId: wechatId, name: name, phone: phone, fixedId: fixedId)
+
                 // New users get default role - role upgrades require administrator approval
                 // TODO: Implement secure role assignment workflow
-                
+
                 try await userRepository.addUser(newUser)
                 currentUser = newUser
                 
@@ -127,6 +129,7 @@ public class AuthenticationService: ObservableObject {
         await MainActor.run {
             currentUser = nil
             isAuthenticated = false
+            isDemoMode = false
         }
         
         print("✅ Comprehensive logout completed successfully")
@@ -400,9 +403,10 @@ public class AuthenticationService: ObservableObject {
         if let sessionService = sessionSecurityService {
             sessionService.invalidateSession()
         }
-        
+
         currentUser = nil
         isAuthenticated = false
+        isDemoMode = false
         showingSMSVerification = false
         smsCode = ""
         phoneNumber = ""

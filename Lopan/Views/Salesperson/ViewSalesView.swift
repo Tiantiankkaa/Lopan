@@ -7,20 +7,51 @@
 
 import SwiftUI
 
+// MARK: - Lemon Green Theme Colors
+
+extension Color {
+    static let lemonGreen = Color(hex: "39B54A") ?? Color.green
+    static let lemonGreenLight = Color(hex: "F0FEEA") ?? Color.green.opacity(0.1)
+    static let lemonGreenBright = Color(hex: "AEF359") ?? Color.green
+    static let lemonGreenDark = Color(hex: "8CC63F") ?? Color.green
+}
+
 struct ViewSalesView: View {
     @Environment(\.appDependencies) private var appDependencies
     @StateObject private var viewModel = ViewSalesViewModel()
     @StateObject private var toastManager = EnhancedToastManager()
-    @State private var entryToDelete: String?
+    @State private var productToDelete: String?
     @State private var showDeleteConfirmation = false
+    @State private var dateTransitionDirection: TransitionDirection = .forward
+
+    // MARK: - Transition Direction
+
+    enum TransitionDirection {
+        case forward, backward
+
+        var slideTransition: AnyTransition {
+            switch self {
+            case .forward:
+                return .asymmetric(
+                    insertion: .move(edge: .trailing).combined(with: .opacity),
+                    removal: .move(edge: .leading).combined(with: .opacity)
+                )
+            case .backward:
+                return .asymmetric(
+                    insertion: .move(edge: .leading).combined(with: .opacity),
+                    removal: .move(edge: .trailing).combined(with: .opacity)
+                )
+            }
+        }
+    }
 
     // MARK: - Body
 
     var body: some View {
         ZStack {
-            Color(UIColor.systemGroupedBackground).ignoresSafeArea()
+            Color(UIColor.systemGray6).ignoresSafeArea()
 
-            if viewModel.isLoading {
+            if viewModel.isInitialLoad && viewModel.isLoading {
                 loadingState
             } else if viewModel.errorMessage != nil {
                 errorState
@@ -51,18 +82,18 @@ struct ViewSalesView: View {
         .onChange(of: viewModel.selectedDate) { _ in
             viewModel.loadSalesData()
         }
-        .alert("Delete Sales Entry", isPresented: $showDeleteConfirmation, presenting: entryToDelete) { entryId in
+        .alert("Delete Product Sales", isPresented: $showDeleteConfirmation, presenting: productToDelete) { productId in
             Button("Cancel", role: .cancel) {
-                entryToDelete = nil
+                productToDelete = nil
             }
             Button("Delete", role: .destructive) {
                 Task {
-                    await viewModel.deleteSalesEntry(id: entryId)
-                    entryToDelete = nil
+                    await viewModel.deleteProductSales(productId: productId)
+                    productToDelete = nil
                 }
             }
         } message: { _ in
-            Text("Are you sure you want to delete this sales entry? This action cannot be undone.")
+            Text("Are you sure you want to delete all sales entries for this product? This action cannot be undone.")
         }
     }
 
@@ -93,38 +124,90 @@ struct ViewSalesView: View {
     // MARK: - Date Section
 
     private var dateSection: some View {
-        VStack(alignment: .leading, spacing: LopanSpacing.sm) {
-            // Date Input Field
-            HStack(spacing: LopanSpacing.md) {
-                DatePicker(
-                    "",
-                    selection: $viewModel.selectedDate,
-                    in: ...Date(),
-                    displayedComponents: .date
-                )
-                .datePickerStyle(.compact)
-                .labelsHidden()
-                .frame(maxWidth: .infinity, alignment: .leading)
-                .onChange(of: viewModel.selectedDate) { _, _ in
-                    LopanHapticEngine.shared.light()
+        HStack(spacing: LopanSpacing.md) {
+            // Previous Day Button
+            Button(action: {
+                LopanHapticEngine.shared.light()
+                withAnimation(.spring(response: 0.35, dampingFraction: 0.8)) {
+                    dateTransitionDirection = .backward
+                    viewModel.navigateToPreviousDay()
+                }
+            }) {
+                Image(systemName: "chevron.left")
+                    .font(.system(size: 18, weight: .semibold))
+                    .foregroundColor(LopanColors.primary)
+                    .frame(width: 44, height: 44)
+            }
+            .disabled(viewModel.isLoading)
+
+            // Date Display with loading indicator
+            HStack(spacing: 8) {
+                VStack(spacing: 4) {
+                    Text(formatDateLong(viewModel.selectedDate))
+                        .font(.headline)
+                        .fontWeight(.semibold)
+                        .foregroundColor(Color(UIColor.label))
+                        .id(viewModel.selectedDate)
+                        .transition(dateTransitionDirection.slideTransition)
+
+                    if viewModel.isToday {
+                        Text("Today")
+                            .font(.footnote)
+                            .foregroundColor(Color(UIColor.secondaryLabel))
+                    }
                 }
 
-                Image(systemName: "calendar")
-                    .font(.system(size: 20, weight: .regular))
-                    .foregroundColor(Color(UIColor.tertiaryLabel))
+                if viewModel.isLoading {
+                    ProgressView()
+                        .scaleEffect(0.8)
+                }
             }
-            .padding(.horizontal, LopanSpacing.md)
-            .padding(.vertical, 16)
-            .background(
-                RoundedRectangle(cornerRadius: 12)
-                    .fill(Color.white)
-                    .overlay(
-                        RoundedRectangle(cornerRadius: 12)
-                            .stroke(Color(UIColor.separator), lineWidth: 1)
-                    )
-                    .shadow(color: Color.black.opacity(0.03), radius: 1, x: 0, y: 1)
-            )
+            .frame(maxWidth: .infinity)
+            .animation(.spring(response: 0.35, dampingFraction: 0.8), value: viewModel.selectedDate)
+
+            // Next Day Button
+            Button(action: {
+                LopanHapticEngine.shared.light()
+                withAnimation(.spring(response: 0.35, dampingFraction: 0.8)) {
+                    dateTransitionDirection = .forward
+                    viewModel.navigateToNextDay()
+                }
+            }) {
+                Image(systemName: "chevron.right")
+                    .font(.system(size: 18, weight: .semibold))
+                    .foregroundColor(viewModel.canNavigateForward ? LopanColors.primary : Color(UIColor.quaternaryLabel))
+                    .frame(width: 44, height: 44)
+            }
+            .disabled(!viewModel.canNavigateForward || viewModel.isLoading)
         }
+        .padding(.horizontal, LopanSpacing.md)
+        .padding(.vertical, 16)
+        .background(
+            RoundedRectangle(cornerRadius: 12)
+                .fill(Color.white)
+                .shadow(color: Color.black.opacity(0.1), radius: 1.5, x: 0, y: 1)
+        )
+    }
+
+    // Helper function to format date like "Thursday, July 25"
+    private func formatDateLong(_ date: Date) -> String {
+        let formatter = DateFormatter()
+        formatter.dateFormat = "EEEE, MMMM d"
+        formatter.locale = Locale.current
+        return formatter.string(from: date)
+    }
+
+    // MARK: - Sorting Helpers
+
+    private func sortIcon(for field: ViewSalesViewModel.SalesSortField) -> String {
+        guard viewModel.sortField == field else {
+            return "arrow.up.arrow.down"
+        }
+        return viewModel.sortDirection == .ascending ? "chevron.up" : "chevron.down"
+    }
+
+    private func sortColor(for field: ViewSalesViewModel.SalesSortField) -> Color {
+        viewModel.sortField == field ? LopanColors.primary : Color(UIColor.secondaryLabel)
     }
 
     // MARK: - Summary Section
@@ -132,203 +215,277 @@ struct ViewSalesView: View {
     private var summarySection: some View {
         HStack(spacing: LopanSpacing.md) {
             // Total Sales Card
-            VStack(alignment: .leading, spacing: LopanSpacing.xs) {
-                Text("Total Sales")
-                    .lopanHeadlineMedium()
-                    .foregroundColor(Color(UIColor.secondaryLabel))
+            VStack(alignment: .leading, spacing: 12) {
+                // Icon badge + Label
+                HStack(spacing: 8) {
+                    Image(systemName: "dollarsign.circle.fill")
+                        .font(.system(size: 16, weight: .semibold))
+                        .foregroundColor(.lemonGreen)
 
+                    Text("TOTAL SALES")
+                        .font(.system(size: 11, weight: .semibold))
+                        .tracking(1.2)
+                        .foregroundColor(.lemonGreen)
+                }
+
+                // Animated value
                 HStack(alignment: .firstTextBaseline, spacing: 2) {
                     Text("₦")
-                        .lopanTitleLarge()
-                    Text(viewModel.formatCurrency(viewModel.totalSales))
-                        .lopanTitleLarge()
-                        .fontWeight(.bold)
+                        .font(.system(size: 18, weight: .semibold, design: .rounded))
+                        .foregroundColor(Color(UIColor.label))
+
+                    EnhancedAnimatedNumber(
+                        value: safeDouble(viewModel.totalSales),
+                        format: .number.precision(.fractionLength(2)),
+                        font: .system(size: 20, weight: .bold, design: .rounded),
+                        foregroundColor: Color(UIColor.label)
+                    )
                 }
-                .foregroundColor(Color(UIColor.label))
             }
             .frame(maxWidth: .infinity, alignment: .leading)
-            .padding(LopanSpacing.md)
-            .background(Color.white)
-            .cornerRadius(LopanCornerRadius.card)
-            .shadow(color: Color.black.opacity(0.1), radius: 1.5, x: 0, y: 1)
+            .padding(16)
+            .background(Color.lemonGreenLight)
+            .cornerRadius(12)
 
-            // Total Items Card
-            VStack(alignment: .leading, spacing: LopanSpacing.xs) {
-                Text("Total Items")
-                    .lopanHeadlineMedium()
-                    .foregroundColor(Color(UIColor.secondaryLabel))
+            // Products Sold Card
+            VStack(alignment: .leading, spacing: 12) {
+                // Icon badge + Label
+                HStack(spacing: 8) {
+                    Image(systemName: "shippingbox.fill")
+                        .font(.system(size: 16, weight: .semibold))
+                        .foregroundColor(.lemonGreen)
 
-                Text("\(viewModel.totalItems)")
-                    .lopanTitleLarge()
-                    .fontWeight(.bold)
-                    .foregroundColor(Color(UIColor.label))
+                    Text("PRODUCTS SOLD")
+                        .font(.system(size: 11, weight: .semibold))
+                        .tracking(1.2)
+                        .foregroundColor(.lemonGreen)
+                }
+
+                // Animated value
+                EnhancedAnimatedInteger(
+                    value: max(0, viewModel.totalItems),
+                    font: .system(size: 20, weight: .bold, design: .rounded),
+                    foregroundColor: Color(UIColor.label)
+                )
             }
             .frame(maxWidth: .infinity, alignment: .leading)
-            .padding(LopanSpacing.md)
-            .background(Color.white)
-            .cornerRadius(LopanCornerRadius.card)
-            .shadow(color: Color.black.opacity(0.1), radius: 1.5, x: 0, y: 1)
+            .padding(16)
+            .background(Color.lemonGreenLight)
+            .cornerRadius(12)
         }
+    }
+
+    // MARK: - Helper Methods
+
+    /// Safely converts Decimal to Double, returning 0.0 for invalid values
+    private func safeDouble(_ decimal: Decimal) -> Double {
+        let number = NSDecimalNumber(decimal: decimal)
+        let double = number.doubleValue
+
+        // Check for NaN, Infinity, or extremely large values
+        guard double.isFinite, abs(double) < Double.greatestFiniteMagnitude else {
+            print("⚠️ [ViewSales] Invalid decimal value: \(decimal), using 0.0")
+            return 0.0
+        }
+
+        return double
     }
 
     // MARK: - Sales List Section
 
     private var salesListSection: some View {
-        VStack(alignment: .leading, spacing: LopanSpacing.sm) {
+        VStack(alignment: .leading, spacing: 12) {
+            // Section Title
             Text("Today's Sales")
-                .lopanTitleMedium()
-                .padding(.horizontal, LopanSpacing.xs)
-                .padding(.bottom, LopanSpacing.xxs)
-
-            if viewModel.isEmpty {
-                // Inline Empty State
-                VStack(spacing: LopanSpacing.sm) {
-                    Image(systemName: "cart.badge.questionmark")
-                        .font(.system(size: 40))
-                        .foregroundColor(Color(UIColor.secondaryLabel))
-
-                    Text(NSLocalizedString("view_sales_empty_title", comment: ""))
-                        .lopanBodyMedium()
-                        .foregroundColor(Color(UIColor.secondaryLabel))
-                        .multilineTextAlignment(.center)
-                }
-                .frame(maxWidth: .infinity)
-                .padding(.vertical, 48)
-                .background(Color.white)
-                .cornerRadius(LopanCornerRadius.card)
-                .shadow(color: Color.black.opacity(0.1), radius: 1.5, x: 0, y: 1)
-            } else {
-                // Sales List
-                VStack(spacing: 0) {
-                    ForEach(Array(viewModel.aggregatedProducts.enumerated()), id: \.element.id) { index, product in
-                        VStack(spacing: 0) {
-                            productRow(for: product)
-
-                            // Show entry details if expanded
-                            if product.isExpanded {
-                                entryDetailsView(for: product)
-                            }
-
-                            if index < viewModel.aggregatedProducts.count - 1 {
-                                Divider()
-                                    .padding(.leading, LopanSpacing.md)
-                            }
-                        }
-                    }
-                }
-                .background(Color.white)
-                .cornerRadius(LopanCornerRadius.card)
-                .shadow(color: Color.black.opacity(0.1), radius: 1.5, x: 0, y: 1)
-            }
-        }
-    }
-
-    private func productRow(for product: ViewSalesViewModel.AggregatedProduct) -> some View {
-        Button {
-            withAnimation(.easeInOut(duration: 0.3)) {
-                viewModel.toggleExpanded(productId: product.id)
-            }
-        } label: {
-            HStack(spacing: LopanSpacing.md) {
-                // Product Info
-                VStack(alignment: .leading, spacing: 4) {
-                    Text(product.productName)
-                        .lopanHeadlineMedium()
-                        .foregroundColor(Color(UIColor.label))
-                        .frame(maxWidth: .infinity, alignment: .leading)
-
-                    Text("₦\(viewModel.formatCurrency(product.totalAmount))")
-                        .lopanLabelMedium()
-                        .foregroundColor(Color(UIColor.secondaryLabel))
-                }
-
-                Spacer()
-
-                // Quantity
-                HStack(spacing: 4) {
-                    Text("\(product.totalQuantity)")
-                        .lopanHeadlineMedium()
-                        .fontWeight(.semibold)
-                    Text("units")
-                        .lopanLabelMedium()
-                        .foregroundColor(Color(UIColor.secondaryLabel))
-                }
-
-                // Expand/Collapse Icon
-                Image(systemName: product.isExpanded ? "chevron.up" : "chevron.down")
-                    .lopanLabelLarge()
-                    .foregroundColor(Color(UIColor.tertiaryLabel))
-            }
-            .padding(LopanSpacing.md)
-            .contentShape(Rectangle())
-        }
-        .buttonStyle(.plain)
-    }
-
-    private func entryDetailsView(for product: ViewSalesViewModel.AggregatedProduct) -> some View {
-        VStack(spacing: 0) {
-            Divider()
-                .padding(.horizontal, LopanSpacing.md)
-
-            VStack(spacing: LopanSpacing.xs) {
-                Text("Source Entries")
-                    .lopanLabelLarge()
-                    .foregroundColor(Color(UIColor.secondaryLabel))
-                    .frame(maxWidth: .infinity, alignment: .leading)
-                    .padding(.horizontal, LopanSpacing.md)
-                    .padding(.top, LopanSpacing.sm)
-
-                ForEach(viewModel.getEntriesForProduct(productId: product.id)) { entry in
-                    entryDetailRow(for: entry)
-                }
-            }
-            .padding(.bottom, LopanSpacing.sm)
-        }
-        .background(Color(UIColor.systemGroupedBackground))
-    }
-
-    private func entryDetailRow(for entry: ViewSalesViewModel.EntryDetail) -> some View {
-        HStack(spacing: LopanSpacing.md) {
-            VStack(alignment: .leading, spacing: 4) {
-                Text(viewModel.formatTime(entry.createdAt))
-                    .lopanBodyMedium()
-                    .foregroundColor(Color(UIColor.label))
-
-                ForEach(entry.items, id: \.id) { item in
-                    Text("\(item.quantity) × ₦\(viewModel.formatCurrency(item.unitPrice))")
-                        .lopanLabelMedium()
-                        .foregroundColor(Color(UIColor.secondaryLabel))
-                }
-            }
-
-            Spacer()
-
-            Text("₦\(viewModel.formatCurrency(entry.totalAmount))")
-                .lopanBodyMedium()
-                .fontWeight(.medium)
+                .font(.system(size: 20, weight: .bold))
                 .foregroundColor(Color(UIColor.label))
 
-            // Delete Button
+            Group {
+                if viewModel.isEmpty {
+                    // Inline Empty State
+                    VStack(spacing: LopanSpacing.sm) {
+                        Image(systemName: "cart.badge.questionmark")
+                            .font(.system(size: 40))
+                            .foregroundColor(Color(UIColor.secondaryLabel))
+
+                        Text(NSLocalizedString("view_sales_empty_title", comment: ""))
+                            .lopanBodyMedium()
+                            .foregroundColor(Color(UIColor.secondaryLabel))
+                            .multilineTextAlignment(.center)
+                    }
+                    .frame(maxWidth: .infinity)
+                    .padding(.vertical, 48)
+                    .background(Color.white)
+                    .cornerRadius(LopanCornerRadius.card)
+                    .shadow(color: Color.black.opacity(0.1), radius: 1.5, x: 0, y: 1)
+                    .transition(.opacity.combined(with: .scale(scale: 0.95)))
+                } else {
+                    // Table Layout
+                    VStack(spacing: 0) {
+                        // Table Header
+                        HStack(spacing: 0) {
+                            Button(action: {
+                                LopanHapticEngine.shared.light()
+                                withAnimation(.spring(response: 0.4, dampingFraction: 0.8)) {
+                                    viewModel.setSortField(.productName)
+                                }
+                            }) {
+                                HStack(spacing: 4) {
+                                    Text("Product")
+                                    Image(systemName: sortIcon(for: .productName))
+                                        .font(.system(size: 10, weight: .semibold))
+                                }
+                                .font(.system(size: 12, weight: viewModel.sortField == .productName ? .bold : .semibold))
+                                .foregroundColor(sortColor(for: .productName))
+                                .frame(maxWidth: .infinity, alignment: .leading)
+                            }
+
+                            Button(action: {
+                                LopanHapticEngine.shared.light()
+                                withAnimation(.spring(response: 0.4, dampingFraction: 0.8)) {
+                                    viewModel.setSortField(.quantity)
+                                }
+                            }) {
+                                HStack(spacing: 4) {
+                                    Text("Qty")
+                                    Image(systemName: sortIcon(for: .quantity))
+                                        .font(.system(size: 10, weight: .semibold))
+                                }
+                                .font(.system(size: 12, weight: viewModel.sortField == .quantity ? .bold : .semibold))
+                                .foregroundColor(sortColor(for: .quantity))
+                                .frame(width: 80, alignment: .center)
+                            }
+
+                            Button(action: {
+                                LopanHapticEngine.shared.light()
+                                withAnimation(.spring(response: 0.4, dampingFraction: 0.8)) {
+                                    viewModel.setSortField(.amount)
+                                }
+                            }) {
+                                HStack(spacing: 4) {
+                                    Text("Amount")
+                                    Image(systemName: sortIcon(for: .amount))
+                                        .font(.system(size: 10, weight: .semibold))
+                                }
+                                .font(.system(size: 12, weight: viewModel.sortField == .amount ? .bold : .semibold))
+                                .foregroundColor(sortColor(for: .amount))
+                                .frame(width: 120, alignment: .trailing)
+                            }
+                        }
+                        .padding(.horizontal, 16)
+                        .padding(.vertical, 12)
+                        .background(Color.white)
+                        .cornerRadius(12, corners: [.topLeft, .topRight])
+
+                        // Table Rows
+                        ForEach(Array(viewModel.paginatedProducts.enumerated()), id: \.element.id) { index, product in
+                            VStack(spacing: 0) {
+                                HStack(spacing: 0) {
+                                    Text(product.productName)
+                                        .font(.system(size: 15))
+                                        .foregroundColor(Color(UIColor.label))
+                                        .frame(maxWidth: .infinity, alignment: .leading)
+                                        .lineLimit(1)
+
+                                    Text("\(product.totalQuantity)")
+                                        .font(.system(size: 15))
+                                        .monospacedDigit()
+                                        .foregroundColor(Color(UIColor.label))
+                                        .frame(width: 80, alignment: .center)
+
+                                    Text("₦\(viewModel.formatCurrency(product.totalAmount))")
+                                        .font(.system(size: 15, weight: .semibold))
+                                        .monospacedDigit()
+                                        .foregroundColor(.lemonGreen)
+                                        .frame(width: 120, alignment: .trailing)
+                                        .lineLimit(1)
+                                        .minimumScaleFactor(0.8)
+                                }
+                                .padding(.horizontal, 16)
+                                .padding(.vertical, 12)
+                                .background(Color.white)
+                                .contextMenu {
+                                    Button(role: .destructive) {
+                                        productToDelete = product.id
+                                        showDeleteConfirmation = true
+                                    } label: {
+                                        Label("Delete", systemImage: "trash")
+                                    }
+                                }
+
+                                if index < viewModel.paginatedProducts.count - 1 {
+                                    Divider()
+                                        .padding(.leading, 16)
+                                }
+                            }
+                        }
+
+                        // Bottom corner radius
+                        Rectangle()
+                            .fill(Color.white)
+                            .frame(height: 12)
+                            .frame(maxWidth: .infinity)
+                            .cornerRadius(12, corners: [.bottomLeft, .bottomRight])
+                    }
+                    .background(Color.white)
+                    .cornerRadius(12)
+                    .shadow(color: Color.black.opacity(0.05), radius: 2, x: 0, y: 1)
+                    .transition(.opacity.combined(with: .scale(scale: 0.95)))
+                    .animation(.spring(response: 0.4, dampingFraction: 0.8), value: viewModel.sortField)
+                    .animation(.spring(response: 0.4, dampingFraction: 0.8), value: viewModel.sortDirection)
+
+                    // Centered Pagination (outside the table card)
+                    if viewModel.totalPages > 1 {
+                        centeredPagination
+                    }
+                }
+            }
+            .animation(.spring(response: 0.4, dampingFraction: 0.8), value: viewModel.isEmpty)
+            .animation(.spring(response: 0.4, dampingFraction: 0.8), value: viewModel.aggregatedProducts.count)
+        }
+    }
+
+    // MARK: - Centered Pagination
+
+    private var centeredPagination: some View {
+        HStack(spacing: 0) {
             Button(action: {
-                entryToDelete = entry.id
-                showDeleteConfirmation = true
+                withAnimation(.easeInOut(duration: 0.3)) {
+                    viewModel.navigateToPreviousPage()
+                    LopanHapticEngine.shared.light()
+                }
             }) {
-                Image(systemName: "trash.circle.fill")
-                    .lopanHeadlineMedium()
-                    .foregroundColor(.red)
+                Image(systemName: "chevron.left")
+                    .font(.system(size: 14, weight: .semibold))
+                    .foregroundColor(viewModel.canNavigateToPreviousPage ? .lemonGreen : Color(UIColor.quaternaryLabel))
+                    .frame(width: 44, height: 44)
             }
+            .disabled(!viewModel.canNavigateToPreviousPage)
+
+            Text("\(viewModel.pageStartIndex) - \(viewModel.pageEndIndex) of \(viewModel.totalProductCount)")
+                .font(.system(size: 13))
+                .monospacedDigit()
+                .foregroundColor(Color(UIColor.secondaryLabel))
+                .padding(.horizontal, 12)
+
+            Button(action: {
+                withAnimation(.easeInOut(duration: 0.3)) {
+                    viewModel.navigateToNextPage()
+                    LopanHapticEngine.shared.light()
+                }
+            }) {
+                Image(systemName: "chevron.right")
+                    .font(.system(size: 14, weight: .semibold))
+                    .foregroundColor(viewModel.canNavigateToNextPage ? .lemonGreen : Color(UIColor.quaternaryLabel))
+                    .frame(width: 44, height: 44)
+            }
+            .disabled(!viewModel.canNavigateToNextPage)
         }
-        .padding(.horizontal, LopanSpacing.md)
-        .padding(.vertical, LopanSpacing.xs)
         .background(Color.white)
-        .swipeActions(edge: .trailing, allowsFullSwipe: false) {
-            Button(role: .destructive) {
-                entryToDelete = entry.id
-                showDeleteConfirmation = true
-            } label: {
-                Label("Delete", systemImage: "trash")
-            }
-        }
+        .cornerRadius(22)
+        .shadow(color: Color.black.opacity(0.05), radius: 2, x: 0, y: 1)
+        .frame(maxWidth: .infinity, alignment: .center)
+        .padding(.top, 16)
     }
 
     // MARK: - Offline Banner
@@ -347,37 +504,115 @@ struct ViewSalesView: View {
         .cornerRadius(LopanCornerRadius.card)
     }
 
-    // MARK: - Loading State
+    // MARK: - Skeleton Loading State
 
     private var loadingState: some View {
-        VStack(spacing: LopanSpacing.sectionSpacing) {
-            // Skeleton for date picker
-            RoundedRectangle(cornerRadius: LopanCornerRadius.card)
-                .fill(Color(UIColor.systemGray5))
-                .frame(height: 120)
+        ScrollView {
+            VStack(alignment: .leading, spacing: 24) {
+                // Date selector skeleton
+                LopanSkeletonView(
+                    style: .rectangular(width: nil, height: 60),
+                    accessibilityLabel: "Loading date selector"
+                )
+                .frame(maxWidth: .infinity)
                 .padding(.horizontal, LopanSpacing.screenPadding)
 
-            // Skeleton for summary cards
-            HStack(spacing: LopanSpacing.md) {
-                RoundedRectangle(cornerRadius: LopanCornerRadius.card)
-                    .fill(Color(UIColor.systemGray5))
-                    .frame(height: 100)
+                // Summary cards skeleton
+                HStack(spacing: LopanSpacing.md) {
+                    VStack(alignment: .leading, spacing: 12) {
+                        RoundedRectangle(cornerRadius: 4)
+                            .fill(Color(UIColor.systemGray5))
+                            .frame(width: 120, height: 14)
 
-                RoundedRectangle(cornerRadius: LopanCornerRadius.card)
+                        RoundedRectangle(cornerRadius: 4)
+                            .fill(Color(UIColor.systemGray4))
+                            .frame(width: 90, height: 22)
+                    }
+                    .frame(maxWidth: .infinity, alignment: .leading)
+                    .padding(16)
+                    .background(Color.lemonGreenLight.opacity(0.3))
+                    .cornerRadius(12)
+
+                    VStack(alignment: .leading, spacing: 12) {
+                        RoundedRectangle(cornerRadius: 4)
+                            .fill(Color(UIColor.systemGray5))
+                            .frame(width: 120, height: 14)
+
+                        RoundedRectangle(cornerRadius: 4)
+                            .fill(Color(UIColor.systemGray4))
+                            .frame(width: 50, height: 22)
+                    }
+                    .frame(maxWidth: .infinity, alignment: .leading)
+                    .padding(16)
+                    .background(Color.lemonGreenLight.opacity(0.3))
+                    .cornerRadius(12)
+                }
+                .padding(.horizontal, LopanSpacing.screenPadding)
+
+                // Section title skeleton
+                RoundedRectangle(cornerRadius: 4)
                     .fill(Color(UIColor.systemGray5))
-                    .frame(height: 100)
+                    .frame(width: 150, height: 20)
+                    .padding(.horizontal, LopanSpacing.screenPadding)
+
+                // Table skeleton
+                VStack(spacing: 0) {
+                    // Header
+                    HStack(spacing: 0) {
+                        RoundedRectangle(cornerRadius: 4)
+                            .fill(Color(UIColor.systemGray5))
+                            .frame(width: 80, height: 12)
+                            .frame(maxWidth: .infinity, alignment: .leading)
+
+                        RoundedRectangle(cornerRadius: 4)
+                            .fill(Color(UIColor.systemGray5))
+                            .frame(width: 30, height: 12)
+                            .frame(width: 80, alignment: .center)
+
+                        RoundedRectangle(cornerRadius: 4)
+                            .fill(Color(UIColor.systemGray5))
+                            .frame(width: 60, height: 12)
+                            .frame(width: 120, alignment: .trailing)
+                    }
+                    .padding(.horizontal, 16)
+                    .padding(.vertical, 12)
+
+                    // Rows
+                    ForEach(0..<5) { _ in
+                        VStack(spacing: 0) {
+                            Divider()
+
+                            HStack(spacing: 0) {
+                                RoundedRectangle(cornerRadius: 4)
+                                    .fill(Color(UIColor.systemGray4))
+                                    .frame(height: 14)
+                                    .frame(maxWidth: .infinity, alignment: .leading)
+
+                                RoundedRectangle(cornerRadius: 4)
+                                    .fill(Color(UIColor.systemGray4))
+                                    .frame(width: 20, height: 14)
+                                    .frame(width: 80, alignment: .center)
+
+                                RoundedRectangle(cornerRadius: 4)
+                                    .fill(Color(UIColor.systemGray4))
+                                    .frame(width: 80, height: 14)
+                                    .frame(width: 120, alignment: .trailing)
+                            }
+                            .padding(.horizontal, 16)
+                            .padding(.vertical, 12)
+                        }
+                    }
+                }
+                .background(Color.white)
+                .cornerRadius(12)
+                .padding(.horizontal, LopanSpacing.screenPadding)
+
+                Spacer()
             }
-            .padding(.horizontal, LopanSpacing.screenPadding)
-
-            // Skeleton for list
-            RoundedRectangle(cornerRadius: LopanCornerRadius.card)
-                .fill(Color(UIColor.systemGray5))
-                .frame(height: 200)
-                .padding(.horizontal, LopanSpacing.screenPadding)
-
-            Spacer()
+            .padding(.vertical, LopanSpacing.md)
         }
-        .padding(.top, LopanSpacing.sectionSpacing)
+        .redacted(reason: .placeholder)
+        .shimmering()
     }
 
     // MARK: - Empty State
@@ -443,6 +678,29 @@ struct ViewSalesView: View {
             Spacer()
         }
         .frame(maxWidth: .infinity, maxHeight: .infinity)
+    }
+
+}
+
+// MARK: - View Extensions
+
+extension View {
+    func cornerRadius(_ radius: CGFloat, corners: UIRectCorner) -> some View {
+        clipShape(RoundedCorner(radius: radius, corners: corners))
+    }
+}
+
+struct RoundedCorner: Shape {
+    var radius: CGFloat = .infinity
+    var corners: UIRectCorner = .allCorners
+
+    func path(in rect: CGRect) -> Path {
+        let path = UIBezierPath(
+            roundedRect: rect,
+            byRoundingCorners: corners,
+            cornerRadii: CGSize(width: radius, height: radius)
+        )
+        return Path(path.cgPath)
     }
 }
 

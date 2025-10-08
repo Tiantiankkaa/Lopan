@@ -207,12 +207,16 @@ struct DemoLoginView: View {
                         do {
                             isLoggingIn = true
                             loginError = nil
-                            
+
                             // 演示登录 - 仅开发环境
+                            // Generate fixed user ID for demo mode to ensure consistent data access across sessions
+                            let demoUserId = "demo-user-\(selectedRole.rawValue)"
                             await authService.loginWithWeChat(
                                 wechatId: "demo_\(selectedRole.rawValue)",
                                 name: "演示用户 - \(selectedRole.displayName)",
-                                phone: nil
+                                phone: nil,
+                                fixedId: demoUserId,
+                                isDemoLogin: true
                             )
                             
                             // TODO: In demo mode, manually set role after login for testing purposes only

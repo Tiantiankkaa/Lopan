@@ -15,11 +15,13 @@ class CustomerOutOfStockSampleDataService {
     
     // MARK: - 私有属性
     private let repositoryFactory: RepositoryFactory
+    private let authService: AuthenticationService
     private let progressMonitor = SampleDataProgressMonitor()
-    
+
     // MARK: - 初始化
-    init(repositoryFactory: RepositoryFactory) {
+    init(repositoryFactory: RepositoryFactory, authService: AuthenticationService) {
         self.repositoryFactory = repositoryFactory
+        self.authService = authService
     }
     
     // MARK: - 公开属性
@@ -58,6 +60,11 @@ class CustomerOutOfStockSampleDataService {
             print("🌍 地区分布：Lagos (50%), China (15%), USA (12%), Ibadan (8%), Onitsha (6%), Aba (5%), Kano (3%), Other (1%)")
             print("📅 时间范围：2024-01-01 至今 (21个月)")
             
+            // Pre-load location data to ensure country/region info is available
+            print("\n🌍 Pre-loading location data...")
+            await LocationDataService.shared.loadLocationData()
+            print("✅ Location data loaded")
+
             // 阶段1：生成客户数据
             progressMonitor.updatePhase(.customers)
             print("\n📋 阶段1：生成客户数据...")
@@ -74,17 +81,26 @@ class CustomerOutOfStockSampleDataService {
             progressMonitor.updatePhase(.outOfStock)
             print("\n📝 阶段3：生成欠货记录...")
             await generateOutOfStockRecords(customers: customers, products: products)
-            
-            // 完成阶段
+
+            // 阶段3.5：生成样本用户（销售人员）
+            print("\n👥 阶段3.5：生成样本用户...")
+            await generateSampleUsers()
+
+            // 阶段4：生成销售数据
             progressMonitor.updatePhase(.completing)
+            print("\n💰 阶段4：生成销售数据...")
+            await generateDailySalesData(products: products)
+
+            // 完成阶段
             progressMonitor.updateStep(phase: .completing, stepIndex: 0, stepName: "数据生成完成")
-            
+
             print("\n🎉 大规模样本数据生成完成！")
             print("📊 数据统计：")
             print("   - 客户数量：\(customers.count)")
             print("   - 产品数量：\(products.count)")
             print("   - 欠货记录：\(SampleDataConstants.outOfStockRecordCount)")
-            
+            print("   - 销售记录：\(SampleDataConstants.salesEntryCount)")
+
             progressMonitor.completeStep(phase: .completing, stepIndex: 0, stepName: "所有数据生成完成")
             progressMonitor.completeGeneration()
             
@@ -96,43 +112,136 @@ class CustomerOutOfStockSampleDataService {
     
     // MARK: - 客户数据生成
     
-    /// 生成大规模客户数据（500个）
+    /// Generate active salesperson IDs from database
+    /// - Returns: Array of salesperson user IDs
+    private func getActiveSalespersonIds() async -> [String] {
+        // Use current logged-in user for sample data
+        if let currentUser = authService.currentUser {
+            print("📊 Using logged-in user ID for sample sales: \(currentUser.id)")
+
+            // If this is a demo user, return ALL demo role IDs so sales are visible across all demo logins
+            if currentUser.id.hasPrefix("demo-user-") {
+                let demoUserIds = [
+                    "demo-user-salesperson",
+                    "demo-user-administrator",
+                    "demo-user-warehouse_keeper",
+                    "demo-user-workshop_manager"
+                ]
+                print("📊 Demo mode detected: Generating sales for all demo users")
+                return demoUserIds
+            }
+
+            return [currentUser.id]
+        }
+
+        // Fallback: fetch from database if no logged-in user
+        do {
+            let users = try await repositoryFactory.userRepository.fetchUsers()
+            let salespeople = users.filter { $0.roles.contains(.salesperson) && $0.isActive }
+            let ids = salespeople.map { $0.id }
+            print("📊 Found \(ids.count) active salespeople for sample data")
+            return ids.isEmpty ? ["demo-user-salesperson"] : ids
+        } catch {
+            print("⚠️ Failed to fetch users: \(error)")
+            // Default to demo salesperson if all else fails
+            return ["demo-user-salesperson"]
+        }
+    }
+
+    // MARK: - 用户数据生成
+
+    /// Generate sample salesperson users for sales data
+    private func generateSampleUsers() async {
+        do {
+            // Check if users already exist
+            let existingUsers = try await repositoryFactory.userRepository.fetchUsers()
+
+            if !existingUsers.isEmpty {
+                print("ℹ️ Users already exist (\(existingUsers.count)), skipping user generation")
+                return
+            }
+
+            // Create sample salesperson users
+            let sampleUsers: [(wechatId: String, name: String)] = [
+                ("sales_manager_001", "Sales Manager"),
+                ("sales_rep_001", "Sales Representative"),
+                ("sales_rep_002", "Senior Salesperson")
+            ]
+
+            for userData in sampleUsers {
+                let user = User(wechatId: userData.wechatId, name: userData.name)
+                user.roles = [.salesperson]
+                user.primaryRole = .salesperson
+                user.isActive = true
+                try await repositoryFactory.userRepository.addUser(user)
+            }
+
+            print("✅ Created \(sampleUsers.count) sample salesperson users")
+        } catch {
+            print("❌ Error creating sample users: \(error)")
+        }
+    }
+
+    /// 生成大规模客户数据（2000个）
     /// - Returns: 客户数组
     private func generateLargeScaleCustomers() async -> [Customer] {
         var customers: [Customer] = []
-        var customerIndex = 0
-        var stepIndex = 0
-        
-        // 按类型分配客户
-        for customerType in SampleDataConstants.CustomerType.allCases {
-            let count = customerType.count
-            progressMonitor.updateStep(
-                phase: .customers, 
-                stepIndex: stepIndex, 
-                stepName: "生成\(customerType.rawValue) \(count) 个..."
-            )
-            print("  生成\(customerType.rawValue) \(count) 个...")
-            
-            for i in 0..<count {
-                let name = LargeSampleDataGenerator.generateCustomerName(type: customerType, index: i)
-                // Use weighted city selection for Nigerian distribution
-                let city = SampleDataConstants.getWeightedCity()
-                let address = city  // Use simple city name only (Lagos, Ibadan, etc.)
-                let phone = LargeSampleDataGenerator.generatePhoneNumber()
+        let totalCount = SampleDataConstants.customerCount
 
-                let customer = Customer(name: name, address: address, phone: phone)
-                customers.append(customer)
-                customerIndex += 1
-            }
-            
-            progressMonitor.completeStep(
-                phase: .customers, 
-                stepIndex: stepIndex, 
-                stepName: "\(customerType.rawValue)生成完成"
+        progressMonitor.updateStep(
+            phase: .customers,
+            stepIndex: 0,
+            stepName: "Generating \(totalCount) customers..."
+        )
+        print("  Generating \(totalCount) customers with English names and global regions...")
+
+        for i in 0..<totalCount {
+            let name = LargeSampleDataGenerator.generateCustomerName(index: i)
+
+            // Get weighted country code
+            let countryCode = SampleDataConstants.getWeightedCountryCode()
+
+            // Generate phone number with proper dial code for country
+            let phone = LargeSampleDataGenerator.generatePhoneNumber(for: countryCode)
+            let whatsapp = LargeSampleDataGenerator.generatePhoneNumber(for: countryCode)
+
+            // Get country info from LocationDataService
+            let locationService = LocationDataService.shared
+            let country = locationService.getCountry(byId: countryCode)
+
+            // Get random region from country's regions
+            let regions = country?.regions ?? []
+            let region = regions.randomElement()
+
+            // Simple address using country/region/city structure
+            let cityName = region?.cities?.randomElement() ?? region?.name ?? country?.name ?? "Unknown"
+            let address = "\(cityName)"
+
+            // Create customer with country/region data
+            let customer = Customer(
+                name: name,
+                address: address,
+                phone: phone,
+                whatsappNumber: whatsapp,
+                country: countryCode,
+                countryName: country?.name ?? "",
+                region: region?.name ?? "",
+                city: cityName
             )
-            stepIndex += 1
+            customers.append(customer)
+
+            // Log progress every 500 customers
+            if (i + 1) % 500 == 0 {
+                print("    Generated \(i + 1)/\(totalCount) customers...")
+            }
         }
-        
+
+        progressMonitor.completeStep(
+            phase: .customers,
+            stepIndex: 0,
+            stepName: "Customer generation complete"
+        )
+
         // 批量保存客户
         return await batchSaveCustomers(customers)
     }
@@ -185,16 +294,17 @@ class CustomerOutOfStockSampleDataService {
             for i in 0..<count {
                 let name = LargeSampleDataGenerator.generateProductName(category: category, index: i)
                 let colors = LargeSampleDataGenerator.generateProductColors()
-                
-                let product = Product(name: name, colors: colors, imageData: nil)
-                
+                let price = LargeSampleDataGenerator.generateFixedPrice(for: name)
+
+                let product = Product(name: name, colors: colors, imageData: nil, price: price)
+
                 // 为产品添加尺码
                 let sizeNames = LargeSampleDataGenerator.generateProductSizes()
                 for sizeName in sizeNames {
                     let productSize = ProductSize(size: sizeName)
                     product.sizes?.append(productSize)
                 }
-                
+
                 products.append(product)
                 productIndex += 1
             }
@@ -456,20 +566,161 @@ class CustomerOutOfStockSampleDataService {
         }
     }
     
+    // MARK: - 销售数据生成
+
+    /// Generate daily sales data (60,000 entries)
+    /// - Parameter products: Available products
+    private func generateDailySalesData(products: [Product]) async {
+        guard !products.isEmpty else {
+            print("⚠️ 产品数据为空，无法生成销售记录")
+            return
+        }
+
+        // Fetch real salesperson IDs from database
+        let salespersonIds = await getActiveSalespersonIds()
+        guard !salespersonIds.isEmpty else {
+            print("⚠️ 没有找到活跃的销售人员，跳过销售数据生成")
+            return
+        }
+
+        print("  按年份和月份分布生成销售记录...")
+        print("  使用 \(salespersonIds.count) 个真实销售人员ID")
+
+        let totalSales = SampleDataConstants.salesEntryCount
+        var salesGenerated = 0
+
+        // Calculate sales per month proportionally
+        let totalMonths = SampleDataConstants.yearlyDistribution.reduce(0) { $0 + $1.months.count }
+        let salesPerMonth = totalSales / totalMonths
+
+        // Iterate over years (2024, 2025)
+        for yearData in SampleDataConstants.yearlyDistribution {
+            let year = yearData.year
+            let months = yearData.months
+
+            print("  生成\(year)年销售数据（\(months.count)个月）...")
+
+            // Iterate over months for this year
+            for month in months {
+                // Apply monthly adjustment factor
+                let monthFactor = LargeSampleDataGenerator.adjustProbabilityByMonth(month: month)
+                let adjustedSalesCount = Int(Double(salesPerMonth) * monthFactor)
+
+                print("    生成\(year)年\(month)月销售记录：\(adjustedSalesCount) 条")
+
+                await generateMonthlySales(
+                    year: year,
+                    month: month,
+                    count: adjustedSalesCount,
+                    products: products,
+                    salespersonIds: salespersonIds
+                )
+
+                salesGenerated += adjustedSalesCount
+            }
+        }
+
+        print("  ✅ 销售记录生成完成，共 \(salesGenerated) 条")
+    }
+
+    /// Generate sales for a specific month
+    /// - Parameters:
+    ///   - year: Year
+    ///   - month: Month
+    ///   - count: Number of sales entries
+    ///   - products: Available products
+    ///   - salespersonIds: Real salesperson IDs from database
+    private func generateMonthlySales(
+        year: Int,
+        month: Int,
+        count: Int,
+        products: [Product],
+        salespersonIds: [String]
+    ) async {
+        let batchSize = 500  // Process 500 sales at a time
+        let totalBatches = (count + batchSize - 1) / batchSize
+
+        for batchIndex in 0..<totalBatches {
+            let startIndex = batchIndex * batchSize
+            let endIndex = min(startIndex + batchSize, count)
+            let batchCount = endIndex - startIndex
+
+            var salesEntries: [DailySalesEntry] = []
+
+            // Generate a batch of sales entries
+            for _ in 0..<batchCount {
+                let entry = generateSingleSale(
+                    year: year,
+                    month: month,
+                    products: products,
+                    salespersonIds: salespersonIds
+                )
+                salesEntries.append(entry)
+            }
+
+            // Batch save sales entries
+            await batchSaveSalesEntries(salesEntries)
+            print("      已保存\(month)月第\(batchIndex + 1)/\(totalBatches)批销售（\(batchCount) 条）")
+        }
+    }
+
+    /// Generate a single sales entry
+    /// - Parameters:
+    ///   - year: Year
+    ///   - month: Month
+    ///   - products: Available products
+    ///   - salespersonIds: Real salesperson IDs from database
+    /// - Returns: DailySalesEntry
+    private func generateSingleSale(
+        year: Int,
+        month: Int,
+        products: [Product],
+        salespersonIds: [String]
+    ) -> DailySalesEntry {
+        // Generate random date in the month
+        let saleDate = LargeSampleDataGenerator.generateRandomDate(in: year, month: month)
+
+        // Select random real salesperson ID
+        let salespersonId = salespersonIds.randomElement() ?? salespersonIds[0]
+
+        // Generate line items (1-8 products per sale)
+        let lineItems = LargeSampleDataGenerator.generateSalesLineItems(from: products)
+
+        // Create sales entry
+        let entry = DailySalesEntry(
+            date: saleDate,
+            salespersonId: salespersonId,
+            items: lineItems
+        )
+
+        return entry
+    }
+
+    /// Batch save sales entries
+    /// - Parameter entries: Sales entries array
+    private func batchSaveSalesEntries(_ entries: [DailySalesEntry]) async {
+        do {
+            // Use optimized batch save method (inserts all entries then saves once)
+            try await repositoryFactory.salesRepository.createSalesEntries(entries)
+        } catch {
+            print("⚠️ 批量保存销售记录失败：\(entries.count) 条 - \(error)")
+        }
+    }
+
     // MARK: - 数据统计
-    
+
     /// 获取当前数据统计
     func getDataStatistics() async {
         do {
             let customerCount = try await repositoryFactory.customerRepository.fetchCustomers().count
             let productCount = try await repositoryFactory.productRepository.fetchProducts().count
             let recordCount = try await repositoryFactory.customerOutOfStockRepository.fetchOutOfStockRecords().count
-            
+
             print("📊 当前数据统计：")
             print("   - 客户数量：\(customerCount)")
             print("   - 产品数量：\(productCount)")
             print("   - 欠货记录：\(recordCount)")
-            
+
         } catch {
             print("❌ 获取数据统计时出错：\(error)")
         }

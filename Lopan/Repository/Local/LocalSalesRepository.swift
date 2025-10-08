@@ -60,100 +60,34 @@ final class LocalSalesRepository: SalesRepository {
     }
 
     func createSalesEntry(_ entry: DailySalesEntry) async throws {
-        print("💾 LocalSalesRepository: Inserting sales entry \(entry.id)")
-        print("   Date: \(entry.date)")
-        print("   Salesperson: \(entry.salespersonId)")
-        print("   Line items: \(entry.items?.count ?? 0)")
-        entry.items?.forEach { item in
-            print("     - \(item.productName): \(item.quantity) @ ₦\(item.unitPrice)")
-        }
-
         // Insert parent
         modelContext.insert(entry)
 
-        // CRITICAL FIX: Explicitly insert children until @Relationship cascade is active
-        // This ensures line items are persisted even if @Relationship isn't working yet
+        // Explicitly insert line items (SwiftData @Relationship cascade may not be active)
         if let items = entry.items {
-            print("📦 Explicitly inserting \(items.count) line items into context")
-
-            // DUPLICATE DETECTION: Track inserted IDs to prevent duplicates
-            var insertedIds = Set<String>()
-            var duplicateCount = 0
-
-            for (index, item) in items.enumerated() {
-                if insertedIds.contains(item.id) {
-                    print("  ⚠️ DUPLICATE ID DETECTED at index \(index): \(item.id)")
-                    print("     This item will be SKIPPED to prevent save failure")
-                    duplicateCount += 1
-                    continue  // Skip duplicate
-                }
-
+            for item in items {
                 modelContext.insert(item)
-                insertedIds.insert(item.id)
-                print("  ✅ Inserted item \(index + 1): \(item.id)")
-            }
-
-            if duplicateCount > 0 {
-                print("⚠️ WARNING: Skipped \(duplicateCount) duplicate item(s)")
-                print("   This indicates a bug in the form state management")
             }
         }
 
         try modelContext.save()
-        print("✅ LocalSalesRepository: modelContext.save() completed")
+    }
 
-        // DIAGNOSTIC: Check ModelContext configuration
-        print("📊 ModelContext Configuration:")
-        if let config = modelContext.container.configurations.first {
-            print("   Is in-memory: \(config.isStoredInMemoryOnly)")
-            print("   Store URL: \(config.url.absoluteString)")
-            print("   CloudKit: \(config.cloudKitDatabase != nil ? "Enabled" : "Disabled")")
-        } else {
-            print("   ⚠️ No configuration found!")
-        }
+    func createSalesEntries(_ entries: [DailySalesEntry]) async throws {
+        // Insert all entries and their line items
+        for entry in entries {
+            modelContext.insert(entry)
 
-        // Force context to process all pending changes
-        print("🔄 Processing pending changes...")
-        modelContext.processPendingChanges()
-
-        // DIAGNOSTIC: Count ALL entries in database
-        print("🗄️ Checking total entries in database...")
-        let allDescriptor = FetchDescriptor<DailySalesEntry>()
-        let allEntries = try modelContext.fetch(allDescriptor)
-        print("   Total DailySalesEntry records: \(allEntries.count)")
-        if allEntries.count > 0 {
-            print("   Latest entry IDs:")
-            allEntries.prefix(3).forEach { e in
-                print("     - \(e.id): \(e.items?.count ?? 0) items")
+            // Explicitly insert line items for each entry
+            if let items = entry.items {
+                for item in items {
+                    modelContext.insert(item)
+                }
             }
         }
 
-        // IMMEDIATE VERIFICATION: Query back to confirm persistence
-        print("🔍 VERIFICATION: Querying entry immediately after save...")
-        let entryId = entry.id
-        let predicate = #Predicate<DailySalesEntry> { e in
-            e.id == entryId
-        }
-        var descriptor = FetchDescriptor<DailySalesEntry>(predicate: predicate)
-        descriptor.fetchLimit = 1
-        let verificationResults = try modelContext.fetch(descriptor)
-
-        if let verified = verificationResults.first {
-            let itemCount = verified.items?.count ?? 0
-            print("✅ VERIFIED: Entry \(verified.id) persisted")
-            print("   Items count: \(itemCount)")
-            print("   Total amount: ₦\(verified.totalAmount)")
-
-            if itemCount == 0 && entry.items?.count ?? 0 > 0 {
-                print("⚠️ WARNING: Entry saved but items were NOT persisted!")
-                print("   Expected \(entry.items?.count ?? 0) items but found \(itemCount)")
-                print("   This indicates @Relationship cascade is not working.")
-                print("   App needs complete restart to activate @Relationship macro.")
-            }
-        } else {
-            print("❌ CRITICAL ERROR: Entry NOT found in database after save!")
-            throw RepositoryError.saveFailed("Saved entry not found in verification query")
-        }
+        // Save ONCE for entire batch (MUCH faster!)
+        try modelContext.save()
     }
 
     func updateSalesEntry(_ entry: DailySalesEntry) async throws {
@@ -179,7 +113,20 @@ final class LocalSalesRepository: SalesRepository {
 
     func calculateDailySalesTotal(forDate date: Date, salespersonId: String) async throws -> Decimal {
         let entries = try await fetchSalesEntries(forDate: date)
-        let salespersonEntries = entries.filter { $0.salespersonId == salespersonId }
+
+        // In demo mode, show ALL sales regardless of who created them
+        // This handles cases where sample data was generated before demo user ID fix
+        let salespersonEntries: [DailySalesEntry]
+
+        if salespersonId.hasPrefix("demo-user-") {
+            // Demo mode: show ALL sales for visibility during testing
+            salespersonEntries = entries
+        } else {
+            // Production mode: filter by exact salesperson ID
+            salespersonEntries = entries.filter { entry in
+                entry.salespersonId == salespersonId
+            }
+        }
 
         return salespersonEntries.reduce(Decimal(0)) { total, entry in
             total + entry.totalAmount
