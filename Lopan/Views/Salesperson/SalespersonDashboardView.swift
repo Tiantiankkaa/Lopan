@@ -294,35 +294,109 @@ struct SalespersonDashboardView: View {
                 // Navigate to add product
                 open(.productManagement)
             } label: {
-                HStack {
-                    Image(systemName: "plus.square.fill")
-                        .lopanHeadlineMedium()
-                    Text("Add Product")
-                        .lopanTitleMedium()
+                HStack(spacing: LopanSpacing.xs) {
+                    Image(systemName: "storefront")
+                        .imageScale(.medium)
+                        .font(.title3)
+                        .frame(width: 24, height: 24)
+                        .layoutPriority(1)
+                        .background(
+                            GeometryReader { geo in
+                                Color.clear.onAppear {
+                                    print("🔷 Icon 'storefront' Width: \(geo.size.width), Height: \(geo.size.height)")
+                                }
+                            }
+                        )
+                    Text("View Products")
+                        .lopanTitleMedium(maxLines: 1)
+                        .truncationMode(.tail)
+                        .allowsTightening(true)
+                        .dynamicTypeSize(...(.xxxLarge))
+                        .background(
+                            GeometryReader { geo in
+                                Color.clear.onAppear {
+                                    print("📝 Text 'View Products' Width: \(geo.size.width), Height: \(geo.size.height)")
+                                }
+                            }
+                        )
                 }
                 .frame(maxWidth: .infinity)
+                .background(
+                    GeometryReader { geo in
+                        Color.clear.onAppear {
+                            print("📦 Button 1 HStack Width: \(geo.size.width), Height: \(geo.size.height)")
+                        }
+                    }
+                )
                 .padding(.vertical, LopanSpacing.md)
                 .background(LopanColors.primary.opacity(0.1))
                 .foregroundColor(LopanColors.primary)
                 .cornerRadius(LopanCornerRadius.card)
             }
+            .buttonStyle(.plain)
+            .frame(maxWidth: .infinity)
+            .background(
+                GeometryReader { geo in
+                    Color.clear.onAppear {
+                        print("🟦 Button 1 Total Width: \(geo.size.width), Height: \(geo.size.height)")
+                        print("─────────────────────────────────")
+                    }
+                }
+            )
 
             Button {
                 // Navigate to view sales
                 open(.viewSales)
             } label: {
-                HStack {
-                    Image(systemName: "chart.bar.doc.horizontal.fill")
-                        .lopanHeadlineMedium()
+                HStack(spacing: LopanSpacing.xs) {
+                    Image(systemName: "eye.fill")
+                        .imageScale(.medium)
+                        .font(.title3)
+                        .frame(width: 24, height: 24)
+                        .layoutPriority(1)
+                        .background(
+                            GeometryReader { geo in
+                                Color.clear.onAppear {
+                                    print("🔷 Icon 'eye.fill' Width: \(geo.size.width), Height: \(geo.size.height)")
+                                }
+                            }
+                        )
                     Text("View Sales")
-                        .lopanTitleMedium()
+                        .lopanTitleMedium(maxLines: 1)
+                        .truncationMode(.tail)
+                        .allowsTightening(true)
+                        .dynamicTypeSize(...(.xxxLarge))
+                        .background(
+                            GeometryReader { geo in
+                                Color.clear.onAppear {
+                                    print("📝 Text 'View Sales' Width: \(geo.size.width), Height: \(geo.size.height)")
+                                }
+                            }
+                        )
                 }
                 .frame(maxWidth: .infinity)
+                .background(
+                    GeometryReader { geo in
+                        Color.clear.onAppear {
+                            print("📦 Button 2 HStack Width: \(geo.size.width), Height: \(geo.size.height)")
+                        }
+                    }
+                )
                 .padding(.vertical, LopanSpacing.md)
                 .background(LopanColors.primary.opacity(0.1))
                 .foregroundColor(LopanColors.primary)
                 .cornerRadius(LopanCornerRadius.card)
             }
+            .buttonStyle(.plain)
+            .frame(maxWidth: .infinity)
+            .background(
+                GeometryReader { geo in
+                    Color.clear.onAppear {
+                        print("🟦 Button 2 Total Width: \(geo.size.width), Height: \(geo.size.height)")
+                        print("═════════════════════════════════")
+                    }
+                }
+            )
         }
     }
 
