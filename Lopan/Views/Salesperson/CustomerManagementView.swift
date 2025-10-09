@@ -46,10 +46,10 @@ struct CustomerManagementView: View {
     @State private var customerToEdit: Customer?
     @State private var selectedCustomer: Customer?
     @State private var scrollProxy: ScrollViewProxy?
+    @State private var isSearchActive: Bool = false
 
     // Heights for precise alphabetical index positioning
     @State private var headerHeight: CGFloat = 0
-    @State private var searchHeight: CGFloat = 0
 
     // Accessibility
     @Environment(\.accessibilityReduceMotion) var reduceMotion
@@ -217,7 +217,7 @@ struct CustomerManagementView: View {
         GeometryReader { geometry in
             ZStack(alignment: .trailing) {
             VStack(spacing: 0) {
-                // Header with tabs
+                // Header with tabs - hide instantly when search is active (native iOS behavior)
                 headerView
                     .background(
                         GeometryReader { geo in
@@ -227,19 +227,13 @@ struct CustomerManagementView: View {
                             )
                         }
                     )
+                    .opacity(isSearchActive ? 0 : 1)
+                    .frame(height: isSearchActive ? 0 : nil)
+                    .clipped()
+                    .allowsHitTesting(!isSearchActive)
 
-                // Search section
-                searchSection
-                    .background(
-                        GeometryReader { geo in
-                            Color.clear.preference(
-                                key: SearchHeightKey.self,
-                                value: geo.size.height
-                            )
-                        }
-                    )
-
-                // Customer list
+                // Customer list (with native searchable)
+                // Let native .searchable() handle presentation animations
                 customersListView
 
                 // Customer count
@@ -262,7 +256,6 @@ struct CustomerManagementView: View {
             }
             }
             .onPreferenceChange(HeaderHeightKey.self) { headerHeight = $0 }
-            .onPreferenceChange(SearchHeightKey.self) { searchHeight = $0 }
         }
         .navigationTitle("客户")
         .navigationBarTitleDisplayMode(.inline)
@@ -292,13 +285,22 @@ struct CustomerManagementView: View {
             perfLogger.info("🔄 Tab switched: \(oldTab.rawValue) → \(newTab.rawValue)")
             let switchStart = CFAbsoluteTimeGetCurrent()
 
-            Task {
-                await measureTimeAsync("Tab switch complete (\(oldTab.rawValue)→\(newTab.rawValue))") {
-                    await updateFilterCache()
-                }
-
+            // Use synchronous path for instant cached data, async for filtering/sorting
+            if canUseSynchronousCache(for: newTab) {
+                // FAST PATH: Synchronous cache access (<10ms)
+                updateFilterCacheSync()
                 let totalDuration = (CFAbsoluteTimeGetCurrent() - switchStart) * 1000
-                perfLogger.info("✅ Total tab switch time: \(String(format: "%.2f", totalDuration))ms")
+                perfLogger.info("✅ Total tab switch time (sync): \(String(format: "%.2f", totalDuration))ms")
+            } else {
+                // SLOW PATH: Async filtering/sorting needed
+                Task {
+                    await measureTimeAsync("Tab switch complete (\(oldTab.rawValue)→\(newTab.rawValue))") {
+                        await updateFilterCache()
+                    }
+
+                    let totalDuration = (CFAbsoluteTimeGetCurrent() - switchStart) * 1000
+                    perfLogger.info("✅ Total tab switch time (async): \(String(format: "%.2f", totalDuration))ms")
+                }
             }
         }
         .onChange(of: searchText) { _, newValue in
@@ -337,7 +339,7 @@ struct CustomerManagementView: View {
             Spacer()
             ForEach(CustomerFilterTab.allCases, id: \.self) { tab in
                 Button(action: {
-                    withAnimation(reduceMotion ? .none : .spring(response: 0.3)) {
+                    withAnimation(reduceMotion ? .none : .spring(response: 0.6, dampingFraction: 0.75)) {
                         selectedTab = tab
                     }
                 }) {
@@ -369,18 +371,7 @@ struct CustomerManagementView: View {
         .background(LopanColors.surface)
     }
 
-    /// Search section with translucent design
-    private var searchSection: some View {
-        TranslucentSearchBar(
-            text: $searchText,
-            placeholder: "搜索客户姓名或地址"
-        )
-        .padding(.horizontal, LopanSpacing.md)
-        .padding(.top, LopanSpacing.sm)
-        .padding(.bottom, 4)
-    }
-    
-    /// Main customer list with sections
+    /// Main customer list with sections (includes native searchable)
     private var customersListView: some View {
         Group {
             if filteredCustomers.isEmpty && !isLoadingCustomers {
@@ -443,6 +434,7 @@ struct CustomerManagementView: View {
                     .scrollContentBackground(.hidden)
                     .contentMargins(.top, 0, for: .scrollContent)
                     .environment(\.defaultMinListHeaderHeight, 0)
+                    .animation(.easeInOut(duration: 0.2), value: selectedTab)
                     .refreshable {
                         await refreshCustomers()
                     }
@@ -455,6 +447,7 @@ struct CustomerManagementView: View {
                 }
             }
         }
+        .searchable(text: $searchText, isPresented: $isSearchActive, prompt: "搜索客户姓名或地址")
         .alert("删除客户", isPresented: $showingDeleteAlert) {
             Button("删除", role: .destructive) {
                 if let customer = customerToDelete {
@@ -557,10 +550,11 @@ struct CustomerManagementView: View {
     // MARK: - Letter Filter Positioning
 
     /// Calculates top padding to center letter filter in customer card display area
-    /// Range: from bottom of search section to top of bottom navigation bar
+    /// Range: from bottom of header to top of bottom navigation bar
     private func letterFilterTopPadding(geometry: GeometryProxy) -> CGFloat {
-        // Where customer list display area starts (bottom of search section)
-        let displayAreaStart = headerHeight + searchHeight
+        // Where customer list display area starts (bottom of header)
+        // Native searchable is embedded in the List, not a separate section
+        let displayAreaStart = headerHeight
 
         // Bottom navigation bar height
         let bottomNavHeight = geometry.safeAreaInsets.bottom > 0 ? geometry.safeAreaInsets.bottom : 83
@@ -578,6 +572,68 @@ struct CustomerManagementView: View {
         let centeringOffset = max(0, (displayAreaHeight - letterFilterHeight) / 2)
 
         return displayAreaStart + centeringOffset
+    }
+
+    // MARK: - Cache Management Helpers
+
+    /// Checks if synchronous cache update is possible (pre-sorted cache available)
+    private func canUseSynchronousCache(for tab: CustomerFilterTab) -> Bool {
+        return tab == .all && searchText.isEmpty && !allCustomersSorted.isEmpty && customers.count == allCustomersSorted.count
+    }
+
+    /// Synchronous cache update for instant operations (pre-sorted cache)
+    /// Eliminates async/await overhead for ~5-10ms faster tab switches
+    private func updateFilterCacheSync() {
+        let syncStart = CFAbsoluteTimeGetCurrent()
+        let currentCacheKey = "\(selectedTab.rawValue)-\(searchText)-\(customers.count)"
+
+        // Early return if already cached
+        guard currentCacheKey != filterCacheKey else {
+            perfLogger.debug("✅ Cache hit, skipping sync update")
+            return
+        }
+
+        perfLogger.debug("🚀 Sync cache update using pre-sorted data")
+
+        // Batch all state updates into single render cycle
+        withAnimation(.none) {
+            cachedFilteredCustomers = allCustomersSorted
+            cachedSectionedCustomers = allCustomersSections
+            filterCacheKey = currentCacheKey
+            sectionCacheKey = currentCacheKey
+        }
+
+        let syncDuration = (CFAbsoluteTimeGetCurrent() - syncStart) * 1000
+        perfLogger.info("✅ Sync cache update COMPLETE: \(String(format: "%.2f", syncDuration))ms")
+    }
+
+    /// Determines the reason for cache invalidation by analyzing key changes
+    private func determineCacheMissReason(oldKey: String, newKey: String) -> String {
+        let oldParts = oldKey.split(separator: "-")
+        let newParts = newKey.split(separator: "-")
+
+        guard oldParts.count == 3, newParts.count == 3 else {
+            return "initialization"
+        }
+
+        let oldTab = oldParts[0]
+        let oldSearch = oldParts[1]
+        let oldCount = oldParts[2]
+
+        let newTab = newParts[0]
+        let newSearch = newParts[1]
+        let newCount = newParts[2]
+
+        if oldTab != newTab {
+            return "tab change (\(oldTab) → \(newTab))"
+        } else if oldSearch != newSearch {
+            let searchDesc = newSearch.isEmpty ? "cleared" : "updated"
+            return "search \(searchDesc)"
+        } else if oldCount != newCount {
+            return "data updated (\(oldCount) → \(newCount) customers)"
+        } else {
+            return "unknown"
+        }
     }
 
     // MARK: - Data Operations
@@ -611,17 +667,19 @@ struct CustomerManagementView: View {
     /// Performs expensive filtering and sorting off the main thread for better performance
     private func updateFilterCache() async {
         let overallStart = CFAbsoluteTimeGetCurrent()
-        perfLogger.info("🔄 updateFilterCache START - Tab: \(selectedTab.rawValue), Count: \(customers.count)")
+        perfLogger.debug("🔄 updateFilterCache START - Tab: \(selectedTab.rawValue), Count: \(customers.count)")
 
         let currentCacheKey = "\(selectedTab.rawValue)-\(searchText)-\(customers.count)"
 
         // Only recompute if cache key changed
         guard currentCacheKey != filterCacheKey else {
-            perfLogger.info("✅ Cache hit, skipping update")
+            perfLogger.debug("✅ Cache hit, skipping update")
             return
         }
 
-        perfLogger.info("⚠️ Cache miss - old: '\(filterCacheKey)', new: '\(currentCacheKey)'")
+        // Determine why cache was invalidated
+        let reason = determineCacheMissReason(oldKey: filterCacheKey, newKey: currentCacheKey)
+        perfLogger.debug("🔄 Cache invalidated: \(reason)")
 
         // Capture current state for async work
         let captureStart = CFAbsoluteTimeGetCurrent()
@@ -630,7 +688,7 @@ struct CustomerManagementView: View {
         let allCustomers = customers
         let cutoffDate = sevenDaysAgo
         let captureDuration = (CFAbsoluteTimeGetCurrent() - captureStart) * 1000
-        perfLogger.info("⏱️ State capture: \(String(format: "%.2f", captureDuration))ms")
+        perfLogger.debug("⏱️ State capture: \(String(format: "%.2f", captureDuration))ms")
 
         // OPTIMIZATION: Use pre-sorted cache for "All Customers" tab
         if tab == .all && search.isEmpty && !allCustomersSorted.isEmpty && allCustomers.count == allCustomersSorted.count {
@@ -654,14 +712,11 @@ struct CustomerManagementView: View {
         }
 
         // Show updating indicator
-        let flagStart = CFAbsoluteTimeGetCurrent()
         await MainActor.run { isUpdatingFilter = true }
-        let flagDuration = (CFAbsoluteTimeGetCurrent() - flagStart) * 1000
-        perfLogger.info("⏱️ Set updating flag: \(String(format: "%.2f", flagDuration))ms")
 
         // Perform expensive filtering, sorting, AND sectioning off main thread
         let bgStart = CFAbsoluteTimeGetCurrent()
-        perfLogger.info("🔧 Starting background computation...")
+        perfLogger.debug("🔧 Starting background computation...")
 
         let (filtered, sectioned) = await Task.detached(priority: .userInitiated) {
             let taskStart = CFAbsoluteTimeGetCurrent()
@@ -722,10 +777,9 @@ struct CustomerManagementView: View {
         }.value
 
         let bgDuration = (CFAbsoluteTimeGetCurrent() - bgStart) * 1000
-        perfLogger.info("⏱️ Background computation: \(String(format: "%.2f", bgDuration))ms")
+        perfLogger.debug("⏱️ Background computation: \(String(format: "%.2f", bgDuration))ms")
 
         // Update both caches on main thread (legal - in async function)
-        let updateStart = CFAbsoluteTimeGetCurrent()
         await MainActor.run {
             // Verify cache key is still valid (user might have switched tabs again)
             let finalCacheKey = "\(selectedTab.rawValue)-\(searchText)-\(customers.count)"
@@ -736,14 +790,12 @@ struct CustomerManagementView: View {
                 // Update section cache with pre-computed sections
                 cachedSectionedCustomers = sectioned
                 sectionCacheKey = currentCacheKey
-                perfLogger.info("✅ Cache updated - \(filtered.count) customers, \(sectioned.count) sections")
+                perfLogger.debug("✅ Cache updated - \(filtered.count) customers, \(sectioned.count) sections")
             } else {
                 perfLogger.warning("⚠️ Cache key mismatch, discarding results")
             }
             isUpdatingFilter = false
         }
-        let updateDuration = (CFAbsoluteTimeGetCurrent() - updateStart) * 1000
-        perfLogger.info("⏱️ Cache update: \(String(format: "%.2f", updateDuration))ms")
 
         let overallDuration = (CFAbsoluteTimeGetCurrent() - overallStart) * 1000
         perfLogger.info("✅ updateFilterCache COMPLETE: \(String(format: "%.2f", overallDuration))ms")
@@ -997,11 +1049,13 @@ struct AddCustomerView: View {
     var isValid: Bool {
         let trimmedName = name.trimmingCharacters(in: .whitespacesAndNewlines)
         let trimmedRegion = region.trimmingCharacters(in: .whitespacesAndNewlines)
+        let trimmedCity = city.trimmingCharacters(in: .whitespacesAndNewlines)
         let trimmedPhone = phone.trimmingCharacters(in: .whitespacesAndNewlines)
 
         return !trimmedName.isEmpty &&
                selectedCountry != nil &&
                !trimmedRegion.isEmpty &&
+               !trimmedCity.isEmpty &&
                !trimmedPhone.isEmpty &&
                duplicateError == nil &&
                !isCheckingDuplicate
@@ -1054,7 +1108,7 @@ struct AddCustomerView: View {
                             .font(.system(size: 16))
                             .foregroundColor(LopanColors.textPrimary)
                             .padding(.horizontal, LopanSpacing.lg)
-                            .frame(height: LopanSpacing.inputHeightEnhanced)
+                            .frame(height: LopanSpacing.inputHeight)
                             .background(Color.white)
                             .cornerRadius(LopanCornerRadius.lg)
                             .lopanShadow(LopanShadows.sm)
@@ -1082,7 +1136,7 @@ struct AddCustomerView: View {
                                     .foregroundColor(Color(.systemGray))
                             }
                             .padding(.horizontal, LopanSpacing.lg)
-                            .frame(height: LopanSpacing.inputHeightEnhanced)
+                            .frame(height: LopanSpacing.inputHeight)
                             .background(Color.white)
                             .cornerRadius(LopanCornerRadius.lg)
                             .lopanShadow(LopanShadows.sm)
@@ -1105,11 +1159,23 @@ struct AddCustomerView: View {
                                         .foregroundColor(Color(.systemGray))
                                 }
                                 .padding(.horizontal, LopanSpacing.lg)
-                                .frame(height: LopanSpacing.inputHeightEnhanced)
+                                .frame(height: LopanSpacing.inputHeight)
                                 .background(Color.white)
                                 .cornerRadius(LopanCornerRadius.lg)
                                 .lopanShadow(LopanShadows.sm)
                             }
+                        }
+
+                        // City Field (only show if region is selected)
+                        if selectedCountry != nil && !region.isEmpty {
+                            TextField("City", text: $city)
+                                .font(.system(size: 16))
+                                .foregroundColor(LopanColors.textPrimary)
+                                .padding(.horizontal, LopanSpacing.lg)
+                                .frame(height: LopanSpacing.inputHeight)
+                                .background(Color.white)
+                                .cornerRadius(LopanCornerRadius.lg)
+                                .lopanShadow(LopanShadows.sm)
                         }
 
                         // Phone Number
@@ -1127,7 +1193,7 @@ struct AddCustomerView: View {
                                 .keyboardType(.phonePad)
                         }
                         .padding(.horizontal, LopanSpacing.lg)
-                        .frame(height: LopanSpacing.inputHeightEnhanced)
+                        .frame(height: LopanSpacing.inputHeight)
                         .background(Color.white)
                         .cornerRadius(LopanCornerRadius.lg)
                         .lopanShadow(LopanShadows.sm)
@@ -1147,7 +1213,7 @@ struct AddCustomerView: View {
                                 .keyboardType(.phonePad)
                         }
                         .padding(.horizontal, LopanSpacing.lg)
-                        .frame(height: LopanSpacing.inputHeightEnhanced)
+                        .frame(height: LopanSpacing.inputHeight)
                         .background(Color.white)
                         .cornerRadius(LopanCornerRadius.lg)
                         .lopanShadow(LopanShadows.sm)
@@ -1244,9 +1310,7 @@ struct AddCustomerView: View {
             country: selectedCountry?.id ?? "",
             countryName: selectedCountry?.name ?? "",
             region: region.trimmingCharacters(in: .whitespacesAndNewlines),
-            city: city.trimmingCharacters(in: .whitespacesAndNewlines),
-            contactName: "",
-            notes: ""
+            city: city.trimmingCharacters(in: .whitespacesAndNewlines)
         )
         onSave(customer)
         dismiss()
@@ -1292,13 +1356,6 @@ struct CustomerSkeletonRow: View {
 // MARK: - Preference Keys for Layout
 
 struct HeaderHeightKey: PreferenceKey {
-    static var defaultValue: CGFloat = 0
-    static func reduce(value: inout CGFloat, nextValue: () -> CGFloat) {
-        value = nextValue()
-    }
-}
-
-struct SearchHeightKey: PreferenceKey {
     static var defaultValue: CGFloat = 0
     static func reduce(value: inout CGFloat, nextValue: () -> CGFloat) {
         value = nextValue()
