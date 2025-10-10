@@ -188,7 +188,9 @@ struct ProductManagementView: View {
             loadData()
         }
         .sheet(isPresented: $showAddProduct) {
-            ModernAddProductView()
+            NavigationStack {
+                CreateProductView()
+            }
         }
         .sheet(item: $selectedProduct) { product in
             let _ = perfLogger.debug("📋 Sheet content rendering (item-based)")
@@ -221,6 +223,12 @@ struct ProductManagementView: View {
             Task {
                 await updateFilterCache()
                 await updateAllProductsCache()
+            }
+        }
+        .onReceive(NotificationCenter.default.publisher(for: .productAdded)) { _ in
+            perfLogger.info("📢 Product added notification received - refreshing list")
+            Task {
+                await refreshData()
             }
         }
     }
