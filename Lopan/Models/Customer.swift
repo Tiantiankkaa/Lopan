@@ -23,12 +23,18 @@ public final class Customer {
     var isFavorite: Bool = false
     var lastViewedAt: Date? = nil
 
+    // Location data
+    var country: String = ""           // Country code (e.g., "CN", "US", "NG")
+    var countryName: String = ""       // Country name (e.g., "China", "United States", "Nigeria")
+    var region: String = ""            // Region/state/province
+    var city: String = ""              // City name
+
     // Cached pinyin values for performance optimization
     // Pre-computed to avoid expensive CFStringTransform calls during sorting/grouping
     var pinyinName: String = ""        // Full pinyin: "zhang san"
     var pinyinInitial: String = ""     // First letter: "Z"
 
-    init(name: String, address: String, phone: String, whatsappNumber: String = "", avatarImageData: Data? = nil, avatarBackgroundColor: String? = nil) {
+    init(name: String, address: String, phone: String, whatsappNumber: String = "", avatarImageData: Data? = nil, avatarBackgroundColor: String? = nil, country: String = "", countryName: String = "", region: String = "", city: String = "") {
         self.id = UUID().uuidString
         self.customerNumber = CustomerIDService.shared.generateNextCustomerID()
         self.name = name
@@ -37,6 +43,10 @@ public final class Customer {
         self.whatsappNumber = whatsappNumber
         self.avatarImageData = avatarImageData
         self.avatarBackgroundColor = avatarBackgroundColor
+        self.country = country
+        self.countryName = countryName
+        self.region = region
+        self.city = city
         self.createdAt = Date()
         self.updatedAt = Date()
         self.isFavorite = false

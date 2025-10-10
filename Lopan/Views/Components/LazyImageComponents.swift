@@ -246,14 +246,12 @@ struct OptimizedProductImageRow: View {
                         .font(.headline)
                         .foregroundColor(.primary)
                         .lineLimit(2)
-                    
-                    if !product.colors.isEmpty {
-                        Text("颜色: \(product.colors.joined(separator: ", "))")
-                            .font(.caption)
-                            .foregroundColor(.secondary)
-                            .lineLimit(1)
-                    }
-                    
+
+                    Text("SKU: \(product.sku)")
+                        .font(.caption)
+                        .foregroundColor(.secondary)
+                        .lineLimit(1)
+
                     if !product.sizeNames.isEmpty {
                         Text("尺寸: \(product.sizeNames.joined(separator: ", "))")
                             .font(.caption)
@@ -261,13 +259,13 @@ struct OptimizedProductImageRow: View {
                             .lineLimit(1)
                     }
                 }
-                
+
                 Spacer()
             }
         }
         .accessibilityElement(children: .combine)
         .accessibilityLabel("\(product.name)产品")
-        .accessibilityValue("颜色: \(product.colors.joined(separator: ", "))，尺寸: \(product.sizeNames.joined(separator: ", "))")
+        .accessibilityValue("SKU: \(product.sku)，尺寸: \(product.sizeNames.joined(separator: ", "))")
     }
 }
 

@@ -51,5 +51,5 @@ struct EditProductView: View {
 }
 
 #Preview {
-    EditProductView(product: Product(name: "Test Product", colors: ["Red"], imageData: nil, price: 100))
+    EditProductView(product: Product(sku: "PRD-TEST001", name: "Test Product", imageData: nil, price: 100))
 }

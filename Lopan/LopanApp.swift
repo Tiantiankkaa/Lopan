@@ -57,10 +57,19 @@ struct LopanApp: App {
 
     var body: some Scene {
         WindowGroup {
+            ContentView()
+        }
+        .modelContainer(Self.sharedModelContainer)
+    }
+
+    // MARK: - Content View
+
+    struct ContentView: View {
+        var body: some View {
             // PHASE 1: Lazy Loading Foundation - Use LazyAppDependencies for optimized memory usage
             let appDependencies = LazyAppDependencies.create(
-                for: determineAppEnvironment(),
-                modelContext: Self.sharedModelContainer.mainContext
+                for: LopanApp().determineAppEnvironment(),
+                modelContext: LopanApp.sharedModelContainer.mainContext
             )
 
             let _ = {
@@ -68,14 +77,14 @@ struct LopanApp: App {
                 print(String(repeating: "=", count: 60))
                 print("🚀 MAIN APP: Dependencies Created")
                 print(String(repeating: "=", count: 60))
-                print("  ModelContainer ID: \(ObjectIdentifier(Self.sharedModelContainer))")
-                print("  ModelContext ID: \(ObjectIdentifier(Self.sharedModelContainer.mainContext))")
+                print("  ModelContainer ID: \(ObjectIdentifier(LopanApp.sharedModelContainer))")
+                print("  ModelContext ID: \(ObjectIdentifier(LopanApp.sharedModelContainer.mainContext))")
                 print("  AppDependencies ID: \(ObjectIdentifier(appDependencies as AnyObject))")
                 print("  Repository Factory ID: \(ObjectIdentifier(appDependencies.repositoryFactory))")
                 print(String(repeating: "=", count: 60))
             }()
 
-            return DashboardView(authService: appDependencies.authenticationService)
+            DashboardView(authService: appDependencies.authenticationService)
                 .withAppDependencies(appDependencies)
                 .onAppear {
                     // PHASE 1: Initialize Performance Monitoring System (DISABLED - Causing CPU warnings)
@@ -89,7 +98,7 @@ struct LopanApp: App {
                     #endif
 
                     // PHASE 3: Activate Production Monitoring System (CONTROLLED)
-                    let isProduction = determineAppEnvironment() == .production
+                    let isProduction = LopanApp().determineAppEnvironment() == .production
                     if #available(iOS 26.0, *) {
                         if !isProduction {
                             // Only enable in debug/development builds for now
@@ -120,7 +129,8 @@ struct LopanApp: App {
                         if ProcessInfo.processInfo.environment["LARGE_SAMPLE_DATA"] == "true" {
                             print("🚀 检测到大规模样本数据环境变量，开始生成大规模测试数据...")
                             let largeSampleDataService = CustomerOutOfStockSampleDataService(
-                                repositoryFactory: appDependencies.repositoryFactory
+                                repositoryFactory: appDependencies.repositoryFactory,
+                                authService: appDependencies.authenticationService
                             )
                             await largeSampleDataService.initializeLargeScaleSampleData()
                         } else {
@@ -161,9 +171,8 @@ struct LopanApp: App {
                     }
                 }
         }
-        .modelContainer(Self.sharedModelContainer)
     }
-    
+
     // MARK: - Environment Detection
     
     private func determineAppEnvironment() -> AppEnvironment {

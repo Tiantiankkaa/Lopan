@@ -42,19 +42,37 @@ final class LocalSalesRepository: SalesRepository {
         print("🔍 LocalSalesRepository: Fetching entries for salesperson \(salespersonId)")
         print("   Date range: \(normalizedStartDate) to \(normalizedEndDate)")
 
-        let predicate = #Predicate<DailySalesEntry> { entry in
-            entry.date >= normalizedStartDate &&
-            entry.date < normalizedEndDate &&
-            entry.salespersonId == salespersonId
+        // In demo mode, show ALL sales regardless of who created them
+        // This handles cases where sample data was generated before demo user ID fix
+        let results: [DailySalesEntry]
+
+        if salespersonId.hasPrefix("demo-user-") {
+            // Demo mode: fetch ALL entries without salesperson filter
+            print("   🎭 Demo mode: Fetching ALL sales entries for visibility")
+            let predicate = #Predicate<DailySalesEntry> { entry in
+                entry.date >= normalizedStartDate &&
+                entry.date < normalizedEndDate
+            }
+
+            var descriptor = FetchDescriptor<DailySalesEntry>(predicate: predicate)
+            descriptor.sortBy = [SortDescriptor(\.date, order: .reverse)]
+            results = try modelContext.fetch(descriptor)
+        } else {
+            // Production mode: filter by exact salesperson ID
+            let predicate = #Predicate<DailySalesEntry> { entry in
+                entry.date >= normalizedStartDate &&
+                entry.date < normalizedEndDate &&
+                entry.salespersonId == salespersonId
+            }
+
+            var descriptor = FetchDescriptor<DailySalesEntry>(predicate: predicate)
+            descriptor.sortBy = [SortDescriptor(\.date, order: .reverse)]
+            results = try modelContext.fetch(descriptor)
         }
 
-        var descriptor = FetchDescriptor<DailySalesEntry>(predicate: predicate)
-        descriptor.sortBy = [SortDescriptor(\.date, order: .reverse)]
-
-        let results = try modelContext.fetch(descriptor)
         print("📦 LocalSalesRepository: Found \(results.count) entries for salesperson")
         results.forEach { entry in
-            print("   ✅ Entry \(entry.id): date=\(entry.date), items=\(entry.items?.count ?? 0), total=₦\(entry.totalAmount)")
+            print("   ✅ Entry \(entry.id): date=\(entry.date), salesperson=\(entry.salespersonId), items=\(entry.items?.count ?? 0), total=₦\(entry.totalAmount)")
         }
         return results
     }

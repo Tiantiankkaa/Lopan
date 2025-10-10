@@ -815,8 +815,13 @@ struct ModernAddProductView: View {
     }
     
     private func createProduct() {
-        let product = Product(name: productName, colors: colors, imageData: imageData)
-        
+        // Generate SKU from product name
+        let skuPrefix = productName.prefix(3).uppercased()
+        let skuSuffix = UUID().uuidString.prefix(6).uppercased()
+        let sku = "PRD-\(skuPrefix)-\(skuSuffix)"
+
+        let product = Product(sku: sku, name: productName, imageData: imageData, price: 0.0)
+
         for sizeName in sizes {
             let size = ProductSize(size: sizeName, product: product)
             if product.sizes == nil {
@@ -824,7 +829,10 @@ struct ModernAddProductView: View {
             }
             product.sizes?.append(size)
         }
-        
+
+        // Update cached inventory status based on sizes
+        product.updateCachedInventoryStatus()
+
         modelContext.insert(product)
         
         do {

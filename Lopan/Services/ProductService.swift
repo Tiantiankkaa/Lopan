@@ -48,8 +48,9 @@ public class ProductService: ObservableObject {
                 operatorUserId: createdBy,
                 operatorUserName: createdBy,
                 createdData: [
+                    "sku": product.sku,
                     "name": product.name,
-                    "colors": product.colors,
+                    "price": product.price,
                     "sizes_count": product.sizes?.count ?? 0
                 ]
             )
@@ -76,11 +77,12 @@ public class ProductService: ObservableObject {
                 operatorUserName: updatedBy,
                 beforeData: beforeData,
                 afterData: [
+                    "sku": product.sku,
                     "name": product.name,
-                    "colors": product.colors,
+                    "price": product.price,
                     "sizes_count": product.sizes?.count ?? 0
                 ] as [String: Any],
-                changedFields: ["name", "colors", "sizes"]
+                changedFields: ["sku", "name", "price", "sizes"]
             )
             
             return true
@@ -101,8 +103,9 @@ public class ProductService: ObservableObject {
                 operatorUserId: deletedBy,
                 operatorUserName: deletedBy,
                 deletedData: [
+                    "sku": product.sku,
                     "name": product.name,
-                    "colors": product.colors,
+                    "price": product.price,
                     "sizes_count": product.sizes?.count ?? 0
                 ]
             )

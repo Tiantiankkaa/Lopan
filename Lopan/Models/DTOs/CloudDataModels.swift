@@ -108,23 +108,25 @@ struct CustomerDTO: Codable, Identifiable {
 /// Cloud-compatible DTO for Product
 struct ProductDTO: Codable, Identifiable {
     let id: String
+    let sku: String
     let name: String
-    let colors: [String]
     let imageDataBase64: String? // Store image as base64 string for cloud
+    let price: Double
     let createdAt: Date
     let updatedAt: Date
-    
+
     // Cloud metadata
     let version: Int
     let lastSyncedAt: Date?
     let cloudId: String?
     let isDeleted: Bool
-    
+
     init(from model: Product, cloudId: String? = nil, version: Int = 1) {
         self.id = model.id
+        self.sku = model.sku
         self.name = model.name
-        self.colors = model.colors
         self.imageDataBase64 = model.imageData?.base64EncodedString()
+        self.price = model.price
         self.createdAt = model.createdAt
         self.updatedAt = model.updatedAt
         self.version = version
@@ -244,9 +246,10 @@ extension CustomerOutOfStockDTO {
         )
         
         let product = Product(
+            sku: productId,
             name: productName,
-            colors: [], // Default empty colors
-            imageData: nil
+            imageData: nil,
+            price: 0.0
         )
         
         let productSize: ProductSize?
@@ -281,9 +284,10 @@ extension ProductDTO {
     func toDomain() -> Product {
         let imageData = imageDataBase64.flatMap { Data(base64Encoded: $0) }
         return Product(
+            sku: sku,
             name: name,
-            colors: colors,
-            imageData: imageData
+            imageData: imageData,
+            price: price
         )
     }
 }

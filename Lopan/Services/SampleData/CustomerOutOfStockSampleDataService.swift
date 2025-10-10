@@ -111,7 +111,46 @@ class CustomerOutOfStockSampleDataService {
     }
     
     // MARK: - 客户数据生成
-    
+
+    /// Map city name to country code and region
+    /// - Parameter city: City name
+    /// - Returns: Tuple of (countryCode, regionName)
+    private func mapCityToCountryRegion(_ city: String) -> (countryCode: String, regionName: String) {
+        switch city {
+        // Nigeria
+        case "Lagos Island":
+            return ("NG", "Lagos State")
+        case "Ibadan":
+            return ("NG", "Oyo State")
+        case "Onitsha":
+            return ("NG", "Anambra State")
+        case "Aba":
+            return ("NG", "Abia State")
+        case "Kano":
+            return ("NG", "Kano State")
+
+        // China
+        case "Shanghai":
+            return ("CN", "Shanghai")
+        case "Beijing":
+            return ("CN", "Beijing")
+
+        // USA
+        case "Los Angeles":
+            return ("US", "California")
+        case "New York City":
+            return ("US", "New York")
+
+        // India
+        case "Mumbai":
+            return ("IN", "Maharashtra")
+
+        // Default
+        default:
+            return ("NG", "Lagos State")
+        }
+    }
+
     /// Generate active salesperson IDs from database
     /// - Returns: Array of salesperson user IDs
     private func getActiveSalespersonIds() async -> [String] {
@@ -196,10 +235,14 @@ class CustomerOutOfStockSampleDataService {
         print("  Generating \(totalCount) customers with English names and global regions...")
 
         for i in 0..<totalCount {
-            let name = LargeSampleDataGenerator.generateCustomerName(index: i)
+            // Get weighted city (determines country/region)
+            let cityName = SampleDataConstants.getWeightedCity()
 
-            // Get weighted country code
-            let countryCode = SampleDataConstants.getWeightedCountryCode()
+            // Generate location-appropriate name based on city
+            let name = LargeSampleDataGenerator.generateCustomerName(index: i, for: cityName)
+
+            // Map city to country code and region
+            let (countryCode, regionName) = mapCityToCountryRegion(cityName)
 
             // Generate phone number with proper dial code for country
             let phone = LargeSampleDataGenerator.generatePhoneNumber(for: countryCode)
@@ -209,15 +252,10 @@ class CustomerOutOfStockSampleDataService {
             let locationService = LocationDataService.shared
             let country = locationService.getCountry(byId: countryCode)
 
-            // Get random region from country's regions
-            let regions = country?.regions ?? []
-            let region = regions.randomElement()
+            // Legacy address (for backward compatibility)
+            let address = "\(cityName), \(country?.name ?? "")"
 
-            // Simple address using country/region/city structure
-            let cityName = region?.cities?.randomElement() ?? region?.name ?? country?.name ?? "Unknown"
-            let address = "\(cityName)"
-
-            // Create customer with country/region data
+            // Create customer with complete location data
             let customer = Customer(
                 name: name,
                 address: address,
@@ -225,7 +263,7 @@ class CustomerOutOfStockSampleDataService {
                 whatsappNumber: whatsapp,
                 country: countryCode,
                 countryName: country?.name ?? "",
-                region: region?.name ?? "",
+                region: regionName,
                 city: cityName
             )
             customers.append(customer)
@@ -274,50 +312,116 @@ class CustomerOutOfStockSampleDataService {
     
     // MARK: - 产品数据生成
     
-    /// 生成大规模产品数据（300个）
+    /// 生成大规模产品数据（1000个）
     /// - Returns: 产品数组
     private func generateLargeScaleProducts() async -> [Product] {
         var products: [Product] = []
-        var productIndex = 0
-        var stepIndex = 0
-        
-        // 按类别生成产品
-        for category in SampleDataConstants.ProductCategory.allCases {
-            let count = category.count
-            progressMonitor.updateStep(
-                phase: .products, 
-                stepIndex: stepIndex, 
-                stepName: "生成\(category.rawValue) \(count) 个..."
-            )
-            print("  生成\(category.rawValue) \(count) 个...")
-            
-            for i in 0..<count {
-                let name = LargeSampleDataGenerator.generateProductName(category: category, index: i)
-                let colors = LargeSampleDataGenerator.generateProductColors()
-                let price = LargeSampleDataGenerator.generateFixedPrice(for: name)
+        let totalProducts = SampleDataConstants.productCount
 
-                let product = Product(name: name, colors: colors, imageData: nil, price: price)
+        progressMonitor.updateStep(
+            phase: .products,
+            stepIndex: 0,
+            stepName: "Generating \(totalProducts) products with unique SKUs..."
+        )
+        print("  Generating \(totalProducts) products with English names and unique SKUs...")
 
-                // 为产品添加尺码
-                let sizeNames = LargeSampleDataGenerator.generateProductSizes()
+        // Define status distribution
+        // Active: 40% (400 products) - in production
+        // Low Stock: 35% (350 products) - 1-9 units
+        // Inactive: 25% (250 products) - not in production
+        let activeCount = 400
+        let lowStockCount = 350
+        let inactiveCount = 250
+
+        var statusDistribution: [String] = []
+        statusDistribution.append(contentsOf: Array(repeating: "active", count: activeCount))
+        statusDistribution.append(contentsOf: Array(repeating: "lowStock", count: lowStockCount))
+        statusDistribution.append(contentsOf: Array(repeating: "inactive", count: inactiveCount))
+        statusDistribution.shuffle()
+
+        for i in 0..<totalProducts {
+            // Generate unique SKU and name
+            let sku = LargeSampleDataGenerator.generateUniqueSKU(index: i)
+            let name = LargeSampleDataGenerator.generateProductName(index: i)
+            let price = LargeSampleDataGenerator.generateFixedPrice(for: name)
+
+            let product = Product(sku: sku, name: name, imageData: nil, price: price)
+
+            // Determine status for this product
+            let status = statusDistribution[i]
+
+            // Generate inventory based on status
+            let totalInventory: Int
+            switch status {
+            case "active":
+                // Active: in production, inventory can be anything (random 0-100 for variety)
+                totalInventory = Int.random(in: 0...100)
+            case "lowStock":
+                // Low Stock: requires 1-9 units
+                totalInventory = Int.random(in: 1...9)
+            default: // inactive
+                // Inactive: not in production, must be 0
+                totalInventory = 0
+            }
+
+            // Add sizes with inventory
+            let sizeNames = LargeSampleDataGenerator.generateProductSizes()
+
+            if totalInventory > 0 {
+                // Distribute inventory across sizes
+                var remainingInventory = totalInventory
+                for (idx, sizeName) in sizeNames.enumerated() {
+                    let isLastSize = (idx == sizeNames.count - 1)
+                    let quantity: Int
+
+                    if isLastSize {
+                        quantity = remainingInventory
+                    } else {
+                        let avgPerSize = remainingInventory / (sizeNames.count - idx)
+                        let variation = max(1, avgPerSize / 3)
+                        quantity = max(0, Int.random(in: (avgPerSize - variation)...(avgPerSize + variation)))
+                    }
+
+                    let productSize = ProductSize(size: sizeName, quantity: quantity, product: product)
+                    product.sizes?.append(productSize)
+                    remainingInventory -= quantity
+
+                    if remainingInventory <= 0 { break }
+                }
+            } else {
+                // 0 inventory
                 for sizeName in sizeNames {
-                    let productSize = ProductSize(size: sizeName)
+                    let productSize = ProductSize(size: sizeName, quantity: 0, product: product)
                     product.sizes?.append(productSize)
                 }
-
-                products.append(product)
-                productIndex += 1
             }
-            
-            progressMonitor.completeStep(
-                phase: .products, 
-                stepIndex: stepIndex, 
-                stepName: "\(category.rawValue)生成完成"
-            )
-            stepIndex += 1
+
+            // Set manual status override for Active/Inactive (Low Stock auto-computed from quantity)
+            if status == "active" {
+                product.manualInventoryStatus = Product.InventoryStatus.active.rawValue
+            } else if status == "inactive" {
+                product.manualInventoryStatus = Product.InventoryStatus.inactive.rawValue
+            }
+            // Low Stock (1-9 units) will be auto-detected by updateCachedInventoryStatus()
+
+            // Update cached inventory status based on sizes
+            product.updateCachedInventoryStatus()
+
+            products.append(product)
+
+            // Log progress every 200 products
+            if (i + 1) % 200 == 0 {
+                print("    Generated \(i + 1)/\(totalProducts) products...")
+            }
         }
-        
-        // 批量保存产品
+
+        progressMonitor.completeStep(
+            phase: .products,
+            stepIndex: 0,
+            stepName: "Product generation complete"
+        )
+
+        // Batch save products
         return await batchSaveProducts(products)
     }
     
@@ -359,7 +463,15 @@ class CustomerOutOfStockSampleDataService {
             return
         }
 
+        // Fetch real salesperson IDs from database (just like sales data)
+        let salespersonIds = await getActiveSalespersonIds()
+        guard !salespersonIds.isEmpty else {
+            print("⚠️ 没有找到活跃的销售人员，跳过欠货记录生成")
+            return
+        }
+
         print("  按年份和月份分布生成欠货记录...")
+        print("  使用 \(salespersonIds.count) 个真实销售人员ID")
 
         var stepIndex = 0
         var totalRecordsGenerated = 0
@@ -387,7 +499,8 @@ class CustomerOutOfStockSampleDataService {
                     month: month,
                     count: recordCount,
                     customers: customers,
-                    products: products
+                    products: products,
+                    salespersonIds: salespersonIds
                 )
 
                 totalRecordsGenerated += recordCount
@@ -411,34 +524,37 @@ class CustomerOutOfStockSampleDataService {
     ///   - count: 记录数量
     ///   - customers: 客户数组
     ///   - products: 产品数组
+    ///   - salespersonIds: 销售人员ID数组
     private func generateMonthlyRecords(
         year: Int,
         month: Int,
         count: Int,
         customers: [Customer],
-        products: [Product]
+        products: [Product],
+        salespersonIds: [String]
     ) async {
         let batchSize = 1000  // Increased from 100 to 1000 for better performance
         let totalBatches = (count + batchSize - 1) / batchSize
-        
+
         for batchIndex in 0..<totalBatches {
             let startIndex = batchIndex * batchSize
             let endIndex = min(startIndex + batchSize, count)
             let batchCount = endIndex - startIndex
-            
+
             var records: [CustomerOutOfStock] = []
-            
+
             // 生成一批记录
             for _ in 0..<batchCount {
                 let record = generateSingleRecord(
                     year: year,
                     month: month,
                     customers: customers,
-                    products: products
+                    products: products,
+                    salespersonIds: salespersonIds
                 )
                 records.append(record)
             }
-            
+
             // 批量保存记录
             await batchSaveOutOfStockRecords(records)
             print("      已保存\(month)月第\(batchIndex + 1)/\(totalBatches)批记录（\(batchCount) 条）")
@@ -451,24 +567,27 @@ class CustomerOutOfStockSampleDataService {
     ///   - month: 月份
     ///   - customers: 客户数组
     ///   - products: 产品数组
+    ///   - salespersonIds: 销售人员ID数组
     /// - Returns: 欠货记录
     private func generateSingleRecord(
         year: Int,
         month: Int,
         customers: [Customer],
-        products: [Product]
+        products: [Product],
+        salespersonIds: [String]
     ) -> CustomerOutOfStock {
         // 随机选择客户和产品
         let customer = customers.randomElement()!
         let product = products.randomElement()!
         let productSize = product.sizes?.randomElement()
-        
+
         // 生成基本信息
         let quantity = LargeSampleDataGenerator.generateQuantity()
         let status = LargeSampleDataGenerator.generateStatus()
         let urgency = LargeSampleDataGenerator.generateUrgencyLevel(for: month)
         let notes = LargeSampleDataGenerator.generateNotes(urgency: urgency)
-        let createdBy = LargeSampleDataGenerator.generateCreatorId()
+        // Use real salesperson IDs instead of hardcoded ones
+        let createdBy = LargeSampleDataGenerator.generateCreatorId(from: salespersonIds)
         
         // 生成日期
         let requestDate = LargeSampleDataGenerator.generateRandomDate(in: year, month: month)

@@ -1094,8 +1094,8 @@ struct CustomerOutOfStockDashboard: View {
     private var skeletonLoadingSection: some View {
         ScrollView {
             VStack(spacing: 0) {
-                // Show skeleton list only (stats are handled by quickStatsSection)
-                EnhancedSkeletonList(itemCount: dashboardState.skeletonItemCount)
+                // NEW: iOS 26 Liquid Glass shimmer skeleton
+                ShimmerSkeletonList(count: dashboardState.skeletonItemCount)
                     .padding(.top, 16)
             }
         }
@@ -1172,6 +1172,10 @@ struct CustomerOutOfStockDashboard: View {
                     .offset(y: -8),
                 alignment: .top
             )
+            .refreshable {
+                // NEW: Pull-to-refresh with haptic feedback
+                await refreshWithHaptic()
+            }
         }
     }
     
@@ -1387,7 +1391,18 @@ struct CustomerOutOfStockDashboard: View {
             }
         }
     }
-    
+
+    // NEW: Pull-to-refresh with haptic feedback
+    private func refreshWithHaptic() async {
+        let generator = UIImpactFeedbackGenerator(style: .medium)
+        generator.impactOccurred()
+
+        await refreshData()
+
+        // Success haptic
+        generator.impactOccurred(intensity: 0.7)
+    }
+
     private func loadMoreData() {
         // Improved conditions for loading more data [rule:§3+.2 API Contract]
         guard !dashboardState.isLoadingMore && 
@@ -1746,7 +1761,7 @@ struct CustomerOutOfStockDashboard: View {
             do {
                 // Create some test customer out-of-stock records
                 let testCustomer = Customer(name: "测试客户", address: "测试地址", phone: "13800138000")
-                let testProduct = Product(name: "测试产品", colors: ["红色"], imageData: nil)
+                let testProduct = Product(sku: "PRD-TEST-001", name: "测试产品", imageData: nil, price: 0.0)
                 
                 // Add test data to repositories first
                 try await appDependencies.serviceFactory.repositoryFactory.customerRepository.addCustomer(testCustomer)

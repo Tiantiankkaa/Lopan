@@ -218,7 +218,7 @@ struct CustomerDetailView: View {
                         icon: "phone",
                         iconColor: LopanColors.primary,
                         label: "Phone",
-                        value: customer.phone.isEmpty ? "未设置" : customer.phone,
+                        value: customer.phone.isEmpty ? "未设置" : customer.formattedPhone,
                         action: customer.phone.isEmpty ? nil : { callCustomer() }
                     )
 
@@ -229,7 +229,7 @@ struct CustomerDetailView: View {
                         icon: "message",
                         iconColor: Color.green,
                         label: "WhatsApp",
-                        value: customer.whatsappNumber.isEmpty ? "未设置" : customer.whatsappNumber,
+                        value: customer.whatsappNumber.isEmpty ? "未设置" : customer.formattedWhatsApp,
                         action: customer.whatsappNumber.isEmpty ? nil : { openWhatsApp() }
                     )
                 }

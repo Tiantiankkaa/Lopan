@@ -51,18 +51,20 @@ struct HTMLProductCard: View {
 
                 Spacer()
 
-                // Stock count
-                HStack(spacing: 4) {
-                    Text("\(product.inventoryQuantity)")
-                        .font(.system(size: 14, weight: .medium))
-                        .foregroundColor(stockColor)
+                // Stock count - HIDE for Active status
+                if product.inventoryStatus != .active {
+                    HStack(spacing: 4) {
+                        Text("\(product.inventoryQuantity)")
+                            .font(.system(size: 14, weight: .medium))
+                            .foregroundColor(stockColor)
 
-                    Text("in stock")
-                        .font(.system(size: 14))
-                        .foregroundColor(Color(hex: "#4B5563") ?? Color.secondary) // gray-600
+                        Text("in stock")
+                            .font(.system(size: 14))
+                            .foregroundColor(Color(hex: "#4B5563") ?? Color.secondary) // gray-600
+                    }
+
+                    Spacer()
                 }
-
-                Spacer()
 
                 // Timestamp
                 Text(product.htmlRelativeTime)
@@ -112,8 +114,6 @@ struct HTMLProductCard: View {
             return Color(hex: "#1F2937") ?? Color.primary // gray-800
         case .lowStock:
             return Color(hex: "#EF4444") ?? Color.red // red-500
-        case .outOfStock:
-            return Color(hex: "#1F2937") ?? Color.primary // gray-800
         case .inactive:
             return Color(hex: "#1F2937") ?? Color.primary // gray-800
         }
@@ -150,7 +150,6 @@ extension Product.InventoryStatus {
         switch self {
         case .active: return "Active"
         case .lowStock: return "Low Stock"
-        case .outOfStock: return "Inactive"
         case .inactive: return "Inactive"
         }
     }
@@ -160,7 +159,6 @@ extension Product.InventoryStatus {
         switch self {
         case .active: return Color(hex: "#10B981") ?? Color.green // green-500
         case .lowStock: return Color(hex: "#F59E0B") ?? Color.yellow // yellow-500
-        case .outOfStock: return Color(hex: "#9CA3AF") ?? Color.gray // gray-400
         case .inactive: return Color(hex: "#9CA3AF") ?? Color.gray // gray-400
         }
     }
@@ -170,7 +168,6 @@ extension Product.InventoryStatus {
         switch self {
         case .active: return Color(hex: "#D1FAE5") ?? Color.green.opacity(0.2) // green-100
         case .lowStock: return Color(hex: "#FEF3C7") ?? Color.yellow.opacity(0.2) // yellow-100
-        case .outOfStock: return Color(hex: "#F3F4F6") ?? Color.gray.opacity(0.2) // gray-100
         case .inactive: return Color(hex: "#F3F4F6") ?? Color.gray.opacity(0.2) // gray-100
         }
     }
@@ -181,38 +178,47 @@ extension Product.InventoryStatus {
 // MARK: - Preview
 
 #Preview {
-    let sampleProduct1 = Product(
-        name: "Air Max 270",
-        colors: ["Black", "White"],
-        imageData: nil,
-        price: 150.00
-    )
-    sampleProduct1.sizes = [
-        ProductSize(size: "S", quantity: 25, product: sampleProduct1),
-        ProductSize(size: "M", quantity: 30, product: sampleProduct1),
-        ProductSize(size: "L", quantity: 20, product: sampleProduct1)
-    ]
+    let sampleProduct1: Product = {
+        let product = Product(
+            sku: "PRD-AM270",
+            name: "Air Max 270",
+            imageData: nil,
+            price: 150.00
+        )
+        product.sizes = [
+            ProductSize(size: "S", quantity: 25, product: product),
+            ProductSize(size: "M", quantity: 30, product: product),
+            ProductSize(size: "L", quantity: 20, product: product)
+        ]
+        return product
+    }()
 
-    let sampleProduct2 = Product(
-        name: "React Presto",
-        colors: ["Blue"],
-        imageData: nil,
-        price: 120.00
-    )
-    sampleProduct2.sizes = [
-        ProductSize(size: "M", quantity: 8, product: sampleProduct2),
-        ProductSize(size: "L", quantity: 4, product: sampleProduct2)
-    ]
+    let sampleProduct2: Product = {
+        let product = Product(
+            sku: "PRD-PRESTO",
+            name: "React Presto",
+            imageData: nil,
+            price: 120.00
+        )
+        product.sizes = [
+            ProductSize(size: "M", quantity: 8, product: product),
+            ProductSize(size: "L", quantity: 4, product: product)
+        ]
+        return product
+    }()
 
-    let sampleProduct3 = Product(
-        name: "ZoomX Invincible Run",
-        colors: ["Red", "Black"],
-        imageData: nil,
-        price: 180.00
-    )
-    sampleProduct3.sizes = []
+    let sampleProduct3: Product = {
+        let product = Product(
+            sku: "PRD-ZOOMX",
+            name: "ZoomX Invincible Run",
+            imageData: nil,
+            price: 180.00
+        )
+        product.sizes = []
+        return product
+    }()
 
-    return VStack(spacing: 12) {
+    VStack(spacing: 12) {
         HTMLProductCard(product: sampleProduct1, onTap: { print("Tapped 1") })
         HTMLProductCard(product: sampleProduct2, onTap: { print("Tapped 2") })
         HTMLProductCard(product: sampleProduct3, onTap: { print("Tapped 3") })

@@ -598,7 +598,7 @@ struct OutOfStockCardView_Previews: PreviewProvider {
     
     static var sampleItem: CustomerOutOfStock {
         let customer = Customer(name: "张三", address: "上海市浦东新区", phone: "13800138000")
-        let product = Product(name: "高级西装", colors: ["黑色", "灰色"])
+        let product = Product(sku: "PRD-SUIT-01", name: "高级西装", imageData: nil, price: 999.00)
         return CustomerOutOfStock(
             customer: customer,
             product: product,

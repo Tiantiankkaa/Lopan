@@ -227,53 +227,14 @@ struct AdaptiveProductCard: View {
     @ViewBuilder
     private var productAttributesView: some View {
         VStack(alignment: .leading, spacing: 6) {
-            if !product.colors.isEmpty {
-                productColorsView
+            // Show SKU badge
+            HStack(spacing: 6) {
+                LopanBadge(product.sku, style: .neutral, size: .small)
             }
-            
+
             if let sizes = product.sizes, !sizes.isEmpty {
                 productSizesView(sizes)
             }
-        }
-    }
-    
-    private var productColorsView: some View {
-        HStack(spacing: 6) {
-            ForEach(product.colors.prefix(maxVisibleColors), id: \.self) { color in
-                if displayMode == .detailed {
-                    HStack(spacing: 4) {
-                        Circle()
-                            .fill(colorForName(color))
-                            .frame(width: 10, height: 10)
-                            .overlay(Circle().stroke(LopanColors.border, lineWidth: 0.5))
-                        
-                        LopanBadge(color, style: .neutral, size: .small)
-                    }
-                } else {
-                    Circle()
-                        .fill(colorForName(color))
-                        .frame(width: 12, height: 12)
-                        .overlay(Circle().stroke(LopanColors.border, lineWidth: 0.5))
-                }
-            }
-            
-            if product.colors.count > maxVisibleColors {
-                Text("+\(product.colors.count - maxVisibleColors)")
-                    .font(.caption2)
-                    .foregroundColor(LopanColors.textSecondary)
-                    .padding(.horizontal, 6)
-                    .padding(.vertical, 2)
-                    .background(LopanColors.backgroundSecondary)
-                    .clipShape(Capsule())
-            }
-        }
-    }
-    
-    private var maxVisibleColors: Int {
-        switch displayMode {
-        case .compact: return 3
-        case .standard: return 4
-        case .detailed: return 5
         }
     }
     
@@ -413,38 +374,31 @@ struct AdaptiveProductCard: View {
     
     private var accessibilityLabel: String {
         var label = product.name
-        
-        if !product.colors.isEmpty {
-            label += ", 颜色: \(product.colors.joined(separator: ", "))"
-        }
-        
+        label += ", SKU: \(product.sku)"
+
         if let sizes = product.sizes, !sizes.isEmpty {
             let sizeNames = sizes.map { $0.size }
             label += ", 尺寸: \(sizeNames.joined(separator: ", "))"
         }
-        
+
         if selectionState.isSelected {
             label += ", 已选择"
         }
-        
+
         return label
     }
     
     private var accessibilityValue: String {
         var components: [String] = []
-        
+
         if selectionState.isSelected {
             components.append("已选择")
         }
-        
-        if !product.colors.isEmpty {
-            components.append("颜色数量: \(product.colors.count)")
-        }
-        
+
         if let sizes = product.sizes, !sizes.isEmpty {
             components.append("尺寸数量: \(sizes.count)")
         }
-        
+
         return components.joined(separator: ", ")
     }
     
@@ -513,63 +467,66 @@ struct AsyncImageView: View {
 // MARK: - Preview
 
 #Preview {
-    let sampleProduct = Product(
-        name: "iPhone 15 Pro Max",
-        colors: ["深空黑", "原色钛金属", "白色钛金属", "蓝色钛金属"],
-        imageData: nil
-    )
-    
-    let sampleSizes = [
-        ProductSize(size: "128GB", product: sampleProduct),
-        ProductSize(size: "256GB", product: sampleProduct),
-        ProductSize(size: "512GB", product: sampleProduct),
-        ProductSize(size: "1TB", product: sampleProduct)
-    ]
-    sampleProduct.sizes = sampleSizes
-    
-    return VStack(spacing: 20) {
+    @Previewable @State var product = {
+        let product = Product(
+            sku: "PRD-IPHONE15",
+            name: "iPhone 15 Pro Max",
+            imageData: nil,
+            price: 9999.99
+        )
+        let sampleSizes = [
+            ProductSize(size: "128GB", product: product),
+            ProductSize(size: "256GB", product: product),
+            ProductSize(size: "512GB", product: product),
+            ProductSize(size: "1TB", product: product)
+        ]
+        product.sizes = sampleSizes
+        return product
+    }()
+
+    VStack(spacing: 20) {
         VStack(alignment: .leading, spacing: 12) {
             Text("Detailed Mode")
                 .font(.headline)
                 .foregroundColor(.primary)
-            
+
             AdaptiveProductCard(
-                product: sampleProduct,
+                product: product,
                 displayMode: .detailed,
                 selectionState: .none,
                 onSelect: {},
-                onSecondaryAction: {}
+                onSecondaryAction: nil
             )
         }
-        
+
         VStack(alignment: .leading, spacing: 12) {
             Text("Standard Mode")
                 .font(.headline)
                 .foregroundColor(.primary)
-            
+
             AdaptiveProductCard(
-                product: sampleProduct,
+                product: product,
                 displayMode: .standard,
                 selectionState: .selectable(isSelected: false),
                 onSelect: {},
                 onSecondaryAction: nil
             )
         }
-        
+
         VStack(alignment: .leading, spacing: 12) {
             Text("Compact Mode")
                 .font(.headline)
                 .foregroundColor(.primary)
-            
+
             AdaptiveProductCard(
-                product: sampleProduct,
+                product: product,
                 displayMode: .compact,
                 selectionState: .selectable(isSelected: true),
                 onSelect: {},
                 onSecondaryAction: nil
             )
         }
-        
+
         Spacer()
     }
     .padding()

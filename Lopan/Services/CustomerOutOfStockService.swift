@@ -43,8 +43,9 @@ public class CustomerOutOfStockService: ObservableObject {
     private var customerOutOfStockRepository: CustomerOutOfStockRepository!
     private var auditService: NewAuditingService!
     private var authService: AuthenticationService!
-    private let cacheManager: OutOfStockCacheManager
-    
+    private let cacheManager: OutOfStockCacheManager // Legacy - will be phased out
+    private let cacheService: CustomerOutOfStockCacheService // NEW: Multi-layer cache
+
     var isPlaceholder = false
     
     @Published var items: [CustomerOutOfStock] = []
@@ -72,6 +73,13 @@ public class CustomerOutOfStockService: ObservableObject {
         self.auditService = auditService
         self.authService = authService
         self.cacheManager = OutOfStockCacheManager()
+
+        // NEW: Initialize multi-layer cache service
+        self.cacheService = DefaultCustomerOutOfStockCacheService(
+            cacheManager: OutOfStockCacheManager(),
+            multiLayerCache: nil // Will create default with disk persistence
+        )
+
         self.isPlaceholder = false
         self.currentCriteria = OutOfStockFilterCriteria(
             dateRange: Self.createDateRange(for: Date()),
@@ -87,6 +95,13 @@ public class CustomerOutOfStockService: ObservableObject {
     
     private init() {
         self.cacheManager = OutOfStockCacheManager()
+
+        // NEW: Initialize multi-layer cache service for placeholder
+        self.cacheService = DefaultCustomerOutOfStockCacheService(
+            cacheManager: OutOfStockCacheManager(),
+            multiLayerCache: nil
+        )
+
         self.isPlaceholder = true
         self.currentCriteria = OutOfStockFilterCriteria(
             dateRange: Self.createDateRange(for: Date()),
@@ -296,61 +311,104 @@ public class CustomerOutOfStockService: ObservableObject {
         }
         
         do {
-            // Enhanced cache key generation with better date validation
-            let cacheKeyDate = validateCacheKeyDate(criteria: criteria, fallbackDate: date)
-            let cacheKey = OutOfStockCacheKey(
-                date: cacheKeyDate,
-                criteria: criteria,
-                page: criteria.page
-            )
-            
-            logger.info("Creating cache key")
-            
-            // Try to get from cache first
-            if let cachedPage = await cacheManager.getCachedPage(for: cacheKey) {
-                logger.info("Cache hit")
+            // NEW: Use multi-layer cache with stale-while-revalidate pattern
+            logger.info("🚀 Using multi-layer cache for data fetch")
+
+            // Define fresh fetch closure that returns items and captures pagination metadata
+            var paginationMetadata: (totalCount: Int, hasMoreData: Bool)?
+
+            let cacheResult = await cacheService.getCachedRecords(criteria) { [self] in
+                // Fresh fetch from repository
+                let result = try await self.customerOutOfStockRepository.fetchOutOfStockRecords(
+                    criteria: criteria,
+                    page: criteria.page,
+                    pageSize: criteria.pageSize
+                )
+
+                // Capture pagination metadata for later use
+                paginationMetadata = (result.totalCount, result.hasMoreData)
+
+                self.logger.safeInfo("Fresh fetch completed", [
+                    "itemCount": String(result.items.count),
+                    "totalCount": String(result.totalCount),
+                    "hasMore": String(result.hasMoreData)
+                ])
+
+                return result.items
+            }
+
+            // Handle cache result based on freshness
+            switch cacheResult {
+            case .fresh(let items, let metadata):
+                logger.safeInfo("📦 Fresh data from cache", [
+                    "source": metadata.source.displayName,
+                    "itemCount": String(items.count),
+                    "age": String(Int(metadata.age))
+                ])
+
+                // Use captured pagination metadata from fresh fetch
+                let totalCount = paginationMetadata?.totalCount ?? items.count
+                let hasMore = paginationMetadata?.hasMoreData ?? (items.count >= criteria.pageSize)
+
+                let cachedPage = CachedOutOfStockPage(
+                    items: items.map { CustomerOutOfStockDTO(from: $0) },
+                    totalCount: totalCount,
+                    hasMoreData: hasMore
+                )
+
                 await updateUIWithData(cachedPage, append: append)
-                return
-            }
-            
-            logger.info("Cache miss, fetching from repository")
-            
-            // Fetch from repository - the repository itself handles thread safety
-            let result = try await customerOutOfStockRepository.fetchOutOfStockRecords(
-                criteria: criteria,
-                page: criteria.page,
-                pageSize: criteria.pageSize
-            )
-            
-            // Convert to thread-safe DTOs and create cached page (must be on main thread)
-            let cachedPage: CachedOutOfStockPage
-            do {
-                cachedPage = await MainActor.run {
-                    cacheManager.createCachedPage(
-                        from: result.items,
-                        totalCount: result.totalCount,
-                        hasMoreData: result.hasMoreData
+
+            case .stale(let items, let metadata):
+                logger.safeInfo("⏰ Stale data from cache (refresh in background)", [
+                    "source": metadata.source.displayName,
+                    "itemCount": String(items.count),
+                    "age": String(Int(metadata.age)),
+                    "freshnessRatio": String(format: "%.2f", metadata.freshnessRatio)
+                ])
+
+                // Infer pagination metadata from cached items
+                let totalCount = items.count // Conservative estimate
+                let hasMore = items.count >= criteria.pageSize
+
+                let cachedPage = CachedOutOfStockPage(
+                    items: items.map { CustomerOutOfStockDTO(from: $0) },
+                    totalCount: totalCount,
+                    hasMoreData: hasMore
+                )
+
+                await updateUIWithData(cachedPage, append: append)
+
+            case .loading:
+                logger.info("⏳ Initial load - waiting for data")
+                // Keep loading state, data will come in next update
+
+            case .fetching:
+                logger.info("🔄 Fetching fresh data")
+                // Keep current state, fresh data coming soon
+
+            case .error(let error, let fallback):
+                logger.safeError("❌ Cache fetch error", error: error)
+
+                if let fallbackItems = fallback {
+                    logger.safeInfo("Using fallback cache data", [
+                        "itemCount": String(fallbackItems.count)
+                    ])
+
+                    let cachedPage = CachedOutOfStockPage(
+                        items: fallbackItems.map { CustomerOutOfStockDTO(from: $0) },
+                        totalCount: fallbackItems.count,
+                        hasMoreData: false
                     )
-                }
-            } catch {
-                // If caching fails, create fallback cached page
-                logger.safeError("Cache conversion failed", error: error)
-                cachedPage = createFallbackCachedPage(from: result)
-            }
-            
-            // Cache the result asynchronously
-            Task {
-                await cacheManager.cachePage(cachedPage, for: cacheKey)
-                
-                // Also cache base data (without status filter) for fast status switching
-                if !append && criteria.page == 0 {
-                    await self.cacheBaseDataIfApplicable(cachedPage, criteria: criteria)
+
+                    await updateUIWithData(cachedPage, append: append)
+                } else {
+                    // No fallback available, propagate error
+                    await MainActor.run {
+                        self.error = error
+                    }
                 }
             }
-            
-            // Update UI immediately with the data
-            await updateUIWithData(cachedPage, append: append)
-            
+
         } catch {
             await MainActor.run {
                 self.error = error
@@ -651,7 +709,7 @@ public class CustomerOutOfStockService: ObservableObject {
     }
     
     private func createMinimalProduct(id: String, name: String) -> Product {
-        let product = Product(name: name, colors: [])
+        let product = Product(sku: id, name: name, imageData: nil, price: 0.0)
         product.id = id
         return product
     }

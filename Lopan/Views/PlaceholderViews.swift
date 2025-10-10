@@ -48,9 +48,7 @@ struct ProductionStyleListView: View {
         } else {
             return products.filter { product in
                 product.name.localizedCaseInsensitiveContains(searchText) ||
-                product.colors.contains { color in
-                    color.localizedCaseInsensitiveContains(searchText)
-                } ||
+                product.sku.localizedCaseInsensitiveContains(searchText) ||
                 product.sizeNames.contains { size in
                     size.localizedCaseInsensitiveContains(searchText)
                 }
@@ -66,7 +64,7 @@ struct ProductionStyleListView: View {
                     HStack {
                         Image(systemName: "magnifyingglass")
                             .foregroundColor(.secondary)
-                        TextField("搜索产品名称、颜色或尺寸", text: $searchText)
+                        TextField("搜索产品名称、SKU或尺寸", text: $searchText)
                     }
                     .padding(.horizontal)
                     .padding(.vertical, 8)
@@ -205,18 +203,16 @@ struct ReadOnlyProductRow: View {
                     .font(.headline)
                     .fontWeight(.semibold)
                     .foregroundColor(.primary)
-                
-                if !product.colors.isEmpty {
-                    HStack(spacing: 4) {
-                        Image(systemName: "paintbrush.fill")
-                            .foregroundColor(LopanColors.info)
-                            .font(.caption)
-                        Text("颜色: \(product.colors.joined(separator: ", "))")
-                            .font(.subheadline)
-                            .foregroundColor(.secondary)
-                    }
+
+                HStack(spacing: 4) {
+                    Image(systemName: "barcode.viewfinder")
+                        .foregroundColor(LopanColors.info)
+                        .font(.caption)
+                    Text("SKU: \(product.sku)")
+                        .font(.subheadline)
+                        .foregroundColor(.secondary)
                 }
-                
+
                 if let sizes = product.sizes, !sizes.isEmpty {
                     HStack(spacing: 4) {
                         Image(systemName: "ruler.fill")
@@ -227,7 +223,7 @@ struct ReadOnlyProductRow: View {
                             .foregroundColor(.secondary)
                     }
                 }
-                
+
                 HStack(spacing: 4) {
                     Image(systemName: "calendar")
                         .foregroundColor(LopanColors.warning)

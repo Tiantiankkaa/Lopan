@@ -240,8 +240,8 @@ struct AddProductView: View {
                     Button("保存") {
                         saveProduct()
                     }
-                    .disabled(productName.isEmpty || colors.isEmpty)
-                    .foregroundColor(productName.isEmpty || colors.isEmpty ? LopanColors.textTertiary : LopanColors.primary)
+                    .disabled(productName.isEmpty)
+                    .foregroundColor(productName.isEmpty ? LopanColors.textTertiary : LopanColors.primary)
                 }
             }
             .onChange(of: selectedImage) { _, newValue in
@@ -279,8 +279,13 @@ struct AddProductView: View {
     }
     
     private func saveProduct() {
-        let product = Product(name: productName, colors: colors, imageData: imageData)
-        
+        // Generate SKU from product name
+        let skuPrefix = productName.prefix(3).uppercased()
+        let skuSuffix = UUID().uuidString.prefix(6).uppercased()
+        let sku = "PRD-\(skuPrefix)-\(skuSuffix)"
+
+        let product = Product(sku: sku, name: productName, imageData: imageData, price: 0.0)
+
         // Add sizes
         for sizeName in sizes {
             let size = ProductSize(size: sizeName, product: product)
@@ -289,7 +294,10 @@ struct AddProductView: View {
             }
             product.sizes?.append(size)
         }
-        
+
+        // Update cached inventory status based on sizes
+        product.updateCachedInventoryStatus()
+
         modelContext.insert(product)
         
         do {

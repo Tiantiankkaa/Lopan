@@ -168,34 +168,34 @@ extension Product: ExportableData {
     func toCSVRow() -> [String] {
         let dateFormatter = DateFormatter()
         dateFormatter.dateFormat = "yyyy-MM-dd HH:mm:ss"
-        
+
         return [
             name,
-            colors.joined(separator: ", "),
+            sku,
             sizeNames.joined(separator: ", "),
             dateFormatter.string(from: createdAt),
             dateFormatter.string(from: updatedAt)
         ]
     }
-    
+
     func toJSONObject() -> [String: Any] {
         let dateFormatter = DateFormatter()
         dateFormatter.dateFormat = "yyyy-MM-dd HH:mm:ss"
-        
+
         return [
             "id": id,
             "name": name,
-            "colors": colors,
+            "sku": sku,
             "sizes": sizeNames,
             "created_at": dateFormatter.string(from: createdAt),
             "updated_at": dateFormatter.string(from: updatedAt)
         ]
     }
-    
+
     static func csvHeaders() -> [String] {
         return [
             "产品名称",
-            "颜色",
+            "SKU",
             "尺寸",
             "创建时间",
             "更新时间"

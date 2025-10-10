@@ -14,6 +14,7 @@ struct SampleDataConstants {
     static let customerCount = 2000        // 2000 customers for 100K records
     static let productCount = 1000         // 1000 products for variety
     static let outOfStockRecordCount = 100000  // 100,000 records
+    static let salesEntryCount = 60000     // 60,000 sales entries
     static let batchSize = 1000            // Increased batch size for performance
     
     // MARK: - 时间范围 (2024-01-01 to Present)
@@ -58,35 +59,39 @@ struct SampleDataConstants {
 
     // MARK: - 年份分布 (Years to Generate)
     // 2024: All 12 months = ~62,000 records
-    // 2025: First 9 months = ~44,000 records
-    // Total: ~106,000 records
+    // 2025: First 10 months = ~49,500 records
+    // Total: ~111,500 records
     static let yearlyDistribution: [(year: Int, months: [Int])] = [
         (2024, [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12]),  // 2024: All 12 months
-        (2025, [1, 2, 3, 4, 5, 6, 7, 8, 9])               // 2025: Jan-Sep (9 months)
+        (2025, [1, 2, 3, 4, 5, 6, 7, 8, 9, 10])           // 2025: Jan-Oct (10 months)
     ]
     
-    // MARK: - 城市列表 (Global Regions with Weighted Distribution)
+    // MARK: - 城市列表 (Global Cities with Weighted Distribution)
     static let cities = [
-        "Lagos",    // 50% of data
-        "China",    // 15% of data
-        "USA",      // 12% of data
-        "Ibadan",   // 8% of data
-        "Onitsha",  // 6% of data
-        "Aba",      // 5% of data
-        "Kano",     // 3% of data
-        "Other"     // 1% of data (combined smaller cities)
+        "Lagos Island",        // 50% of data (Nigeria - Lagos State)
+        "Shanghai",            // 8% of data (China - Shanghai)
+        "Beijing",             // 7% of data (China - Beijing)
+        "Los Angeles",         // 6% of data (USA - California)
+        "New York City",       // 6% of data (USA - New York)
+        "Ibadan",              // 8% of data (Nigeria - Oyo State)
+        "Onitsha",             // 6% of data (Nigeria - Anambra State)
+        "Aba",                 // 5% of data (Nigeria - Abia State)
+        "Kano",                // 3% of data (Nigeria - Kano State)
+        "Mumbai"               // 1% of data (India - Maharashtra)
     ]
 
     // City weights for distribution (must sum to 1.0)
     static let cityWeights: [String: Double] = [
-        "Lagos": 0.50,
-        "China": 0.15,
-        "USA": 0.12,
+        "Lagos Island": 0.50,
+        "Shanghai": 0.08,
+        "Beijing": 0.07,
+        "Los Angeles": 0.06,
+        "New York City": 0.06,
         "Ibadan": 0.08,
         "Onitsha": 0.06,
         "Aba": 0.05,
         "Kano": 0.03,
-        "Other": 0.01
+        "Mumbai": 0.01
     ]
 
     /// Get a weighted random city
@@ -103,41 +108,31 @@ struct SampleDataConstants {
 
         return cities.last ?? "Lagos"
     }
-    
-    // MARK: - 产品类别 (Scaled for 1000 products)
-    enum ProductCategory: String, CaseIterable {
-        case tops = "上衣类"           // 330个产品
-        case pants = "裤装类"          // 270个产品
-        case dresses = "裙装类"        // 200个产品
-        case shoes = "鞋类"           // 130个产品
-        case accessories = "配饰类"    // 70个产品
 
-        var count: Int {
-            switch self {
-            case .tops: return 330
-            case .pants: return 270
-            case .dresses: return 200
-            case .shoes: return 130
-            case .accessories: return 70
+    // Country code weights (must match location distribution)
+    static let countryCodeWeights: [String: Double] = [
+        "NG": 0.72,  // Nigeria (Lagos Island 50%, Ibadan 8%, Onitsha 6%, Aba 5%, Kano 3%)
+        "CN": 0.15,  // China (Shanghai 8%, Beijing 7%)
+        "US": 0.12,  // USA (Los Angeles 6%, New York City 6%)
+        "IN": 0.01   // India (Mumbai 1%)
+    ]
+
+    /// Get a weighted random country code
+    static func getWeightedCountryCode() -> String {
+        let random = Double.random(in: 0...1)
+        var cumulative = 0.0
+
+        let codes = ["NG", "CN", "US", "IN"]
+        for code in codes {
+            cumulative += countryCodeWeights[code] ?? 0
+            if random <= cumulative {
+                return code
             }
         }
-        
-        var baseNames: [String] {
-            switch self {
-            case .tops:
-                return ["T恤", "衬衫", "外套", "卫衣", "毛衣", "背心", "夹克", "风衣", "开衫", "针织衫"]
-            case .pants:
-                return ["牛仔裤", "休闲裤", "运动裤", "短裤", "工装裤", "西装裤", "打底裤", "哈伦裤"]
-            case .dresses:
-                return ["连衣裙", "半身裙", "长裙", "短裙", "A字裙", "包臀裙", "百褶裙", "吊带裙"]
-            case .shoes:
-                return ["运动鞋", "皮鞋", "休闲鞋", "高跟鞋", "凉鞋", "靴子", "帆布鞋", "豆豆鞋"]
-            case .accessories:
-                return ["帽子", "围巾", "手套", "腰带", "手表", "项链", "耳环", "手镯"]
-            }
-        }
+
+        return "NG" // Default to Nigeria
     }
-    
+
     // MARK: - 客户类型
     enum CustomerType: String, CaseIterable {
         case important = "重要客户"
@@ -152,14 +147,7 @@ struct SampleDataConstants {
             }
         }
     }
-    
-    // MARK: - 产品颜色
-    static let colors = [
-        "白色", "黑色", "蓝色", "红色", "灰色",
-        "粉色", "黄色", "绿色", "紫色", "橙色",
-        "米色", "卡其色", "深蓝色", "浅蓝色", "酒红色"
-    ]
-    
+
     // MARK: - 产品尺码
     static let sizes = ["S", "M", "L", "XL", "XXL", "XXXL"]
     

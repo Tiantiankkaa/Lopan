@@ -220,7 +220,7 @@ final class SalespersonDashboardViewModel: ObservableObject {
         let repositoryFactory = dependencies.repositoryFactory
         let customerRepository = repositoryFactory.customerRepository
         let productRepository = repositoryFactory.productRepository
-        let stockoutRepository = repositoryFactory.customerOutOfStockRepository
+        _ = repositoryFactory.customerOutOfStockRepository  // Reserved for future use
 
         do {
             // PHASE 2 OPTIMIZATION: Load customers/products + compute metrics off MainActor

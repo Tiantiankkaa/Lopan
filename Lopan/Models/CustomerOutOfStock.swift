@@ -119,11 +119,10 @@ public final class CustomerOutOfStock {
     // Helper method to get display name for the product with size
     var productDisplayName: String {
         if let product = product {
-            let colorDisplay = product.colors.isEmpty ? "无颜色" : product.colors.joined(separator: ",")
             if let size = productSize {
-                return "\(product.name)-\(size.size)-\(colorDisplay)"
+                return "\(product.name)-\(size.size)"
             } else {
-                return "\(product.name)-\(colorDisplay)"
+                return product.name
             }
         } else {
             return extractProductNameFromDisplayInfo() ?? "未知产品"

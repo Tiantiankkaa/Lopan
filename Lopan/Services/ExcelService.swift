@@ -103,14 +103,14 @@ public class ExcelService {
                 let columns = parseCSVLine(line)
                 if columns.count >= 3 {
                     let name = columns[0].trimmingCharacters(in: .whitespacesAndNewlines)
-                    let colorsString = columns[1].trimmingCharacters(in: .whitespacesAndNewlines)
+                    let skuString = columns[1].trimmingCharacters(in: .whitespacesAndNewlines)
                     let sizesString = columns[2].trimmingCharacters(in: .whitespacesAndNewlines)
-                    
+
                     if !name.isEmpty {
-                        let colors = colorsString.isEmpty ? [] : colorsString.components(separatedBy: ",").map { $0.trimmingCharacters(in: .whitespacesAndNewlines) }
+                        let sku = skuString.isEmpty ? "PRD-\(UUID().uuidString.prefix(8))" : skuString
                         let sizes = sizesString.isEmpty ? [] : sizesString.components(separatedBy: ",").map { $0.trimmingCharacters(in: .whitespacesAndNewlines) }
-                        
-                        let product = Product(name: name, colors: colors)
+
+                        let product = Product(sku: sku, name: name, imageData: nil, price: 0.0)
                         modelContext.insert(product)
                         
                         // Add sizes
@@ -122,7 +122,10 @@ public class ExcelService {
                             }
                             product.sizes?.append(size)
                         }
-                        
+
+                        // Update cached inventory status based on sizes
+                        product.updateCachedInventoryStatus()
+
                         importedCount += 1
                     } else {
                         errors.append("第\(index + 1)行: 产品名称不能为空")
@@ -155,8 +158,8 @@ public class ExcelService {
     }
     
     func generateProductTemplate() -> URL? {
-        let header = "产品名称,颜色(用逗号分隔),尺寸(用逗号分隔)"
-        let example = "经典圆领T恤,白色,黑色,蓝色,XS,S,M,L,XL"
+        let header = "产品名称,SKU,尺寸(用逗号分隔)"
+        let example = "经典圆领T恤,PRD-001,XS,S,M,L,XL"
         let csvContent = "\(header)\n\(example)"
         return saveCSVToFile(csvContent, filename: "product_template")
     }
@@ -181,12 +184,12 @@ public class ExcelService {
     }
     
     private func generateProductCSV(_ products: [Product]) -> String {
-        let header = "产品名称,颜色,尺寸,创建时间"
+        let header = "产品名称,SKU,尺寸,创建时间"
         let rows = products.map { product in
-            let colors = product.colors.joined(separator: ",")
+            let sku = product.sku
             let sizes = product.sizeNames.joined(separator: ",")
             let date = product.createdAt.formatted(date: .abbreviated, time: .omitted)
-            return "\(product.name),\(colors),\(sizes),\(date)"
+            return "\(product.name),\(sku),\(sizes),\(date)"
         }
         return "\(header)\n\(rows.joined(separator: "\n"))"
     }

@@ -59,6 +59,15 @@ struct SalespersonDashboardView: View {
                 toastManager.showSuccess(NSLocalizedString("salesperson_dashboard_refresh_success", comment: ""))
             }
             .onAppear {
+                // Debug: Log salesperson ID for data filtering
+                if let currentUser = authService.currentUser {
+                    print("👤 [Dashboard] Current User ID: \(currentUser.id)")
+                    print("👤 [Dashboard] Current User Name: \(currentUser.name)")
+                    print("👤 [Dashboard] Current User Roles: \(currentUser.roles)")
+                } else {
+                    print("⚠️ [Dashboard] No current user logged in")
+                }
+
                 // Configure once and load data
                 // configureIfNeeded already calls refresh internally
                 viewModel.configureIfNeeded(
@@ -300,34 +309,13 @@ struct SalespersonDashboardView: View {
                         .font(.title3)
                         .frame(width: 24, height: 24)
                         .layoutPriority(1)
-                        .background(
-                            GeometryReader { geo in
-                                Color.clear.onAppear {
-                                    print("🔷 Icon 'storefront' Width: \(geo.size.width), Height: \(geo.size.height)")
-                                }
-                            }
-                        )
                     Text("View Products")
                         .lopanTitleMedium(maxLines: 1)
                         .truncationMode(.tail)
                         .allowsTightening(true)
                         .dynamicTypeSize(...(.xxxLarge))
-                        .background(
-                            GeometryReader { geo in
-                                Color.clear.onAppear {
-                                    print("📝 Text 'View Products' Width: \(geo.size.width), Height: \(geo.size.height)")
-                                }
-                            }
-                        )
                 }
                 .frame(maxWidth: .infinity)
-                .background(
-                    GeometryReader { geo in
-                        Color.clear.onAppear {
-                            print("📦 Button 1 HStack Width: \(geo.size.width), Height: \(geo.size.height)")
-                        }
-                    }
-                )
                 .padding(.vertical, LopanSpacing.md)
                 .background(LopanColors.primary.opacity(0.1))
                 .foregroundColor(LopanColors.primary)
@@ -335,14 +323,6 @@ struct SalespersonDashboardView: View {
             }
             .buttonStyle(.plain)
             .frame(maxWidth: .infinity)
-            .background(
-                GeometryReader { geo in
-                    Color.clear.onAppear {
-                        print("🟦 Button 1 Total Width: \(geo.size.width), Height: \(geo.size.height)")
-                        print("─────────────────────────────────")
-                    }
-                }
-            )
 
             Button {
                 // Navigate to view sales
@@ -354,34 +334,13 @@ struct SalespersonDashboardView: View {
                         .font(.title3)
                         .frame(width: 24, height: 24)
                         .layoutPriority(1)
-                        .background(
-                            GeometryReader { geo in
-                                Color.clear.onAppear {
-                                    print("🔷 Icon 'eye.fill' Width: \(geo.size.width), Height: \(geo.size.height)")
-                                }
-                            }
-                        )
                     Text("View Sales")
                         .lopanTitleMedium(maxLines: 1)
                         .truncationMode(.tail)
                         .allowsTightening(true)
                         .dynamicTypeSize(...(.xxxLarge))
-                        .background(
-                            GeometryReader { geo in
-                                Color.clear.onAppear {
-                                    print("📝 Text 'View Sales' Width: \(geo.size.width), Height: \(geo.size.height)")
-                                }
-                            }
-                        )
                 }
                 .frame(maxWidth: .infinity)
-                .background(
-                    GeometryReader { geo in
-                        Color.clear.onAppear {
-                            print("📦 Button 2 HStack Width: \(geo.size.width), Height: \(geo.size.height)")
-                        }
-                    }
-                )
                 .padding(.vertical, LopanSpacing.md)
                 .background(LopanColors.primary.opacity(0.1))
                 .foregroundColor(LopanColors.primary)
@@ -389,14 +348,6 @@ struct SalespersonDashboardView: View {
             }
             .buttonStyle(.plain)
             .frame(maxWidth: .infinity)
-            .background(
-                GeometryReader { geo in
-                    Color.clear.onAppear {
-                        print("🟦 Button 2 Total Width: \(geo.size.width), Height: \(geo.size.height)")
-                        print("═════════════════════════════════")
-                    }
-                }
-            )
         }
     }
 

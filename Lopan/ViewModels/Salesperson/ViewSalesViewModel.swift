@@ -12,6 +12,21 @@ import SwiftUI
 final class ViewSalesViewModel: ObservableObject {
     // MARK: - Nested Types
 
+    enum SalesSortField: String, CaseIterable {
+        case productName = "Product Name"
+        case quantity = "Quantity"
+        case amount = "Amount"
+    }
+
+    enum SortDirection {
+        case ascending
+        case descending
+
+        mutating func toggle() {
+            self = (self == .ascending) ? .descending : .ascending
+        }
+    }
+
     struct AggregatedProduct: Identifiable, Equatable {
         let id: String // productId
         let productName: String
@@ -50,6 +65,13 @@ final class ViewSalesViewModel: ObservableObject {
     @Published var showSuccessToast = false
     @Published var successMessage: String?
     @Published var expandedProductId: String?
+
+    // Sorting & Pagination
+    @Published var sortField: SalesSortField = .productName
+    @Published var sortDirection: SortDirection = .ascending
+    @Published private(set) var currentPage: Int = 1
+    private let itemsPerPage: Int = 10
+    @Published private(set) var isInitialLoad: Bool = true
 
     // MARK: - Dependencies
 
@@ -106,12 +128,14 @@ final class ViewSalesViewModel: ObservableObject {
                     self.aggregateProducts()
                     self.calculateTotals()
                     isLoading = false
+                    isInitialLoad = false // Hide skeleton after first successful load
                 }
             } catch {
                 print("❌ ViewSalesViewModel: Error fetching sales: \(error.localizedDescription)")
                 await MainActor.run {
                     self.errorMessage = error.localizedDescription
                     isLoading = false
+                    isInitialLoad = false // Hide skeleton even on error
                 }
             }
         }
@@ -338,5 +362,96 @@ final class ViewSalesViewModel: ObservableObject {
 
     var hasData: Bool {
         !salesEntries.isEmpty
+    }
+
+    // MARK: - Sorting & Pagination
+
+    func setSortField(_ field: SalesSortField) {
+        if sortField == field {
+            sortDirection.toggle()
+        } else {
+            sortField = field
+            sortDirection = .ascending
+        }
+        currentPage = 1 // Reset to first page when sorting changes
+    }
+
+    var sortedProducts: [AggregatedProduct] {
+        aggregatedProducts.sorted { product1, product2 in
+            let ascending = sortDirection == .ascending
+
+            switch sortField {
+            case .productName:
+                return ascending ? product1.productName < product2.productName : product1.productName > product2.productName
+            case .quantity:
+                return ascending ? product1.totalQuantity < product2.totalQuantity : product1.totalQuantity > product2.totalQuantity
+            case .amount:
+                return ascending ? product1.totalAmount < product2.totalAmount : product1.totalAmount > product2.totalAmount
+            }
+        }
+    }
+
+    var paginatedProducts: [AggregatedProduct] {
+        let startIndex = (currentPage - 1) * itemsPerPage
+        let endIndex = min(startIndex + itemsPerPage, sortedProducts.count)
+        guard startIndex < sortedProducts.count else { return [] }
+        return Array(sortedProducts[startIndex..<endIndex])
+    }
+
+    var totalPages: Int {
+        max(1, Int(ceil(Double(sortedProducts.count) / Double(itemsPerPage))))
+    }
+
+    var totalProductCount: Int {
+        sortedProducts.count
+    }
+
+    var pageStartIndex: Int {
+        guard !sortedProducts.isEmpty else { return 0 }
+        return (currentPage - 1) * itemsPerPage + 1
+    }
+
+    var pageEndIndex: Int {
+        min(currentPage * itemsPerPage, sortedProducts.count)
+    }
+
+    var canNavigateToPreviousPage: Bool {
+        currentPage > 1
+    }
+
+    var canNavigateToNextPage: Bool {
+        currentPage < totalPages
+    }
+
+    func navigateToPreviousPage() {
+        guard canNavigateToPreviousPage else { return }
+        currentPage -= 1
+    }
+
+    func navigateToNextPage() {
+        guard canNavigateToNextPage else { return }
+        currentPage += 1
+    }
+
+    func deleteProductSales(productId: String) async {
+        guard let salesService = salesService else { return }
+
+        // Find all entries containing this product
+        let entriesToDelete = salesEntries.filter { entry in
+            entry.items?.contains { $0.productId == productId } ?? false
+        }
+
+        var deletedCount = 0
+        for entry in entriesToDelete {
+            let success = await deleteSalesEntry(id: entry.id)
+            if success {
+                deletedCount += 1
+            }
+        }
+
+        if deletedCount > 0 {
+            successMessage = "Deleted \(deletedCount) sales entries"
+            showSuccessToast = true
+        }
     }
 }

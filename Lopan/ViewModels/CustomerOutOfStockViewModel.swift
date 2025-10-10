@@ -45,7 +45,12 @@ class CustomerOutOfStockViewModel: ObservableObject {
     // Animation states
     @Published var listItemAnimationOffset: CGFloat = 100
     @Published var filterChipAnimationScale: CGFloat = 0.8
-    
+
+    // Cache states (for stale-while-revalidate pattern)
+    @Published var isShowingStaleData = false
+    @Published var isRefreshingInBackground = false
+    @Published var cacheSource: CacheSource?
+
     // MARK: - Private Properties
     
     private var service: CustomerOutOfStockService

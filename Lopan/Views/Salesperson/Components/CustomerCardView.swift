@@ -43,13 +43,15 @@ struct CustomerCardView: View {
                     .font(LopanTypography.bodyLarge)
                     .foregroundColor(LopanColors.textPrimary)
 
-                Text(customer.address)
+                // Line 2: Location (City, Region, Country)
+                Text(customer.displaySubtitle)
                     .font(LopanTypography.bodySmall)
                     .foregroundColor(LopanColors.textSecondary)
                     .lineLimit(1)
 
+                // Line 3: Formatted phone number
                 if !customer.phone.isEmpty {
-                    Text(customer.phone)
+                    Text(customer.formattedPhone)
                         .font(LopanTypography.bodySmall)
                         .foregroundColor(LopanColors.textSecondary)
                 }

@@ -325,32 +325,41 @@ struct EnhancedProductDetailView: View {
     }
     
     // MARK: - Product Attributes Section
-    
+
     private var productAttributesSection: some View {
         VStack(spacing: cardSpacing) {
-            colorsSection
+            skuSection
             sizesSection
         }
     }
-    
-    private var colorsSection: some View {
+
+    private var skuSection: some View {
         responsiveCard {
             VStack(alignment: .leading, spacing: 16) {
-                sectionHeader("可用颜色", systemImage: "paintpalette.fill")
-                
-                if !product.colors.isEmpty {
-                    if isCompactLayout {
-                        compactColorsView
-                    } else {
-                        standardColorsView
+                sectionHeader("产品编号", systemImage: "barcode.viewfinder")
+
+                HStack {
+                    Text(product.sku)
+                        .font(.title3)
+                        .fontWeight(.semibold)
+                        .foregroundColor(LopanColors.primary)
+
+                    Spacer()
+
+                    Button(action: {
+                        UIPasteboard.general.string = product.sku
+                        LopanHapticEngine.shared.light()
+                    }) {
+                        Image(systemName: "doc.on.doc")
+                            .font(.body)
+                            .foregroundColor(LopanColors.primary)
                     }
-                } else {
-                    emptyStateView("暂无颜色信息", "点击编辑按钮添加颜色选项")
+                    .accessibilityLabel("复制SKU")
                 }
             }
         }
     }
-    
+
     private var sizesSection: some View {
         responsiveCard {
             VStack(alignment: .leading, spacing: 16) {
@@ -368,50 +377,7 @@ struct EnhancedProductDetailView: View {
             }
         }
     }
-    
-    private var standardColorsView: some View {
-        LazyVGrid(columns: [
-            GridItem(.flexible()),
-            GridItem(.flexible()),
-            GridItem(.flexible())
-        ], spacing: 12) {
-            ForEach(product.colors, id: \.self) { color in
-                colorCard(color)
-            }
-        }
-    }
-    
-    private var compactColorsView: some View {
-        ScrollView(.horizontal, showsIndicators: false) {
-            HStack(spacing: 8) {
-                ForEach(product.colors, id: \.self) { color in
-                    LopanBadge(color, style: .neutral, size: .medium)
-                }
-            }
-            .padding(.horizontal, 1)
-        }
-    }
-    
-    private func colorCard(_ color: String) -> some View {
-        HStack(spacing: 8) {
-            Circle()
-                .fill(colorForName(color))
-                .frame(width: 16, height: 16)
-                .overlay(Circle().stroke(LopanColors.border, lineWidth: 0.5))
-            
-            Text(color)
-                .font(.callout)
-                .fontWeight(.medium)
-                .foregroundColor(LopanColors.textPrimary)
-            
-            Spacer()
-        }
-        .padding(.horizontal, 12)
-        .padding(.vertical, 8)
-        .background(LopanColors.backgroundSecondary)
-        .clipShape(RoundedRectangle(cornerRadius: 8))
-    }
-    
+
     private func standardSizesView(_ sizes: [ProductSize]) -> some View {
         LazyVGrid(columns: [
             GridItem(.flexible()),
@@ -442,16 +408,16 @@ struct EnhancedProductDetailView: View {
         responsiveCard {
             VStack(alignment: .leading, spacing: 16) {
                 sectionHeader("产品信息", systemImage: "info.circle.fill")
-                
+
                 VStack(spacing: 12) {
                     metadataRow("创建时间", value: product.createdAt.formatted(.dateTime.day().month().year()))
-                    
+
                     if product.updatedAt != product.createdAt {
                         metadataRow("更新时间", value: product.updatedAt.formatted(.dateTime.day().month().year()))
                     }
-                    
-                    metadataRow("颜色数量", value: "\(product.colors.count) 种")
+
                     metadataRow("尺寸数量", value: "\(product.sizes?.count ?? 0) 种")
+                    metadataRow("价格", value: String(format: "¥%.2f", product.price))
                 }
             }
         }
@@ -718,11 +684,12 @@ struct EnhancedProductDetailView: View {
     
     private func duplicateProduct() {
         let duplicatedProduct = Product(
+            sku: "\(product.sku)-COPY",
             name: "\(product.name) 副本",
-            colors: product.colors,
-            imageData: product.imageData
+            imageData: product.imageData,
+            price: product.price
         )
-        
+
         if let originalSizes = product.sizes {
             for originalSize in originalSizes {
                 let duplicatedSize = ProductSize(size: originalSize.size, product: duplicatedProduct)
@@ -732,9 +699,9 @@ struct EnhancedProductDetailView: View {
                 duplicatedProduct.sizes?.append(duplicatedSize)
             }
         }
-        
+
         modelContext.insert(duplicatedProduct)
-        
+
         do {
             try modelContext.save()
             NotificationCenter.default.post(name: .productAdded, object: duplicatedProduct)
@@ -758,12 +725,13 @@ struct EnhancedProductDetailView: View {
 
 #Preview {
     let sampleProduct = Product(
+        sku: "PRD-IPHONE15",
         name: "iPhone 15 Pro Max",
-        colors: ["深空黑", "原色钛金属", "白色钛金属", "蓝色钛金属"],
-        imageData: nil
+        imageData: nil,
+        price: 9999.99
     )
-    
-    return NavigationStack {
+
+    NavigationStack {
         EnhancedProductDetailView(product: sampleProduct)
     }
     .modelContainer(for: [Product.self, ProductSize.self], inMemory: true)

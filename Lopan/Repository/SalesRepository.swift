@@ -30,6 +30,11 @@ public protocol SalesRepository: AnyObject, Sendable {
     /// - Throws: RepositoryError if the creation fails
     func createSalesEntry(_ entry: DailySalesEntry) async throws
 
+    /// Create multiple sales entries in a batch
+    /// - Parameter entries: Array of sales entries to create
+    /// - Throws: RepositoryError if the creation fails
+    func createSalesEntries(_ entries: [DailySalesEntry]) async throws
+
     /// Update an existing sales entry
     /// - Parameter entry: The sales entry to update
     /// - Throws: RepositoryError if the update fails

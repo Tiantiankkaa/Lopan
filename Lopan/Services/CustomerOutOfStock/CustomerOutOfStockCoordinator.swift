@@ -7,6 +7,7 @@
 
 import Foundation
 import SwiftUI
+import SwiftData
 import os
 
 /// Main coordinator for Customer Out-of-Stock operations
@@ -219,16 +220,16 @@ public class CustomerOutOfStockCoordinator: ObservableObject {
         
         do {
             // Try cache first
-            if let cachedRecords = cacheService.getCachedRecords(criteria) {
+            if let cachedRecords = cacheService.getCachedRecordsSync(criteria) {
                 updateUIWithRecords(cachedRecords, criteria: criteria, append: append)
                 return
             }
-            
+
             // Load from repository
             let records = try await dataService.fetchRecords(criteria)
-            
+
             // Cache the results
-            cacheService.cacheRecords(records, for: criteria)
+            await cacheService.cacheRecords(records, for: criteria)
             
             // Update UI
             updateUIWithRecords(records, criteria: criteria, append: append)
@@ -254,7 +255,7 @@ public class CustomerOutOfStockCoordinator: ObservableObject {
         hasMoreData = records.count == criteria.pageSize
         
         // Update total count if we have it cached
-        if let cachedCount = cacheService.getCachedCount(criteria) {
+        if let cachedCount = cacheService.getCachedCountSync(criteria) {
             totalRecordsCount = cachedCount
         }
         
@@ -988,10 +989,24 @@ private class MockCustomerOutOfStockBusinessService: CustomerOutOfStockBusinessS
 }
 
 private class MockCustomerOutOfStockCacheService: CustomerOutOfStockCacheService {
-    func getCachedRecords(_ criteria: OutOfStockFilterCriteria) -> [CustomerOutOfStock]? { nil }
-    func cacheRecords(_ records: [CustomerOutOfStock], for criteria: OutOfStockFilterCriteria) {}
-    func getCachedCount(_ criteria: OutOfStockFilterCriteria) -> Int? { nil }
-    func cacheCount(_ count: Int, for criteria: OutOfStockFilterCriteria) {}
+    // New async methods with CachedResult
+    func getCachedRecords(_ criteria: OutOfStockFilterCriteria, freshFetch: @escaping @Sendable () async throws -> [CustomerOutOfStock]) async -> CachedResult<[CustomerOutOfStock]> {
+        .loading
+    }
+
+    func cacheRecords(_ records: [CustomerOutOfStock], for criteria: OutOfStockFilterCriteria) async {}
+
+    func getCachedCount(_ criteria: OutOfStockFilterCriteria, freshFetch: @escaping @Sendable () async throws -> Int) async -> CachedResult<Int> {
+        .loading
+    }
+
+    func cacheCount(_ count: Int, for criteria: OutOfStockFilterCriteria) async {}
+
+    // Legacy sync methods
+    func getCachedRecordsSync(_ criteria: OutOfStockFilterCriteria) -> [CustomerOutOfStock]? { nil }
+    func cacheRecordsSync(_ records: [CustomerOutOfStock], for criteria: OutOfStockFilterCriteria) {}
+    func getCachedCountSync(_ criteria: OutOfStockFilterCriteria) -> Int? { nil }
+    func cacheCountSync(_ count: Int, for criteria: OutOfStockFilterCriteria) {}
 
     // Analytics caching methods
     func getCachedAnalytics<T>(for key: AnalyticsCacheKey, type: T.Type) -> T? { nil }
@@ -1005,6 +1020,7 @@ private class MockCustomerOutOfStockCacheService: CustomerOutOfStockCacheService
         CacheMemoryUsage(recordsCount: 0, approximateMemoryUsage: 0, cacheHitRate: 0, lastEvictionTime: nil)
     }
     func handleMemoryPressure() {}
+    func getLayerStatistics() async -> MultiLayerStatistics? { nil }
 }
 
 private class MockNewAuditingService: NewAuditingService {
@@ -1147,9 +1163,20 @@ private class MockAuditProductRepository: ProductRepository {
     func deleteProducts(_ products: [Product]) async throws { 
         print("🔧 MockAuditProductRepository: deleteProducts called - NO-OP in placeholder mode")
     }
-    func searchProducts(query: String) async throws -> [Product] { 
+    func searchProducts(query: String) async throws -> [Product] {
         print("🔧 MockAuditProductRepository: searchProducts called")
         return []
+    }
+
+    // Pagination methods
+    func fetchProducts(limit: Int, offset: Int, sortBy: [SortDescriptor<Product>]?, status: Product.InventoryStatus?) async throws -> [Product] {
+        print("🔧 MockAuditProductRepository: fetchProducts(limit:offset:sortBy:status:) called")
+        return []
+    }
+
+    func fetchProductCount(status: Product.InventoryStatus?) async throws -> Int {
+        print("🔧 MockAuditProductRepository: fetchProductCount(status:) called")
+        return 0
     }
 }
 
@@ -1520,6 +1547,10 @@ private class MockAuditSalesRepository: SalesRepository {
 
     func createSalesEntry(_ entry: DailySalesEntry) async throws {
         print("🔧 MockAuditSalesRepository: createSalesEntry called")
+    }
+
+    func createSalesEntries(_ entries: [DailySalesEntry]) async throws {
+        print("🔧 MockAuditSalesRepository: createSalesEntries called with \(entries.count) entries")
     }
 
     func updateSalesEntry(_ entry: DailySalesEntry) async throws {

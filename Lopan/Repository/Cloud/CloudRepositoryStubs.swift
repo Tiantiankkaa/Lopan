@@ -364,11 +364,49 @@ final class CloudProductRepository: ProductRepository, Sendable {
         for product in products {
             let endpoint = "\(baseEndpoint)/\(product.id)"
             let response = try await cloudProvider.delete(endpoint: endpoint)
-            
+
             if !response.success {
                 throw RepositoryError.deleteFailed(response.error ?? "Delete product failed")
             }
         }
+    }
+
+    // MARK: - Pagination Support
+
+    func fetchProducts(limit: Int, offset: Int, sortBy: [SortDescriptor<Product>]?, status: Product.InventoryStatus?) async throws -> [Product] {
+        // Calculate page number from offset
+        let page = offset / limit
+
+        // Cloud pagination - sortBy would need to be sent as query parameters
+        var endpoint = "\(baseEndpoint)?page=\(page)&pageSize=\(limit)"
+
+        // Add status filter if provided
+        if let status = status {
+            endpoint += "&status=\(status.rawValue)"
+        }
+
+        let response = try await cloudProvider.getPaginated(endpoint: endpoint, type: ProductDTO.self, page: page, pageSize: limit)
+
+        guard response.success else {
+            throw RepositoryError.connectionFailed(response.error ?? "Fetch paginated products failed")
+        }
+
+        return response.items.map { $0.toDomain() }
+    }
+
+    func fetchProductCount(status: Product.InventoryStatus?) async throws -> Int {
+        var endpoint = "\(baseEndpoint)/count"
+        if let status = status {
+            endpoint += "?status=\(status.rawValue)"
+        }
+
+        let response = try await cloudProvider.get(endpoint: endpoint, type: CountDTO.self)
+
+        guard response.success, let data = response.data else {
+            throw RepositoryError.connectionFailed(response.error ?? "Fetch product count failed")
+        }
+
+        return data.count
     }
 }
 
@@ -886,6 +924,10 @@ final class CloudSalesRepository: SalesRepository, Sendable {
         // Stub implementation - would make POST request to cloud
     }
 
+    func createSalesEntries(_ entries: [DailySalesEntry]) async throws {
+        // Stub implementation - would make batch POST request to cloud
+    }
+
     func updateSalesEntry(_ entry: DailySalesEntry) async throws {
         // Stub implementation - would make PUT request to cloud
     }
@@ -899,3 +941,12 @@ final class CloudSalesRepository: SalesRepository, Sendable {
         return 0
     }
 }
+
+// MARK: - Helper DTOs
+
+/// Simple count response DTO
+private struct CountDTO: Codable {
+    let count: Int
+}
+
+// Note: DuplicateCheckDTO is defined in CloudDataModels.swift

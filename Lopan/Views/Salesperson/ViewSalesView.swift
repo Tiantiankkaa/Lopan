@@ -51,7 +51,7 @@ struct ViewSalesView: View {
         ZStack {
             Color(UIColor.systemGray6).ignoresSafeArea()
 
-            if viewModel.isInitialLoad && viewModel.isLoading {
+            if viewModel.isInitialLoad {
                 loadingState
             } else if viewModel.errorMessage != nil {
                 errorState

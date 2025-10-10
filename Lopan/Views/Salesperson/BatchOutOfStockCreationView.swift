@@ -417,13 +417,11 @@ struct ProductItemCard: View {
                                 .font(.caption)
                                 .foregroundColor(.secondary)
                         }
-                        
-                        if !product.colors.isEmpty {
-                            Label("颜色: \(product.colors.joined(separator: ", "))", systemImage: "paintpalette")
-                                .font(.caption)
-                                .foregroundColor(.secondary)
-                                .lineLimit(1)
-                        }
+
+                        Label("SKU: \(product.sku)", systemImage: "barcode.viewfinder")
+                            .font(.caption)
+                            .foregroundColor(.secondary)
+                            .lineLimit(1)
                     } else {
                         Text("点击选择产品")
                             .font(.title3)
@@ -687,7 +685,7 @@ internal struct SearchableProductPicker: View {
         } else {
             return products.filter { product in
                 product.name.localizedCaseInsensitiveContains(searchText) ||
-product.colorDisplay.localizedCaseInsensitiveContains(searchText)
+                product.sku.localizedCaseInsensitiveContains(searchText)
             }
         }
     }
@@ -786,11 +784,11 @@ internal struct ProductRow: View {
                     Text(product.name)
                         .font(.headline)
                         .foregroundColor(.primary)
-                    
-                    Text("颜色: \(product.colorDisplay)")
+
+                    Text("SKU: \(product.sku)")
                         .font(.caption)
                         .foregroundColor(.secondary)
-                    
+
                     if !product.sizeNames.isEmpty {
                         Text("尺码: \(product.sizeNames.joined(separator: ", "))")
                             .font(.caption)

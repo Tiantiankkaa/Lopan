@@ -79,69 +79,116 @@ public class NewDataInitializationService {
     }
     
     private func initializeSampleProducts() async {
-        let products = [
-            // T-Shirt with multiple colors
-            Product(name: "经典圆领T恤", colors: ["白色", "黑色", "蓝色"], imageData: nil),
-            
-            // Jeans with multiple colors
-            Product(name: "直筒牛仔裤", colors: ["深蓝色", "浅蓝色", "黑色"], imageData: nil),
-            
-            // Hoodie with multiple colors
-            Product(name: "连帽卫衣", colors: ["灰色", "黑色", "深蓝色"], imageData: nil),
-            
-            // Dress with multiple colors
-            Product(name: "连衣裙", colors: ["红色", "粉色", "白色"], imageData: nil),
-            
-            // Shoes with multiple colors
-            Product(name: "运动鞋", colors: ["白色", "黑色", "灰色"], imageData: nil),
-            
-            // Polo shirt with multiple colors
-            Product(name: "Polo衫", colors: ["白色", "蓝色", "红色"], imageData: nil),
-            
-            // Sweater with multiple colors
-            Product(name: "毛衣", colors: ["米色", "棕色", "黑色"], imageData: nil),
-            
-            // Jacket with multiple colors
-            Product(name: "夹克", colors: ["黑色", "深蓝色", "军绿色"], imageData: nil),
-            
-            // Shorts with multiple colors
-            Product(name: "短裤", colors: ["黑色", "灰色", "深蓝色"], imageData: nil),
-            
-            // Skirt with multiple colors
-            Product(name: "半身裙", colors: ["黑色", "白色", "格子"], imageData: nil)
-        ]
-        
-        // Add sizes to each product
-        let sizes = ["XS", "S", "M", "L", "XL", "XXL"]
-        let shoeSizes = ["36", "37", "38", "39", "40", "41", "42", "43", "44"]
-        
+        print("🔄 Starting large-scale product generation (1000 products)...")
+
+        let totalProducts = 1000
+        let batchSize = 100
+
+        // Define inventory status distribution
+        // Active: 40% (400 products) - 10-100 units
+        // Low Stock: 35% (350 products) - 1-9 units
+        // Inactive: 25% (250 products) - 0 units
+        let activeCount = 400
+        let lowStockCount = 350
+        let inactiveCount = 250
+
+        // Create status array with proper distribution
+        var statusDistribution: [String] = []
+        statusDistribution.append(contentsOf: Array(repeating: "active", count: activeCount))
+        statusDistribution.append(contentsOf: Array(repeating: "lowStock", count: lowStockCount))
+        statusDistribution.append(contentsOf: Array(repeating: "inactive", count: inactiveCount))
+        statusDistribution.shuffle()
+
+        let sizes = ["S", "M", "L", "XL", "XXL", "XXXL"]
+
         do {
-            for product in products {
-                // Add product first
-                try await repositoryFactory.productRepository.addProduct(product)
-                
-                // Add appropriate sizes based on product type
-                let productSizes: [String]
-                if product.name.contains("鞋") {
-                    productSizes = shoeSizes
-                } else {
-                    productSizes = sizes
-                }
-                
-                for sizeName in productSizes {
-                    let size = ProductSize(size: sizeName, product: product)
-                    // Note: ProductSize would need its own repository, or we handle it within Product operations
-                    if product.sizes == nil {
-                        product.sizes = []
+            for batchNumber in 0..<(totalProducts / batchSize) {
+                let batchStart = batchNumber * batchSize
+                let batchEnd = min(batchStart + batchSize, totalProducts)
+
+                print("  📦 Generating batch \(batchNumber + 1)/\(totalProducts / batchSize) (Products \(batchStart + 1)-\(batchEnd))...")
+
+                for index in batchStart..<batchEnd {
+                    // Generate unique SKU and product name
+                    let sku = LargeSampleDataGenerator.generateUniqueSKU(index: index)
+                    let name = LargeSampleDataGenerator.generateProductName(index: index)
+                    let price = LargeSampleDataGenerator.generateFixedPrice(for: name)
+
+                    // Create product
+                    let product = Product(sku: sku, name: name, imageData: nil, price: price)
+
+                    // Add product to database
+                    try await repositoryFactory.productRepository.addProduct(product)
+
+                    // Determine inventory status for this product
+                    let status = statusDistribution[index]
+
+                    // Generate total inventory based on status
+                    let totalInventory: Int
+                    switch status {
+                    case "active":
+                        totalInventory = Int.random(in: 10...100)
+                    case "lowStock":
+                        totalInventory = Int.random(in: 1...9)
+                    default: // inactive
+                        totalInventory = 0
                     }
-                    product.sizes?.append(size)
+
+                    // Add sizes with distributed inventory
+                    let sizeCount = Int.random(in: 3...6)
+                    let productSizes = Array(sizes.prefix(sizeCount))
+
+                    if totalInventory > 0 {
+                        // Distribute inventory across sizes
+                        var remainingInventory = totalInventory
+                        for (i, sizeName) in productSizes.enumerated() {
+                            let isLastSize = (i == productSizes.count - 1)
+                            let quantity: Int
+
+                            if isLastSize {
+                                // Last size gets all remaining inventory
+                                quantity = remainingInventory
+                            } else {
+                                // Distribute evenly with slight variation
+                                let avgPerSize = remainingInventory / (productSizes.count - i)
+                                let variation = max(1, avgPerSize / 3)
+                                quantity = max(0, Int.random(in: (avgPerSize - variation)...(avgPerSize + variation)))
+                            }
+
+                            let size = ProductSize(size: sizeName, quantity: quantity, product: product)
+                            if product.sizes == nil {
+                                product.sizes = []
+                            }
+                            product.sizes?.append(size)
+                            remainingInventory -= quantity
+
+                            if remainingInventory <= 0 { break }
+                        }
+                    } else {
+                        // Inactive product - all sizes have 0 inventory
+                        for sizeName in productSizes {
+                            let size = ProductSize(size: sizeName, quantity: 0, product: product)
+                            if product.sizes == nil {
+                                product.sizes = []
+                            }
+                            product.sizes?.append(size)
+                        }
+                    }
+
+                    // Update cached inventory status based on sizes
+                    product.updateCachedInventoryStatus()
+
+                    // Update product with sizes
+                    try await repositoryFactory.productRepository.updateProduct(product)
                 }
-                
-                // Update product with sizes
-                try await repositoryFactory.productRepository.updateProduct(product)
+
+                print("  ✅ Batch \(batchNumber + 1) complete (\(batchEnd - batchStart) products)")
             }
-            
-            print("✅ Initialized \(products.count) sample products with sizes")
+
+            print("✅ Successfully initialized \(totalProducts) products")
+            print("  └─ Active: \(activeCount) products (10-100 units)")
+            print("  └─ Low Stock: \(lowStockCount) products (1-9 units)")
+            print("  └─ Inactive: \(inactiveCount) products (0 units)")
         } catch {
             print("❌ Error creating products: \(error)")
         }
@@ -241,69 +288,23 @@ public class NewDataInitializationService {
     
     private func initializeSampleProductionStyles() async {
         do {
-            let products = try await repositoryFactory.productRepository.fetchProducts()
-            
-            guard !products.isEmpty else {
-                print("⚠️ No products available for production styles")
-                return
-            }
-            
-            var productionStyles: [ProductionStyle] = []
-            
-            // Create production styles from existing products
-            for product in products.prefix(5) { // Use first 5 products
-                guard let sizes = product.sizes, !sizes.isEmpty,
-                      !product.colors.isEmpty else { continue }
-                
-                // Create 1-2 styles per product with different colors and sizes
-                let numStyles = Int.random(in: 1...2)
-                
-                for i in 0..<numStyles {
-                    let randomColor = product.colors.randomElement() ?? "默认色"
-                    let randomSize = sizes.randomElement()!
-                    let quantity = Int.random(in: 50...200)
-                    
-                    let style = ProductionStyle.fromProduct(
-                        product,
-                        size: randomSize,
-                        color: randomColor,
-                        quantity: quantity,
-                        productionDate: Date(),
-                        createdBy: "admin_001"
-                    )
-                    
-                    // Set random status for variety
-                    switch i {
-                    case 0:
-                        style.status = .inProduction
-                    case 1:
-                        style.status = .completed
-                    default:
-                        style.status = .planning
-                    }
-                    
-                    productionStyles.append(style)
-                }
-            }
-            
-            // Add some manual styles for consistency with packaging records
-            let manualStyles = [
-                ProductionStyle(styleCode: "TS001", styleName: "经典圆领T恤", color: "白色", size: "M", quantity: 100, productionDate: Date(), createdBy: "admin_001"),
-                ProductionStyle(styleCode: "TS002", styleName: "经典圆领T恤", color: "黑色", size: "L", quantity: 150, productionDate: Date(), createdBy: "admin_001"),
-                ProductionStyle(styleCode: "JS001", styleName: "直筒牛仔裤", color: "深蓝色", size: "32", quantity: 80, productionDate: Date(), createdBy: "admin_001"),
-                ProductionStyle(styleCode: "JS002", styleName: "直筒牛仔裤", color: "浅蓝色", size: "34", quantity: 90, productionDate: Date(), createdBy: "admin_001"),
-                ProductionStyle(styleCode: "HD001", styleName: "连帽卫衣", color: "灰色", size: "XL", quantity: 60, productionDate: Date(), createdBy: "admin_001"),
-                ProductionStyle(styleCode: "HD002", styleName: "连帽卫衣", color: "黑色", size: "L", quantity: 70, productionDate: Date(), createdBy: "admin_001"),
-                ProductionStyle(styleCode: "DR001", styleName: "连衣裙", color: "红色", size: "S", quantity: 40, productionDate: Date(), createdBy: "admin_001"),
-                ProductionStyle(styleCode: "SH001", styleName: "运动鞋", color: "白色", size: "40", quantity: 50, productionDate: Date(), createdBy: "admin_001")
+            // Create sample production styles with predefined colors
+            // Note: ProductionStyle still uses colors for manufacturing tracking
+            let productionStyles = [
+                ProductionStyle(styleCode: "PRD-000001-W", styleName: "Classic White T-Shirt", color: "White", size: "M", quantity: 100, productionDate: Date(), createdBy: "admin_001"),
+                ProductionStyle(styleCode: "PRD-000001-B", styleName: "Classic White T-Shirt", color: "Black", size: "L", quantity: 150, productionDate: Date(), createdBy: "admin_001"),
+                ProductionStyle(styleCode: "PRD-000025-DB", styleName: "Slim Fit Jeans", color: "Dark Blue", size: "32", quantity: 80, productionDate: Date(), createdBy: "admin_001"),
+                ProductionStyle(styleCode: "PRD-000025-LB", styleName: "Slim Fit Jeans", color: "Light Blue", size: "34", quantity: 90, productionDate: Date(), createdBy: "admin_001"),
+                ProductionStyle(styleCode: "PRD-000029-G", styleName: "Hooded Sweatshirt", color: "Gray", size: "XL", quantity: 60, productionDate: Date(), createdBy: "admin_001"),
+                ProductionStyle(styleCode: "PRD-000029-B", styleName: "Hooded Sweatshirt", color: "Black", size: "L", quantity: 70, productionDate: Date(), createdBy: "admin_001"),
+                ProductionStyle(styleCode: "PRD-000041-R", styleName: "Little Black Dress", color: "Red", size: "S", quantity: 40, productionDate: Date(), createdBy: "admin_001"),
+                ProductionStyle(styleCode: "PRD-000057-W", styleName: "Running Shoes", color: "White", size: "40", quantity: 50, productionDate: Date(), createdBy: "admin_001")
             ]
-            
-            productionStyles.append(contentsOf: manualStyles)
-            
+
             for style in productionStyles {
                 try await repositoryFactory.productionRepository.addProductionStyle(style)
             }
-            
+
             print("✅ Initialized \(productionStyles.count) sample production styles")
         } catch {
             print("❌ Error creating production styles: \(error)")

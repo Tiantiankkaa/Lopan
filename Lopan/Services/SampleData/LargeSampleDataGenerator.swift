@@ -19,14 +19,180 @@ class LargeSampleDataGenerator {
     }()
     
     // MARK: - 客户数据生成
-    
-    /// 生成客户名称
+
+    /// 生成客户名称 (Location-appropriate names based on country/city)
     /// - Parameters:
-    ///   - type: 客户类型
     ///   - index: 客户编号
+    ///   - city: City name to determine name style
     /// - Returns: 客户名称
-    static func generateCustomerName(type: SampleDataConstants.CustomerType, index: Int) -> String {
-        return "\(type.rawValue)\(String(format: "%03d", index + 1))"
+    static func generateCustomerName(index: Int, for city: String) -> String {
+        // Determine country/region based on city
+        switch city {
+        case "Lagos Island", "Ibadan", "Onitsha", "Aba", "Kano":
+            return generateNigerianName(index: index)
+        case "Shanghai", "Beijing":
+            return generateChineseName(index: index)
+        case "Los Angeles", "New York City":
+            return generateAmericanName(index: index)
+        case "Mumbai":
+            return generateIndianName(index: index)
+        default:
+            return generateAmericanName(index: index)
+        }
+    }
+
+    /// Generate Nigerian name
+    private static func generateNigerianName(index: Int) -> String {
+        let firstNames = ["Oluwaseun", "Chioma", "Ibrahim", "Ngozi", "Emeka", "Aisha", "Chukwudi", "Fatima", "Adeola", "Bisi",
+                          "Obinna", "Zainab", "Kunle", "Halima", "Chinedu", "Amina", "Tunde", "Kemi", "Uche", "Yetunde",
+                          "Adewale", "Blessing", "Musa", "Nneka", "Ahmed", "Ifeoma", "Babatunde", "Chidinma", "Yusuf", "Nkechi"]
+        let lastNames = ["Adeyemi", "Okafor", "Musa", "Eze", "Ibrahim", "Nwosu", "Aliyu", "Chukwu", "Mohammed", "Onyeka",
+                         "Bello", "Okeke", "Adebayo", "Chibueze", "Hassan", "Okonkwo", "Suleiman", "Nnamdi", "Usman", "Chidi"]
+
+        let firstName = firstNames[index % firstNames.count]
+        let lastName = lastNames[(index / firstNames.count) % lastNames.count]
+
+        if index >= (firstNames.count * lastNames.count) {
+            let suffix = index / (firstNames.count * lastNames.count) + 1
+            return "\(firstName) \(lastName) \(suffix)"
+        }
+
+        return "\(firstName) \(lastName)"
+    }
+
+    /// Generate Chinese name (with English transliteration)
+    private static func generateChineseName(index: Int) -> String {
+        let firstNames = ["Wei", "Ming", "Fang", "Jing", "Lei", "Li", "Xiaoming", "Yan", "Hong", "Qiang",
+                          "Xiu", "Ying", "Jun", "Hui", "Mei", "Peng", "Ling", "Bo", "Xiaohua", "Jie",
+                          "Rui", "Dan", "Tao", "Xin", "Feng", "Lan", "Hao", "Yun", "Xiang", "Na"]
+        let lastNames = ["Wang", "Li", "Zhang", "Liu", "Chen", "Yang", "Huang", "Zhao", "Wu", "Zhou",
+                         "Xu", "Sun", "Ma", "Zhu", "Hu", "Guo", "He", "Lin", "Gao", "Luo"]
+
+        let firstName = firstNames[index % firstNames.count]
+        let lastName = lastNames[(index / firstNames.count) % lastNames.count]
+
+        // Chinese names: Last name first
+        if index >= (firstNames.count * lastNames.count) {
+            let suffix = index / (firstNames.count * lastNames.count) + 1
+            return "\(lastName) \(firstName) \(suffix)"
+        }
+
+        return "\(lastName) \(firstName)"
+    }
+
+    /// Generate American name
+    private static func generateAmericanName(index: Int) -> String {
+        let firstNames = ["John", "Mary", "David", "Sarah", "Michael", "Lisa", "Robert", "Jennifer", "William", "Linda",
+                          "James", "Patricia", "Richard", "Elizabeth", "Charles", "Susan", "Joseph", "Jessica", "Thomas", "Karen",
+                          "Christopher", "Nancy", "Daniel", "Barbara", "Matthew", "Margaret", "Anthony", "Sandra", "Mark", "Ashley"]
+        let lastNames = ["Smith", "Johnson", "Williams", "Brown", "Jones", "Garcia", "Miller", "Davis", "Rodriguez", "Martinez",
+                         "Hernandez", "Lopez", "Gonzalez", "Wilson", "Anderson", "Thomas", "Taylor", "Moore", "Jackson", "Martin"]
+
+        let firstName = firstNames[index % firstNames.count]
+        let lastName = lastNames[(index / firstNames.count) % lastNames.count]
+
+        if index >= (firstNames.count * lastNames.count) {
+            let suffix = index / (firstNames.count * lastNames.count) + 1
+            return "\(firstName) \(lastName) \(suffix)"
+        }
+
+        return "\(firstName) \(lastName)"
+    }
+
+    /// Generate Indian name
+    private static func generateIndianName(index: Int) -> String {
+        let firstNames = ["Rajesh", "Priya", "Amit", "Anjali", "Rahul", "Neha", "Vikram", "Pooja", "Arjun", "Divya",
+                          "Ravi", "Kavya", "Arun", "Sneha", "Suresh", "Deepika", "Karan", "Meera", "Vivek", "Ritu",
+                          "Sandeep", "Sonia", "Manoj", "Preeti", "Anil", "Simran", "Nitin", "Anita", "Rakesh", "Swati"]
+        let lastNames = ["Kumar", "Sharma", "Patel", "Singh", "Mehta", "Gupta", "Reddy", "Joshi", "Kapoor", "Nair",
+                         "Rao", "Desai", "Verma", "Iyer", "Bhatt", "Shah", "Chopra", "Malhotra", "Agarwal", "Kulkarni"]
+
+        let firstName = firstNames[index % firstNames.count]
+        let lastName = lastNames[(index / firstNames.count) % lastNames.count]
+
+        if index >= (firstNames.count * lastNames.count) {
+            let suffix = index / (firstNames.count * lastNames.count) + 1
+            return "\(firstName) \(lastName) \(suffix)"
+        }
+
+        return "\(firstName) \(lastName)"
+    }
+
+    /// 生成电话号码 (with proper dial code)
+    /// - Parameter countryCode: Country code (e.g., "NG", "CN", "US", "IN")
+    /// - Returns: Phone number with dial code
+    static func generatePhoneNumber(for countryCode: String) -> String {
+        switch countryCode {
+        case "NG": // Nigeria +234
+            let prefix = ["803", "806", "807", "810", "813", "814", "816", "903", "906"].randomElement()!
+            let suffix = String(format: "%07d", Int.random(in: 1000000...9999999))
+            return "+234\(prefix)\(suffix)"
+        case "CN": // China +86
+            let prefixes = ["138", "139", "150", "151", "188", "189"]
+            let prefix = prefixes.randomElement()!
+            let suffix = String(format: "%08d", Int.random(in: 10000000...99999999))
+            return "+86\(prefix)\(suffix)"
+        case "US": // USA +1
+            let areaCode = Int.random(in: 200...999)
+            let prefix = Int.random(in: 200...999)
+            let line = Int.random(in: 1000...9999)
+            return "+1\(areaCode)\(prefix)\(line)"
+        case "IN": // India +91
+            let prefixes = ["98", "99", "97", "96", "95"]
+            let prefix = prefixes.randomElement()!
+            let suffix = String(format: "%08d", Int.random(in: 10000000...99999999))
+            return "+91\(prefix)\(suffix)"
+        default:
+            let prefix = ["803", "806", "807", "810"].randomElement()!
+            let suffix = String(format: "%07d", Int.random(in: 1000000...9999999))
+            return "+234\(prefix)\(suffix)" // Default to Nigeria
+        }
+    }
+
+    /// 生成固定价格 (基于产品名称)
+    /// - Parameter productName: Product name
+    /// - Returns: Fixed price for consistency
+    static func generateFixedPrice(for productName: String) -> Double {
+        // Generate consistent price based on product name hash
+        let hash = abs(productName.hashValue)
+        let priceRanges = [
+            (29.99...49.99),   // Low range
+            (50.00...99.99),   // Mid range
+            (100.00...199.99), // High range
+            (200.00...499.99)  // Premium range
+        ]
+
+        let rangeIndex = hash % priceRanges.count
+        let range = priceRanges[rangeIndex]
+        let price = Double.random(in: range)
+
+        // Round to .99 ending
+        return floor(price) + 0.99
+    }
+
+    /// 生成销售行项目
+    /// - Parameter products: Available products
+    /// - Returns: Array of sales line items
+    static func generateSalesLineItems(from products: [Product]) -> [SalesLineItem] {
+        let itemCount = Int.random(in: 1...8) // 1-8 products per sale
+        var items: [SalesLineItem] = []
+
+        for _ in 0..<itemCount {
+            guard let product = products.randomElement() else { continue }
+
+            let quantity = Int.random(in: 1...20)
+            let unitPrice = Decimal(product.price)
+
+            let item = SalesLineItem(
+                productId: product.id,
+                productName: product.name,
+                quantity: quantity,
+                unitPrice: unitPrice
+            )
+            items.append(item)
+        }
+
+        return items
     }
     
     /// 生成随机地址
@@ -55,68 +221,78 @@ class LargeSampleDataGenerator {
     }
     
     // MARK: - 产品数据生成
-    
-    /// 生成产品名称
-    /// - Parameters:
-    ///   - category: 产品类别
-    ///   - index: 产品在该类别中的编号
-    /// - Returns: 产品名称
-    static func generateProductName(category: SampleDataConstants.ProductCategory, index: Int) -> String {
-        let baseNames = category.baseNames
-        let baseName = baseNames[index % baseNames.count]
-        
-        // 添加一些变化词汇使产品名称更丰富
-        let variations = generateProductVariations(for: category)
-        let variation = variations.randomElement() ?? ""
-        
-        // 根据产品编号添加不同的修饰
-        let modifier = generateProductModifier(index: index)
-        
-        if variation.isEmpty && modifier.isEmpty {
-            return baseName
-        } else if variation.isEmpty {
-            return "\(modifier)\(baseName)"
-        } else if modifier.isEmpty {
-            return "\(variation)\(baseName)"
-        } else {
-            return "\(modifier)\(variation)\(baseName)"
+
+    /// 生成唯一SKU编号
+    /// - Parameter index: 产品索引 (0-999)
+    /// - Returns: 唯一SKU (e.g., "PRD-000001")
+    static func generateUniqueSKU(index: Int) -> String {
+        return String(format: "PRD-%06d", index + 1)
+    }
+
+    /// 生成真实的英文产品名称
+    /// - Parameter index: 产品索引
+    /// - Returns: 英文产品名称
+    static func generateProductName(index: Int) -> String {
+        // Real-world English product names
+        let productNames = [
+            // Apparel - Tops
+            "Classic White T-Shirt", "Black Cotton Tee", "V-Neck Basic Shirt", "Crew Neck T-Shirt",
+            "Long Sleeve Henley", "Polo Shirt", "Button-Down Oxford Shirt", "Flannel Plaid Shirt",
+            "Hooded Sweatshirt", "Pullover Hoodie", "Zip-Up Hoodie", "Crewneck Sweatshirt",
+            "Cardigan Sweater", "Cable Knit Sweater", "Turtleneck Sweater", "V-Neck Pullover",
+            "Denim Jacket", "Bomber Jacket", "Leather Jacket", "Windbreaker",
+            "Puffer Jacket", "Down Vest", "Track Jacket", "Varsity Jacket",
+
+            // Apparel - Bottoms
+            "Slim Fit Jeans", "Straight Leg Denim", "Bootcut Jeans", "Skinny Jeans",
+            "Relaxed Fit Jeans", "Dark Wash Jeans", "Light Wash Jeans", "Distressed Denim",
+            "Chino Pants", "Cargo Pants", "Khaki Trousers", "Dress Pants",
+            "Joggers", "Sweatpants", "Track Pants", "Athletic Shorts",
+            "Cargo Shorts", "Denim Shorts", "Board Shorts", "Basketball Shorts",
+
+            // Apparel - Dresses & Skirts
+            "Little Black Dress", "Maxi Dress", "Midi Dress", "Wrap Dress",
+            "Shift Dress", "A-Line Dress", "Sundress", "Cocktail Dress",
+            "Pencil Skirt", "A-Line Skirt", "Pleated Skirt", "Denim Skirt",
+            "Maxi Skirt", "Mini Skirt", "Midi Skirt", "Wrap Skirt",
+
+            // Footwear
+            "Running Shoes", "Cross Training Sneakers", "Walking Shoes", "Trail Running Shoes",
+            "Basketball Sneakers", "Tennis Shoes", "Skate Shoes", "Canvas Sneakers",
+            "Leather Oxfords", "Derby Shoes", "Loafers", "Monk Strap Shoes",
+            "Chelsea Boots", "Combat Boots", "Chukka Boots", "Work Boots",
+            "Ankle Boots", "Knee High Boots", "Riding Boots", "Rain Boots",
+            "Flip Flops", "Slide Sandals", "Sport Sandals", "Gladiator Sandals",
+
+            // Accessories
+            "Leather Belt", "Canvas Belt", "Braided Belt", "Reversible Belt",
+            "Baseball Cap", "Snapback Hat", "Beanie", "Trucker Hat",
+            "Bucket Hat", "Wide Brim Hat", "Fedora", "Panama Hat",
+            "Wool Scarf", "Infinity Scarf", "Silk Scarf", "Cashmere Scarf",
+            "Leather Gloves", "Wool Gloves", "Touchscreen Gloves", "Mittens",
+            "Backpack", "Messenger Bag", "Tote Bag", "Duffel Bag",
+            "Crossbody Bag", "Clutch", "Wallet", "Card Holder",
+            "Sport Watch", "Digital Watch", "Analog Watch", "Smartwatch",
+            "Sunglasses", "Reading Glasses", "Blue Light Glasses", "Safety Glasses",
+
+            // Activewear
+            "Compression Shirt", "Athletic Tank Top", "Sports Bra", "Performance Tee",
+            "Yoga Pants", "Leggings", "Running Tights", "Training Shorts",
+            "Windbreaker Jacket", "Rain Jacket", "Fleece Pullover", "Softshell Jacket"
+        ]
+
+        let baseName = productNames[index % productNames.count]
+
+        // Add variations for products beyond the base list
+        if index >= productNames.count {
+            let variations = ["Pro", "Elite", "Premium", "Sport", "Classic", "Essential", "Advanced"]
+            let variation = variations[(index / productNames.count) % variations.count]
+            return "\(variation) \(baseName)"
         }
+
+        return baseName
     }
-    
-    /// 生成产品变化词汇
-    /// - Parameter category: 产品类别
-    /// - Returns: 变化词汇数组
-    private static func generateProductVariations(for category: SampleDataConstants.ProductCategory) -> [String] {
-        switch category {
-        case .tops:
-            return ["经典", "时尚", "修身", "宽松", "简约", "复古", "商务", "休闲", "运动", ""]
-        case .pants:
-            return ["直筒", "修身", "宽松", "高腰", "低腰", "弹力", "磨破", "复古", "时尚", ""]
-        case .dresses:
-            return ["优雅", "甜美", "性感", "简约", "复古", "波西米亚", "韩版", "欧美", "淑女", ""]
-        case .shoes:
-            return ["时尚", "经典", "舒适", "防滑", "透气", "轻便", "耐磨", "潮流", "商务", ""]
-        case .accessories:
-            return ["时尚", "精致", "简约", "复古", "潮流", "经典", "可爱", "优雅", "个性", ""]
-        }
-    }
-    
-    /// 生成产品修饰词
-    /// - Parameter index: 产品编号
-    /// - Returns: 修饰词
-    private static func generateProductModifier(index: Int) -> String {
-        let modifiers = ["新款", "热销", "推荐", "特色", "限量", ""]
-        // 根据编号选择，保证一定的随机性但又有规律
-        return modifiers[index % modifiers.count]
-    }
-    
-    /// 生成产品颜色组合
-    /// - Returns: 颜色数组（3-5种颜色）
-    static func generateProductColors() -> [String] {
-        let colorCount = Int.random(in: 3...5)
-        return Array(SampleDataConstants.colors.shuffled().prefix(colorCount))
-    }
-    
+
     /// 生成产品尺码组合
     /// - Returns: 尺码数组（3-6个尺码）
     static func generateProductSizes() -> [String] {
@@ -287,8 +463,14 @@ class LargeSampleDataGenerator {
     // MARK: - 辅助方法
     
     /// 生成创建者ID
+    /// - Parameter salespersonIds: 可选的业务员ID数组，用于在demo模式下生成数据
     /// - Returns: 创建者ID
-    static func generateCreatorId() -> String {
+    static func generateCreatorId(from salespersonIds: [String]? = nil) -> String {
+        // 如果提供了真实的业务员ID列表，优先使用
+        if let ids = salespersonIds, !ids.isEmpty {
+            return ids.randomElement()!
+        }
+        // 否则回退到硬编码ID（向后兼容）
         let creators = ["sales_001", "sales_002", "sales_003", "manager_001", "admin_001"]
         return creators.randomElement()!
     }

@@ -3,19 +3,39 @@
 //  Lopan
 //
 //  Created by Claude Code on 2025/8/26.
+//  Updated: 2025/10/8 - Integrated multi-layer caching with disk persistence
 //
 
 import Foundation
 import os
 
 /// Cache service for Customer Out-of-Stock operations
-/// Handles memory caching, disk caching, and cache invalidation
+/// Now supports multi-layer caching (Memory → Disk → Network) with stale-while-revalidate
 @MainActor
 protocol CustomerOutOfStockCacheService {
-    func getCachedRecords(_ criteria: OutOfStockFilterCriteria) -> [CustomerOutOfStock]?
-    func cacheRecords(_ records: [CustomerOutOfStock], for criteria: OutOfStockFilterCriteria)
-    func getCachedCount(_ criteria: OutOfStockFilterCriteria) -> Int?
-    func cacheCount(_ count: Int, for criteria: OutOfStockFilterCriteria)
+    // Enhanced record caching with CachedResult
+    func getCachedRecords(
+        _ criteria: OutOfStockFilterCriteria,
+        freshFetch: @escaping @Sendable () async throws -> [CustomerOutOfStock]
+    ) async -> CachedResult<[CustomerOutOfStock]>
+
+    func cacheRecords(_ records: [CustomerOutOfStock], for criteria: OutOfStockFilterCriteria) async
+
+    // Legacy synchronous methods (deprecated, kept for compatibility)
+    func getCachedRecordsSync(_ criteria: OutOfStockFilterCriteria) -> [CustomerOutOfStock]?
+    func cacheRecordsSync(_ records: [CustomerOutOfStock], for criteria: OutOfStockFilterCriteria)
+
+    // Count caching with CachedResult
+    func getCachedCount(
+        _ criteria: OutOfStockFilterCriteria,
+        freshFetch: @escaping @Sendable () async throws -> Int
+    ) async -> CachedResult<Int>
+
+    func cacheCount(_ count: Int, for criteria: OutOfStockFilterCriteria) async
+
+    // Legacy synchronous count methods
+    func getCachedCountSync(_ criteria: OutOfStockFilterCriteria) -> Int?
+    func cacheCountSync(_ count: Int, for criteria: OutOfStockFilterCriteria)
 
     // Analytics caching methods
     func getCachedAnalytics<T>(for key: AnalyticsCacheKey, type: T.Type) -> T?
@@ -27,6 +47,7 @@ protocol CustomerOutOfStockCacheService {
     func invalidateCache(for criteria: OutOfStockFilterCriteria)
     func getMemoryUsage() -> CacheMemoryUsage
     func handleMemoryPressure()
+    func getLayerStatistics() async -> MultiLayerStatistics?
 }
 
 struct CacheMemoryUsage {
@@ -49,9 +70,10 @@ struct AnalyticsCacheEntry {
 @MainActor
 class DefaultCustomerOutOfStockCacheService: CustomerOutOfStockCacheService {
     private let cacheManager: OutOfStockCacheManager
+    private let multiLayerCache: MultiLayerCacheCoordinator
     private let logger = Logger(subsystem: "com.lopan.app", category: "CustomerOutOfStockCacheService")
-    
-    // Enhanced memory cache with LRU tracking
+
+    // Legacy memory cache for backward compatibility (will be gradually phased out)
     private var recordsCache: [String: [CustomerOutOfStock]] = [:]
     private var countsCache: [String: Int] = [:]
     private var accessOrder: [String] = [] // LRU tracking for records
@@ -60,36 +82,136 @@ class DefaultCustomerOutOfStockCacheService: CustomerOutOfStockCacheService {
     // Analytics cache with TTL support
     private var analyticsCache: [String: AnalyticsCacheEntry] = [:]
     private var analyticsCacheAccess: [String] = [] // LRU tracking for analytics
-    
+
     // Adaptive memory management configuration
     private var maxCacheSize: Int
     private var maxMemoryBytes: Int
     private let baseMaxCacheSize = 100
     private let baseMaxMemoryBytes = 10 * 1024 * 1024 // 10MB baseline
-    
+
     // Memory cache statistics
     private var cacheHits: Int = 0
     private var cacheMisses: Int = 0
     private var lastEvictionTime: Date?
     private var totalEvictions: Int = 0
-    
-    init(cacheManager: OutOfStockCacheManager) {
+
+    init(cacheManager: OutOfStockCacheManager, multiLayerCache: MultiLayerCacheCoordinator? = nil) {
         self.cacheManager = cacheManager
+
+        // Initialize multi-layer cache
+        if let cache = multiLayerCache {
+            self.multiLayerCache = cache
+        } else {
+            // Create default multi-layer cache with disk persistence
+            let diskCache = try! DiskCacheService(maxCacheSizeBytes: 100 * 1024 * 1024) // 100MB
+            self.multiLayerCache = MultiLayerCacheCoordinator(diskCache: diskCache)
+        }
 
         // Initialize with adaptive sizing based on device capabilities
         let deviceInfo = AdaptiveCacheSizing.getDeviceCapabilities()
         self.maxCacheSize = deviceInfo.maxCacheSize
         self.maxMemoryBytes = deviceInfo.maxMemoryBytes
 
-        logger.safeInfo("Adaptive cache initialized", [
+        logger.safeInfo("Enhanced cache service initialized with multi-layer support", [
             "maxCacheSize": String(maxCacheSize),
             "maxMemoryMB": String(maxMemoryBytes / (1024 * 1024))
         ])
     }
-    
-    // MARK: - Cache Operations
-    
-    func getCachedRecords(_ criteria: OutOfStockFilterCriteria) -> [CustomerOutOfStock]? {
+
+    // MARK: - Enhanced Multi-Layer Cache Operations
+
+    /// Get cached records with stale-while-revalidate pattern
+    func getCachedRecords(
+        _ criteria: OutOfStockFilterCriteria,
+        freshFetch: @escaping @Sendable () async throws -> [CustomerOutOfStock]
+    ) async -> CachedResult<[CustomerOutOfStock]> {
+        let cacheKey = RequestKeyGenerator.outOfStockRecordsKey(criteria: criteria)
+
+        let result = await multiLayerCache.get(
+            key: cacheKey,
+            type: [CustomerOutOfStock].self,
+            freshFetch: freshFetch,
+            memoryTTL: 300,  // 5 minutes
+            diskTTL: 86400   // 24 hours
+        )
+
+        logger.safeInfo("getCachedRecords result", [
+            "key": cacheKey,
+            "isFresh": String(result.isFresh),
+            "isStale": String(result.isStale),
+            "hasData": String(result.hasData)
+        ])
+
+        return result
+    }
+
+    /// Cache records to all layers
+    func cacheRecords(_ records: [CustomerOutOfStock], for criteria: OutOfStockFilterCriteria) async {
+        let cacheKey = RequestKeyGenerator.outOfStockRecordsKey(criteria: criteria)
+
+        await multiLayerCache.set(
+            records,
+            key: cacheKey,
+            memoryTTL: 300,
+            diskTTL: 86400
+        )
+
+        logger.safeInfo("Cached records to all layers", [
+            "key": cacheKey,
+            "count": String(records.count)
+        ])
+    }
+
+    /// Get cached count with stale-while-revalidate pattern
+    func getCachedCount(
+        _ criteria: OutOfStockFilterCriteria,
+        freshFetch: @escaping @Sendable () async throws -> Int
+    ) async -> CachedResult<Int> {
+        let cacheKey = RequestKeyGenerator.outOfStockCountKey(criteria: criteria)
+
+        let result = await multiLayerCache.get(
+            key: cacheKey,
+            type: Int.self,
+            freshFetch: freshFetch,
+            memoryTTL: 300,
+            diskTTL: 86400
+        )
+
+        logger.safeInfo("getCachedCount result", [
+            "key": cacheKey,
+            "isFresh": String(result.isFresh),
+            "isStale": String(result.isStale),
+            "hasData": String(result.hasData)
+        ])
+
+        return result
+    }
+
+    /// Cache count to all layers
+    func cacheCount(_ count: Int, for criteria: OutOfStockFilterCriteria) async {
+        let cacheKey = RequestKeyGenerator.outOfStockCountKey(criteria: criteria)
+
+        await multiLayerCache.set(
+            count,
+            key: cacheKey,
+            memoryTTL: 300,
+            diskTTL: 86400
+        )
+
+        logger.safeInfo("Cached count to all layers", [
+            "key": cacheKey,
+            "count": String(count)
+        ])
+    }
+
+    /// Get multi-layer cache statistics
+    func getLayerStatistics() async -> MultiLayerStatistics? {
+        await multiLayerCache.getLayerStatistics()
+    }
+
+    // MARK: - Legacy Cache Operations (Deprecated - kept for backward compatibility)
+
+    func getCachedRecordsSync(_ criteria: OutOfStockFilterCriteria) -> [CustomerOutOfStock]? {
         let cacheKey = generateCacheKey(from: criteria)
         
         if let cached = recordsCache[cacheKey] {
@@ -110,23 +232,23 @@ class DefaultCustomerOutOfStockCacheService: CustomerOutOfStockCacheService {
         }
     }
     
-    func cacheRecords(_ records: [CustomerOutOfStock], for criteria: OutOfStockFilterCriteria) {
+    func cacheRecordsSync(_ records: [CustomerOutOfStock], for criteria: OutOfStockFilterCriteria) {
         let cacheKey = generateCacheKey(from: criteria)
-        
+
         // Check if we need to evict before adding
         enforceMemoryLimitsBeforeAdding()
-        
+
         recordsCache[cacheKey] = records
         updateAccessOrder(for: cacheKey, in: &accessOrder)
-        
-        logger.safeInfo("Records cached", [
+
+        logger.safeInfo("Records cached (legacy sync)", [
             "cacheKey": cacheKey,
             "recordsCount": String(records.count),
             "totalCacheSize": String(recordsCache.count)
         ])
     }
-    
-    func getCachedCount(_ criteria: OutOfStockFilterCriteria) -> Int? {
+
+    func getCachedCountSync(_ criteria: OutOfStockFilterCriteria) -> Int? {
         let countKey = generateCountCacheKey(from: criteria)
         
         if let count = countsCache[countKey] {
@@ -147,16 +269,16 @@ class DefaultCustomerOutOfStockCacheService: CustomerOutOfStockCacheService {
         }
     }
     
-    func cacheCount(_ count: Int, for criteria: OutOfStockFilterCriteria) {
+    func cacheCountSync(_ count: Int, for criteria: OutOfStockFilterCriteria) {
         let countKey = generateCountCacheKey(from: criteria)
-        
+
         // Enforce limits before adding count
         enforceCountCacheLimits()
-        
+
         countsCache[countKey] = count
         updateAccessOrder(for: countKey, in: &countAccessOrder)
-        
-        logger.safeInfo("Count cached", [
+
+        logger.safeInfo("Count cached (legacy sync)", [
             "countKey": countKey,
             "count": String(count),
             "totalCountCacheSize": String(countsCache.count)

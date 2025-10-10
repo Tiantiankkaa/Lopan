@@ -175,12 +175,12 @@ struct CustomerOutOfStockDetailView: View {
                     label: "缺货数量",
                     value: "\(item.quantity)"
                 )
-                
-                if let product = item.product, !product.colors.isEmpty {
+
+                if let product = item.product {
                     OutOfStockInfoRow(
-                        icon: "paintpalette",
-                        label: "产品颜色",
-                        value: product.colors.joined(separator: ", ")
+                        icon: "barcode.viewfinder",
+                        label: "产品编号",
+                        value: product.sku
                     )
                 }
             }
@@ -516,7 +516,7 @@ private extension DateFormatter {
     
     // Create sample data
     let customer = Customer(name: "张三", address: "北京市朝阳区", phone: "13800138000")
-    let product = Product(name: "测试产品", colors: ["红色", "蓝色"], imageData: nil)
+    let product = Product(sku: "PRD-TEST001", name: "Test Product", imageData: nil, price: 99.99)
     let outOfStockItem = CustomerOutOfStock(
         customer: customer,
         product: product,
