@@ -344,30 +344,9 @@ final class LocalCustomerOutOfStockRepository: CustomerOutOfStockRepository {
 
         let paginatedItems: [CustomerOutOfStock]
         if startIndex < filteredItems.count {
-            let itemsSlice = Array(filteredItems[startIndex..<endIndex])
-
-            // 🔧 FIX: Force-load all properties while in ModelContext
-            // This prevents SwiftData faulting issues when items cross actor boundaries
-            for item in itemsSlice {
-                // Force access to trigger fault resolution
-                _ = item.id
-                _ = item.quantity
-                _ = item.deliveryQuantity  // ← Critical for partial delivery display
-                _ = item.deliveryDate
-                _ = item.deliveryNotes
-                _ = item.status
-                _ = item.requestDate
-                _ = item.actualCompletionDate
-                _ = item.notes
-                _ = item.customer?.id
-                _ = item.customer?.name
-                _ = item.product?.id
-                _ = item.product?.name
-
-                print("🔧 [Repository] Force-loaded item: qty=\(item.quantity), delivered=\(item.deliveryQuantity), hasPartial=\(item.hasPartialDelivery)")
-            }
-
-            paginatedItems = itemsSlice
+            // ✅ CORRECT: Let SwiftData handle faulting on-demand (CLAUDE.md Line 75)
+            // Properties will be loaded lazily as needed, reducing memory footprint
+            paginatedItems = Array(filteredItems[startIndex..<endIndex])
         } else {
             paginatedItems = []
         }
@@ -1004,26 +983,30 @@ final class LocalCustomerOutOfStockRepository: CustomerOutOfStockRepository {
         return statusCounts
     }
 
-    private func countByStatusInBatches() async throws -> [OutOfStockStatus: Int] {
-        print("📊 [Repository] Counting by status using streaming approach")
+    private nonisolated func countByStatusInBatches() async throws -> [OutOfStockStatus: Int] {
+        print("📊 [Repository] ⚡ Background thread: Counting by status using ephemeral contexts")
 
-        // ULTRA-OPTIMIZATION: Fetch in batches but only keep counts, not records
-        // This reduces memory pressure significantly
+        // ✅ CRITICAL: Store container reference to create ephemeral contexts per batch
+        // This prevents ModelContext from accumulating all 112K objects in memory
+        let container = backgroundContext.container
 
         var statusCounts: [OutOfStockStatus: Int] = [:]
-        let batchSize = 10000  // Larger batches for better performance
+        let batchSize = 10000
         var offset = 0
         var processedCount = 0
 
         while true {
-            // Fetch a batch of records (only IDs and status would be ideal, but SwiftData doesn't support that)
+            // ✅ CRITICAL FIX: Create ephemeral context per batch
+            // Context deallocates at end of loop, releasing all batch objects
+            let ephemeralContext = ModelContext(container)
+
             var descriptor = FetchDescriptor<CustomerOutOfStock>(
                 sortBy: [SortDescriptor(\.requestDate, order: .forward)]
             )
             descriptor.fetchLimit = batchSize
             descriptor.fetchOffset = offset
 
-            let batch = try modelContext.fetch(descriptor)
+            let batch = try ephemeralContext.fetch(descriptor)
 
             if batch.isEmpty {
                 break
@@ -1035,16 +1018,22 @@ final class LocalCustomerOutOfStockRepository: CustomerOutOfStockRepository {
             }
 
             processedCount += batch.count
+
+            // ✅ SwiftData Memory: ephemeralContext deallocates here, releasing \(batch.count) objects
+            print("🧹 Background: Batch \(processedCount) - ephemeral context releasing \(batch.count) objects")
+
             offset += batch.count
 
-            print("📊 [Repository] Processed \(processedCount) records...")
+            if processedCount % 50000 == 0 {
+                print("📊 [Repository] Processed \(processedCount) records...")
+            }
 
             if batch.count < batchSize {
                 break
             }
         }
 
-        print("📊 [Repository] Fast batch counting completed: \(statusCounts)")
+        print("📊 [Repository] ✅ Ephemeral context counting completed: \(statusCounts)")
         return statusCounts
     }
 
@@ -1210,7 +1199,10 @@ final class LocalCustomerOutOfStockRepository: CustomerOutOfStockRepository {
     /// Fetches records once in batches and calculates all counts + collects display items
     func fetchDashboardMetrics() async throws -> DashboardMetrics {
         let startTime = CFAbsoluteTimeGetCurrent()
-        print("🚀 [Repository] ULTRA-OPTIMIZED v2: Single-pass metrics + display items")
+        print("🚀 [Repository] ULTRA-OPTIMIZED v3: Ephemeral contexts for metrics + display items")
+
+        // ✅ CRITICAL: Store container to create ephemeral contexts per batch
+        let container = modelContext.container
 
         let calendar = Calendar.current
         let now = Date()
@@ -1234,19 +1226,23 @@ final class LocalCustomerOutOfStockRepository: CustomerOutOfStockRepository {
         var returnItems: [OutOfStockDisplayItem] = []
         var completedItems: [OutOfStockDisplayItem] = []
 
-        // Batch processing to avoid memory issues
+        // Batch processing with ephemeral contexts
         let batchSize = 10000
         var offset = 0
         var totalProcessed = 0
 
         while true {
+            // ✅ CRITICAL FIX: Create ephemeral context per batch
+            // Context deallocates at end of loop, releasing all batch objects
+            let ephemeralContext = ModelContext(container)
+
             var descriptor = FetchDescriptor<CustomerOutOfStock>(
                 sortBy: [SortDescriptor(\.requestDate, order: .forward)]
             )
             descriptor.fetchLimit = batchSize
             descriptor.fetchOffset = offset
 
-            let batch = try modelContext.fetch(descriptor)
+            let batch = try ephemeralContext.fetch(descriptor)
 
             if batch.isEmpty {
                 break
@@ -1295,6 +1291,9 @@ final class LocalCustomerOutOfStockRepository: CustomerOutOfStockRepository {
 
             totalProcessed += batch.count
             offset += batch.count
+
+            // ✅ SwiftData Memory: ephemeralContext deallocates here, releasing \(batch.count) objects
+            print("🧹 Dashboard: Batch \(totalProcessed) - ephemeral context releasing \(batch.count) objects")
 
             if totalProcessed % 50000 == 0 {
                 print("📊 [Repository] Processed \(totalProcessed) records...")
@@ -1437,10 +1436,13 @@ final class LocalCustomerOutOfStockRepository: CustomerOutOfStockRepository {
         criteria: OutOfStockFilterCriteria
     ) async throws -> DeliveryStatistics {
         let startTime = CFAbsoluteTimeGetCurrent()
-        print("📊 [Repository] Loading delivery statistics with batched processing...")
+        print("📊 [Repository] Loading delivery statistics with ephemeral context batching...")
 
         // Check for cancellation before starting
         try Task.checkCancellation()
+
+        // ✅ CRITICAL: Store container to create ephemeral contexts per batch
+        let container = modelContext.container
 
         // Build database predicate
         let predicate = buildOptimizedPredicate(from: criteria)
@@ -1475,17 +1477,21 @@ final class LocalCustomerOutOfStockRepository: CustomerOutOfStockRepository {
         await Task.yield()
         try Task.checkCancellation()
 
-        print("📊 [Repository] Starting batched fetch (batch size: \(batchSize), optimized for scroll responsiveness)")
+        print("📊 [Repository] Starting ephemeral context batching (batch size: \(batchSize))")
 
         // Process records in batches
         while true {
+            // ✅ CRITICAL FIX: Create ephemeral context per batch
+            // Context deallocates at end of loop, releasing all batch objects
+            let ephemeralContext = ModelContext(container)
+
             // Create descriptor for this batch
             var batchDescriptor = baseDescriptor
             batchDescriptor.fetchLimit = batchSize
             batchDescriptor.fetchOffset = offset
 
             // Fetch this batch
-            let batch = try modelContext.fetch(batchDescriptor)
+            let batch = try ephemeralContext.fetch(batchDescriptor)
 
             // If batch is empty, we've processed all records
             guard !batch.isEmpty else {
@@ -1545,6 +1551,9 @@ final class LocalCustomerOutOfStockRepository: CustomerOutOfStockRepository {
 
             // Move to next batch
             offset += batch.count
+
+            // ✅ SwiftData Memory: ephemeralContext deallocates here, releasing batch objects
+            print("🧹 Delivery: Batch \(offset) - ephemeral context releasing \(batch.count) objects")
 
             // CRITICAL: Yield after each batch to allow UI updates and check for cancellation
             await Task.yield()

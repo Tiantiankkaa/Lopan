@@ -18,8 +18,8 @@ public final class MemoryOptimizationValidator: ObservableObject {
     
     public struct PerformanceTargets {
         static let baselineMemoryMB: Double = 90.0
-        static let targetMemoryMB: Double = 75.0
-        static let targetReductionPercent: Double = 17.0
+        static let targetMemoryMB: Double = 80.0  // ✅ Updated to match CLAUDE.md Line 124 (100K+ records)
+        static let targetReductionPercent: Double = 11.1  // (90-80)/90 = 11.1% reduction target
         
         static let maxResponseTimeMS: Double = 100.0
         static let maxCacheLoadTimeMS: Double = 10.0
