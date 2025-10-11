@@ -170,11 +170,11 @@ final class CloudCustomerRepository: CustomerRepository, Sendable {
     
     func fetchCustomers() async throws -> [Customer] {
         let response = try await cloudProvider.getPaginated(endpoint: baseEndpoint, type: CustomerDTO.self, page: 0, pageSize: 1000)
-        
+
         guard response.success else {
             throw RepositoryError.connectionFailed(response.error ?? "Fetch customers failed")
         }
-        
+
         return response.items.map { $0.toDomain() }
     }
     

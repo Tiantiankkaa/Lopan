@@ -27,12 +27,12 @@ enum CustomerFilterTab: String, CaseIterable {
 struct CustomerManagementView: View {
     @Environment(\.appDependencies) private var appDependencies
     @Environment(\.modelContext) private var modelContext
+    @Environment(\.scenePhase) private var scenePhase
 
     private var customerRepository: CustomerRepository {
         appDependencies.serviceFactory.repositoryFactory.customerRepository
     }
 
-    @State private var customers: [Customer] = []
     @State private var searchText = ""
     @State private var selectedTab: CustomerFilterTab = .all
     @State private var showingAddCustomer = false
@@ -42,29 +42,25 @@ struct CustomerManagementView: View {
     @State private var deletionValidationResult: CustomerDeletionValidationService.DeletionValidationResult?
     @State private var validationService: CustomerDeletionValidationService?
     @State private var isLoadingCustomers = false
-    @State private var isUpdatingFilter = false
     @State private var customerToEdit: Customer?
     @State private var selectedCustomer: Customer?
     @State private var scrollProxy: ScrollViewProxy?
     @State private var isSearchActive: Bool = false
+    @State private var searchDebounceTask: Task<Void, Never>?
+
+    // Customer state
+    @State private var customers: [Customer] = [] // All customers from repository
+    @State private var displayedCustomers: [Customer] = [] // Filtered subset for display
 
     // Heights for precise alphabetical index positioning
     @State private var headerHeight: CGFloat = 0
 
+    // Automatic refresh state
+    @State private var refreshTimer: Timer?
+    @State private var lastRefreshDate: Date?
+
     // Accessibility
     @Environment(\.accessibilityReduceMotion) var reduceMotion
-
-    // Performance optimization: Cache filtered customers
-    @State private var cachedFilteredCustomers: [Customer] = []
-    @State private var filterCacheKey: String = ""
-    @State private var cachedSectionedCustomers: [(letter: String, customers: [Customer])] = []
-    @State private var sectionCacheKey: String = ""
-    @State private var searchDebounceTask: Task<Void, Never>?
-
-    // Pre-sorted cache of all customers (updated only when customer list changes)
-    @State private var allCustomersSorted: [Customer] = []
-    @State private var allCustomersSections: [(letter: String, customers: [Customer])] = []
-    @State private var allCustomersCacheKey: String = ""
 
     // Seven days ago for "Recent" filter
     private var sevenDaysAgo: Date {
@@ -77,103 +73,49 @@ struct CustomerManagementView: View {
     // MARK: - Computed Properties
 
     /// Filtered and sorted customers based on tab and search
-    /// Optimized with caching to avoid recomputation on every render
     var filteredCustomers: [Customer] {
-        // Generate cache key from current filter state
-        let currentCacheKey = "\(selectedTab.rawValue)-\(searchText)-\(customers.count)"
-
-        // Return cached result if filter state hasn't changed
-        if currentCacheKey == filterCacheKey && !cachedFilteredCustomers.isEmpty {
-            return cachedFilteredCustomers
-        }
-
-        // Recompute filtered customers
-        var filtered = customers
+        var result = customers
 
         // Apply tab filter
         switch selectedTab {
         case .all:
             break // Show all
         case .recent:
-            filtered = filtered.filter { customer in
+            result = result.filter { customer in
                 if let lastViewed = customer.lastViewedAt {
                     return lastViewed >= sevenDaysAgo
                 }
                 return false
             }
         case .favourite:
-            filtered = filtered.filter { $0.isFavorite }
+            result = result.filter { $0.isFavorite }
         }
 
         // Apply search filter
         if !searchText.isEmpty {
-            filtered = filtered.filter { customer in
+            result = result.filter { customer in
                 customer.name.localizedCaseInsensitiveContains(searchText) ||
                 customer.address.localizedCaseInsensitiveContains(searchText) ||
                 customer.phone.localizedCaseInsensitiveContains(searchText)
             }
         }
 
-        // Always sort A-Z (use alphabetical index for navigation)
-        filtered = filtered.sorted {
+        // Always sort A-Z (already pre-sorted from repository, but re-sort after filtering)
+        return result.sorted {
             $0.pinyinName.uppercased() < $1.pinyinName.uppercased()
         }
-
-        return filtered
     }
 
     /// Customers grouped by first letter for sectioned list
-    /// Uses cached pinyin values for optimal performance
-    /// Cache is updated in updateFilterCache() to avoid state mutation during view update
+    /// Works with paginated displayedCustomers (already filtered)
     var sectionedCustomers: [(letter: String, customers: [Customer])] {
-        let callStart = CFAbsoluteTimeGetCurrent()
-        let currentKey = filterCacheKey
-
-        // Return cached result if filter hasn't changed
-        if currentKey == sectionCacheKey && !cachedSectionedCustomers.isEmpty {
-            let duration = (CFAbsoluteTimeGetCurrent() - callStart) * 1000
-            perfLogger.debug("📊 sectionedCustomers: cache HIT (\(String(format: "%.2f", duration))ms)")
-            return cachedSectionedCustomers
-        }
-
-        // If async update is in progress, return existing cache to avoid blocking main thread
-        // The async task will update the cache when ready
-        if isUpdatingFilter && !cachedSectionedCustomers.isEmpty {
-            let duration = (CFAbsoluteTimeGetCurrent() - callStart) * 1000
-            perfLogger.debug("📊 sectionedCustomers: returning stale cache while updating (\(String(format: "%.2f", duration))ms)")
-            return cachedSectionedCustomers
-        }
-
-        // Large dataset handling (> 100 customers)
-        if filteredCustomers.count > 100 {
-            if cachedSectionedCustomers.isEmpty {
-                // Cache not ready yet - return empty to avoid blocking main thread
-                // Async updateFilterCache() will populate cache and trigger re-render
-                let duration = (CFAbsoluteTimeGetCurrent() - callStart) * 1000
-                perfLogger.debug("📊 sectionedCustomers: large dataset (\(filteredCustomers.count)), cache empty, returning [] while async updates (\(String(format: "%.2f", duration))ms)")
-                return []  // Brief flash of empty, then populated when cache ready (~40ms)
-            } else {
-                // Cache exists - return it
-                let duration = (CFAbsoluteTimeGetCurrent() - callStart) * 1000
-                perfLogger.debug("📊 sectionedCustomers: large dataset, returning old cache (\(String(format: "%.2f", duration))ms)")
-                return cachedSectionedCustomers
-            }
-        }
-
-        // Small dataset (< 100) - safe to compute synchronously
-        perfLogger.debug("📊 sectionedCustomers: small dataset (\(filteredCustomers.count)), computing synchronously")
-        let grouped = Dictionary(grouping: filteredCustomers) { customer -> String in
+        let grouped = Dictionary(grouping: displayedCustomers) { customer -> String in
             // Use pre-computed pinyin initial (cached in model)
             // "张三" → "Z", "李明" → "L", "Alice" → "A"
-            // Returns cached value, no expensive CFStringTransform call
             return customer.pinyinInitial.isEmpty ? "#" : customer.pinyinInitial
         }
 
-        let result = grouped.sorted { $0.key < $1.key }.map { (letter: $0.key, customers: $0.value) }
-
-        let duration = (CFAbsoluteTimeGetCurrent() - callStart) * 1000
-        perfLogger.debug("📊 sectionedCustomers: small dataset SYNC compute took \(String(format: "%.2f", duration))ms")
-        return result
+        return grouped.sorted { $0.key < $1.key }.map { (letter: $0.key, customers: $0.value) }
     }
 
     /// Available letters for the section index
@@ -186,33 +128,16 @@ struct CustomerManagementView: View {
         !sectionedCustomers.isEmpty && selectedTab == .all && searchText.isEmpty
     }
 
-    // MARK: - Performance Timing Helpers
-
-    /// Measure execution time of a synchronous operation
-    @MainActor
-    private func measureTime<T>(_ label: String, operation: () -> T) -> T {
-        let start = CFAbsoluteTimeGetCurrent()
-        let result = operation()
-        let duration = (CFAbsoluteTimeGetCurrent() - start) * 1000
-        perfLogger.info("⏱️ \(label): \(String(format: "%.2f", duration))ms")
-        return result
-    }
-
-    /// Measure execution time of an async operation
-    @MainActor
-    private func measureTimeAsync<T>(_ label: String, operation: () async throws -> T) async rethrows -> T {
-        let start = CFAbsoluteTimeGetCurrent()
-        perfLogger.info("▶️ START: \(label)")
-        let result = try await operation()
-        let duration = (CFAbsoluteTimeGetCurrent() - start) * 1000
-        perfLogger.info("⏱️ \(label): \(String(format: "%.2f", duration))ms")
-        return result
+    /// Determines if we need extra scrollable height for search bar collapse
+    /// When there are few customers, content is too short to scroll, preventing search bar collapse
+    private var needsExtraScrollHeight: Bool {
+        displayedCustomers.count < 10
     }
 
     // MARK: - Body
 
     var body: some View {
-        let _ = perfLogger.debug("🎨 body render - Tab: \(selectedTab.rawValue), Updating: \(isUpdatingFilter), Sections: \(sectionedCustomers.count)")
+        let _ = perfLogger.debug("🎨 body render - Tab: \(selectedTab.rawValue), Total: \(customers.count), Displayed: \(displayedCustomers.count)")
 
         GeometryReader { geometry in
             ZStack(alignment: .trailing) {
@@ -260,6 +185,17 @@ struct CustomerManagementView: View {
         .navigationTitle("客户")
         .navigationBarTitleDisplayMode(.inline)
         .toolbar {
+            ToolbarItem(placement: .navigationBarLeading) {
+                Button {
+                    Task {
+                        await refreshCustomers()
+                    }
+                } label: {
+                    Image(systemName: "arrow.clockwise")
+                }
+                .disabled(isLoadingCustomers)
+            }
+
             ToolbarItem(placement: .navigationBarTrailing) {
                 Button {
                     showingAddCustomer = true
@@ -274,6 +210,9 @@ struct CustomerManagementView: View {
             }
             loadCustomers()
 
+            // Start automatic refresh timer
+            startAutomaticRefresh()
+
             // Auto-migrate pinyin cache for existing customers (runs in background)
             Task.detached(priority: .utility) {
                 // Wait for customers to load first
@@ -283,25 +222,7 @@ struct CustomerManagementView: View {
         }
         .onChange(of: selectedTab) { oldTab, newTab in
             perfLogger.info("🔄 Tab switched: \(oldTab.rawValue) → \(newTab.rawValue)")
-            let switchStart = CFAbsoluteTimeGetCurrent()
-
-            // Use synchronous path for instant cached data, async for filtering/sorting
-            if canUseSynchronousCache(for: newTab) {
-                // FAST PATH: Synchronous cache access (<10ms)
-                updateFilterCacheSync()
-                let totalDuration = (CFAbsoluteTimeGetCurrent() - switchStart) * 1000
-                perfLogger.info("✅ Total tab switch time (sync): \(String(format: "%.2f", totalDuration))ms")
-            } else {
-                // SLOW PATH: Async filtering/sorting needed
-                Task {
-                    await measureTimeAsync("Tab switch complete (\(oldTab.rawValue)→\(newTab.rawValue))") {
-                        await updateFilterCache()
-                    }
-
-                    let totalDuration = (CFAbsoluteTimeGetCurrent() - switchStart) * 1000
-                    perfLogger.info("✅ Total tab switch time (async): \(String(format: "%.2f", totalDuration))ms")
-                }
-            }
+            displayedCustomers = filteredCustomers
         }
         .onChange(of: searchText) { _, newValue in
             // Debounce search to avoid excessive filtering
@@ -309,14 +230,34 @@ struct CustomerManagementView: View {
             searchDebounceTask = Task {
                 try? await Task.sleep(nanoseconds: 300_000_000) // 300ms debounce
                 guard !Task.isCancelled else { return }
-                await updateFilterCache()
+                displayedCustomers = filteredCustomers
             }
         }
         .onChange(of: customers.count) { _, _ in
-            Task {
-                await updateFilterCache()
-                await updateAllCustomersCache()
+            displayedCustomers = filteredCustomers
+        }
+        .onChange(of: scenePhase) { oldPhase, newPhase in
+            switch newPhase {
+            case .active:
+                // App came to foreground - start automatic refresh
+                startAutomaticRefresh()
+                // Refresh immediately if last refresh was more than 60 seconds ago
+                if let lastRefresh = lastRefreshDate,
+                   Date().timeIntervalSince(lastRefresh) > 60 {
+                    Task {
+                        await refreshCustomers()
+                    }
+                }
+            case .inactive, .background:
+                // App going to background - stop timer to save battery
+                stopAutomaticRefresh()
+            @unknown default:
+                break
             }
+        }
+        .onDisappear {
+            // Clean up timer when view disappears
+            stopAutomaticRefresh()
         }
         .sheet(isPresented: $showingAddCustomer) {
             AddCustomerView(onSave: { customer in
@@ -374,70 +315,71 @@ struct CustomerManagementView: View {
     /// Main customer list with sections (includes native searchable)
     private var customersListView: some View {
         Group {
-            if filteredCustomers.isEmpty && !isLoadingCustomers {
+            if displayedCustomers.isEmpty && !isLoadingCustomers {
                 emptyStateView
-            } else if isLoadingCustomers {
+            } else if isLoadingCustomers && displayedCustomers.isEmpty {
                 loadingView
             } else {
                 ScrollViewReader { proxy in
-                    List {
-                        ForEach(sectionedCustomers, id: \.letter) { section in
-                            Section {
-                                ForEach(section.customers, id: \.id) { customer in
-                                    Button {
-                                        selectedCustomer = customer
-                                        updateLastViewed(customer)
-                                    } label: {
-                                        CustomerCardView(
-                                            customer: customer,
-                                            onCall: { callCustomer(customer) },
-                                            onMessage: { messageCustomer(customer) },
-                                            onEdit: { customerToEdit = customer },
-                                            onToggleFavorite: { toggleFavorite(customer) },
-                                            onDelete: { handleDeleteCustomer(customer) }
-                                        )
+                    ScrollView {
+                        LazyVStack(spacing: 0, pinnedViews: [.sectionHeaders]) {
+                            ForEach(sectionedCustomers, id: \.letter) { section in
+                                Section {
+                                    ForEach(section.customers, id: \.id) { customer in
+                                        Button {
+                                            selectedCustomer = customer
+                                            updateLastViewed(customer)
+                                        } label: {
+                                            CustomerCardView(
+                                                customer: customer,
+                                                onCall: { callCustomer(customer) },
+                                                onMessage: { messageCustomer(customer) },
+                                                onEdit: { customerToEdit = customer },
+                                                onToggleFavorite: { toggleFavorite(customer) },
+                                                onDelete: { handleDeleteCustomer(customer) }
+                                            )
+                                        }
+                                        .buttonStyle(.plain)
+                                        .padding(.horizontal, 16)
+                                        .padding(.vertical, 4)
                                     }
-                                    .buttonStyle(.plain)
-                                    .listRowInsets(EdgeInsets(top: 4, leading: 16, bottom: 4, trailing: 44))
-                                    .listRowSeparator(.hidden)
-                                    .listRowBackground(Color.clear)
+                                } header: {
+                                    // Visible section header for alphabetical navigation
+                                    Text(section.letter)
+                                        .font(LopanTypography.titleSmall)
+                                        .foregroundColor(LopanColors.textSecondary)
+                                        .frame(maxWidth: .infinity, alignment: .leading)
+                                        .padding(.horizontal, 16)
+                                        .padding(.vertical, 8)
+                                        .background(LopanColors.backgroundPrimary.opacity(0.95))
+                                        .id(section.letter) // Anchor for scrollTo
                                 }
-                            } header: {
-                                // Invisible anchor for letter navigation
-                                Color.clear
-                                    .frame(height: 0)
-                                    .id(section.letter)
-                                    .listRowInsets(EdgeInsets())
                             }
-                        }
 
-                        // Customer count at bottom of list
-                        if !filteredCustomers.isEmpty {
-                            Section {
+                            // Customer count at bottom
+                            if !displayedCustomers.isEmpty {
                                 VStack(spacing: LopanSpacing.xs) {
                                     Divider()
                                         .opacity(0.3)
 
-                                    Text("\(filteredCustomers.count) 位客户")
+                                    Text("\(displayedCustomers.count) 位客户")
                                         .font(LopanTypography.caption)
                                         .foregroundColor(LopanColors.textSecondary)
                                 }
                                 .frame(maxWidth: .infinity)
+                                .padding(.top, 8)
+                                .padding(.bottom, 8)
                             }
-                            .listRowInsets(EdgeInsets(top: 8, leading: 0, bottom: 8, trailing: 0))
-                            .listRowSeparator(.hidden)
-                            .listRowBackground(Color.clear)
+
+                            // Extra scrollable space to enable search bar collapse when there are few items
+                            if needsExtraScrollHeight {
+                                Color.clear
+                                    .frame(height: 500)
+                                    .accessibilityHidden(true)
+                            }
                         }
                     }
-                    .listStyle(.plain)
-                    .listSectionSpacing(0)
-                    .scrollContentBackground(.hidden)
-                    .contentMargins(.top, 0, for: .scrollContent)
-                    .environment(\.defaultMinListHeaderHeight, 0)
-                    .animation(.easeInOut(duration: 0.2), value: selectedTab)
-                    .refreshable {
-                        await refreshCustomers()
-                    }
+                    .scrollDismissesKeyboard(.interactively)
                     .onAppear {
                         scrollProxy = proxy
                     }
@@ -574,282 +516,62 @@ struct CustomerManagementView: View {
         return displayAreaStart + centeringOffset
     }
 
-    // MARK: - Cache Management Helpers
-
-    /// Checks if synchronous cache update is possible (pre-sorted cache available)
-    private func canUseSynchronousCache(for tab: CustomerFilterTab) -> Bool {
-        return tab == .all && searchText.isEmpty && !allCustomersSorted.isEmpty && customers.count == allCustomersSorted.count
-    }
-
-    /// Synchronous cache update for instant operations (pre-sorted cache)
-    /// Eliminates async/await overhead for ~5-10ms faster tab switches
-    private func updateFilterCacheSync() {
-        let syncStart = CFAbsoluteTimeGetCurrent()
-        let currentCacheKey = "\(selectedTab.rawValue)-\(searchText)-\(customers.count)"
-
-        // Early return if already cached
-        guard currentCacheKey != filterCacheKey else {
-            perfLogger.debug("✅ Cache hit, skipping sync update")
-            return
-        }
-
-        perfLogger.debug("🚀 Sync cache update using pre-sorted data")
-
-        // Batch all state updates into single render cycle
-        withAnimation(.none) {
-            cachedFilteredCustomers = allCustomersSorted
-            cachedSectionedCustomers = allCustomersSections
-            filterCacheKey = currentCacheKey
-            sectionCacheKey = currentCacheKey
-        }
-
-        let syncDuration = (CFAbsoluteTimeGetCurrent() - syncStart) * 1000
-        perfLogger.info("✅ Sync cache update COMPLETE: \(String(format: "%.2f", syncDuration))ms")
-    }
-
-    /// Determines the reason for cache invalidation by analyzing key changes
-    private func determineCacheMissReason(oldKey: String, newKey: String) -> String {
-        let oldParts = oldKey.split(separator: "-")
-        let newParts = newKey.split(separator: "-")
-
-        guard oldParts.count == 3, newParts.count == 3 else {
-            return "initialization"
-        }
-
-        let oldTab = oldParts[0]
-        let oldSearch = oldParts[1]
-        let oldCount = oldParts[2]
-
-        let newTab = newParts[0]
-        let newSearch = newParts[1]
-        let newCount = newParts[2]
-
-        if oldTab != newTab {
-            return "tab change (\(oldTab) → \(newTab))"
-        } else if oldSearch != newSearch {
-            let searchDesc = newSearch.isEmpty ? "cleared" : "updated"
-            return "search \(searchDesc)"
-        } else if oldCount != newCount {
-            return "data updated (\(oldCount) → \(newCount) customers)"
-        } else {
-            return "unknown"
-        }
-    }
-
     // MARK: - Data Operations
 
     private func loadCustomers() {
         Task {
-            do {
-                isLoadingCustomers = true
-
-                // Load customers in background thread for better performance
-                let loadedCustomers = try await Task.detached(priority: .userInitiated) {
-                    try await self.customerRepository.fetchCustomers()
-                }.value
-
-                await MainActor.run {
-                    self.customers = loadedCustomers
-                    self.isLoadingCustomers = false
-                }
-                await self.updateFilterCache()
-                await self.updateAllCustomersCache()
-            } catch {
-                print("Error loading customers: \(error)")
-                await MainActor.run {
-                    isLoadingCustomers = false
-                }
-            }
-        }
-    }
-
-    /// Updates the filtered customers cache asynchronously
-    /// Performs expensive filtering and sorting off the main thread for better performance
-    private func updateFilterCache() async {
-        let overallStart = CFAbsoluteTimeGetCurrent()
-        perfLogger.debug("🔄 updateFilterCache START - Tab: \(selectedTab.rawValue), Count: \(customers.count)")
-
-        let currentCacheKey = "\(selectedTab.rawValue)-\(searchText)-\(customers.count)"
-
-        // Only recompute if cache key changed
-        guard currentCacheKey != filterCacheKey else {
-            perfLogger.debug("✅ Cache hit, skipping update")
-            return
-        }
-
-        // Determine why cache was invalidated
-        let reason = determineCacheMissReason(oldKey: filterCacheKey, newKey: currentCacheKey)
-        perfLogger.debug("🔄 Cache invalidated: \(reason)")
-
-        // Capture current state for async work
-        let captureStart = CFAbsoluteTimeGetCurrent()
-        let tab = selectedTab
-        let search = searchText
-        let allCustomers = customers
-        let cutoffDate = sevenDaysAgo
-        let captureDuration = (CFAbsoluteTimeGetCurrent() - captureStart) * 1000
-        perfLogger.debug("⏱️ State capture: \(String(format: "%.2f", captureDuration))ms")
-
-        // OPTIMIZATION: Use pre-sorted cache for "All Customers" tab
-        if tab == .all && search.isEmpty && !allCustomersSorted.isEmpty && allCustomers.count == allCustomersSorted.count {
-            perfLogger.info("🚀 Using pre-sorted 'All Customers' cache (\(allCustomersSorted.count) items, \(allCustomersSections.count) sections) - skipping sort!")
-
-            await MainActor.run {
-                let finalCacheKey = "\(selectedTab.rawValue)-\(searchText)-\(customers.count)"
-                if finalCacheKey == currentCacheKey {
-                    cachedFilteredCustomers = allCustomersSorted
-                    filterCacheKey = currentCacheKey
-                    cachedSectionedCustomers = allCustomersSections
-                    sectionCacheKey = currentCacheKey
-                    perfLogger.info("✅ Cache updated from pre-sorted (instant!)")
-                }
-                isUpdatingFilter = false
-            }
-
-            let overallDuration = (CFAbsoluteTimeGetCurrent() - overallStart) * 1000
-            perfLogger.info("✅ updateFilterCache COMPLETE (pre-sorted): \(String(format: "%.2f", overallDuration))ms")
-            return
-        }
-
-        // Show updating indicator
-        await MainActor.run { isUpdatingFilter = true }
-
-        // Perform expensive filtering, sorting, AND sectioning off main thread
-        let bgStart = CFAbsoluteTimeGetCurrent()
-        perfLogger.debug("🔧 Starting background computation...")
-
-        let (filtered, sectioned) = await Task.detached(priority: .userInitiated) {
-            let taskStart = CFAbsoluteTimeGetCurrent()
-            var result = allCustomers
-
-            // Phase 1: Tab filtering
-            let filterStart = CFAbsoluteTimeGetCurrent()
-            switch tab {
-            case .all:
-                break // Show all
-            case .recent:
-                result = result.filter { customer in
-                    if let lastViewed = customer.lastViewedAt {
-                        return lastViewed >= cutoffDate
-                    }
-                    return false
-                }
-            case .favourite:
-                result = result.filter { $0.isFavorite }
-            }
-            let filterDuration = (CFAbsoluteTimeGetCurrent() - filterStart) * 1000
-            print("  ⏱️ [BG] Tab filter (\(tab.rawValue)): \(String(format: "%.2f", filterDuration))ms, Result: \(result.count) items")
-
-            // Phase 2: Search filtering
-            if !search.isEmpty {
-                let searchStart = CFAbsoluteTimeGetCurrent()
-                result = result.filter { customer in
-                    customer.name.localizedCaseInsensitiveContains(search) ||
-                    customer.address.localizedCaseInsensitiveContains(search) ||
-                    customer.phone.localizedCaseInsensitiveContains(search)
-                }
-                let searchDuration = (CFAbsoluteTimeGetCurrent() - searchStart) * 1000
-                print("  ⏱️ [BG] Search filter: \(String(format: "%.2f", searchDuration))ms, Result: \(result.count) items")
-            }
-
-            // Phase 3: Sorting
-            let sortStart = CFAbsoluteTimeGetCurrent()
-            let sortedCustomers = result.sorted {
-                $0.pinyinName.uppercased() < $1.pinyinName.uppercased()
-            }
-            let sortDuration = (CFAbsoluteTimeGetCurrent() - sortStart) * 1000
-            print("  ⏱️ [BG] Sorting: \(String(format: "%.2f", sortDuration))ms")
-
-            // Phase 4: Sectioning
-            let sectionStart = CFAbsoluteTimeGetCurrent()
-            let grouped = Dictionary(grouping: sortedCustomers) { customer in
-                customer.pinyinInitial.isEmpty ? "#" : customer.pinyinInitial
-            }
-            let sections = grouped.sorted { $0.key < $1.key }
-                .map { (letter: $0.key, customers: $0.value) }
-            let sectionDuration = (CFAbsoluteTimeGetCurrent() - sectionStart) * 1000
-            print("  ⏱️ [BG] Sectioning: \(String(format: "%.2f", sectionDuration))ms, Sections: \(sections.count)")
-
-            let totalTaskDuration = (CFAbsoluteTimeGetCurrent() - taskStart) * 1000
-            print("  ⏱️ [BG] Total background work: \(String(format: "%.2f", totalTaskDuration))ms")
-
-            return (sortedCustomers, sections)
-        }.value
-
-        let bgDuration = (CFAbsoluteTimeGetCurrent() - bgStart) * 1000
-        perfLogger.debug("⏱️ Background computation: \(String(format: "%.2f", bgDuration))ms")
-
-        // Update both caches on main thread (legal - in async function)
-        await MainActor.run {
-            // Verify cache key is still valid (user might have switched tabs again)
-            let finalCacheKey = "\(selectedTab.rawValue)-\(searchText)-\(customers.count)"
-            if finalCacheKey == currentCacheKey {
-                cachedFilteredCustomers = filtered
-                filterCacheKey = currentCacheKey
-
-                // Update section cache with pre-computed sections
-                cachedSectionedCustomers = sectioned
-                sectionCacheKey = currentCacheKey
-                perfLogger.debug("✅ Cache updated - \(filtered.count) customers, \(sectioned.count) sections")
-            } else {
-                perfLogger.warning("⚠️ Cache key mismatch, discarding results")
-            }
-            isUpdatingFilter = false
-        }
-
-        let overallDuration = (CFAbsoluteTimeGetCurrent() - overallStart) * 1000
-        perfLogger.info("✅ updateFilterCache COMPLETE: \(String(format: "%.2f", overallDuration))ms")
-    }
-
-    /// Pre-compute and cache the sorted "All Customers" view
-    /// Called once when data loads and when customer list changes
-    /// Eliminates 38ms sorting overhead on subsequent tab switches to "All Customers"
-    private func updateAllCustomersCache() async {
-        let currentKey = "all-\(customers.count)"
-        guard currentKey != allCustomersCacheKey else {
-            perfLogger.debug("✅ 'All Customers' cache up to date")
-            return
-        }
-
-        perfLogger.info("🔄 Pre-computing 'All Customers' cache for \(customers.count) items")
-        let allCustomers = customers
-
-        let (sorted, sections) = await Task.detached(priority: .userInitiated) {
-            let sortStart = CFAbsoluteTimeGetCurrent()
-            let sorted = allCustomers.sorted {
-                $0.pinyinName.uppercased() < $1.pinyinName.uppercased()
-            }
-            let sortDuration = (CFAbsoluteTimeGetCurrent() - sortStart) * 1000
-            print("  ⏱️ [BG] Pre-sort all customers: \(String(format: "%.2f", sortDuration))ms")
-
-            let sectionStart = CFAbsoluteTimeGetCurrent()
-            let grouped = Dictionary(grouping: sorted) { customer in
-                customer.pinyinInitial.isEmpty ? "#" : customer.pinyinInitial
-            }
-            let sections = grouped.sorted { $0.key < $1.key }
-                .map { (letter: $0.key, customers: $0.value) }
-            let sectionDuration = (CFAbsoluteTimeGetCurrent() - sectionStart) * 1000
-            print("  ⏱️ [BG] Pre-section all customers: \(String(format: "%.2f", sectionDuration))ms")
-
-            return (sorted, sections)
-        }.value
-
-        await MainActor.run {
-            allCustomersSorted = sorted
-            allCustomersSections = sections
-            allCustomersCacheKey = currentKey
-            perfLogger.info("✅ 'All Customers' cache ready: \(sorted.count) customers, \(sections.count) sections")
+            await refreshCustomers()
         }
     }
 
     private func refreshCustomers() async {
+        isLoadingCustomers = true
+
         do {
-            customers = try await customerRepository.fetchCustomers()
-            await updateFilterCache()
-            await updateAllCustomersCache()
+            perfLogger.info("📥 Loading all customers")
+            let fetchedCustomers = try await customerRepository.fetchCustomers()
+
+            await MainActor.run {
+                customers = fetchedCustomers
+                displayedCustomers = filteredCustomers
+                isLoadingCustomers = false
+                lastRefreshDate = Date()
+
+                perfLogger.info("✅ Loaded \(fetchedCustomers.count) customers")
+            }
         } catch {
-            print("Error refreshing customers: \(error)")
+            perfLogger.error("❌ Error loading customers: \(error.localizedDescription)")
+            await MainActor.run {
+                isLoadingCustomers = false
+            }
         }
+    }
+
+    /// Start automatic refresh timer (60-second intervals)
+    private func startAutomaticRefresh() {
+        // Stop existing timer if any
+        stopAutomaticRefresh()
+
+        perfLogger.debug("🔄 Starting automatic refresh timer (60s intervals)")
+
+        // Create timer that fires every 60 seconds on main thread
+        refreshTimer = Timer.scheduledTimer(withTimeInterval: 60.0, repeats: true) { _ in
+            Task { @MainActor in
+                await self.refreshCustomers()
+            }
+        }
+
+        // Ensure timer runs even during scroll interactions
+        if let timer = refreshTimer {
+            RunLoop.main.add(timer, forMode: .common)
+        }
+    }
+
+    /// Stop automatic refresh timer
+    private func stopAutomaticRefresh() {
+        refreshTimer?.invalidate()
+        refreshTimer = nil
+        perfLogger.debug("⏸️ Stopped automatic refresh timer")
     }
 
     /// Migrates existing customers to populate pinyin cache
@@ -979,6 +701,7 @@ struct CustomerManagementView: View {
                 await MainActor.run {
                     withAnimation {
                         customers.removeAll { $0.id == customer.id }
+                        displayedCustomers.removeAll { $0.id == customer.id }
                     }
                     customerToDelete = nil
                 }
@@ -990,10 +713,10 @@ struct CustomerManagementView: View {
             }
         }
     }
-    
+
     private func performDeletion() {
         guard let customer = customerToDelete else { return }
-        
+
         Task {
             do {
                 // Prepare customer for safe deletion
@@ -1003,11 +726,12 @@ struct CustomerManagementView: View {
                 try await validationService.prepareCustomerForDeletion(customer)
                 // Now safe to delete
                 try await customerRepository.deleteCustomer(customer)
-                
+
                 await MainActor.run {
-                    // Remove from local array with animation
+                    // Remove from local arrays with animation
                     withAnimation {
                         customers.removeAll { $0.id == customer.id }
+                        displayedCustomers.removeAll { $0.id == customer.id }
                     }
                     customerToDelete = nil
                     deletionValidationResult = nil

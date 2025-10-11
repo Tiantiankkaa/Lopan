@@ -17,10 +17,12 @@ class LocalCustomerRepository: CustomerRepository {
     }
     
     func fetchCustomers() async throws -> [Customer] {
-        let descriptor = FetchDescriptor<Customer>()
+        let descriptor = FetchDescriptor<Customer>(
+            sortBy: [SortDescriptor(\.pinyinName, order: .forward)]
+        )
         return try modelContext.fetch(descriptor)
     }
-    
+
     func fetchCustomer(by id: String) async throws -> Customer? {
         let descriptor = FetchDescriptor<Customer>()
         let customers = try modelContext.fetch(descriptor)

@@ -1106,7 +1106,7 @@ private class MockAuditUserRepository: UserRepository {
 }
 
 private class MockAuditCustomerRepository: CustomerRepository {
-    func fetchCustomers() async throws -> [Customer] { 
+    func fetchCustomers() async throws -> [Customer] {
         print("🔧 MockAuditCustomerRepository: fetchCustomers called")
         return []
     }
