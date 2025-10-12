@@ -121,6 +121,7 @@ Temporary Items
 
 # Backup files
 *.backup
+*.security-backup
 CLAUDE.md.backup
 
 # IDE specific files
