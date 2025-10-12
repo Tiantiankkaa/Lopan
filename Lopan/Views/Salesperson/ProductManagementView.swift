@@ -154,6 +154,7 @@ struct ProductManagementView: View {
         }
         .navigationTitle("Products")
         .navigationBarTitleDisplayMode(.large)
+        .toolbar(.hidden, for: .tabBar)
         .toolbar {
             ToolbarItem(placement: .navigationBarTrailing) {
                 HStack(spacing: 16) {
