@@ -122,6 +122,7 @@ struct SalespersonDashboardView: View {
                 }
             }
         }
+        .navigationTransitionCoordinator()
     }
 
     // MARK: - Sections
@@ -454,12 +455,14 @@ struct SalespersonDashboardView: View {
             CustomerManagementView()
         case .productManagement:
             ProductManagementView()
+                .hidesTabBarOnPush()
         case .analytics:
             CustomerOutOfStockAnalyticsView()
         case .salesEntry:
             SalesEntryView()
         case .viewSales:
             ViewSalesView()
+                .hidesTabBarOnPush()
         }
     }
 

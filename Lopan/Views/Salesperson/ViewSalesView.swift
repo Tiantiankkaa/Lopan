@@ -61,7 +61,6 @@ struct ViewSalesView: View {
         }
         .navigationTitle("View Sales")
         .navigationBarTitleDisplayMode(.large)
-        .toolbar(.hidden, for: .tabBar)
         .onAppear {
             viewModel.configure(dependencies: appDependencies)
         }
