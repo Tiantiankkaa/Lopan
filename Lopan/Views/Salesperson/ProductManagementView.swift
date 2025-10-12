@@ -167,16 +167,40 @@ struct ProductManagementView: View {
                     .accessibilityLabel("Search products")
                     .disabled(!showHeaderContent)
 
-                    Button(action: {
-                        LopanHapticEngine.shared.light()
-                        // Sync drawer status with current chip selection before opening
-                        syncDrawerStatusWithChip()
-                        showFilterDrawer = true
-                    }) {
+                    Menu {
+                        // View Mode Section
+                        Section("View Mode") {
+                            Button(action: {
+                                LopanHapticEngine.shared.light()
+                                viewMode = .list
+                            }) {
+                                Label("List View", systemImage: viewMode == .list ? "checkmark.circle.fill" : "list.bullet")
+                            }
+                            
+                            Button(action: {
+                                LopanHapticEngine.shared.light()
+                                viewMode = .grid
+                            }) {
+                                Label("Grid View", systemImage: viewMode == .grid ? "checkmark.circle.fill" : "square.grid.2x2")
+                            }
+                        }
+                        
+                        Divider()
+                        
+                        // Filters Section
+                        Button(action: {
+                            LopanHapticEngine.shared.light()
+                            // Sync drawer status with current chip selection before opening
+                            syncDrawerStatusWithChip()
+                            showFilterDrawer = true
+                        }) {
+                            Label("Filters & Sort", systemImage: "slider.horizontal.3")
+                        }
+                    } label: {
                         Image(systemName: "line.3.horizontal.decrease.circle")
                             .foregroundColor(LopanColors.viewModeIconColor)
                     }
-                    .accessibilityLabel("Open filters")
+                    .accessibilityLabel("Filter and view options")
                     .disabled(!showHeaderContent)
                 }
                 .opacity(showHeaderContent ? 1 : 0)
@@ -263,31 +287,14 @@ struct ProductManagementView: View {
 
     /// Matches HTML: <div class="flex space-x-2 overflow-x-auto">
     private var filterChipsRow: some View {
-        HStack(spacing: 0) {
-            // Scrollable chips
-            ScrollView(.horizontal, showsIndicators: false) {
-                HStack(spacing: 8) {
-                    ForEach(ProductFilterCategory.allCases, id: \.self) { chip in
-                        filterChipButton(chip)
-                    }
+        // Scrollable chips - now takes full width
+        ScrollView(.horizontal, showsIndicators: false) {
+            HStack(spacing: 8) {
+                ForEach(ProductFilterCategory.allCases, id: \.self) { chip in
+                    filterChipButton(chip)
                 }
-                .padding(.horizontal, 16)
             }
-
-            // View Toggle Button (Fixed Right)
-            Button(action: {
-                LopanHapticEngine.shared.light()
-                viewMode = viewMode == .list ? .grid : .list
-            }) {
-                Image(systemName: viewMode == .list ? "square.grid.2x2" : "list.bullet")
-                    .font(.system(size: 24, weight: .light))
-                    .foregroundColor(LopanColors.viewModeIconColor)
-                    .frame(width: 44, height: 44)
-                    .contentShape(Rectangle())
-            }
-            .padding(.leading, 8)
-            .padding(.trailing, 16)
-            .accessibilityLabel("Toggle view mode")
+            .padding(.horizontal, 16)
         }
         .padding(.bottom, 12)
         .frame(height: showHeaderContent ? nil : 0)

@@ -15,6 +15,7 @@ xcuserdata/
 ## Build generated
 build/
 DerivedData/
+build_output/
 
 ## Various settings
 *.pbxuser
