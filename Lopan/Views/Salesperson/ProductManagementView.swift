@@ -117,7 +117,7 @@ struct ProductManagementView: View {
             .refreshable {
                 await refreshData()
             }
-            .background(Color(hex: "#F7F8FA") ?? Color.gray.opacity(0.05)) // light-gray
+            .background(LopanColors.listBackground)
 
             // Backdrop Overlay
             if showFilterDrawer {
@@ -162,7 +162,7 @@ struct ProductManagementView: View {
                         showSearch.toggle()
                     }) {
                         Image(systemName: "magnifyingglass")
-                            .foregroundColor(Color(hex: "#4B5563") ?? Color.secondary)
+                            .foregroundColor(LopanColors.viewModeIconColor)
                     }
                     .accessibilityLabel("Search products")
                     .disabled(!showHeaderContent)
@@ -174,7 +174,7 @@ struct ProductManagementView: View {
                         showFilterDrawer = true
                     }) {
                         Image(systemName: "line.3.horizontal.decrease.circle")
-                            .foregroundColor(Color(hex: "#4B5563") ?? Color.secondary)
+                            .foregroundColor(LopanColors.viewModeIconColor)
                     }
                     .accessibilityLabel("Open filters")
                     .disabled(!showHeaderContent)
@@ -239,20 +239,20 @@ struct ProductManagementView: View {
     private var searchBarView: some View {
         HStack {
             Image(systemName: "magnifyingglass")
-                .foregroundColor(Color(hex: "#9CA3AF") ?? Color.gray)
+                .foregroundColor(LopanColors.textSecondary)
             TextField("Search products...", text: $searchText)
                 .font(.system(size: 16))
             if !searchText.isEmpty {
                 Button(action: { searchText = "" }) {
                     Image(systemName: "xmark.circle.fill")
-                        .foregroundColor(Color(hex: "#9CA3AF") ?? Color.gray)
+                        .foregroundColor(LopanColors.textSecondary)
                 }
             }
         }
         .padding(.horizontal, 12)
         .padding(.vertical, 10)
-        .background(Color.white)
-        .clipShape(RoundedRectangle(cornerRadius: 12))
+        .background(LopanColors.chipBackground)
+        .clipShape(RoundedRectangle(cornerRadius: LopanCornerRadius.sm))
         .padding(.horizontal, 16)
         .padding(.top, 8)
         .padding(.bottom, 12)
@@ -281,7 +281,7 @@ struct ProductManagementView: View {
             }) {
                 Image(systemName: viewMode == .list ? "square.grid.2x2" : "list.bullet")
                     .font(.system(size: 24, weight: .light))
-                    .foregroundColor(Color(hex: "#4B5563") ?? Color.secondary)
+                    .foregroundColor(LopanColors.viewModeIconColor)
                     .frame(width: 44, height: 44)
                     .contentShape(Rectangle())
             }
@@ -297,40 +297,13 @@ struct ProductManagementView: View {
     }
 
     private func filterChipButton(_ chip: ProductFilterCategory) -> some View {
-        Button(action: {
-            LopanHapticEngine.shared.light()
+        LopanFilterChip(
+            title: chip.label,
+            count: chipCountForCategory(chip),
+            isSelected: selectedProductFilterCategory == chip
+        ) {
             selectedProductFilterCategory = chip
-        }) {
-            HStack(spacing: 6) {
-                Text(chip.label)
-                // Use database counts instead of in-memory product counts
-                let count = chipCountForCategory(chip)
-                if count > 0 {
-                    Text("\(count)")
-                        .font(.system(size: 11, weight: .bold))
-                }
-            }
-            .font(.system(size: 14, weight: .medium))
-            .foregroundColor(selectedProductFilterCategory == chip ? .white : Color(hex: "#4B5563") ?? Color.secondary)
-            .padding(.horizontal, 12)
-            .padding(.vertical, 6)
-            .background(
-                selectedProductFilterCategory == chip ?
-                    Color(hex: "#6366F1") ?? Color.blue : // primary (indigo)
-                    Color.white
-            )
-            .overlay(
-                RoundedRectangle(cornerRadius: 20)
-                    .stroke(
-                        selectedProductFilterCategory == chip ?
-                            Color.clear :
-                            Color(hex: "#E5E7EB") ?? Color.gray.opacity(0.2),
-                        lineWidth: 1
-                    )
-            )
-            .clipShape(Capsule())
         }
-        .buttonStyle(PlainButtonStyle())
     }
 
     /// Returns the database count for a given filter category
@@ -448,8 +421,8 @@ struct ProductManagementView: View {
                 .frame(width: 56, height: 56)
                 .background(
                     Circle()
-                        .fill(Color(hex: "#6366F1") ?? Color.blue) // Primary indigo
-                        .shadow(color: (Color(hex: "#6366F1") ?? Color.blue).opacity(0.3), radius: 8, x: 0, y: 4)
+                        .fill(LopanColors.primary) // Primary indigo
+                        .shadow(color: (LopanColors.primary).opacity(0.3), radius: 8, x: 0, y: 4)
                 )
         }
         .accessibilityLabel("Add product")
@@ -468,8 +441,8 @@ struct ProductManagementView: View {
             }
             .frame(maxWidth: 320)
             .frame(maxHeight: .infinity)
-            .background(Color.white)
-            .shadow(color: Color.black.opacity(0.1), radius: 10, x: 2, y: 0)
+            .background(LopanColors.chipBackground)
+            .lopanShadow(LopanShadows.modal)
 
             Spacer()
         }
@@ -479,8 +452,8 @@ struct ProductManagementView: View {
     private var filterDrawerHeader: some View {
         HStack {
             Text("Filters")
-                .font(.system(size: 20, weight: .bold))
-                .foregroundColor(Color(hex: "#111827") ?? Color.primary)
+                .lopanHeadlineMedium()
+                .foregroundColor(LopanColors.textPrimary)
 
             Spacer()
 
@@ -490,7 +463,7 @@ struct ProductManagementView: View {
             }) {
                 Image(systemName: "xmark")
                     .font(.system(size: 20, weight: .medium))
-                    .foregroundColor(Color(hex: "#6B7280") ?? Color.secondary)
+                    .foregroundColor(LopanColors.textSecondary)
             }
         }
         .padding(24)
@@ -511,8 +484,8 @@ struct ProductManagementView: View {
     private var statusFilterSection: some View {
         VStack(alignment: .leading, spacing: 12) {
             Text("Status")
-                .font(.system(size: 14, weight: .medium))
-                .foregroundColor(Color(hex: "#374151") ?? Color.primary)
+                .lopanLabelMedium()
+                .foregroundColor(LopanColors.textPrimary)
 
             Menu {
                 Button("All") { statusFilter = [.active, .lowStock, .inactive] }
@@ -522,19 +495,19 @@ struct ProductManagementView: View {
             } label: {
                 HStack {
                     Text(statusFilterLabel)
-                        .font(.system(size: 14))
-                        .foregroundColor(Color(hex: "#111827") ?? Color.primary)
+                        .lopanBodySmall()
+                        .foregroundColor(LopanColors.textPrimary)
                     Spacer()
                     Image(systemName: "chevron.down")
-                        .font(.system(size: 12))
-                        .foregroundColor(Color(hex: "#6B7280") ?? Color.secondary)
+                        .lopanCaption()
+                        .foregroundColor(LopanColors.textSecondary)
                 }
                 .padding(12)
-                .background(Color.white)
-                .clipShape(RoundedRectangle(cornerRadius: 12))
+                .background(LopanColors.chipBackground)
+                .clipShape(RoundedRectangle(cornerRadius: LopanCornerRadius.sm))
                 .overlay(
-                    RoundedRectangle(cornerRadius: 12)
-                        .stroke(Color(hex: "#E5E7EB") ?? Color.gray.opacity(0.2), lineWidth: 1)
+                    RoundedRectangle(cornerRadius: LopanCornerRadius.sm)
+                        .stroke(LopanColors.productCardBorder, lineWidth: 1)
                 )
             }
             .buttonStyle(.plain)
@@ -546,28 +519,28 @@ struct ProductManagementView: View {
         VStack(alignment: .leading, spacing: 12) {
             HStack {
                 Text("Inventory")
-                    .font(.system(size: 14, weight: .medium))
-                    .foregroundColor(Color(hex: "#374151") ?? Color.primary)
+                    .lopanLabelMedium()
+                    .foregroundColor(LopanColors.textPrimary)
 
                 Spacer()
 
                 Text("\(Int(inventoryRange))")
                     .font(.system(size: 14, weight: .semibold))
-                    .foregroundColor(Color(hex: "#6366F1") ?? Color.blue)
+                    .foregroundColor(LopanColors.primary)
             }
 
             VStack(spacing: 8) {
                 Slider(value: $inventoryRange, in: 0...100, step: 5)
-                    .tint(Color(hex: "#6366F1") ?? Color.blue)
+                    .tint(LopanColors.primary)
 
                 HStack {
                     Text("0")
-                        .font(.system(size: 12))
-                        .foregroundColor(Color(hex: "#6B7280") ?? Color.secondary)
+                        .lopanCaption()
+                        .foregroundColor(LopanColors.textSecondary)
                     Spacer()
                     Text("100+")
-                        .font(.system(size: 12))
-                        .foregroundColor(Color(hex: "#6B7280") ?? Color.secondary)
+                        .lopanCaption()
+                        .foregroundColor(LopanColors.textSecondary)
                 }
             }
         }
@@ -586,12 +559,12 @@ struct ProductManagementView: View {
                 showFilterDrawer = false
             }) {
                 Text("Apply Filters")
-                    .font(.system(size: 16, weight: .semibold))
+                    .lopanButtonMedium()
                     .foregroundColor(.white)
                     .frame(maxWidth: .infinity)
                     .padding(.vertical, 12)
-                    .background(Color(hex: "#6366F1") ?? Color.blue)
-                    .clipShape(RoundedRectangle(cornerRadius: 12))
+                    .background(LopanColors.primary)
+                    .clipShape(RoundedRectangle(cornerRadius: LopanCornerRadius.sm))
             }
 
             Button(action: {
@@ -602,13 +575,13 @@ struct ProductManagementView: View {
                 // No need to call updateFilteredProducts() - chip change triggers reload via onChange
             }) {
                 Text("Reset")
-                    .font(.system(size: 16, weight: .semibold))
-                    .foregroundColor(Color(hex: "#374151") ?? Color.primary)
+                    .lopanButtonMedium()
+                    .foregroundColor(LopanColors.textPrimary)
                     .frame(maxWidth: .infinity)
                     .padding(.vertical, 12)
                     .overlay(
-                        RoundedRectangle(cornerRadius: 12)
-                            .stroke(Color(hex: "#E5E7EB") ?? Color.gray.opacity(0.2), lineWidth: 1)
+                        RoundedRectangle(cornerRadius: LopanCornerRadius.sm)
+                            .stroke(LopanColors.productCardBorder, lineWidth: 1)
                     )
             }
         }

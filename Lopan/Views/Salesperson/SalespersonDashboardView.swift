@@ -53,7 +53,7 @@ struct SalespersonDashboardView: View {
                     .padding(.bottom, LopanSpacing.sectionSpacing)
                 }
             }
-            .background(Color.white.ignoresSafeArea())
+            .background(LopanColors.background.ignoresSafeArea())
             .refreshable {
                 await viewModel.refreshAsync()
                 toastManager.showSuccess(NSLocalizedString("salesperson_dashboard_refresh_success", comment: ""))
@@ -138,9 +138,9 @@ struct SalespersonDashboardView: View {
                 if let lastUpdate = viewModel.lastUpdated {
                     HStack(spacing: 4) {
                         Image(systemName: "clock")
-                            .font(.caption2)
+                            .lopanCaption()
                         Text(formatLastUpdatedTime(lastUpdate))
-                            .font(.caption)
+                            .lopanLabelSmall()
                     }
                     .foregroundColor(Color(UIColor.secondaryLabel))
                 }
@@ -163,9 +163,9 @@ struct SalespersonDashboardView: View {
                     }
                 }
             }
-            .background(Color.white)
+            .background(LopanColors.surface)
             .cornerRadius(LopanCornerRadius.card)
-            .shadow(color: Color.black.opacity(0.1), radius: 1.5, x: 0, y: 1)
+            .lopanShadow(LopanShadows.xs)
         }
     }
 
@@ -192,7 +192,7 @@ struct SalespersonDashboardView: View {
                         .padding(.horizontal, 8)
                         .padding(.vertical, 4)
                         .background(bgColor)
-                        .cornerRadius(12)
+                        .cornerRadius(LopanCornerRadius.sm)
                     }
                 }
 
@@ -217,9 +217,9 @@ struct SalespersonDashboardView: View {
             }
             .frame(maxWidth: .infinity, alignment: .leading)
             .padding(LopanSpacing.lg)
-            .background(Color.white)
+            .background(LopanColors.surface)
             .cornerRadius(LopanCornerRadius.card)
-            .shadow(color: Color.black.opacity(0.1), radius: 1.5, x: 0, y: 1)
+            .lopanShadow(LopanShadows.xs)
         }
         .buttonStyle(.plain)
     }
@@ -285,9 +285,9 @@ struct SalespersonDashboardView: View {
                                         .fixedSize()
                                 }
                                 .padding(12)
-                                .background(Color.white)
+                                .background(LopanColors.surface)
                                 .cornerRadius(LopanCornerRadius.card)
-                                .shadow(color: Color.black.opacity(0.1), radius: 1.5, x: 0, y: 1)
+                                .lopanShadow(LopanShadows.xs)
                             }
                             .buttonStyle(.plain)
                             .accessibilityLabel(Text(activity.title))

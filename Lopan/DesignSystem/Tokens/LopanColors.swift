@@ -145,6 +145,43 @@ public struct LopanColors {
     static let premiumLight = premium.opacity(0.3)
     static let premiumDark = premium.opacity(0.8)
 
+    // MARK: - Chip & Filter Colors
+    public static let chipBackground = Color.white
+    public static let chipBorder = Color(UIColor.separator)
+    public static let chipActiveBackground = primary
+    public static let chipActiveText = Color.white
+    public static let chipInactiveText = Color.adaptive(
+        light: Color(red: 0.294, green: 0.333, blue: 0.388), // #4B5563
+        dark: Color(red: 0.7, green: 0.7, blue: 0.7)
+    )
+    public static let filterDrawerBackground = Color.white
+    public static let viewModeIconColor = Color.adaptive(
+        light: Color(red: 0.294, green: 0.333, blue: 0.388), // #4B5563
+        dark: Color(red: 0.7, green: 0.7, blue: 0.7)
+    )
+    
+    // MARK: - Product Card Colors
+    public static let productCardBackground = Color.white
+    public static let productCardBorder = Color.adaptive(
+        light: Color(red: 0.898, green: 0.906, blue: 0.922), // #E5E7EB
+        dark: Color(UIColor.separator)
+    )
+    public static let productNameText = Color.adaptive(
+        light: Color(red: 0.067, green: 0.094, blue: 0.153), // #111827
+        dark: Color(UIColor.label)
+    )
+    public static let productSKUText = Color.adaptive(
+        light: Color(red: 0.420, green: 0.447, blue: 0.502), // #6B7280
+        dark: Color(UIColor.secondaryLabel)
+    )
+    public static let productPriceText = productNameText
+    
+    // MARK: - Background Colors
+    public static let listBackground = Color.adaptive(
+        light: Color(red: 0.969, green: 0.973, blue: 0.980), // #F7F8FA
+        dark: Color(UIColor.systemBackground)
+    )
+    
     // MARK: - Modern UI Enhancement Colors
 
     /// Aurora gradient colors for dynamic backgrounds and hero sections

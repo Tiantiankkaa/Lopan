@@ -49,6 +49,13 @@ public struct LopanSpacing {
     public static let gridSpacing = md                  // 16pt
     public static let columnSpacing = md                // 16pt
     public static let rowSpacing = sm                   // 12pt
+    
+    // MARK: - Filter & Chip Spacing
+    public static let filterChipHorizontalPadding = sm  // 12pt
+    public static let filterChipVerticalPadding: CGFloat = 6
+    public static let filterChipSpacing = xs            // 8pt
+    public static let drawerWidth: CGFloat = 320        // Fixed drawer width
+    public static let drawerPadding = xl                // 24pt
 }
 
 // MARK: - Spacing View Extensions

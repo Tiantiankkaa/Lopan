@@ -21,21 +21,21 @@ struct HTMLProductCard: View {
                 // Left: Name + SKU
                 VStack(alignment: .leading, spacing: 4) {
                     Text(product.name)
-                        .font(.system(size: 16, weight: .semibold))
-                        .foregroundColor(Color(hex: "#111827") ?? Color.primary) // gray-900
+                        .lopanTitleSmall()
+                        .foregroundColor(LopanColors.productNameText) // gray-900
                         .lineLimit(1)
 
                     Text("SKU: \(product.formattedSKU)")
-                        .font(.system(size: 14))
-                        .foregroundColor(Color(hex: "#6B7280") ?? Color.secondary) // gray-500
+                        .lopanBodySmall()
+                        .foregroundColor(LopanColors.productSKUText) // gray-500
                 }
 
                 Spacer(minLength: 8)
 
                 // Right: Price
                 Text(product.formattedPrice)
-                    .font(.system(size: 18, weight: .bold))
-                    .foregroundColor(Color(hex: "#111827") ?? Color.primary) // gray-900
+                    .font(.title2.bold())
+                    .foregroundColor(LopanColors.productNameText) // gray-900
             }
 
             // Bottom Row: Status, Stock, Timestamp
@@ -45,8 +45,8 @@ struct HTMLProductCard: View {
                     statusDotWithRing
 
                     Text(product.inventoryStatus.htmlLabel)
-                        .font(.system(size: 14))
-                        .foregroundColor(Color(hex: "#4B5563") ?? Color.secondary) // gray-600
+                        .lopanBodySmall()
+                        .foregroundColor(LopanColors.chipInactiveText) // gray-600
                 }
 
                 Spacer()
@@ -55,12 +55,12 @@ struct HTMLProductCard: View {
                 if product.inventoryStatus != .active {
                     HStack(spacing: 4) {
                         Text("\(product.inventoryQuantity)")
-                            .font(.system(size: 14, weight: .medium))
+                            .lopanLabelMedium()
                             .foregroundColor(stockColor)
 
                         Text("in stock")
-                            .font(.system(size: 14))
-                            .foregroundColor(Color(hex: "#4B5563") ?? Color.secondary) // gray-600
+                            .lopanBodySmall()
+                            .foregroundColor(LopanColors.chipInactiveText) // gray-600
                     }
 
                     Spacer()
@@ -68,19 +68,19 @@ struct HTMLProductCard: View {
 
                 // Timestamp
                 Text(product.htmlRelativeTime)
-                    .font(.system(size: 14))
-                    .foregroundColor(Color(hex: "#6B7280") ?? Color.secondary) // gray-500
+                    .lopanBodySmall()
+                    .foregroundColor(LopanColors.productSKUText) // gray-500
             }
             .padding(.top, 16)
         }
         .padding(16)
-        .background(Color.white)
+        .background(LopanColors.productCardBackground)
         .clipShape(RoundedRectangle(cornerRadius: 16))
         .overlay(
             RoundedRectangle(cornerRadius: 16)
-                .stroke(Color(hex: "#E5E7EB") ?? Color.gray.opacity(0.2), lineWidth: 1) // border-color
+                .stroke(LopanColors.productCardBorder, lineWidth: 1) // border-color
         )
-        .shadow(color: Color.black.opacity(0.05), radius: 2, x: 0, y: 1)
+        .lopanShadow(LopanShadows.xs)
         .contentShape(Rectangle())
         .onTapGesture(perform: onTap)
         .accessibilityElement(children: .combine)
