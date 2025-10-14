@@ -14,6 +14,7 @@ private enum SalespersonTab: String, CaseIterable, Identifiable {
     case stockouts
     case returns
     case customers
+    case addCustomer
 
     var id: String { rawValue }
 
@@ -27,6 +28,8 @@ private enum SalespersonTab: String, CaseIterable, Identifiable {
             return "salesperson_tab_returns".localizedKey
         case .customers:
             return "salesperson_tab_customers".localizedKey
+        case .addCustomer:
+            return "添加"
         }
     }
 
@@ -40,6 +43,8 @@ private enum SalespersonTab: String, CaseIterable, Identifiable {
             return "arrow.uturn.backward.circle"
         case .customers:
             return "person.2"
+        case .addCustomer:
+            return "plus"
         }
     }
 }
@@ -52,50 +57,84 @@ struct SalespersonWorkbenchTabView: View {
 
     @AppStorage("salesperson.selectedTab") private var storedTabValue: String = SalespersonTab.overview.rawValue
     @State private var selectedTab: SalespersonTab = .overview
+    @State private var showingAddCustomer = false
 
     // Environment
     @Environment(\.enhancedLiquidGlass) private var glassManager
     @Environment(\.colorScheme) private var colorScheme
     @Environment(\.accessibilityReduceMotion) private var reduceMotion
+    @Environment(\.appDependencies) private var appDependencies
 
     var body: some View {
         TabView(selection: $selectedTab) {
-            SalespersonDashboardView(authService: authService, navigationService: navigationService)
-                .tabItem {
-                    Label(SalespersonTab.overview.titleKey, systemImage: SalespersonTab.overview.systemImage)
-                }
-                .tag(SalespersonTab.overview)
-
-            tabContainer {
-                CustomerOutOfStockDashboard()
+            // Tab 1: Overview
+            Tab(value: SalespersonTab.overview) {
+                SalespersonDashboardView(authService: authService, navigationService: navigationService)
+            } label: {
+                Label(SalespersonTab.overview.titleKey, systemImage: SalespersonTab.overview.systemImage)
             }
-            .tabItem {
+
+            // Tab 2: Out of Stock
+            Tab(value: SalespersonTab.stockouts) {
+                tabContainer {
+                    CustomerOutOfStockDashboard()
+                }
+            } label: {
                 Label(SalespersonTab.stockouts.titleKey, systemImage: SalespersonTab.stockouts.systemImage)
             }
-            .tag(SalespersonTab.stockouts)
 
-            tabContainer {
-                DeliveryManagementView()
-            }
-            .tabItem {
+            // Tab 3: Returns
+            Tab(value: SalespersonTab.returns) {
+                tabContainer {
+                    DeliveryManagementView()
+                }
+            } label: {
                 Label(SalespersonTab.returns.titleKey, systemImage: SalespersonTab.returns.systemImage)
             }
-            .tag(SalespersonTab.returns)
 
-            tabContainer {
-                CustomerManagementView()
-            }
-            .tabItem {
+            // Tab 4: Customers
+            Tab(value: SalespersonTab.customers) {
+                tabContainer {
+                    CustomerManagementView()
+                }
+            } label: {
                 Label(SalespersonTab.customers.titleKey, systemImage: SalespersonTab.customers.systemImage)
             }
-            .tag(SalespersonTab.customers)
+
+            // Tab 5: Add Customer (conditional - only on Customer tab, with search role for spacing)
+            if selectedTab == .customers {
+                Tab(value: SalespersonTab.addCustomer, role: .search) {
+                    Color.clear // Placeholder - triggers sheet via onChange
+                } label: {
+                    Label(SalespersonTab.addCustomer.titleKey, systemImage: SalespersonTab.addCustomer.systemImage)
+                }
+            }
         }
         .onAppear {
             selectedTab = SalespersonTab(rawValue: storedTabValue) ?? .overview
             configureTabBarAppearance()
         }
-        .onChange(of: selectedTab) { _, newValue in
-            storedTabValue = newValue.rawValue
+        .onChange(of: selectedTab) { oldValue, newValue in
+            // Intercept "Add Customer" tab selection
+            if newValue == .addCustomer {
+                showingAddCustomer = true
+                // Immediately revert to previous tab (don't stay on add button)
+                selectedTab = oldValue
+            } else {
+                storedTabValue = newValue.rawValue
+            }
+        }
+        .sheet(isPresented: $showingAddCustomer) {
+            AddCustomerView(onSave: { customer in
+                Task {
+                    do {
+                        let repository = appDependencies.serviceFactory.repositoryFactory.customerRepository
+                        try await repository.addCustomer(customer)
+                    } catch {
+                        print("Error saving customer: \(error)")
+                    }
+                }
+            })
         }
     }
 
@@ -158,3 +197,4 @@ extension SalespersonWorkbenchTabView {
         }
     }
 }
+
