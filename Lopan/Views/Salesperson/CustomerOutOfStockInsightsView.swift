@@ -41,53 +41,51 @@ struct CustomerOutOfStockInsightsView: View {
     // MARK: - Body
 
     var body: some View {
-        NavigationStack {
-            ZStack {
-                // Background gradient
-                backgroundView
+        ZStack {
+            // Background gradient
+            backgroundView
 
-                VStack(spacing: 0) {
-                    // Time range selector
-                    timeRangeSection
+            VStack(spacing: 0) {
+                // Time range selector
+                timeRangeSection
 
-                    // Analysis mode selector
-                    analysisModeSection
+                // Analysis mode selector
+                analysisModeSection
 
-                    // Main content area
-                    contentSection
-                        .frame(maxWidth: .infinity, maxHeight: .infinity)
+                // Main content area
+                contentSection
+                    .frame(maxWidth: .infinity, maxHeight: .infinity)
+            }
+        }
+        .navigationTitle("数据洞察")
+        .navigationBarTitleDisplayMode(.inline)
+        .toolbar {
+            ToolbarItem(placement: .navigationBarTrailing) {
+                Menu {
+                    refreshButton
+                    Divider()
+                    exportButton
+                } label: {
+                    Image(systemName: "ellipsis.circle")
+                        .imageScale(.large)
+                        .accessibilityLabel("更多选项")
                 }
+                .disabled(viewModel.isLoading)
             }
-            .navigationTitle("数据洞察")
-            .navigationBarTitleDisplayMode(.inline)
-            .toolbar {
-                ToolbarItem(placement: .navigationBarTrailing) {
-                    Menu {
-                        refreshButton
-                        Divider()
-                        exportButton
-                    } label: {
-                        Image(systemName: "ellipsis.circle")
-                            .imageScale(.large)
-                            .accessibilityLabel("更多选项")
-                    }
-                    .disabled(viewModel.isLoading)
-                }
-            }
-            .sheet(isPresented: $showingTimeRangePicker) {
-                customDateRangePickerSheet
-            }
-            .sheet(isPresented: $viewModel.showingExportOptions) {
-                exportOptionsSheet
-            }
-            .refreshable {
-                await viewModel.refreshData()
-            }
-            .onAppear {
-                setupViewModel()
-                Task {
-                    await viewModel.loadInsightsData()
-                }
+        }
+        .sheet(isPresented: $showingTimeRangePicker) {
+            customDateRangePickerSheet
+        }
+        .sheet(isPresented: $viewModel.showingExportOptions) {
+            exportOptionsSheet
+        }
+        .refreshable {
+            await viewModel.refreshData()
+        }
+        .onAppear {
+            setupViewModel()
+            Task {
+                await viewModel.loadInsightsData()
             }
         }
     }

@@ -14,7 +14,6 @@ private enum SalespersonTab: String, CaseIterable, Identifiable {
     case stockouts
     case returns
     case customers
-    case analytics
 
     var id: String { rawValue }
 
@@ -28,8 +27,6 @@ private enum SalespersonTab: String, CaseIterable, Identifiable {
             return "salesperson_tab_returns".localizedKey
         case .customers:
             return "salesperson_tab_customers".localizedKey
-        case .analytics:
-            return "salesperson_tab_analytics".localizedKey
         }
     }
 
@@ -43,8 +40,6 @@ private enum SalespersonTab: String, CaseIterable, Identifiable {
             return "arrow.uturn.backward.circle"
         case .customers:
             return "person.2"
-        case .analytics:
-            return "chart.bar.xaxis"
         }
     }
 }
@@ -94,14 +89,6 @@ struct SalespersonWorkbenchTabView: View {
                 Label(SalespersonTab.customers.titleKey, systemImage: SalespersonTab.customers.systemImage)
             }
             .tag(SalespersonTab.customers)
-
-            tabContainer {
-                CustomerOutOfStockInsightsView()
-            }
-            .tabItem {
-                Label(SalespersonTab.analytics.titleKey, systemImage: SalespersonTab.analytics.systemImage)
-            }
-            .tag(SalespersonTab.analytics)
         }
         .onAppear {
             selectedTab = SalespersonTab(rawValue: storedTabValue) ?? .overview

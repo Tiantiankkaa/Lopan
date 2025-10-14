@@ -23,6 +23,7 @@ struct ViewSalesView: View {
     @State private var productToDelete: String?
     @State private var showDeleteConfirmation = false
     @State private var dateTransitionDirection: TransitionDirection = .forward
+    @State private var showAddSalesEntry = false
 
     // MARK: - Transition Direction
 
@@ -61,6 +62,20 @@ struct ViewSalesView: View {
         }
         .navigationTitle("View Sales")
         .navigationBarTitleDisplayMode(.large)
+        .toolbar {
+            ToolbarItem(placement: .navigationBarTrailing) {
+                Button(action: {
+                    LopanHapticEngine.shared.light()
+                    showAddSalesEntry = true
+                }) {
+                    Image(systemName: "plus.circle")
+                        .font(.title3)
+                }
+                .buttonStyle(.plain)
+                .accessibilityLabel("Add sales entry")
+                .accessibilityHint("Opens form to add a new sales entry for the selected date")
+            }
+        }
         .onAppear {
             viewModel.configure(dependencies: appDependencies)
         }
@@ -95,6 +110,14 @@ struct ViewSalesView: View {
         } message: { _ in
             Text("Are you sure you want to delete all sales entries for this product? This action cannot be undone.")
         }
+        .sheet(isPresented: $showAddSalesEntry, onDismiss: {
+            // Refresh sales data after adding new entry
+            viewModel.loadSalesData()
+        }) {
+            NavigationStack {
+                SalesEntryView(date: viewModel.selectedDate)
+            }
+        }
     }
 
     // MARK: - Content View
@@ -124,7 +147,7 @@ struct ViewSalesView: View {
     // MARK: - Date Section
 
     private var dateSection: some View {
-        HStack(spacing: LopanSpacing.md) {
+        HStack(spacing: LopanSpacing.sm) {
             // Previous Day Button
             Button(action: {
                 LopanHapticEngine.shared.light()
@@ -134,32 +157,31 @@ struct ViewSalesView: View {
                 }
             }) {
                 Image(systemName: "chevron.left")
-                    .font(.system(size: 18, weight: .semibold))
+                    .font(.system(size: 16, weight: .semibold))
                     .foregroundColor(LopanColors.primary)
-                    .frame(width: 44, height: 44)
+                    .frame(width: 40, height: 40)
             }
             .disabled(viewModel.isLoading)
 
             // Date Display with loading indicator
-            HStack(spacing: 8) {
-                VStack(spacing: 4) {
+            HStack(spacing: 6) {
+                VStack(spacing: 2) {
                     Text(formatDateLong(viewModel.selectedDate))
-                        .font(.headline)
-                        .fontWeight(.semibold)
+                        .font(.system(size: 15, weight: .semibold))
                         .foregroundColor(Color(UIColor.label))
                         .id(viewModel.selectedDate)
                         .transition(dateTransitionDirection.slideTransition)
 
                     if viewModel.isToday {
                         Text("Today")
-                            .font(.footnote)
+                            .font(.caption)
                             .foregroundColor(Color(UIColor.secondaryLabel))
                     }
                 }
 
                 if viewModel.isLoading {
                     ProgressView()
-                        .scaleEffect(0.8)
+                        .scaleEffect(0.7)
                 }
             }
             .frame(maxWidth: .infinity)
@@ -174,14 +196,14 @@ struct ViewSalesView: View {
                 }
             }) {
                 Image(systemName: "chevron.right")
-                    .font(.system(size: 18, weight: .semibold))
+                    .font(.system(size: 16, weight: .semibold))
                     .foregroundColor(viewModel.canNavigateForward ? LopanColors.primary : Color(UIColor.quaternaryLabel))
-                    .frame(width: 44, height: 44)
+                    .frame(width: 40, height: 40)
             }
             .disabled(!viewModel.canNavigateForward || viewModel.isLoading)
         }
-        .padding(.horizontal, LopanSpacing.md)
-        .padding(.vertical, 16)
+        .padding(.horizontal, LopanSpacing.sm)
+        .padding(.vertical, LopanSpacing.xs)
         .background(
             RoundedRectangle(cornerRadius: 12)
                 .fill(Color.white)

@@ -59,6 +59,9 @@ struct SalespersonDashboardView: View {
                 toastManager.showSuccess(NSLocalizedString("salesperson_dashboard_refresh_success", comment: ""))
             }
             .onAppear {
+                print("📱 [Dashboard] View appeared")
+                print("📱 [Dashboard] NavigationPath count: \(navigationPath.count)")
+
                 // Debug: Log salesperson ID for data filtering
                 if let currentUser = authService.currentUser {
                     print("👤 [Dashboard] Current User ID: \(currentUser.id)")
@@ -98,6 +101,9 @@ struct SalespersonDashboardView: View {
                     }
                 }
             }
+            .onChange(of: navigationPath) { oldPath, newPath in
+                print("🧭 [Dashboard] NavigationPath changed from \(oldPath.count) to \(newPath.count)")
+            }
             .overlay(alignment: .top) {
                 if viewModel.isLoading {
                     ProgressView()
@@ -109,7 +115,8 @@ struct SalespersonDashboardView: View {
             }
             .withToastFeedback(toastManager: toastManager)
             .navigationDestination(for: SalespersonDashboardViewModel.Destination.self) { destination in
-                destinationView(for: destination)
+                print("🎯 [Dashboard] NavigationDestination triggered for: \(destination)")
+                return destinationView(for: destination)
             }
             .navigationBarTitleDisplayMode(.inline)
             .toolbar {
@@ -121,8 +128,8 @@ struct SalespersonDashboardView: View {
                     .accessibilityHint("workbench_manage_hint".localized)
                 }
             }
+            .navigationTransitionCoordinator()
         }
-        .navigationTransitionCoordinator()
     }
 
     // MARK: - Sections
@@ -151,6 +158,8 @@ struct SalespersonDashboardView: View {
             VStack(spacing: 0) {
                 ForEach(Array(viewModel.reminders.enumerated()), id: \.element.id) { index, reminder in
                     Button {
+                        print("🔘 [Dashboard] Reminder button tapped: \(reminder.title)")
+                        LopanHapticEngine.shared.light()
                         open(reminder.destination)
                     } label: {
                         reminderRow(for: reminder)
@@ -171,7 +180,9 @@ struct SalespersonDashboardView: View {
 
     private var dailySalesSection: some View {
         Button {
-            open(.salesEntry)
+            print("🔘 [Dashboard] Daily Sales button tapped")
+            LopanHapticEngine.shared.light()
+            open(.viewSales)
         } label: {
             VStack(alignment: .leading, spacing: LopanSpacing.sm) {
                 HStack {
@@ -211,7 +222,7 @@ struct SalespersonDashboardView: View {
                     }
                 }
 
-                Text("Tap to add detailed sales entries")
+                Text("Tap to view and add sales entries")
                     .lopanLabelMedium()
                     .foregroundColor(Color(UIColor.secondaryLabel))
             }
@@ -267,6 +278,8 @@ struct SalespersonDashboardView: View {
 
                             // Card content
                             Button {
+                                print("🔘 [Dashboard] Activity button tapped: \(activity.title)")
+                                LopanHapticEngine.shared.light()
                                 open(activity.destination)
                             } label: {
                                 HStack(alignment: .top, spacing: 12) {
@@ -301,6 +314,8 @@ struct SalespersonDashboardView: View {
     private var bottomActionsSection: some View {
         HStack(spacing: LopanSpacing.md) {
             Button {
+                print("🔘 [Dashboard] View Products button tapped")
+                LopanHapticEngine.shared.light()
                 // Navigate to add product
                 open(.productManagement)
             } label: {
@@ -326,16 +341,18 @@ struct SalespersonDashboardView: View {
             .frame(maxWidth: .infinity)
 
             Button {
-                // Navigate to view sales
-                open(.viewSales)
+                print("🔘 [Dashboard] Insights button tapped")
+                LopanHapticEngine.shared.light()
+                // Navigate to insights
+                open(.analytics)
             } label: {
                 HStack(spacing: LopanSpacing.xs) {
-                    Image(systemName: "eye.fill")
+                    Image(systemName: "chart.bar.xaxis")
                         .imageScale(.medium)
                         .font(.title3)
                         .frame(width: 24, height: 24)
                         .layoutPriority(1)
-                    Text("View Sales")
+                    Text("Insights")
                         .lopanTitleMedium(maxLines: 1)
                         .truncationMode(.tail)
                         .allowsTightening(true)
@@ -355,7 +372,15 @@ struct SalespersonDashboardView: View {
     // MARK: - Helpers
 
     private func open(_ destination: SalespersonDashboardViewModel.Destination) {
+        print("🚀 [Dashboard] open() called with destination: \(destination)")
+        print("🚀 [Dashboard] NavigationPath before append: \(navigationPath.count) items")
         navigationPath.append(destination)
+        print("🚀 [Dashboard] NavigationPath after append: \(navigationPath.count) items")
+
+        // Verify the destination was added
+        DispatchQueue.main.asyncAfter(deadline: .now() + 0.1) {
+            print("🚀 [Dashboard] NavigationPath after 0.1s: \(self.navigationPath.count) items")
+        }
     }
 
     private func reminderRow(for reminder: SalespersonDashboardViewModel.ReminderItem) -> some View {
@@ -457,7 +482,7 @@ struct SalespersonDashboardView: View {
             ProductManagementView()
                 .hidesTabBarOnPush()
         case .analytics:
-            CustomerOutOfStockAnalyticsView()
+            CustomerOutOfStockInsightsView()
         case .salesEntry:
             SalesEntryView()
         case .viewSales:
