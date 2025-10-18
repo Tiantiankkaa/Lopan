@@ -59,14 +59,53 @@ struct SalespersonWorkbenchTabView: View {
     @State private var selectedTab: SalespersonTab = .overview
     @State private var showingAddCustomer = false
 
+    // Customer filter selection
+    @State private var selectedCustomerFilter: CustomerFilterTab = .all
+
+    // Scroll state from CustomerManagementView
+    @State private var isCustomerScrolled: Bool = false
+
+    // Manual collapse flag - prioritizes user tap over scroll events
+    @State private var manuallyCollapsed: Bool = false
+
     // Environment
     @Environment(\.enhancedLiquidGlass) private var glassManager
     @Environment(\.colorScheme) private var colorScheme
     @Environment(\.accessibilityReduceMotion) private var reduceMotion
     @Environment(\.appDependencies) private var appDependencies
 
+    // MARK: - Proxy Binding for Tab Selection
+
+    /// Detects taps on currently selected tab (including repeat taps)
+    private var tabSelectionBinding: Binding<SalespersonTab> {
+        Binding(
+            get: { self.selectedTab },
+            set: { newValue in
+                print("📍 [TabView] Tab tapped: \(newValue.rawValue) (current: \(self.selectedTab.rawValue))")
+
+                // Detect tap on already selected Customer tab
+                if newValue == .customers && self.selectedTab == .customers && self.isCustomerScrolled {
+                    // User tapped on already selected Customer tab while scrolled
+                    self.isCustomerScrolled = false
+                    print("🎯 [TabView] Tapped current Customer tab, collapsing filter bar (iOS 26 native behavior)")
+                }
+
+                // Intercept "Add Customer" tab
+                if newValue == .addCustomer {
+                    self.showingAddCustomer = true
+                    // Don't change selectedTab
+                } else {
+                    self.selectedTab = newValue
+                    self.storedTabValue = newValue.rawValue
+                }
+            }
+        )
+    }
+
     var body: some View {
-        TabView(selection: $selectedTab) {
+        let _ = print("🎯 [TabView] Body render - selectedTab: \(selectedTab.rawValue), isCustomerScrolled: \(isCustomerScrolled)")
+
+        TabView(selection: tabSelectionBinding) {
             // Tab 1: Overview
             Tab(value: SalespersonTab.overview) {
                 SalespersonDashboardView(authService: authService, navigationService: navigationService)
@@ -95,34 +134,62 @@ struct SalespersonWorkbenchTabView: View {
             // Tab 4: Customers
             Tab(value: SalespersonTab.customers) {
                 tabContainer {
-                    CustomerManagementView()
+                    CustomerManagementView(
+                        selectedTab: $selectedCustomerFilter,
+                        isScrolled: $isCustomerScrolled,
+                        manuallyCollapsed: $manuallyCollapsed
+                    )
                 }
             } label: {
                 Label(SalespersonTab.customers.titleKey, systemImage: SalespersonTab.customers.systemImage)
             }
 
-            // Tab 5: Add Customer (conditional - only on Customer tab, with search role for spacing)
+            // Tab 5: Add Customer (only visible on Customer tab)
             if selectedTab == .customers {
                 Tab(value: SalespersonTab.addCustomer, role: .search) {
-                    Color.clear // Placeholder - triggers sheet via onChange
+                    Color.clear
                 } label: {
                     Label(SalespersonTab.addCustomer.titleKey, systemImage: SalespersonTab.addCustomer.systemImage)
                 }
             }
         }
+        .tabBarMinimizeBehavior(.onScrollDown) // iOS 26 Liquid Glass scroll behavior
+        .tabViewBottomAccessory {
+            // Show filter controls only when on Customer tab AND scrolled down
+            if selectedTab == .customers && isCustomerScrolled {
+                CustomerFilterAccessoryView(selectedFilter: $selectedCustomerFilter)
+            }
+        }
+        .onTabBarTap { tappedIndex in
+            // Map tab index to SalespersonTab enum
+            // Index mapping: 0=overview, 1=stockouts, 2=returns, 3=customers, 4=addCustomer(conditional)
+            print("🎯 [UIKit] Tab bar tapped at index: \(tappedIndex)")
+
+            // Check if Customer tab (index 3) was tapped while already selected and scrolled
+            if tappedIndex == 3 && selectedTab == .customers && isCustomerScrolled {
+                print("✨ [UIKit] Customer tab tapped while scrolled, collapsing filter bar")
+
+                // Animate the state change to ensure smooth UI update
+                withAnimation(.easeInOut(duration: 0.2)) {
+                    manuallyCollapsed = true  // Prioritize user tap over scroll events
+                    isCustomerScrolled = false
+                }
+
+                // Haptic feedback
+                let impact = UIImpactFeedbackGenerator(style: .light)
+                impact.impactOccurred()
+            }
+        }
         .onAppear {
             selectedTab = SalespersonTab(rawValue: storedTabValue) ?? .overview
             configureTabBarAppearance()
+            print("🎬 SalespersonWorkbenchTabView appeared")
         }
-        .onChange(of: selectedTab) { oldValue, newValue in
-            // Intercept "Add Customer" tab selection
-            if newValue == .addCustomer {
-                showingAddCustomer = true
-                // Immediately revert to previous tab (don't stay on add button)
-                selectedTab = oldValue
-            } else {
-                storedTabValue = newValue.rawValue
-            }
+        .onChange(of: selectedCustomerFilter) { _, newValue in
+            print("🔍 Customer filter changed: \(newValue.rawValue)")
+        }
+        .onChange(of: isCustomerScrolled) { oldValue, newValue in
+            print("🔄 [TabView] isCustomerScrolled changed: \(oldValue) → \(newValue)")
         }
         .sheet(isPresented: $showingAddCustomer) {
             AddCustomerView(onSave: { customer in

@@ -17,6 +17,9 @@ struct SalespersonDashboardView: View {
     @StateObject private var viewModel: SalespersonDashboardViewModel
     @StateObject private var toastManager = EnhancedToastManager()
     @State private var navigationPath = NavigationPath()
+    @State private var customerFilter: CustomerFilterTab = .all
+    @State private var isCustomerScrolled: Bool = false
+    @State private var manuallyCollapsed: Bool = false
 
     // MARK: - Init
 
@@ -477,7 +480,11 @@ struct SalespersonDashboardView: View {
         case .deliveryManagement:
             DeliveryManagementView()
         case .customerManagement:
-            CustomerManagementView()
+            CustomerManagementView(
+                selectedTab: $customerFilter,
+                isScrolled: $isCustomerScrolled,
+                manuallyCollapsed: $manuallyCollapsed
+            )
         case .productManagement:
             ProductManagementView()
                 .hidesTabBarOnPush()

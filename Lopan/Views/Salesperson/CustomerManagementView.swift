@@ -17,14 +17,23 @@ enum CustomerDeletionError: Error {
 // MARK: - Filter & Sort Enums
 
 enum CustomerFilterTab: String, CaseIterable {
-    case all = "全部客户"
-    case recent = "最近"
-    case favourite = "收藏"
+    case all = "All"
+    case recent = "Recent"
+    case favourite = "Collected"
 }
 
 // MARK: - Main View
 
 struct CustomerManagementView: View {
+    // Filter selection binding from parent
+    @Binding var selectedTab: CustomerFilterTab
+
+    // Scroll state binding to parent for dynamic tab switching
+    @Binding var isScrolled: Bool
+
+    // Manual collapse flag binding - prioritizes user tap over scroll events
+    @Binding var manuallyCollapsed: Bool
+
     @Environment(\.appDependencies) private var appDependencies
     @Environment(\.modelContext) private var modelContext
     @Environment(\.scenePhase) private var scenePhase
@@ -34,7 +43,6 @@ struct CustomerManagementView: View {
     }
 
     @State private var searchText = ""
-    @State private var selectedTab: CustomerFilterTab = .all
     @State private var showingAddCustomer = false
     @State private var showingDeleteAlert = false
     @State private var customerToDelete: Customer?
@@ -52,8 +60,9 @@ struct CustomerManagementView: View {
     @State private var customers: [Customer] = [] // All customers from repository
     @State private var displayedCustomers: [Customer] = [] // Filtered subset for display
 
-    // Heights for precise alphabetical index positioning
-    @State private var headerHeight: CGFloat = 0
+    // Scroll tracking for tab transformation
+    @State private var scrollOffset: CGFloat = 0
+    @State private var scrollPhase: ScrollPhase = .idle  // Track scroll interaction state
 
     // Automatic refresh state
     @State private var refreshTimer: Timer?
@@ -141,46 +150,24 @@ struct CustomerManagementView: View {
 
         GeometryReader { geometry in
             ZStack(alignment: .trailing) {
-            VStack(spacing: 0) {
-                // Header with tabs - hide instantly when search is active (native iOS behavior)
-                headerView
-                    .background(
-                        GeometryReader { geo in
-                            Color.clear.preference(
-                                key: HeaderHeightKey.self,
-                                value: geo.size.height
-                            )
+                // Customer list (with native searchable)
+                customersListView
+                    .background(LopanColors.backgroundPrimary)
+
+                // Alphabetical index (centered in customer card display area)
+                if showsAlphabeticalIndex {
+                    AlphabeticalSectionIndexView(
+                        availableLetters: availableLetters,
+                        onLetterTap: { letter in
+                            withAnimation(reduceMotion ? .none : .default) {
+                                scrollProxy?.scrollTo(letter, anchor: .top)
+                            }
                         }
                     )
-                    .opacity(isSearchActive ? 0 : 1)
-                    .frame(height: isSearchActive ? 0 : nil)
-                    .clipped()
-                    .allowsHitTesting(!isSearchActive)
-
-                // Customer list (with native searchable)
-                // Let native .searchable() handle presentation animations
-                customersListView
-
-                // Customer count
-                //customerCountView
+                    .padding(.trailing, 8)
+                    .padding(.top, letterFilterTopPadding(geometry: geometry))
+                }
             }
-            .background(LopanColors.backgroundPrimary)
-
-            // Alphabetical index (centered in customer card display area)
-            if showsAlphabeticalIndex {
-                AlphabeticalSectionIndexView(
-                    availableLetters: availableLetters,
-                    onLetterTap: { letter in
-                        withAnimation(reduceMotion ? .none : .default) {
-                            scrollProxy?.scrollTo(letter, anchor: .top)
-                        }
-                    }
-                )
-                .padding(.trailing, 8)
-                .padding(.top, letterFilterTopPadding(geometry: geometry))
-            }
-            }
-            .onPreferenceChange(HeaderHeightKey.self) { headerHeight = $0 }
         }
         .navigationTitle("客户")
         .navigationBarTitleDisplayMode(.inline)
@@ -221,7 +208,7 @@ struct CustomerManagementView: View {
             }
         }
         .onChange(of: selectedTab) { oldTab, newTab in
-            perfLogger.info("🔄 Tab switched: \(oldTab.rawValue) → \(newTab.rawValue)")
+            perfLogger.info("🔄 Filter tab switched: \(oldTab.rawValue) → \(newTab.rawValue)")
             displayedCustomers = filteredCustomers
         }
         .onChange(of: searchText) { _, newValue in
@@ -273,44 +260,6 @@ struct CustomerManagementView: View {
     }
 
     // MARK: - View Components
-
-    /// Header with filter tabs
-    private var headerView: some View {
-        HStack(spacing: LopanSpacing.xl) {
-            Spacer()
-            ForEach(CustomerFilterTab.allCases, id: \.self) { tab in
-                Button(action: {
-                    withAnimation(reduceMotion ? .none : .spring(response: 0.6, dampingFraction: 0.75)) {
-                        selectedTab = tab
-                    }
-                }) {
-                    VStack(spacing: LopanSpacing.xxs) {
-                        Text(tab.rawValue)
-                            .font(selectedTab == tab ? LopanTypography.labelLarge : LopanTypography.labelMedium)
-                            .foregroundColor(selectedTab == tab ? LopanColors.primary : LopanColors.textSecondary)
-
-                        if selectedTab == tab {
-                            Rectangle()
-                                .fill(LopanColors.primary)
-                                .frame(height: 2)
-                                .transition(.scale)
-                        } else {
-                            Rectangle()
-                                .fill(Color.clear)
-                                .frame(height: 2)
-                        }
-                    }
-                }
-                .accessibilityLabel("\(tab.rawValue) 标签")
-                .accessibilityAddTraits(selectedTab == tab ? [.isSelected] : [])
-            }
-
-            Spacer()
-        }
-        .lopanPaddingHorizontal()
-        .lopanPaddingVertical(LopanSpacing.xxs)
-        .background(LopanColors.surface)
-    }
 
     /// Main customer list with sections (includes native searchable)
     private var customersListView: some View {
@@ -380,6 +329,41 @@ struct CustomerManagementView: View {
                         }
                     }
                     .scrollDismissesKeyboard(.interactively)
+                    .onScrollPhaseChange { oldPhase, newPhase in
+                        scrollPhase = newPhase
+                        print("🌀 [CustomerManagementView] Scroll phase: \(oldPhase) → \(newPhase)")
+                    }
+                    .onScrollGeometryChange(for: CGFloat.self) { geometry in
+                        // Extract content offset Y position
+                        geometry.contentOffset.y
+                    } action: { oldValue, newValue in
+                        // Update isScrolled binding: scrolled down if offset > 5 (minimal threshold)
+                        let isNowScrolled = newValue > 5
+                        let shouldExpand = newValue < 3 && isScrolled  // Reverse scroll to near top
+
+                        print("📊 [CustomerManagementView] offset: \(newValue), phase: \(scrollPhase), isScrolled: \(isScrolled), manual: \(manuallyCollapsed)")
+
+                        if shouldExpand {
+                            // iOS 26 native behavior: Scroll to top → expand tab bar and reset manual flag
+                            isScrolled = false
+                            manuallyCollapsed = false
+                            print("⬆️ [CustomerManagementView] Scrolled to top, expanding")
+                        } else if manuallyCollapsed {
+                            // Manual collapse is active - only reset on NEW DOWNWARD gesture
+                            if scrollPhase == .interacting && newValue > oldValue && isNowScrolled && !isScrolled {
+                                // User started DOWNWARD scroll gesture → reset manual collapse
+                                manuallyCollapsed = false
+                                isScrolled = true
+                                print("🔄 [CustomerManagementView] New downward gesture detected, resetting manual collapse")
+                            } else {
+                                // Upward scroll, momentum, or idle → ignore
+                                print("🚫 [CustomerManagementView] Ignoring scroll (phase: \(scrollPhase), direction: \(newValue > oldValue ? "down" : "up"))")
+                            }
+                        } else if isScrolled != isNowScrolled {
+                            isScrolled = isNowScrolled
+                            print("✅ [CustomerManagementView] isScrolled → \(isNowScrolled)")
+                        }
+                    }
                     .onAppear {
                         scrollProxy = proxy
                     }
@@ -492,11 +476,10 @@ struct CustomerManagementView: View {
     // MARK: - Letter Filter Positioning
 
     /// Calculates top padding to center letter filter in customer card display area
-    /// Range: from bottom of header to top of bottom navigation bar
+    /// Range: from top of view to top of bottom navigation bar
     private func letterFilterTopPadding(geometry: GeometryProxy) -> CGFloat {
-        // Where customer list display area starts (bottom of header)
-        // Native searchable is embedded in the List, not a separate section
-        let displayAreaStart = headerHeight
+        // Customer list starts from top (no header)
+        let displayAreaStart: CGFloat = 0
 
         // Bottom navigation bar height
         let bottomNavHeight = geometry.safeAreaInsets.bottom > 0 ? geometry.safeAreaInsets.bottom : 83
@@ -1079,14 +1062,13 @@ struct CustomerSkeletonRow: View {
 
 // MARK: - Preference Keys for Layout
 
-struct HeaderHeightKey: PreferenceKey {
-    static var defaultValue: CGFloat = 0
-    static func reduce(value: inout CGFloat, nextValue: () -> CGFloat) {
-        value = nextValue()
-    }
-}
+// Note: ScrollOffsetPreferenceKey is defined in VirtualScrollView.swift
 
 #Preview {
-    CustomerManagementView()
-        .modelContainer(for: Customer.self, inMemory: true)
+    CustomerManagementView(
+        selectedTab: .constant(.all),
+        isScrolled: .constant(false),
+        manuallyCollapsed: .constant(false)
+    )
+    .modelContainer(for: Customer.self, inMemory: true)
 }
