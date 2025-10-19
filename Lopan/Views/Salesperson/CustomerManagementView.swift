@@ -34,6 +34,9 @@ struct CustomerManagementView: View {
     // Manual collapse flag binding - prioritizes user tap over scroll events
     @Binding var manuallyCollapsed: Bool
 
+    // Search text binding from parent TabView
+    @Binding var searchText: String
+
     @Environment(\.appDependencies) private var appDependencies
     @Environment(\.modelContext) private var modelContext
     @Environment(\.scenePhase) private var scenePhase
@@ -42,7 +45,6 @@ struct CustomerManagementView: View {
         appDependencies.serviceFactory.repositoryFactory.customerRepository
     }
 
-    @State private var searchText = ""
     @State private var showingAddCustomer = false
     @State private var showingDeleteAlert = false
     @State private var customerToDelete: Customer?
@@ -53,8 +55,6 @@ struct CustomerManagementView: View {
     @State private var customerToEdit: Customer?
     @State private var selectedCustomer: Customer?
     @State private var scrollProxy: ScrollViewProxy?
-    @State private var isSearchActive: Bool = false
-    @State private var searchDebounceTask: Task<Void, Never>?
 
     // Customer state
     @State private var customers: [Customer] = [] // All customers from repository
@@ -148,13 +148,9 @@ struct CustomerManagementView: View {
     var body: some View {
         let _ = perfLogger.debug("🎨 body render - Tab: \(selectedTab.rawValue), Total: \(customers.count), Displayed: \(displayedCustomers.count)")
 
-        GeometryReader { geometry in
-            ZStack(alignment: .trailing) {
-                // Customer list (with native searchable)
-                customersListView
-                    .background(LopanColors.backgroundPrimary)
-
-                // Alphabetical index (centered in customer card display area)
+        customersListView
+            .background(LopanColors.backgroundPrimary)
+            .overlay(alignment: .trailing) {
                 if showsAlphabeticalIndex {
                     AlphabeticalSectionIndexView(
                         availableLetters: availableLetters,
@@ -165,12 +161,10 @@ struct CustomerManagementView: View {
                         }
                     )
                     .padding(.trailing, 8)
-                    .padding(.top, letterFilterTopPadding(geometry: geometry))
                 }
             }
-        }
-        .navigationTitle("客户")
-        .navigationBarTitleDisplayMode(.inline)
+            .navigationTitle("客户")
+        .navigationBarTitleDisplayMode(.large)
         .toolbar {
             ToolbarItem(placement: .navigationBarLeading) {
                 Button {
@@ -211,14 +205,8 @@ struct CustomerManagementView: View {
             perfLogger.info("🔄 Filter tab switched: \(oldTab.rawValue) → \(newTab.rawValue)")
             displayedCustomers = filteredCustomers
         }
-        .onChange(of: searchText) { _, newValue in
-            // Debounce search to avoid excessive filtering
-            searchDebounceTask?.cancel()
-            searchDebounceTask = Task {
-                try? await Task.sleep(nanoseconds: 300_000_000) // 300ms debounce
-                guard !Task.isCancelled else { return }
-                displayedCustomers = filteredCustomers
-            }
+        .onChange(of: searchText) { _, _ in
+            displayedCustomers = filteredCustomers
         }
         .onChange(of: customers.count) { _, _ in
             displayedCustomers = filteredCustomers
@@ -271,37 +259,30 @@ struct CustomerManagementView: View {
             } else {
                 ScrollViewReader { proxy in
                     ScrollView {
-                        LazyVStack(spacing: 0, pinnedViews: [.sectionHeaders]) {
+                        LazyVStack(spacing: 0) {
                             ForEach(sectionedCustomers, id: \.letter) { section in
-                                Section {
-                                    ForEach(section.customers, id: \.id) { customer in
-                                        Button {
-                                            selectedCustomer = customer
-                                            updateLastViewed(customer)
-                                        } label: {
-                                            CustomerCardView(
-                                                customer: customer,
-                                                onCall: { callCustomer(customer) },
-                                                onMessage: { messageCustomer(customer) },
-                                                onEdit: { customerToEdit = customer },
-                                                onToggleFavorite: { toggleFavorite(customer) },
-                                                onDelete: { handleDeleteCustomer(customer) }
-                                            )
-                                        }
-                                        .buttonStyle(.plain)
-                                        .padding(.horizontal, 16)
-                                        .padding(.vertical, 4)
+                                // Invisible anchor for scroll navigation
+                                Color.clear
+                                    .frame(height: 0)
+                                    .id(section.letter)
+
+                                ForEach(section.customers, id: \.id) { customer in
+                                    Button {
+                                        selectedCustomer = customer
+                                        updateLastViewed(customer)
+                                    } label: {
+                                        CustomerCardView(
+                                            customer: customer,
+                                            onCall: { callCustomer(customer) },
+                                            onMessage: { messageCustomer(customer) },
+                                            onEdit: { customerToEdit = customer },
+                                            onToggleFavorite: { toggleFavorite(customer) },
+                                            onDelete: { handleDeleteCustomer(customer) }
+                                        )
                                     }
-                                } header: {
-                                    // Visible section header for alphabetical navigation
-                                    Text(section.letter)
-                                        .font(LopanTypography.titleSmall)
-                                        .foregroundColor(LopanColors.textSecondary)
-                                        .frame(maxWidth: .infinity, alignment: .leading)
-                                        .padding(.horizontal, 16)
-                                        .padding(.vertical, 8)
-                                        .background(LopanColors.backgroundPrimary.opacity(0.95))
-                                        .id(section.letter) // Anchor for scrollTo
+                                    .buttonStyle(.plain)
+                                    .padding(.horizontal, 16)
+                                    .padding(.vertical, 4)
                                 }
                             }
 
@@ -373,7 +354,6 @@ struct CustomerManagementView: View {
                 }
             }
         }
-        .searchable(text: $searchText, isPresented: $isSearchActive, prompt: "搜索客户姓名或地址")
         .alert("删除客户", isPresented: $showingDeleteAlert) {
             Button("删除", role: .destructive) {
                 if let customer = customerToDelete {
@@ -443,60 +423,32 @@ struct CustomerManagementView: View {
             Image(systemName: "person.2")
                 .font(.system(size: 48))
                 .foregroundColor(LopanColors.textSecondary)
-            
+
             VStack(spacing: LopanSpacing.sm) {
-                Text(searchText.isEmpty ? "暂无客户" : "未找到客户")
+                Text("暂无客户")
                     .font(LopanTypography.titleMedium)
                     .foregroundColor(LopanColors.textPrimary)
-                
-                Text(searchText.isEmpty ? "点击右上角 + 号添加第一个客户" : "尝试修改搜索条件")
+
+                Text("点击右上角 + 号添加第一个客户")
                     .font(LopanTypography.bodyMedium)
                     .foregroundColor(LopanColors.textSecondary)
                     .multilineTextAlignment(.center)
             }
-            
-            if searchText.isEmpty {
-                Button {
-                    showingAddCustomer = true
-                } label: {
-                    Text("添加客户")
-                        .font(LopanTypography.buttonMedium)
-                        .foregroundColor(LopanColors.textOnPrimary)
-                        .lopanPaddingHorizontal(LopanSpacing.xl)
-                        .lopanPaddingVertical(LopanSpacing.sm)
-                        .background(LopanColors.primary)
-                        .cornerRadius(LopanSpacing.sm)
-                }
+
+            Button {
+                showingAddCustomer = true
+            } label: {
+                Text("添加客户")
+                    .font(LopanTypography.buttonMedium)
+                    .foregroundColor(LopanColors.textOnPrimary)
+                    .lopanPaddingHorizontal(LopanSpacing.xl)
+                    .lopanPaddingVertical(LopanSpacing.sm)
+                    .background(LopanColors.primary)
+                    .cornerRadius(LopanSpacing.sm)
             }
         }
         .frame(maxWidth: .infinity)
         .lopanPaddingVertical(LopanSpacing.xxxxl)
-    }
-    
-    // MARK: - Letter Filter Positioning
-
-    /// Calculates top padding to center letter filter in customer card display area
-    /// Range: from top of view to top of bottom navigation bar
-    private func letterFilterTopPadding(geometry: GeometryProxy) -> CGFloat {
-        // Customer list starts from top (no header)
-        let displayAreaStart: CGFloat = 0
-
-        // Bottom navigation bar height
-        let bottomNavHeight = geometry.safeAreaInsets.bottom > 0 ? geometry.safeAreaInsets.bottom : 83
-
-        // Where customer list display area ends (top of bottom nav)
-        let displayAreaEnd = geometry.size.height - bottomNavHeight
-
-        // Height of the customer list display area
-        let displayAreaHeight = displayAreaEnd - displayAreaStart
-
-        // Letter filter actual height (26 letters with spacing)
-        let letterFilterHeight: CGFloat = 468
-
-        // Calculate padding to center the filter in display area
-        let centeringOffset = max(0, (displayAreaHeight - letterFilterHeight) / 2)
-
-        return displayAreaStart + centeringOffset
     }
 
     // MARK: - Data Operations
@@ -1068,7 +1020,8 @@ struct CustomerSkeletonRow: View {
     CustomerManagementView(
         selectedTab: .constant(.all),
         isScrolled: .constant(false),
-        manuallyCollapsed: .constant(false)
+        manuallyCollapsed: .constant(false),
+        searchText: .constant("")
     )
     .modelContainer(for: Customer.self, inMemory: true)
 }

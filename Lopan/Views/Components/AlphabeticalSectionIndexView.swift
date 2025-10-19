@@ -27,11 +27,6 @@ struct AlphabeticalSectionIndexView: View {
         }
         .padding(.vertical, LopanSpacing.xs)
         .padding(.horizontal, LopanSpacing.xxs)
-        .background {
-            RoundedRectangle(cornerRadius: LopanSpacing.lg)
-                .fill(.ultraThinMaterial)
-                .shadow(color: LopanColors.shadow.opacity(0.3), radius: 2, x: 0, y: 1)
-        }
         .accessibilityElement(children: .contain)
         .accessibilityLabel("字母索引")
     }

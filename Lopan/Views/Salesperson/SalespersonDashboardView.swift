@@ -20,6 +20,7 @@ struct SalespersonDashboardView: View {
     @State private var customerFilter: CustomerFilterTab = .all
     @State private var isCustomerScrolled: Bool = false
     @State private var manuallyCollapsed: Bool = false
+    @State private var searchText = ""
 
     // MARK: - Init
 
@@ -482,7 +483,8 @@ struct SalespersonDashboardView: View {
             CustomerManagementView(
                 selectedTab: $customerFilter,
                 isScrolled: $isCustomerScrolled,
-                manuallyCollapsed: $manuallyCollapsed
+                manuallyCollapsed: $manuallyCollapsed,
+                searchText: $searchText
             )
         case .productManagement:
             ProductManagementView()

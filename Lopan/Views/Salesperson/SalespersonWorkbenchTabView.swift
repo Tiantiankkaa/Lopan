@@ -14,7 +14,7 @@ private enum SalespersonTab: String, CaseIterable, Identifiable {
     case stockouts
     case returns
     case customers
-    case addCustomer
+    case search
 
     var id: String { rawValue }
 
@@ -28,8 +28,8 @@ private enum SalespersonTab: String, CaseIterable, Identifiable {
             return "salesperson_tab_returns".localizedKey
         case .customers:
             return "salesperson_tab_customers".localizedKey
-        case .addCustomer:
-            return "添加"
+        case .search:
+            return "搜索"
         }
     }
 
@@ -43,8 +43,8 @@ private enum SalespersonTab: String, CaseIterable, Identifiable {
             return "arrow.uturn.backward.circle"
         case .customers:
             return "person.2"
-        case .addCustomer:
-            return "plus"
+        case .search:
+            return "magnifyingglass"
         }
     }
 }
@@ -68,6 +68,9 @@ struct SalespersonWorkbenchTabView: View {
     // Manual collapse flag - prioritizes user tap over scroll events
     @State private var manuallyCollapsed: Bool = false
 
+    // Search state for Tab search role
+    @State private var searchText = ""
+
     // Environment
     @Environment(\.enhancedLiquidGlass) private var glassManager
     @Environment(\.colorScheme) private var colorScheme
@@ -90,14 +93,9 @@ struct SalespersonWorkbenchTabView: View {
                     print("🎯 [TabView] Tapped current Customer tab, collapsing filter bar (iOS 26 native behavior)")
                 }
 
-                // Intercept "Add Customer" tab
-                if newValue == .addCustomer {
-                    self.showingAddCustomer = true
-                    // Don't change selectedTab
-                } else {
-                    self.selectedTab = newValue
-                    self.storedTabValue = newValue.rawValue
-                }
+                // Normal tab selection (including search)
+                self.selectedTab = newValue
+                self.storedTabValue = newValue.rawValue
             }
         )
     }
@@ -137,29 +135,32 @@ struct SalespersonWorkbenchTabView: View {
                     CustomerManagementView(
                         selectedTab: $selectedCustomerFilter,
                         isScrolled: $isCustomerScrolled,
-                        manuallyCollapsed: $manuallyCollapsed
+                        manuallyCollapsed: $manuallyCollapsed,
+                        searchText: $searchText
                     )
                 }
             } label: {
                 Label(SalespersonTab.customers.titleKey, systemImage: SalespersonTab.customers.systemImage)
             }
 
-            // Tab 5: Add Customer (only visible on Customer tab)
-            if selectedTab == .customers {
-                Tab(value: SalespersonTab.addCustomer, role: .search) {
-                    Color.clear
+            // Tab 5: Search (only visible on Customer tab)
+            if selectedTab == .customers || selectedTab == .search {
+                Tab(value: SalespersonTab.search, role: .search) {
+                    tabContainer {
+                        CustomerManagementView(
+                            selectedTab: $selectedCustomerFilter,
+                            isScrolled: $isCustomerScrolled,
+                            manuallyCollapsed: $manuallyCollapsed,
+                            searchText: $searchText
+                        )
+                    }
                 } label: {
-                    Label(SalespersonTab.addCustomer.titleKey, systemImage: SalespersonTab.addCustomer.systemImage)
+                    Label(SalespersonTab.search.titleKey, systemImage: SalespersonTab.search.systemImage)
                 }
             }
         }
+        .searchable(text: $searchText, prompt: "搜索客户")
         .tabBarMinimizeBehavior(.onScrollDown) // iOS 26 Liquid Glass scroll behavior
-        .tabViewBottomAccessory {
-            // Show filter controls only when on Customer tab AND scrolled down
-            if selectedTab == .customers && isCustomerScrolled {
-                CustomerFilterAccessoryView(selectedFilter: $selectedCustomerFilter)
-            }
-        }
         .onTabBarTap { tappedIndex in
             // Map tab index to SalespersonTab enum
             // Index mapping: 0=overview, 1=stockouts, 2=returns, 3=customers, 4=addCustomer(conditional)
