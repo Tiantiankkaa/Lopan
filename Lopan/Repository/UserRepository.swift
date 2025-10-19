@@ -7,6 +7,7 @@
 
 import Foundation
 
+@MainActor
 public protocol UserRepository {
     func fetchUsers() async throws -> [User]
     func fetchUser(byId id: String) async throws -> User?

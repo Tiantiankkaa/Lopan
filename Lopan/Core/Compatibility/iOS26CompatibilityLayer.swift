@@ -14,7 +14,7 @@ import os.log
 
 @MainActor
 public final class iOS26CompatibilityLayer: ObservableObject {
-    public static let shared = iOS26CompatibilityLayer()
+    nonisolated(unsafe) public static let shared = iOS26CompatibilityLayer()
 
     // MARK: - Version Detection
 
@@ -25,7 +25,7 @@ public final class iOS26CompatibilityLayer: ObservableObject {
 
     private let logger = Logger(subsystem: "com.lopan.compatibility", category: "iOS26Layer")
 
-    private init() {
+    nonisolated private init() {
         let version = ProcessInfo.processInfo.operatingSystemVersion
         currentMajorVersion = version.majorVersion
         isIOS26Available = version.majorVersion >= 26
@@ -137,7 +137,7 @@ public final class iOS26CompatibilityLayer: ObservableObject {
     public final class iOS26AnimationCoordinator: AnimationCoordinating {
         public func performFluidTransition(duration: TimeInterval) async {
             // iOS 26 enhanced animation system
-            await withAnimation(.smooth(duration: duration)) {
+            withAnimation(.smooth(duration: duration)) {
                 // Perform transition
             }
         }
@@ -172,7 +172,7 @@ public final class iOS26CompatibilityLayer: ObservableObject {
     public final class LegacyAnimationCoordinator: AnimationCoordinating {
         public func performFluidTransition(duration: TimeInterval) async {
             // Legacy animation system
-            await withAnimation(.easeInOut(duration: duration)) {
+            withAnimation(.easeInOut(duration: duration)) {
                 // Perform transition
             }
         }

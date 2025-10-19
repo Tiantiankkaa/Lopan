@@ -151,7 +151,6 @@ struct ShimmerSkeletonList: View {
 #Preview("Single Skeleton Card") {
     ShimmerSkeletonCard()
         .padding()
-        .previewDisplayName("Shimmer Skeleton Card")
 }
 
 #Preview("Skeleton List") {
@@ -159,7 +158,6 @@ struct ShimmerSkeletonList: View {
         ShimmerSkeletonList(count: 5)
             .padding(.vertical)
     }
-    .previewDisplayName("Shimmer Skeleton List")
 }
 
 #Preview("Dark Mode") {
@@ -168,5 +166,4 @@ struct ShimmerSkeletonList: View {
             .padding(.vertical)
     }
     .preferredColorScheme(.dark)
-    .previewDisplayName("Dark Mode")
 }

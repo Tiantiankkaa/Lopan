@@ -14,7 +14,7 @@ import os.log
 
 @MainActor
 public final class FeatureFlagManager: ObservableObject {
-    public static let shared = FeatureFlagManager()
+    nonisolated(unsafe) public static let shared = FeatureFlagManager()
 
     private let logger = Logger(subsystem: "com.lopan.featureflags", category: "FeatureManagement")
     private let userDefaults = UserDefaults.standard
@@ -202,9 +202,11 @@ public final class FeatureFlagManager: ObservableObject {
         }
     }
 
-    private init() {
-        loadFeatureStates()
-        logInitialState()
+    nonisolated private init() {
+        Task { @MainActor in
+            loadFeatureStates()
+            logInitialState()
+        }
     }
 
     // MARK: - Feature Control
@@ -304,7 +306,7 @@ public final class FeatureFlagManager: ObservableObject {
     // MARK: - Feature Health Monitoring
 
     public func recordFeatureUsage(_ feature: Feature, performance: TimeInterval, success: Bool) {
-        guard var metrics = featureMetrics[feature] else { return }
+        guard let metrics = featureMetrics[feature] else { return }
 
         let newUsageCount = metrics.usageCount + 1
         let newAveragePerformance = (metrics.averagePerformance * Double(metrics.usageCount) + performance) / Double(newUsageCount)
@@ -534,17 +536,17 @@ public extension FeatureFlagManager {
         let startTime = CFAbsoluteTimeGetCurrent()
         var success = true
 
+        defer {
+            let duration = CFAbsoluteTimeGetCurrent() - startTime
+            recordFeatureUsage(feature, performance: duration, success: success)
+        }
+
         do {
             let result = try await operation()
             return result
         } catch {
             success = false
             throw error
-        }
-
-        defer {
-            let duration = CFAbsoluteTimeGetCurrent() - startTime
-            recordFeatureUsage(feature, performance: duration, success: success)
         }
     }
 }

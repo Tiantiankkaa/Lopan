@@ -310,23 +310,17 @@ public class CustomerOutOfStockService: ObservableObject {
             }
         }
         
-        do {
-            // NEW: Use multi-layer cache with stale-while-revalidate pattern
-            logger.info("🚀 Using multi-layer cache for data fetch")
+        // NEW: Use multi-layer cache with stale-while-revalidate pattern
+        logger.info("🚀 Using multi-layer cache for data fetch")
 
-            // Define fresh fetch closure that returns items and captures pagination metadata
-            var paginationMetadata: (totalCount: Int, hasMoreData: Bool)?
-
-            let cacheResult = await cacheService.getCachedRecords(criteria) { [self] in
+        // Define fresh fetch closure that returns items
+        let cacheResult = await cacheService.getCachedRecords(criteria) { [self] in
                 // Fresh fetch from repository
                 let result = try await self.customerOutOfStockRepository.fetchOutOfStockRecords(
                     criteria: criteria,
                     page: criteria.page,
                     pageSize: criteria.pageSize
                 )
-
-                // Capture pagination metadata for later use
-                paginationMetadata = (result.totalCount, result.hasMoreData)
 
                 self.logger.safeInfo("Fresh fetch completed", [
                     "itemCount": String(result.items.count),
@@ -346,9 +340,9 @@ public class CustomerOutOfStockService: ObservableObject {
                     "age": String(Int(metadata.age))
                 ])
 
-                // Use captured pagination metadata from fresh fetch
-                let totalCount = paginationMetadata?.totalCount ?? items.count
-                let hasMore = paginationMetadata?.hasMoreData ?? (items.count >= criteria.pageSize)
+                // Infer pagination metadata from returned items
+                let totalCount = items.count
+                let hasMore = items.count >= criteria.pageSize
 
                 let cachedPage = CachedOutOfStockPage(
                     items: items.map { CustomerOutOfStockDTO(from: $0) },
@@ -408,13 +402,6 @@ public class CustomerOutOfStockService: ObservableObject {
                     }
                 }
             }
-
-        } catch {
-            await MainActor.run {
-                self.error = error
-                logger.safeError("Error loading page", error: error)
-            }
-        }
     }
     
     @MainActor
@@ -523,8 +510,6 @@ public class CustomerOutOfStockService: ObservableObject {
             if newItems.isEmpty && page.totalCount == 0 {
                 logger.info("Empty result set loaded")
             } else if !newItems.isEmpty {
-                // Log first item's date for debugging
-                let firstItemDate = Calendar.current.startOfDay(for: newItems[0].requestDate)
                 logger.info("Validated data loaded")
             }
         }
@@ -1575,8 +1560,8 @@ extension NewAuditingService {
             operatorUserId: operatorUserId,
             operatorUserName: operatorUserName,
             beforeData: [
-                "quantity": beforeValues.quantity,
-                "status": beforeValues.status,
+                "quantity": beforeValues.quantity as Any,
+                "status": beforeValues.status as Any,
                 "notes": beforeValues.notes ?? ""
             ],
             afterData: [

@@ -331,23 +331,28 @@ public final class LopanPerformanceUtils {
             task: @escaping () async throws -> T
         ) async throws -> T {
             return try await withCheckedThrowingContinuation { continuation in
-                backgroundTaskID = UIApplication.shared.beginBackgroundTask(withName: name) {
-                    self.endBackgroundTask()
-                }
-
-                Task {
-                    do {
-                        let result = try await task()
-                        continuation.resume(returning: result)
-                    } catch {
-                        continuation.resume(throwing: error)
+                Task { @MainActor in
+                    backgroundTaskID = UIApplication.shared.beginBackgroundTask(withName: name) {
+                        Task {
+                            await self.endBackgroundTask()
+                        }
                     }
 
-                    self.endBackgroundTask()
+                    Task {
+                        do {
+                            let result = try await task()
+                            continuation.resume(returning: result)
+                        } catch {
+                            continuation.resume(throwing: error)
+                        }
+
+                        await self.endBackgroundTask()
+                    }
                 }
             }
         }
 
+        @MainActor
         private func endBackgroundTask() {
             if backgroundTaskID != .invalid {
                 UIApplication.shared.endBackgroundTask(backgroundTaskID)

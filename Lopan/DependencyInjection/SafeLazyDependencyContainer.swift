@@ -168,8 +168,8 @@ public final class SafeLazyDependencyContainer: ObservableObject {
         maxRetries: Int = 3,
         factory: @escaping () throws -> T
     ) async throws -> T {
-        var lastError: Error?
-        
+        var _lastError: Error?
+
         for attempt in 0..<maxRetries {
             do {
                 return try safeInitialize(
@@ -179,7 +179,7 @@ public final class SafeLazyDependencyContainer: ObservableObject {
                     factory: factory
                 )
             } catch {
-                lastError = error
+                _lastError = error
                 
                 // Don't retry circular dependency errors
                 if case .circularDependency = error as? DependencyError {

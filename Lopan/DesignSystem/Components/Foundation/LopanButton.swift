@@ -66,7 +66,7 @@ struct LopanButton: View {
             components.append("不可用")
         }
 
-        if let icon = icon {
+        if icon != nil {
             components.append("包含图标")
         }
 

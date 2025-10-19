@@ -14,7 +14,7 @@ import os.log
 
 @MainActor
 public final class PerformanceOptimizationManager: ObservableObject {
-    public static let shared = PerformanceOptimizationManager()
+    nonisolated(unsafe) public static let shared = PerformanceOptimizationManager()
 
     private let compatibilityLayer = iOS26CompatibilityLayer.shared
     private let featureFlags = FeatureFlagManager.shared
@@ -151,6 +151,7 @@ public final class PerformanceOptimizationManager: ObservableObject {
         public let batteryLevel: Float
         public let thermalState: ProcessInfo.ThermalState
 
+        @MainActor
         public init() {
             self.cpuUsage = ProcessInfo.processInfo.thermalState == .critical ? 90.0 : 45.0 // Simplified
             self.frameRate = 60.0 // Would be measured from display link
@@ -163,11 +164,13 @@ public final class PerformanceOptimizationManager: ObservableObject {
     private var performanceMonitorTimer: Timer?
     private let cacheManager = PerformanceCacheManager()
 
-    private init() {
-        setupOptimizationLevel()
-        setupPerformanceMonitoring()
-        setupLowPowerModeObserver()
-        logger.info("⚡ Performance Optimization Manager initialized")
+    nonisolated private init() {
+        Task { @MainActor in
+            setupOptimizationLevel()
+            setupPerformanceMonitoring()
+            setupLowPowerModeObserver()
+            logger.info("⚡ Performance Optimization Manager initialized")
+        }
     }
 
     private func setupOptimizationLevel() {
@@ -209,7 +212,9 @@ public final class PerformanceOptimizationManager: ObservableObject {
             object: nil,
             queue: .main
         ) { [weak self] _ in
-            self?.handlePowerModeChange()
+            Task { @MainActor in
+                self?.handlePowerModeChange()
+            }
         }
     }
 
@@ -496,6 +501,7 @@ public extension EnvironmentValues {
 
 public extension View {
     /// Optimizes view performance based on current optimization level
+    @MainActor
     func performanceOptimized() -> some View {
         let manager = PerformanceOptimizationManager.shared
 
@@ -513,6 +519,7 @@ public extension View {
     }
 
     /// Caches view data for performance
+    @MainActor
     func performanceCached<T: Codable>(
         data: T,
         key: String
@@ -523,6 +530,7 @@ public extension View {
     }
 
     /// Memory-aware rendering
+    @MainActor
     func memoryAware() -> some View {
         let manager = PerformanceOptimizationManager.shared
 

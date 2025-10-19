@@ -290,6 +290,8 @@ public final class LopanMicroInteractions {
             hapticEngine.light()
         case .rigid:
             hapticEngine.heavy()
+        @unknown default:
+            hapticEngine.medium() // Fallback for future cases
         }
 
         // Optional visual feedback could be added here

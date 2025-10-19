@@ -366,7 +366,7 @@ public final class MemoryOptimizationValidator: ObservableObject {
         let serviceInitTimes = await measureServiceInitializationTimes(deps)
         
         // Get cache hit rates
-        let cacheStats = deps.getCacheStatistics()
+        let _ = deps.getCacheStatistics()
         let cacheHitRates = ["services": 0.85, "repositories": 0.90] // Simulated values
         
         // Get predictive analytics

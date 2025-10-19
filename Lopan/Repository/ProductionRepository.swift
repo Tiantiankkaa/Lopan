@@ -7,6 +7,7 @@
 
 import Foundation
 
+@MainActor
 public protocol ProductionRepository {
     // ProductionStyle operations
     func fetchProductionStyles() async throws -> [ProductionStyle]

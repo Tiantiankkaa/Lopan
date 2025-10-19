@@ -8,6 +8,7 @@
 import Foundation
 import SwiftData
 
+@MainActor
 public protocol ProductRepository {
     func fetchProducts() async throws -> [Product]
     func fetchProduct(by id: String) async throws -> Product?

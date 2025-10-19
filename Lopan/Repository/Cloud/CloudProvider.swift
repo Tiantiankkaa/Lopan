@@ -23,35 +23,38 @@ final class HTTPCloudProvider: CloudProvider, Sendable {
     private let baseURL: String
     private let authenticationService: AuthenticationService?
 
-    // PHASE 2: Lazy connection pooling - only create session when first network call is made
-    private lazy var session: URLSession = {
-        print("🔄 CloudProvider: Initializing URLSession lazily...")
+    // URLSession with connection pooling configuration
+    private let session: URLSession
+
+    // Decoders/encoders for JSON serialization
+    private let decoder: JSONDecoder
+    private let encoder: JSONEncoder
+
+    init(baseURL: String, authenticationService: AuthenticationService? = nil) {
+        self.baseURL = baseURL
+        self.authenticationService = authenticationService
+
+        // Initialize URLSession with configuration
+        print("🔄 CloudProvider: Initializing URLSession with connection pooling...")
         let config = URLSessionConfiguration.default
         config.timeoutIntervalForRequest = 30
         config.timeoutIntervalForResource = 60
         config.waitsForConnectivity = true
         config.httpMaximumConnectionsPerHost = 5 // Connection pool: max 5 concurrent
         config.requestCachePolicy = .returnCacheDataElseLoad // Use cache when available
-        return URLSession(configuration: config)
-    }()
+        self.session = URLSession(configuration: config)
 
-    // Decoders/encoders are lightweight, but still lazy for consistency
-    private lazy var decoder: JSONDecoder = {
+        // Initialize decoder
         let decoder = JSONDecoder()
         decoder.dateDecodingStrategy = .iso8601
-        return decoder
-    }()
+        self.decoder = decoder
 
-    private lazy var encoder: JSONEncoder = {
+        // Initialize encoder
         let encoder = JSONEncoder()
         encoder.dateEncodingStrategy = .iso8601
-        return encoder
-    }()
+        self.encoder = encoder
 
-    init(baseURL: String, authenticationService: AuthenticationService? = nil) {
-        self.baseURL = baseURL
-        self.authenticationService = authenticationService
-        print("🎯 CloudProvider: Initialized with lazy connection pooling")
+        print("🎯 CloudProvider: Initialized with connection pooling")
     }
     
     // MARK: - Private Helper Methods
@@ -61,17 +64,21 @@ final class HTTPCloudProvider: CloudProvider, Sendable {
         request.httpMethod = method
         request.addValue("application/json", forHTTPHeaderField: "Content-Type")
         request.addValue("application/json", forHTTPHeaderField: "Accept")
-        
+
         // Add authentication headers if available
         if let authService = authenticationService {
-            await MainActor.run {
-                if let currentUser = authService.currentUser {
-                    request.addValue("Bearer \(currentUser.id)", forHTTPHeaderField: "Authorization")
-                    request.addValue(currentUser.id, forHTTPHeaderField: "X-User-ID")
-                }
+            // Get user ID from MainActor context
+            let userId = await MainActor.run {
+                authService.currentUser?.id
+            }
+
+            // Add headers in current context (thread-safe)
+            if let userId = userId {
+                request.addValue("Bearer \(userId)", forHTTPHeaderField: "Authorization")
+                request.addValue(userId, forHTTPHeaderField: "X-User-ID")
             }
         }
-        
+
         return request
     }
     
@@ -205,7 +212,7 @@ final class HTTPCloudProvider: CloudProvider, Sendable {
             
             let cloudResponse = try decoder.decode(CloudResponse<EmptyResponse>.self, from: data)
             return cloudResponse
-        } catch let error as DecodingError {
+        } catch _ as DecodingError {
             // If decoding fails for DELETE, assume success
             return CloudResponse<EmptyResponse>(
                 data: EmptyResponse(),

@@ -11,8 +11,7 @@ import SwiftData
 // MARK: - Environment Keys
 
 private struct AppDependenciesKey: EnvironmentKey {
-    @MainActor
-    static let defaultValue: HasAppDependencies = {
+    nonisolated(unsafe) static let defaultValue: HasAppDependencies = {
         // ⚠️ WARNING: This default value should NOT be used in production
         // It creates a separate, empty ModelContainer that won't share data with the main app
         // The proper way is to inject dependencies through .withAppDependencies() modifier
@@ -22,46 +21,45 @@ private struct AppDependenciesKey: EnvironmentKey {
         print("   → This means the view was not properly initialized with app dependencies")
         print("   → Data will be empty. Ensure .withAppDependencies() is called in view hierarchy")
 
-        let modelContainer = try! ModelContainer(
-            for: User.self,
-                 Customer.self,
-                 Product.self,
-                 CustomerOutOfStock.self,
-                 PackagingRecord.self,
-                 AuditLog.self,
-                 WorkshopMachine.self,
-                 ColorCard.self,
-                 ProductionBatch.self,
-            configurations: ModelConfiguration(isStoredInMemoryOnly: true)
-        )
+        return MainActor.assumeIsolated {
+            let modelContainer = try! ModelContainer(
+                for: User.self,
+                     Customer.self,
+                     Product.self,
+                     CustomerOutOfStock.self,
+                     PackagingRecord.self,
+                     AuditLog.self,
+                     WorkshopMachine.self,
+                     ColorCard.self,
+                     ProductionBatch.self,
+                configurations: ModelConfiguration(isStoredInMemoryOnly: true)
+            )
 
-        // Use LazyAppDependencies for better performance
-        return LazyAppDependencies.create(
-            for: .development,
-            modelContext: modelContainer.mainContext
-        )
+            // Use LazyAppDependencies for better performance
+            return LazyAppDependencies.create(
+                for: .development,
+                modelContext: modelContainer.mainContext
+            )
+        }
     }()
 }
 
 private struct CustomerOutOfStockDependenciesKey: EnvironmentKey {
-    @MainActor
-    static let defaultValue = CustomerOutOfStockDependencies(
-        appDependencies: AppDependenciesKey.defaultValue
-    )
+    nonisolated(unsafe) static let defaultValue = MainActor.assumeIsolated {
+        CustomerOutOfStockDependencies(appDependencies: AppDependenciesKey.defaultValue)
+    }
 }
 
 private struct ProductionDependenciesKey: EnvironmentKey {
-    @MainActor
-    static let defaultValue = ProductionDependencies(
-        appDependencies: AppDependenciesKey.defaultValue
-    )
+    nonisolated(unsafe) static let defaultValue = MainActor.assumeIsolated {
+        ProductionDependencies(appDependencies: AppDependenciesKey.defaultValue)
+    }
 }
 
 private struct UserManagementDependenciesKey: EnvironmentKey {
-    @MainActor
-    static let defaultValue = UserManagementDependencies(
-        appDependencies: AppDependenciesKey.defaultValue
-    )
+    nonisolated(unsafe) static let defaultValue = MainActor.assumeIsolated {
+        UserManagementDependencies(appDependencies: AppDependenciesKey.defaultValue)
+    }
 }
 
 // MARK: - Environment Values Extensions

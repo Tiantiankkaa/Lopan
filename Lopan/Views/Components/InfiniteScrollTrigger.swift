@@ -143,7 +143,6 @@ extension View {
             onPrefetch: {}
         )
     }
-    .previewDisplayName("Loading More")
 }
 
 #Preview("All Loaded") {
@@ -165,5 +164,4 @@ extension View {
             onPrefetch: {}
         )
     }
-    .previewDisplayName("All Loaded")
 }

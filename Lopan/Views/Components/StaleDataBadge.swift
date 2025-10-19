@@ -145,7 +145,6 @@ extension View {
         StaleDataBadge.refreshing(from: .prefetch)
     }
     .padding()
-    .previewDisplayName("Refreshing States")
 }
 
 #Preview("Cached States") {
@@ -156,7 +155,6 @@ extension View {
         StaleDataBadge.cached(from: .prefetch)
     }
     .padding()
-    .previewDisplayName("Cached States")
 }
 
 #Preview("On Card") {
@@ -180,7 +178,6 @@ extension View {
         isRefreshing: true
     )
     .padding()
-    .previewDisplayName("On Card")
 }
 
 #Preview("Dark Mode") {
@@ -190,5 +187,4 @@ extension View {
     }
     .padding()
     .preferredColorScheme(.dark)
-    .previewDisplayName("Dark Mode")
 }

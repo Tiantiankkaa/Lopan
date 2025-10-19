@@ -84,17 +84,17 @@ struct ViewSalesView: View {
             toastManager.showSuccess(NSLocalizedString("view_sales_refresh_success", comment: ""))
         }
         .withToastFeedback(toastManager: toastManager)
-        .onChange(of: viewModel.showSuccessToast) { showToast in
+        .onChange(of: viewModel.showSuccessToast) { _, showToast in
             if showToast, let message = viewModel.successMessage {
                 toastManager.showSuccess(message)
             }
         }
-        .onChange(of: viewModel.errorMessage) { errorMessage in
+        .onChange(of: viewModel.errorMessage) { _, errorMessage in
             if let error = errorMessage {
                 toastManager.showError(error)
             }
         }
-        .onChange(of: viewModel.selectedDate) { _ in
+        .onChange(of: viewModel.selectedDate) { _, _ in
             viewModel.loadSalesData()
         }
         .alert("Delete Product Sales", isPresented: $showDeleteConfirmation, presenting: productToDelete) { productId in

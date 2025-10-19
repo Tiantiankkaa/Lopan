@@ -93,7 +93,7 @@ public struct DeliveryStatistics {
     let completedDeliveryCount: Int
 }
 
-public protocol CustomerOutOfStockRepository {
+public protocol CustomerOutOfStockRepository: Sendable {
     // Legacy methods (maintained for backward compatibility)
     func fetchOutOfStockRecords() async throws -> [CustomerOutOfStock]
     func fetchOutOfStockRecord(by id: String) async throws -> CustomerOutOfStock?

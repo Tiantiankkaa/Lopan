@@ -435,11 +435,7 @@ struct LopanSearchBar: View {
             try audioSession.setCategory(.record, mode: .measurement, options: .duckOthers)
             try audioSession.setActive(true, options: .notifyOthersOnDeactivation)
             
-            // Safe access to input node with additional error handling
-            guard audioEngine.inputNode != nil else {
-                throw NSError(domain: "AudioEngine", code: 1, userInfo: [NSLocalizedDescriptionKey: "Audio input not available"])
-            }
-            
+            // Access input node directly (inputNode is non-optional in AVAudioEngine)
             let inputNode = audioEngine.inputNode
             let recordingFormat = inputNode.outputFormat(forBus: 0)
             

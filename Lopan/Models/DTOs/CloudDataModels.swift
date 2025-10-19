@@ -235,7 +235,7 @@ protocol CloudMappable {
 
 extension CustomerOutOfStockDTO {
     func toDomain() throws -> CustomerOutOfStock {
-        guard let status = OutOfStockStatus(rawValue: status) else {
+        guard let _ = OutOfStockStatus(rawValue: status) else {
             throw RepositoryError.invalidInput("Invalid out of stock status: \(status)")
         }
         
@@ -253,7 +253,7 @@ extension CustomerOutOfStockDTO {
         )
         
         let productSize: ProductSize?
-        if let sizeId = productSizeId, let sizeName = productSizeName {
+        if let _ = productSizeId, let sizeName = productSizeName {
             productSize = ProductSize(size: sizeName, product: product)
         } else {
             productSize = nil

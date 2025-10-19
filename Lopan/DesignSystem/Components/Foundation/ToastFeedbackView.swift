@@ -240,8 +240,9 @@ extension View {
 
 // MARK: - Environment Key
 
+@MainActor
 private struct ToastManagerKey: EnvironmentKey {
-    @MainActor static let defaultValue = EnhancedToastManager()
+    static let defaultValue = EnhancedToastManager()
 }
 
 extension EnvironmentValues {

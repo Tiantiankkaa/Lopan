@@ -309,59 +309,47 @@ class DataExportService: ObservableObject {
         }
     }
     
-    private func generateCSV<T: ExportableData>(
+    nonisolated private func generateCSV<T: ExportableData>(
         _ data: [T],
         configuration: SimpleExportConfig
     ) throws -> Data {
         var csvContent = ""
-        
+
         // Add headers if requested
         if configuration.includeHeaders {
             let headers = T.csvHeaders()
             csvContent += headers.joined(separator: ",") + "\n"
         }
-        
+
         // Add data rows
-        let totalRows = data.count
-        for (index, item) in data.enumerated() {
+        for item in data {
             let row = item.toCSVRow()
             let escapedRow = row.map { escapeCSVField($0) }
             csvContent += escapedRow.joined(separator: ",") + "\n"
-            
-            // Update progress
-            let progress = Double(index + 1) / Double(totalRows)
-            DispatchQueue.main.async {
-                self.exportProgress = progress * 0.8 // 80% for processing
-            }
         }
-        
+
         guard let data = csvContent.data(using: .utf8) else {
             throw SimpleExportError.dataConversionFailed
         }
-        
+
         return data
     }
     
-    private func generateJSON<T: ExportableData>(
+    nonisolated private func generateJSON<T: ExportableData>(
         _ data: [T],
         configuration: SimpleExportConfig
     ) throws -> Data {
-        let jsonObjects = data.enumerated().map { index, item in
-            // Update progress
-            let progress = Double(index + 1) / Double(data.count)
-            DispatchQueue.main.async {
-                self.exportProgress = progress * 0.8
-            }
+        let jsonObjects = data.map { item in
             return item.toJSONObject()
         }
-        
+
         let jsonData: [String: Any] = [
             "export_date": ISO8601DateFormatter().string(from: Date()),
             "total_records": data.count,
             "format": configuration.format.rawValue,
             "data": jsonObjects
         ]
-        
+
         do {
             return try JSONSerialization.data(withJSONObject: jsonData, options: .prettyPrinted)
         } catch {
@@ -369,7 +357,7 @@ class DataExportService: ObservableObject {
         }
     }
     
-    private func generateExcel<T: ExportableData>(
+    nonisolated private func generateExcel<T: ExportableData>(
         _ data: [T],
         configuration: SimpleExportConfig
     ) throws -> Data {
@@ -396,7 +384,7 @@ class DataExportService: ObservableObject {
         return "export_\(timestamp).\(format.fileExtension)"
     }
     
-    private func escapeCSVField(_ field: String) -> String {
+    nonisolated private func escapeCSVField(_ field: String) -> String {
         if field.contains(",") || field.contains("\"") || field.contains("\n") {
             let escapedQuotes = field.replacingOccurrences(of: "\"", with: "\"\"")
             return "\"\(escapedQuotes)\""

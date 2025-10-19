@@ -10,6 +10,25 @@ import SwiftUI
 import Foundation
 import os.log
 
+// MARK: - Screen Helper (iOS 26 Compatible)
+
+@MainActor
+private func getMainScreen() -> UIScreen {
+    if #available(iOS 26.0, *) {
+        // iOS 26: Get screen from active window scene
+        if let windowScene = UIApplication.shared.connectedScenes
+            .first(where: { $0.activationState == .foregroundActive }) as? UIWindowScene {
+            return windowScene.screen
+        }
+        // Fallback to any window scene
+        if let windowScene = UIApplication.shared.connectedScenes.first as? UIWindowScene {
+            return windowScene.screen
+        }
+    }
+    // Pre-iOS 26 or fallback
+    return UIScreen.main
+}
+
 // MARK: - Adaptive Fluid Layout Manager
 
 @MainActor
@@ -166,7 +185,9 @@ public final class AdaptiveFluidLayoutManager: ObservableObject {
             object: nil,
             queue: .main
         ) { [weak self] _ in
-            self?.handleContentSizeCategoryChange()
+            Task { @MainActor in
+                self?.handleContentSizeCategoryChange()
+            }
         }
     }
 
@@ -327,7 +348,8 @@ public struct AdaptiveFluidGrid<Content: View>: View {
     }
 
     private func updateLayoutManager(geometry: CGSize?) {
-        let size = geometry ?? CGSize(width: UIScreen.main.bounds.width, height: UIScreen.main.bounds.height)
+        let screen = getMainScreen()
+        let size = geometry ?? CGSize(width: screen.bounds.width, height: screen.bounds.height)
         layoutManager.updateSizeClass(
             horizontalSizeClass ?? .regular,
             verticalSizeClass ?? .regular,
@@ -338,7 +360,8 @@ public struct AdaptiveFluidGrid<Content: View>: View {
     private func updateLayoutManagerAsync(geometry: CGSize?) {
         guard cachedSize != geometry else { return }
 
-        let size = geometry ?? CGSize(width: UIScreen.main.bounds.width, height: UIScreen.main.bounds.height)
+        let screen = getMainScreen()
+        let size = geometry ?? CGSize(width: screen.bounds.width, height: screen.bounds.height)
         cachedSize = size
 
         layoutManager.updateSizeClass(
@@ -569,10 +592,11 @@ public extension AdaptiveFluidLayoutManager {
         public let processorCount: Int
         public let screenScale: CGFloat
 
+        @MainActor
         public init() {
             self.totalMemoryMB = Int(ProcessInfo.processInfo.physicalMemory / 1_000_000)
             self.processorCount = ProcessInfo.processInfo.processorCount
-            self.screenScale = UIScreen.main.scale
+            self.screenScale = getMainScreen().scale
         }
     }
 }

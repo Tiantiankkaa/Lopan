@@ -7,6 +7,7 @@
 
 import Foundation
 
+@MainActor
 public protocol AuditRepository {
     func fetchAuditLogs() async throws -> [AuditLog]
     func fetchAuditLog(by id: String) async throws -> AuditLog?

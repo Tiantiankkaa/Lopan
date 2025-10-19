@@ -97,7 +97,7 @@ final class CloudCustomerOutOfStockRepository: CustomerOutOfStockRepository, Sen
                 throw RepositoryError.connectionFailed(response.error ?? "Network request failed")
             }
 
-            let entities = try response.items.compactMap { dto in
+            let entities = response.items.compactMap { dto in
                 try? dto.toDomain()
             }
 
@@ -392,9 +392,10 @@ final class CloudCustomerOutOfStockRepository: CustomerOutOfStockRepository, Sen
             throw RepositoryError.saveFailed(response.error ?? "Create operation failed")
         }
 
-        // Notify observers of new record
+        // Notify observers of new record (pass ID instead of record for thread safety)
+        let recordId = record.id
         await MainActor.run {
-            NotificationCenter.default.post(name: .outOfStockAdded, object: record)
+            NotificationCenter.default.post(name: .outOfStockAdded, object: recordId)
         }
     }
 
@@ -421,9 +422,10 @@ final class CloudCustomerOutOfStockRepository: CustomerOutOfStockRepository, Sen
             throw RepositoryError.saveFailed(response.error ?? "Update operation failed")
         }
 
-        // Notify observers of updated record
+        // Notify observers of updated record (pass ID instead of record for thread safety)
+        let recordId = record.id
         await MainActor.run {
-            NotificationCenter.default.post(name: .outOfStockUpdated, object: record)
+            NotificationCenter.default.post(name: .outOfStockUpdated, object: recordId)
         }
     }
     
@@ -435,9 +437,10 @@ final class CloudCustomerOutOfStockRepository: CustomerOutOfStockRepository, Sen
             throw RepositoryError.deleteFailed(response.error ?? "Delete operation failed")
         }
 
-        // Notify observers of deletion
+        // Notify observers of deletion (pass ID instead of record for thread safety)
+        let recordId = record.id
         await MainActor.run {
-            NotificationCenter.default.post(name: .outOfStockUpdated, object: record)
+            NotificationCenter.default.post(name: .outOfStockUpdated, object: recordId)
         }
     }
     

@@ -359,13 +359,12 @@ public struct LazyRenderingModifier: ViewModifier {
                 }
             )
             .onPreferenceChange(ViewportPreferenceKey.self) { frame in
-                let screenBounds = UIScreen.main.bounds
-                let expandedBounds = screenBounds.insetBy(
-                    dx: -threshold,
-                    dy: -threshold
-                )
+                // iOS 26: Use frame-based viewport detection without UIScreen.main
+                // Assume viewport is visible if frame is within a reasonable range
+                // (frame.origin.y between -threshold and large positive value)
+                let isFrameVisible = frame.minY < 2000 && frame.maxY > -threshold
 
-                let newIsInViewport = expandedBounds.intersects(frame)
+                let newIsInViewport = isFrameVisible
 
                 if newIsInViewport != isInViewport {
                     isInViewport = newIsInViewport

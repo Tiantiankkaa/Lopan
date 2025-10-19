@@ -340,7 +340,6 @@ struct EnhancedOutOfStockCardView: View {
         )
     }
     .padding()
-    .previewDisplayName("Pending Cards")
 }
 
 #Preview("Completed Card") {
@@ -379,7 +378,6 @@ struct EnhancedOutOfStockCardView: View {
         onSwipeAction: { _ in }
     )
     .padding()
-    .previewDisplayName("Completed Card")
 }
 
 #Preview("Refunded Card") {
@@ -417,7 +415,6 @@ struct EnhancedOutOfStockCardView: View {
         onSwipeAction: { _ in }
     )
     .padding()
-    .previewDisplayName("Refunded Card")
 }
 
 #Preview("Dark Mode") {
@@ -455,5 +452,4 @@ struct EnhancedOutOfStockCardView: View {
     )
     .padding()
     .preferredColorScheme(.dark)
-    .previewDisplayName("Dark Mode")
 }

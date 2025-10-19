@@ -157,7 +157,6 @@ extension OutOfStockProgressBar {
         }
     }
     .padding()
-    .previewDisplayName("Different Progress Levels")
 }
 
 #Preview("Dark Mode") {
@@ -168,7 +167,6 @@ extension OutOfStockProgressBar {
     }
     .padding()
     .preferredColorScheme(.dark)
-    .previewDisplayName("Dark Mode")
 }
 
 #Preview("In Card Layout") {
@@ -208,5 +206,4 @@ extension OutOfStockProgressBar {
             .fill(Color(uiColor: .secondarySystemBackground))
     )
     .padding()
-    .previewDisplayName("In Card Layout")
 }

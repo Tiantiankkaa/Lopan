@@ -108,7 +108,7 @@ class AppModelContainer {
             if let config = self.container.configurations.first {
                 print("   Store URL: \(config.url.absoluteString)")
                 print("   Is stored in memory: \(config.isStoredInMemoryOnly)")
-                print("   CloudKit: \(config.cloudKitDatabase != nil ? "Enabled" : "Disabled")")
+                print("   CloudKit: \(config.cloudKitDatabase)")
             }
             print("   Models registered: Customer, Product, ProductSize, CustomerOutOfStock, User, AuditLog, EVAGranulation, DailySalesEntry, SalesLineItem")
             

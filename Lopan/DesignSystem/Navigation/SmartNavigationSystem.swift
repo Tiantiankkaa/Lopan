@@ -289,12 +289,12 @@ public final class SmartNavigationManager: ObservableObject {
             case .dissolve:
                 return .opacity
             case .adaptive(let from, let to):
-                return SmartNavigationManager.shared.calculateAdaptiveTransition(from: from, to: to)
+                return SmartNavigationManager.calculateAdaptiveTransition(from: from, to: to)
             }
         }
     }
 
-    nonisolated public func calculateAdaptiveTransition(from: CGPoint, to: CGPoint) -> AnyTransition {
+    nonisolated public static func calculateAdaptiveTransition(from: CGPoint, to: CGPoint) -> AnyTransition {
         let deltaX = to.x - from.x
         let deltaY = to.y - from.y
 
@@ -487,6 +487,7 @@ public struct SmartNavigationModifier: ViewModifier {
 
 // MARK: - Environment Integration
 
+@MainActor
 private struct SmartNavigationManagerKey: EnvironmentKey {
     static let defaultValue = SmartNavigationManager.shared
 }

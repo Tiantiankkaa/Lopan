@@ -361,8 +361,7 @@ struct PackagingReminderRow: View {
     
     private func formatDueDate(_ date: Date) -> String {
         let calendar = Calendar.current
-        let now = Date()
-        
+
         if calendar.isDateInToday(date) {
             return "今天"
         } else if calendar.isDateInTomorrow(date) {

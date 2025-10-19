@@ -14,7 +14,7 @@ import SwiftUI
 public final class LiquidGlassTheme: ObservableObject {
 
     // MARK: - Singleton Instance
-    public static let shared = LiquidGlassTheme()
+    nonisolated(unsafe) public static let shared = LiquidGlassTheme()
 
     // MARK: - Theme Properties
     @Published public var isEnabled: Bool = true
@@ -22,7 +22,7 @@ public final class LiquidGlassTheme: ObservableObject {
     @Published public var refractionStrength: Double = 0.6
     @Published public var adaptiveMode: Bool = true
 
-    private init() {}
+    nonisolated private init() {}
 
     // MARK: - Glass Materials
 
@@ -166,7 +166,7 @@ public struct LiquidGlassColors {
 
 @available(iOS 26.0, *)
 private struct LiquidGlassThemeKey: EnvironmentKey {
-    nonisolated static let defaultValue = LiquidGlassTheme.shared
+    static let defaultValue = LiquidGlassTheme.shared
 }
 
 @available(iOS 26.0, *)
@@ -183,11 +183,13 @@ public extension EnvironmentValues {
 public extension View {
 
     /// Applies liquid glass theme to the environment
+    @MainActor
     func liquidGlassTheme(_ theme: LiquidGlassTheme = .shared) -> some View {
         environment(\.liquidGlassTheme, theme)
     }
 
     /// Applies liquid glass background effect
+    @MainActor
     func liquidGlassBackground() -> some View {
         background {
             LiquidGlassTheme.shared.liquidGlassBackground()
@@ -195,6 +197,7 @@ public extension View {
     }
 
     /// Applies interactive glass effect
+    @MainActor
     func interactiveGlass(isPressed: Bool = false) -> some View {
         background {
             LiquidGlassTheme.shared.interactiveGlass(isPressed: isPressed)
@@ -202,6 +205,7 @@ public extension View {
     }
 
     /// Applies glass depth shadow
+    @MainActor
     func glassDepthShadow(depth: CGFloat = 1.0) -> some View {
         background {
             LiquidGlassTheme.shared.glassDepthShadow(depth: depth)

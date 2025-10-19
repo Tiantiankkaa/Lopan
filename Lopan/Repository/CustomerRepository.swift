@@ -7,6 +7,7 @@
 
 import Foundation
 
+@MainActor
 public protocol CustomerRepository {
     func fetchCustomers() async throws -> [Customer]
     func fetchCustomer(by id: String) async throws -> Customer?

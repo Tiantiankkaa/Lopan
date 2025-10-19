@@ -52,7 +52,7 @@ struct SalesEntryView: View {
             viewModel.configure(dependencies: appDependencies)
         }
         .withToastFeedback(toastManager: toastManager)
-        .onChange(of: viewModel.showSuccessToast) { showToast in
+        .onChange(of: viewModel.showSuccessToast) { _, showToast in
             if showToast {
                 toastManager.showSuccess(NSLocalizedString("sales_entry_saved_success", comment: "Sales entry saved successfully"))
                 // Dismiss after showing toast
@@ -61,7 +61,7 @@ struct SalesEntryView: View {
                 }
             }
         }
-        .onChange(of: viewModel.errorMessage) { errorMessage in
+        .onChange(of: viewModel.errorMessage) { _, errorMessage in
             if let error = errorMessage {
                 toastManager.showError(error)
             }

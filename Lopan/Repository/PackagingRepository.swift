@@ -7,6 +7,7 @@
 
 import Foundation
 
+@MainActor
 public protocol PackagingRepository {
     // PackagingRecord operations
     func fetchPackagingRecords() async throws -> [PackagingRecord]
