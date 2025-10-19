@@ -9,7 +9,7 @@ import SwiftUI
 
 // MARK: - Tab Definition
 
-private enum SalespersonTab: String, CaseIterable, Identifiable {
+fileprivate enum SalespersonTab: String, CaseIterable, Identifiable {
     case overview
     case stockouts
     case returns
@@ -108,7 +108,7 @@ struct SalespersonWorkbenchTabView: View {
 
             // Tab 2: Out of Stock
             Tab(value: SalespersonTab.stockouts) {
-                tabContainer {
+                tabContainer(selectedTab: selectedTab, searchText: .constant("")) {
                     CustomerOutOfStockDashboard()
                 }
             } label: {
@@ -117,7 +117,7 @@ struct SalespersonWorkbenchTabView: View {
 
             // Tab 3: Returns
             Tab(value: SalespersonTab.returns) {
-                tabContainer {
+                tabContainer(selectedTab: selectedTab, searchText: .constant("")) {
                     DeliveryManagementView()
                 }
             } label: {
@@ -140,12 +140,12 @@ struct SalespersonWorkbenchTabView: View {
                 }
             }
         }
-        .searchable(text: $searchText, prompt: "搜索客户")
         .tabBarMinimizeBehavior(.onScrollDown) // iOS 26 Liquid Glass scroll behavior
         .onTabBarTap { tappedIndex in
             // Map tab index to SalespersonTab enum
-            // Index mapping: 0=overview, 1=stockouts, 2=returns, 3=customers, 4=addCustomer(conditional)
+            // Index mapping: 0=overview, 1=stockouts, 2=returns, 3=customers, 4=search(conditional)
 
+            // Feature: Double-tap Customers tab to scroll to top
             // Check if Customer tab (index 3) was tapped while already selected and scrolled
             if tappedIndex == 3 && selectedTab == .customers && isCustomerScrolled {
                 // Animate the state change to ensure smooth UI update
@@ -154,7 +154,7 @@ struct SalespersonWorkbenchTabView: View {
                     isCustomerScrolled = false
                 }
 
-                // Haptic feedback
+                // Haptic feedback for user confirmation
                 let impact = UIImpactFeedbackGenerator(style: .light)
                 impact.impactOccurred()
             }
@@ -224,7 +224,7 @@ extension SalespersonWorkbenchTabView {
     /// Using .id() to maintain stable identity across Tab switches
     @ViewBuilder
     private var sharedCustomerView: some View {
-        tabContainer {
+        tabContainer(selectedTab: selectedTab, searchText: $searchText) {
             CustomerManagementView(
                 selectedTab: $selectedCustomerFilter,
                 isScrolled: $isCustomerScrolled,
@@ -236,7 +236,11 @@ extension SalespersonWorkbenchTabView {
     }
 
     @ViewBuilder
-    private func tabContainer<Content: View>(@ViewBuilder content: () -> Content) -> some View {
+    private func tabContainer<Content: View>(
+        selectedTab: SalespersonTab,
+        searchText: Binding<String>,
+        @ViewBuilder content: () -> Content
+    ) -> some View {
         NavigationStack {
             content()
                 .toolbar {
@@ -249,6 +253,31 @@ extension SalespersonWorkbenchTabView {
                     }
                 }
         }
+        .conditionalSearchable(selectedTab: selectedTab, searchText: searchText)
+    }
+}
+
+// MARK: - Conditional Searchable Modifier
+
+/// ViewModifier that conditionally applies searchable based on selected tab
+fileprivate struct ConditionalSearchable: ViewModifier {
+    fileprivate let selectedTab: SalespersonTab
+    @Binding fileprivate var searchText: String
+
+    @ViewBuilder
+    fileprivate func body(content: Content) -> some View {
+        if selectedTab == .search {
+            content.searchable(text: $searchText)
+        } else {
+            content
+        }
+    }
+}
+
+extension View {
+    /// Conditionally applies searchable modifier based on selected tab
+    fileprivate func conditionalSearchable(selectedTab: SalespersonTab, searchText: Binding<String>) -> some View {
+        modifier(ConditionalSearchable(selectedTab: selectedTab, searchText: searchText))
     }
 }
 
