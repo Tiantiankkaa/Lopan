@@ -59,6 +59,8 @@ struct CustomerManagementView: View {
     // Customer state
     @State private var customers: [Customer] = [] // All customers from repository
     @State private var displayedCustomers: [Customer] = [] // Filtered subset for display
+    @State private var cachedFilteredCustomers: [Customer] = [] // Cache for filtered results
+    @State private var filterTask: Task<Void, Never>? // Debounce task for search
 
     // Scroll tracking for tab transformation
     @State private var scrollOffset: CGFloat = 0
@@ -82,7 +84,7 @@ struct CustomerManagementView: View {
     // MARK: - Computed Properties
 
     /// Filtered and sorted customers based on tab and search
-    var filteredCustomers: [Customer] {
+    private func computeFilteredCustomers() -> [Customer] {
         var result = customers
 
         // Apply tab filter
@@ -109,9 +111,13 @@ struct CustomerManagementView: View {
             }
         }
 
-        // Always sort A-Z (already pre-sorted from repository, but re-sort after filtering)
-        return result.sorted {
-            $0.pinyinName.uppercased() < $1.pinyinName.uppercased()
+        // Only sort if search filter was applied (breaks existing sort from repository)
+        if !searchText.isEmpty {
+            return result.sorted {
+                $0.pinyinName.uppercased() < $1.pinyinName.uppercased()
+            }
+        } else {
+            return result // Already sorted from repository
         }
     }
 
@@ -203,13 +209,27 @@ struct CustomerManagementView: View {
         }
         .onChange(of: selectedTab) { oldTab, newTab in
             perfLogger.info("🔄 Filter tab switched: \(oldTab.rawValue) → \(newTab.rawValue)")
-            displayedCustomers = filteredCustomers
+            cachedFilteredCustomers = computeFilteredCustomers()
+            displayedCustomers = cachedFilteredCustomers
         }
-        .onChange(of: searchText) { _, _ in
-            displayedCustomers = filteredCustomers
+        .onChange(of: searchText) { _, newValue in
+            // Cancel previous filter task
+            filterTask?.cancel()
+
+            // Debounce: wait 200ms before filtering
+            filterTask = Task {
+                try? await Task.sleep(nanoseconds: 200_000_000) // 200ms
+                guard !Task.isCancelled else { return }
+
+                await MainActor.run {
+                    cachedFilteredCustomers = computeFilteredCustomers()
+                    displayedCustomers = cachedFilteredCustomers
+                }
+            }
         }
         .onChange(of: customers.count) { _, _ in
-            displayedCustomers = filteredCustomers
+            cachedFilteredCustomers = computeFilteredCustomers()
+            displayedCustomers = cachedFilteredCustomers
         }
         .onChange(of: scenePhase) { oldPhase, newPhase in
             switch newPhase {
@@ -389,8 +409,8 @@ struct CustomerManagementView: View {
     /// Customer count display
     private var customerCountView: some View {
         Group {
-            if !filteredCustomers.isEmpty {
-                Text("\(filteredCustomers.count) 位客户")
+            if !displayedCustomers.isEmpty {
+                Text("\(displayedCustomers.count) 位客户")
                     .font(LopanTypography.caption)
                     .foregroundColor(LopanColors.textSecondary)
                     .lopanPaddingVertical(LopanSpacing.sm)
@@ -459,7 +479,8 @@ struct CustomerManagementView: View {
 
             await MainActor.run {
                 customers = fetchedCustomers
-                displayedCustomers = filteredCustomers
+                cachedFilteredCustomers = computeFilteredCustomers()
+                displayedCustomers = cachedFilteredCustomers
                 isLoadingCustomers = false
                 lastRefreshDate = Date()
 
