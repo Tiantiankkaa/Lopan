@@ -35,27 +35,18 @@ struct SalespersonDashboardView: View {
     var body: some View {
         NavigationStack(path: $navigationPath) {
             ScrollView {
-                VStack(alignment: .leading, spacing: 0) {
-                    // Large title header
-                    Text("Overview")
-                        .lopanDisplayLarge()
-                        .padding(.horizontal, LopanSpacing.screenPadding)
-                        .padding(.top, LopanSpacing.xxxs)
-                        .padding(.bottom, LopanSpacing.xxl)
-
-                    VStack(alignment: .leading, spacing: LopanSpacing.sectionSpacing) {
-                        if let errorMessage = viewModel.errorMessage {
-                            errorBanner(errorMessage)
-                        }
-
-                        todaysRemindersSection
-                        dailySalesSection
-                        activityTimelineSection
-                        bottomActionsSection
+                VStack(alignment: .leading, spacing: LopanSpacing.sectionSpacing) {
+                    if let errorMessage = viewModel.errorMessage {
+                        errorBanner(errorMessage)
                     }
-                    .padding(.horizontal, LopanSpacing.screenPadding)
-                    .padding(.bottom, LopanSpacing.sectionSpacing)
+
+                    todaysRemindersSection
+                    dailySalesSection
+                    activityTimelineSection
+                    bottomActionsSection
                 }
+                .padding(.horizontal, LopanSpacing.screenPadding)
+                .padding(.bottom, LopanSpacing.sectionSpacing)
             }
             .background(LopanColors.background.ignoresSafeArea())
             .refreshable {
@@ -122,7 +113,8 @@ struct SalespersonDashboardView: View {
                 print("🎯 [Dashboard] NavigationDestination triggered for: \(destination)")
                 return destinationView(for: destination)
             }
-            .navigationBarTitleDisplayMode(.inline)
+            .navigationTitle("Overview")
+            .navigationBarTitleDisplayMode(.large)
             .toolbar {
                 ToolbarItem(placement: .navigationBarTrailing) {
                     Button(action: { navigationService.showWorkbenchSelector() }) {

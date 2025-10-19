@@ -139,18 +139,6 @@ struct ProductManagementView: View {
                     ))
                     .zIndex(40)
             }
-
-            // Floating Action Button (FAB) - Lower Right
-            VStack {
-                Spacer()
-                HStack {
-                    Spacer()
-                    floatingActionButton
-                        .padding(.trailing, 20)
-                        .padding(.bottom, 34)
-                }
-            }
-            .zIndex(25)
         }
         .navigationTitle("Products")
         .navigationBarTitleDisplayMode(.large)
@@ -158,13 +146,14 @@ struct ProductManagementView: View {
             ToolbarItem(placement: .navigationBarTrailing) {
                 HStack(spacing: 16) {
                     Button(action: {
-                        LopanHapticEngine.shared.light()
-                        showSearch.toggle()
+                        LopanHapticEngine.shared.medium()
+                        showAddProduct = true
                     }) {
-                        Image(systemName: "magnifyingglass")
+                        Image(systemName: "plus")
                             .foregroundColor(LopanColors.viewModeIconColor)
                     }
-                    .accessibilityLabel("Search products")
+                    .accessibilityLabel("Add product")
+                    .accessibilityHint("Opens form to add a new product")
                     .disabled(!showHeaderContent)
 
                     Menu {
@@ -176,7 +165,7 @@ struct ProductManagementView: View {
                             }) {
                                 Label("List View", systemImage: viewMode == .list ? "checkmark.circle.fill" : "list.bullet")
                             }
-                            
+
                             Button(action: {
                                 LopanHapticEngine.shared.light()
                                 viewMode = .grid
@@ -184,9 +173,9 @@ struct ProductManagementView: View {
                                 Label("Grid View", systemImage: viewMode == .grid ? "checkmark.circle.fill" : "square.grid.2x2")
                             }
                         }
-                        
+
                         Divider()
-                        
+
                         // Filters Section
                         Button(action: {
                             LopanHapticEngine.shared.light()
@@ -412,28 +401,6 @@ struct ProductManagementView: View {
             }
         }
         .padding(16)
-    }
-
-    // MARK: - Floating Action Button
-
-    /// FAB in lower right corner for adding products
-    private var floatingActionButton: some View {
-        Button(action: {
-            LopanHapticEngine.shared.medium()
-            showAddProduct = true
-        }) {
-            Image(systemName: "plus")
-                .font(.system(size: 24, weight: .semibold))
-                .foregroundColor(.white)
-                .frame(width: 56, height: 56)
-                .background(
-                    Circle()
-                        .fill(LopanColors.primary) // Primary indigo
-                        .shadow(color: (LopanColors.primary).opacity(0.3), radius: 8, x: 0, y: 4)
-                )
-        }
-        .accessibilityLabel("Add product")
-        .accessibilityHint("Opens form to add a new product")
     }
 
     // MARK: - Filter Drawer View
