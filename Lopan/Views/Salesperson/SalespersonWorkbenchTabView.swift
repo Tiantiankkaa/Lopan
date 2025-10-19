@@ -124,31 +124,17 @@ struct SalespersonWorkbenchTabView: View {
                 Label(SalespersonTab.returns.titleKey, systemImage: SalespersonTab.returns.systemImage)
             }
 
-            // Tab 4: Customers
+            // Tab 4: Customers (uses shared view instance)
             Tab(value: SalespersonTab.customers) {
-                tabContainer {
-                    CustomerManagementView(
-                        selectedTab: $selectedCustomerFilter,
-                        isScrolled: $isCustomerScrolled,
-                        manuallyCollapsed: $manuallyCollapsed,
-                        searchText: $searchText
-                    )
-                }
+                sharedCustomerView
             } label: {
                 Label(SalespersonTab.customers.titleKey, systemImage: SalespersonTab.customers.systemImage)
             }
 
-            // Tab 5: Search (only visible on Customer tab)
+            // Tab 5: Search (uses same shared view instance - no data reload on switch)
             if selectedTab == .customers || selectedTab == .search {
                 Tab(value: SalespersonTab.search, role: .search) {
-                    tabContainer {
-                        CustomerManagementView(
-                            selectedTab: $selectedCustomerFilter,
-                            isScrolled: $isCustomerScrolled,
-                            manuallyCollapsed: $manuallyCollapsed,
-                            searchText: $searchText
-                        )
-                    }
+                    sharedCustomerView
                 } label: {
                     Label(SalespersonTab.search.titleKey, systemImage: SalespersonTab.search.systemImage)
                 }
@@ -233,6 +219,21 @@ struct SalespersonWorkbenchTabView: View {
 // MARK: - Tab Container Helper
 
 extension SalespersonWorkbenchTabView {
+
+    /// Shared customer management view to prevent duplicate instances and data reloading
+    /// Using .id() to maintain stable identity across Tab switches
+    @ViewBuilder
+    private var sharedCustomerView: some View {
+        tabContainer {
+            CustomerManagementView(
+                selectedTab: $selectedCustomerFilter,
+                isScrolled: $isCustomerScrolled,
+                manuallyCollapsed: $manuallyCollapsed,
+                searchText: $searchText
+            )
+            .id("customer-management-shared") // Stable identity prevents view recreation
+        }
+    }
 
     @ViewBuilder
     private func tabContainer<Content: View>(@ViewBuilder content: () -> Content) -> some View {
