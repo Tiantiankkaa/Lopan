@@ -312,7 +312,6 @@ struct CustomerManagementView: View {
                     .scrollDismissesKeyboard(.interactively)
                     .onScrollPhaseChange { oldPhase, newPhase in
                         scrollPhase = newPhase
-                        print("🌀 [CustomerManagementView] Scroll phase: \(oldPhase) → \(newPhase)")
                     }
                     .onScrollGeometryChange(for: CGFloat.self) { geometry in
                         // Extract content offset Y position
@@ -322,27 +321,19 @@ struct CustomerManagementView: View {
                         let isNowScrolled = newValue > 5
                         let shouldExpand = newValue < 3 && isScrolled  // Reverse scroll to near top
 
-                        print("📊 [CustomerManagementView] offset: \(newValue), phase: \(scrollPhase), isScrolled: \(isScrolled), manual: \(manuallyCollapsed)")
-
                         if shouldExpand {
                             // iOS 26 native behavior: Scroll to top → expand tab bar and reset manual flag
                             isScrolled = false
                             manuallyCollapsed = false
-                            print("⬆️ [CustomerManagementView] Scrolled to top, expanding")
                         } else if manuallyCollapsed {
                             // Manual collapse is active - only reset on NEW DOWNWARD gesture
                             if scrollPhase == .interacting && newValue > oldValue && isNowScrolled && !isScrolled {
                                 // User started DOWNWARD scroll gesture → reset manual collapse
                                 manuallyCollapsed = false
                                 isScrolled = true
-                                print("🔄 [CustomerManagementView] New downward gesture detected, resetting manual collapse")
-                            } else {
-                                // Upward scroll, momentum, or idle → ignore
-                                print("🚫 [CustomerManagementView] Ignoring scroll (phase: \(scrollPhase), direction: \(newValue > oldValue ? "down" : "up"))")
                             }
                         } else if isScrolled != isNowScrolled {
                             isScrolled = isNowScrolled
-                            print("✅ [CustomerManagementView] isScrolled → \(isNowScrolled)")
                         }
                     }
                     .onAppear {

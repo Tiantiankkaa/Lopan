@@ -84,13 +84,10 @@ struct SalespersonWorkbenchTabView: View {
         Binding(
             get: { self.selectedTab },
             set: { newValue in
-                print("📍 [TabView] Tab tapped: \(newValue.rawValue) (current: \(self.selectedTab.rawValue))")
-
                 // Detect tap on already selected Customer tab
                 if newValue == .customers && self.selectedTab == .customers && self.isCustomerScrolled {
                     // User tapped on already selected Customer tab while scrolled
                     self.isCustomerScrolled = false
-                    print("🎯 [TabView] Tapped current Customer tab, collapsing filter bar (iOS 26 native behavior)")
                 }
 
                 // Normal tab selection (including search)
@@ -101,8 +98,6 @@ struct SalespersonWorkbenchTabView: View {
     }
 
     var body: some View {
-        let _ = print("🎯 [TabView] Body render - selectedTab: \(selectedTab.rawValue), isCustomerScrolled: \(isCustomerScrolled)")
-
         TabView(selection: tabSelectionBinding) {
             // Tab 1: Overview
             Tab(value: SalespersonTab.overview) {
@@ -164,12 +159,9 @@ struct SalespersonWorkbenchTabView: View {
         .onTabBarTap { tappedIndex in
             // Map tab index to SalespersonTab enum
             // Index mapping: 0=overview, 1=stockouts, 2=returns, 3=customers, 4=addCustomer(conditional)
-            print("🎯 [UIKit] Tab bar tapped at index: \(tappedIndex)")
 
             // Check if Customer tab (index 3) was tapped while already selected and scrolled
             if tappedIndex == 3 && selectedTab == .customers && isCustomerScrolled {
-                print("✨ [UIKit] Customer tab tapped while scrolled, collapsing filter bar")
-
                 // Animate the state change to ensure smooth UI update
                 withAnimation(.easeInOut(duration: 0.2)) {
                     manuallyCollapsed = true  // Prioritize user tap over scroll events
@@ -184,13 +176,6 @@ struct SalespersonWorkbenchTabView: View {
         .onAppear {
             selectedTab = SalespersonTab(rawValue: storedTabValue) ?? .overview
             configureTabBarAppearance()
-            print("🎬 SalespersonWorkbenchTabView appeared")
-        }
-        .onChange(of: selectedCustomerFilter) { _, newValue in
-            print("🔍 Customer filter changed: \(newValue.rawValue)")
-        }
-        .onChange(of: isCustomerScrolled) { oldValue, newValue in
-            print("🔄 [TabView] isCustomerScrolled changed: \(oldValue) → \(newValue)")
         }
         .sheet(isPresented: $showingAddCustomer) {
             AddCustomerView(onSave: { customer in
